@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>Sean</Authors>
+		<Copyright>Copyright © 2019-2021 Sean</Copyright>
+		<Description>ORM, Support all relational databases.</Description>
+		<Version>2.0.0-beta2021072901</Version>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+		<Reference Include="System.ComponentModel.DataAnnotations" />
+		<Reference Include="System.Transactions" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' != 'net461'">
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Dapper" Version="2.0.90" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj" />
+		<ProjectReference Include="..\Example.Infrastructure\Example.Infrastructure.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MySql.Data" Version="8.0.25" />
+	</ItemGroup>
+
+</Project>
