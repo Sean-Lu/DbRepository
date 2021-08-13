@@ -4,11 +4,12 @@
 
 - 核心类：
 
-| Class                                         | 说明                                   |
-| --------------------------------------------- | -------------------------------------- |
-| `BaseRepository<TEntity>`<br>`BaseRepository` | 抽象类，基于`DbFactory`+`Dapper`扩展   |
-| `DbFactory`                                   | 数据库工厂                             |
-| `DbProviderFactoryManager`                    | `System.Data.Common.DbProviderFactory` |
+| Class                                         | 说明                                                         |
+| --------------------------------------------- | ------------------------------------------------------------ |
+| `BaseRepository<TEntity>`<br>`BaseRepository` | 抽象类，基于`DbFactory`+`Dapper`扩展，支持的数据库见枚举：`DatabaseType` |
+| `DbFactory`                                   | 数据库工厂，支持所有关系型数据库（实现`DbProviderFactory`）  |
+| `SqlFactory`                                  | `SQL`创建工厂（增\删\改\查\...）                             |
+| `DbProviderFactoryManager`                    | `System.Data.Common.DbProviderFactory`                       |
 
 - `DbFactory`特别说明：
 
@@ -50,13 +51,14 @@ Get<T>()、GetList<T>() 其中 T ：
 	</appSettings>
 	<system.data>
 		<DbProviderFactories>
-			<add name="MySQL Data Provider" invariant="MySql.Data.MySqlClient" description=".Net Framework Data Provider for MySQL" type="MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data, Version=8.0.25, Culture=neutral, PublicKeyToken=c5687fc88969c44d"/>
+			<remove invariant="MySql.Data.MySqlClient" />
+			<add name="MySQL Data Provider" invariant="MySql.Data.MySqlClient" description=".Net Framework Data Provider for MySQL" type="MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data"/>
 		</DbProviderFactories>
 	</system.data>
 </configuration>
 ```
 
-- `.NET Core`: `appsettings.json`【通过`ProviderName`或`DatabaseType`（枚举）来配置数据库客户端驱动】
+- `.NET Core`: `appsettings.json`【**通过`ProviderName`或`DatabaseType`（枚举）来配置数据库客户端驱动**】
 
 ```
 {
@@ -72,6 +74,34 @@ Get<T>()、GetList<T>() 其中 T ：
     "test_SQLite": "data source=D:\\XXX.db;version=3;DatabaseType=SQLite"
   }
 }
+```
+
+## 默认数据库驱动配置
+
+> 配置文件：`dllconfigs\Sean.Core.DbRepository.dll.config`
+
+```
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+	<configSections>
+		<section name="dbProviderMap" type="Sean.Core.DbRepository.Config.DbProviderMapSection, Sean.Core.DbRepository" />
+	</configSections>
+	<dbProviderMap>
+		<databases>
+			<!-- Note: Only support relational database -->
+			<database name="MySql" providerInvariantName="MySql.Data.MySqlClient" factoryTypeAssemblyQualifiedName="MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"/>
+			<database name="SqlServer" providerInvariantName="System.Data.SqlClient" factoryTypeAssemblyQualifiedName="System.Data.SqlClient.SqlClientFactory,System.Data"/>
+			<database name="SqlServerCe" providerInvariantName="Microsoft.SqlServerCe.Client" factoryTypeAssemblyQualifiedName="Microsoft.SqlServerCe.Client.SqlCeClientFactory,Microsoft.SqlServerCe.Client"/>
+			<database name="Oracle" providerInvariantName="Oracle.ManagedDataAccess.Client" factoryTypeAssemblyQualifiedName="Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"/>
+			<database name="SQLite" providerInvariantName="System.Data.SQLite" factoryTypeAssemblyQualifiedName="System.Data.SQLite.SQLiteFactory,System.Data.SQLite"/>
+			<database name="Access" providerInvariantName="System.Data.OleDb" factoryTypeAssemblyQualifiedName="System.Data.OleDb.OleDbFactory,System.Data"/>
+			<database name="Firebird" providerInvariantName="FirebirdSql.Data.FirebirdClient" factoryTypeAssemblyQualifiedName="FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"/>
+			<database name="PostgreSql" providerInvariantName="Npgsql" factoryTypeAssemblyQualifiedName="Npgsql.NpgsqlFactory,Npgsql"/>
+			<database name="DB2" providerInvariantName="IBM.Data.DB2" factoryTypeAssemblyQualifiedName="IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"/>
+			<database name="Informix" providerInvariantName="IBM.Data.Informix" factoryTypeAssemblyQualifiedName="IBM.Data.Informix.IfxFactory,IBM.Data.Informix"/>
+		</databases>
+	</dbProviderMap>
+</configuration>
 ```
 
 ## 使用示例

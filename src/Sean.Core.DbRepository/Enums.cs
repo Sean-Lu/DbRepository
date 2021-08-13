@@ -56,6 +56,7 @@
     /// </summary>
     public enum SqlOperation
     {
+        None,
         /// <summary>
         /// 等于
         /// </summary>
@@ -80,21 +81,91 @@
         /// 大于等于
         /// </summary>
         GreaterOrEqual,
+    }
+
+    public enum WhereSqlKeyword
+    {
+        None,
         /// <summary>
-        /// 包含：%xxx%
+        /// AND
         /// </summary>
-        Contains,
+        And,
         /// <summary>
-        /// 开始包含：xxx%
+        /// OR
         /// </summary>
-        StartsWith,
+        Or,
+    }
+
+    /// <summary>
+    /// SQL关键字
+    /// </summary>
+    public enum SqlKeyword
+    {
+        None,
+        Create,
+        Drop,
+        Index,
         /// <summary>
-        /// 结束包含%xxx
+        /// INSERT INTO
         /// </summary>
-        EndsWith,
+        InsertInto,
+        /// <summary>
+        /// DELETE
+        /// </summary>
+        Delete,
+        /// <summary>
+        /// UPDATE
+        /// </summary>
+        Update,
+        /// <summary>
+        /// SELECT
+        /// </summary>
+        Select,
+        /// <summary>
+        /// FROM
+        /// </summary>
+        From,
+        Top,
+        Limit,
+        Between,
+        Union,
+        UnionAll,
+        Distinct,
+        Where,
+        GroupBy,
+        Having,
+        OrderBy,
         /// <summary>
         /// IN
         /// </summary>
         In,
+        /// <summary>
+        /// LIKE
+        /// </summary>
+        Like,
+        /// <summary>
+        /// AND
+        /// </summary>
+        And,
+        /// <summary>
+        /// OR
+        /// </summary>
+        Or,
+        /// <summary>
+        /// INNER JOIN（同JOIN）：如果表中有至少一个匹配，则返回行
+        /// </summary>
+        InnerJoin,
+        /// <summary>
+        /// LEFT JOIN：即使右表中没有匹配，也从左表返回所有的行
+        /// </summary>
+        LeftJoin,
+        /// <summary>
+        /// RIGHT JOIN：即使左表中没有匹配，也从右表返回所有的行
+        /// </summary>
+        RightJoin,
+        /// <summary>
+        /// FULL JOIN：只要其中一个表中存在匹配，则返回行
+        /// </summary>
+        FullJoin,
     }
 }

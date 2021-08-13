@@ -6,6 +6,7 @@ using Dapper;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
 using Microsoft.Extensions.Configuration;
+using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Dapper.Impls;
 using Sean.Utility.Contracts;
 
@@ -22,12 +23,34 @@ namespace Example.Domain.Repositories
             _logger = logger;
         }
 
+        public override void OutputExecutedSql(string sql, object param)
+        {
+            _logger.LogInfo($"执行了SQL: {sql}");
+        }
+
 
         public async Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
         {
-            var sql = $"SELECT * FROM `{MainTableName}` WHERE {nameof(CheckInLogEntity.UserId)}=@{nameof(CheckInLogEntity.UserId)} LIMIT {(pageIndex - 1) * pageSize},{pageSize}";
-            var entities = await ExecuteAsync(c => c.QueryAsync<CheckInLogEntity>(sql, new { UserId = userId }), false);
-            return entities;
+            var param = new { UserId = userId, CheckInType = 1 };
+
+            //// SqlFactory示例1：
+            //var sqlFactory = NewSqlFactory(true)
+            //    .Page(pageIndex, pageSize)
+            //    .Where($"{nameof(CheckInLogEntity.UserId)}=@{nameof(CheckInLogEntity.UserId)}")
+            //    .SetParameter(param);
+
+            // SqlFactory示例2：
+            var sqlFactory = NewSqlFactory(true)
+                .Page(pageIndex, pageSize)
+                .WhereField(nameof(CheckInLogEntity.UserId), SqlOperation.Equal, WhereSqlKeyword.None)
+                .WhereField(nameof(CheckInLogEntity.CheckInType), SqlOperation.Equal, WhereSqlKeyword.And)
+                .SetParameter(param);
+
+            //// 返回结果示例1：
+            //return await ExecuteAsync(async connection => await connection.QueryAsync<CheckInLogEntity>(sqlFactory.QueryPageSql, param));
+
+            // 返回结果示例2：
+            return await QueryPageAsync(sqlFactory);
         }
     }
 }

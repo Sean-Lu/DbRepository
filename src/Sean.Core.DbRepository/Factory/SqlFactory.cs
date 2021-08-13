@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -7,31 +8,14 @@ using Sean.Core.DbRepository.Contracts;
 using Sean.Core.DbRepository.Extensions;
 #if !NET40
 using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 #endif
 
 namespace Sean.Core.DbRepository.Factory
 {
     public class SqlFactory
     {
-        protected SqlFactory(DatabaseType dbType, string tableName)
-        {
-            if (string.IsNullOrWhiteSpace(tableName))
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
-
-            _dbType = dbType;
-            _tableName = tableName;
-
-            _includeFields = new List<string>();
-            _ignoreFields = new List<string>();
-            _identityFields = new List<string>();
-        }
-
-        public static SqlFactory Build(DatabaseType dbType, string tableName)
-        {
-            return new(dbType, tableName);
-        }
-
-#region SQL
+        #region SQL
         /// <summary>
         /// SQL：新增数据
         /// </summary>
@@ -192,11 +176,17 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
 
-        public string WhereSql => !string.IsNullOrWhiteSpace(_where) ? $" WHERE {_where}" : string.Empty;
+        public string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
+
         public string GroupBySql => !string.IsNullOrWhiteSpace(_groupBy) ? $" GROUP BY {_groupBy}" : string.Empty;
         public string HavingSql => !string.IsNullOrWhiteSpace(_having) ? $" HAVING {_having}" : string.Empty;
         public string OrderBySql => !string.IsNullOrWhiteSpace(_orderBy) ? $" ORDER BY {_orderBy}" : string.Empty;
-#endregion
+        #endregion
+
+        /// <summary>
+        /// 获取SQL入参
+        /// </summary>
+        public object Parameter => _parameter;
 
         protected readonly DatabaseType _dbType;
         protected readonly string _tableName;
@@ -204,22 +194,37 @@ namespace Sean.Core.DbRepository.Factory
         /// <summary>
         /// 包含字段
         /// </summary>
-        protected List<string> _includeFields;
+        protected List<string> _includeFields = new();
         /// <summary>
         /// 忽略字段
         /// </summary>
-        protected List<string> _ignoreFields;
+        protected List<string> _ignoreFields = new();
         /// <summary>
         /// 自增字段
         /// </summary>
-        protected List<string> _identityFields;
+        protected List<string> _identityFields = new();
         protected int _topNum;
         protected int _pageIndex;
         protected int _pageSize;
-        protected string _where;
-        private string _groupBy;
-        private string _having;
-        private string _orderBy;
+        protected Lazy<StringBuilder> _where = new();
+        protected string _groupBy;
+        protected string _having;
+        protected string _orderBy;
+        protected object _parameter;
+
+        protected SqlFactory(DatabaseType dbType, string tableName)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
+
+            _dbType = dbType;
+            _tableName = tableName;
+        }
+
+        public static SqlFactory Build(DatabaseType dbType, string tableName)
+        {
+            return new(dbType, tableName);
+        }
 
         /// <summary>
         /// 包含字段
@@ -317,7 +322,25 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public virtual SqlFactory Where(string where)
         {
-            this._where = where;
+            if (!string.IsNullOrWhiteSpace(where))
+            {
+                if (_where.Value.Length > 0) this._where.Value.Append(" ");
+                this._where.Value.Append(where);
+            }
+            return this;
+        }
+        public virtual SqlFactory WhereField(string fieldName, SqlOperation operation, WhereSqlKeyword keyword)
+        {
+            if (!string.IsNullOrWhiteSpace(fieldName))
+            {
+                if (_where.Value.Length > 0) this._where.Value.Append(" ");
+                var keywordSqlString = keyword.ToSqlString();
+                if (!string.IsNullOrWhiteSpace(keywordSqlString))
+                {
+                    this._where.Value.Append($"{keywordSqlString} ");
+                }
+                this._where.Value.Append($"{_dbType.MarkAsTableOrFieldName(fieldName)}{operation.ToSqlString()}{_dbType.MarkAsInputParameter(fieldName)}");
+            }
             return this;
         }
         /// <summary>
@@ -361,11 +384,23 @@ namespace Sean.Core.DbRepository.Factory
             this._returnLastInsertId = returnLastInsertId;
             return this;
         }
+
+        /// <summary>
+        /// 设置SQL入参
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public virtual SqlFactory SetParameter(object param)
+        {
+            this._parameter = param;
+            return this;
+        }
     }
 
 #if !NET40
     public class SqlFactory<TEntity> : SqlFactory
     {
+        #region override properties
         /// <summary>
         /// SQL：删除数据（如果没有指定WHERE过滤条件，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段）
         /// </summary>
@@ -399,6 +434,7 @@ namespace Sean.Core.DbRepository.Factory
                 return base.UpdateSql;
             }
         }
+        #endregion
 
         private SqlFactory(DatabaseType dbType, string tableName) : base(dbType, tableName)
         {
@@ -433,20 +469,116 @@ namespace Sean.Core.DbRepository.Factory
             return Build(repository.Factory.DbType, repository.TableName(), autoIncludeFields);
         }
 
+        #region override methods
+        public virtual SqlFactory<TEntity> IncludeFields(params string[] fields)
+        {
+            return base.IncludeFields(fields) as SqlFactory<TEntity>;
+        }
+
+        public virtual SqlFactory<TEntity> IgnoreFields(params string[] fields)
+        {
+            return base.IgnoreFields(fields) as SqlFactory<TEntity>;
+        }
+
+        public virtual SqlFactory<TEntity> IdentityFields(params string[] fields)
+        {
+            return base.IdentityFields(fields) as SqlFactory<TEntity>;
+        }
+
+        public virtual SqlFactory<TEntity> Top(int top)
+        {
+            return base.Top(top) as SqlFactory<TEntity>;
+        }
+
+        public virtual SqlFactory<TEntity> Page(int pageIndex, int pageSize)
+        {
+            return base.Page(pageIndex, pageSize) as SqlFactory<TEntity>;
+        }
+
+        public virtual SqlFactory<TEntity> Where(string where)
+        {
+            return base.Where(where) as SqlFactory<TEntity>;
+        }
+        public virtual SqlFactory<TEntity> WhereField(string fieldName, SqlOperation operation, WhereSqlKeyword keyword)
+        {
+            return base.WhereField(fieldName, operation, keyword) as SqlFactory<TEntity>;
+        }
+
+        public virtual SqlFactory<TEntity> GroupBy(string groupBy)
+        {
+            return base.GroupBy(groupBy) as SqlFactory<TEntity>;
+        }
+
+        public virtual SqlFactory<TEntity> Having(string having)
+        {
+            return base.Having(having) as SqlFactory<TEntity>;
+        }
+
+        public virtual SqlFactory<TEntity> OrderBy(string orderBy)
+        {
+            return base.OrderBy(orderBy) as SqlFactory<TEntity>;
+        }
+
+        public virtual SqlFactory<TEntity> ReturnLastInsertId(bool returnLastInsertId)
+        {
+            return base.ReturnLastInsertId(returnLastInsertId) as SqlFactory<TEntity>;
+        }
+
+        public virtual SqlFactory<TEntity> SetParameter(object param)
+        {
+            return base.SetParameter(param) as SqlFactory<TEntity>;
+        }
+        #endregion
+
+        public virtual SqlFactory<TEntity> Where(Expression<Func<TEntity, object>> expression)
+        {
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+
+            string memberName = null;
+            var expressionBody = expression.Body;
+
+            if (expression.ReturnType == typeof(bool))
+            {
+
+            }
+
+            if (expressionBody is LambdaExpression lambdaExpression)
+            {
+                var aa = lambdaExpression.ReturnType;
+            }
+            if (expressionBody is UnaryExpression unaryExpression)
+            {
+                if (unaryExpression.Operand is MemberExpression memberExpression)
+                {
+                    memberName = memberExpression.Member.Name;
+                }
+            }
+            else if (expressionBody is MemberExpression memberExpression)
+            {
+                memberName = memberExpression.Member.Name;
+            }
+            else
+            {
+                throw new NotSupportedException($"暂不支持的 Expression.Body : {expressionBody.Type.Name}");
+            }
+
+            return this;
+        }
+
         /// <summary>
         /// 仅用于 <see cref="InsertSql"/>
         /// </summary>
         /// <param name="returnLastInsertId"></param>
         /// <param name="keyIdentityProperty"></param>
         /// <returns></returns>
-        public SqlFactory<TEntity> ReturnLastInsertId(bool returnLastInsertId, out PropertyInfo keyIdentityProperty)
+        public virtual SqlFactory<TEntity> ReturnLastInsertId(bool returnLastInsertId, out PropertyInfo keyIdentityProperty)
         {
+            _returnLastInsertId = returnLastInsertId;
             keyIdentityProperty = null;
             if (returnLastInsertId)
             {
                 keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty();
             }
-            _returnLastInsertId = returnLastInsertId;
             return this;
         }
     }

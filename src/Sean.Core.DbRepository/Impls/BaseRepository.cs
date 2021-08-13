@@ -57,7 +57,8 @@ namespace Sean.Core.DbRepository.Impls
         /// 输出执行的SQL语句
         /// </summary>
         /// <param name="sql"></param>
-        public virtual void OutputExecutedSql(string sql)
+        /// <param name="param"></param>
+        public virtual void OutputExecutedSql(string sql, object param)
         {
 
         }

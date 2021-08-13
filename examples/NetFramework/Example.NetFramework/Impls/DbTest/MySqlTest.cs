@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using Example.NetFramework.Entities;
@@ -8,6 +9,7 @@ using MySql.Data.MySqlClient;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Dapper.Impls;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Factory;
 using Sean.Core.DbRepository.Impls;
 using Sean.Utility.Contracts;
 using Sean.Utility.Extensions;
@@ -28,7 +30,7 @@ namespace Example.NetFramework.Impls.DbTest
             _logger = new SimpleLocalLogger<MySqlTest>();
         }
 
-        public override void OutputExecutedSql(string sql)
+        public override void OutputExecutedSql(string sql, object param)
         {
             _logger.LogInfo($"执行了SQL: {sql}");
         }
@@ -38,19 +40,24 @@ namespace Example.NetFramework.Impls.DbTest
             //var time = Factory.ExecuteScalar<DateTime>("select now()");
             //_logger.LogInfo($"数据库当前时间：{time.ToLongDateTimeWithTimezone()}");
 
-            //var list = Search(100000, 5, 3);
-            //_logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonHelper.SerializeFormatIndented(list)}");
+            #region 查询数据
+            var list = QueryPage(NewSqlFactory(true)
+                .Page(5, 3)
+                .Where($"{nameof(CheckInLogEntity.UserId)}=@{nameof(CheckInLogEntity.UserId)}")
+                .SetParameter(new { UserId = 100000 }));
+            _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonHelper.SerializeFormatIndented(list)}");
+            #endregion
 
             #region 新增单条数据
-            var entity = new CheckInLogEntity
-            {
-                UserId = 100000,
-                CheckInType = 1,
-                CreateTime = DateTime.Now,
-                IP = "127.0.0.1"
-            };
-            var addResult = Add(entity, true);
-            _logger.LogInfo($"新增单条数据结果：{addResult}{Environment.NewLine}{JsonHelper.SerializeFormatIndented(entity)}");
+            //var entity = new CheckInLogEntity
+            //{
+            //    UserId = 100000,
+            //    CheckInType = 1,
+            //    CreateTime = DateTime.Now,
+            //    IP = "127.0.0.1"
+            //};
+            //var addResult = Add(entity, true);
+            //_logger.LogInfo($"新增单条数据结果：{addResult}{Environment.NewLine}{JsonHelper.SerializeFormatIndented(entity)}");
             #endregion
 
             #region 新增批量数据
@@ -72,21 +79,16 @@ namespace Example.NetFramework.Impls.DbTest
             //_logger.LogInfo($"表是否存在：{isTableExists}");
         }
 
-        public IEnumerable<CheckInLogEntity> Search(long userId, int pageIndex, int pageSize)
-        {
-            var sql = $"SELECT * FROM `{MainTableName}` WHERE {nameof(CheckInLogEntity.UserId)}=@{nameof(CheckInLogEntity.UserId)} LIMIT {(pageIndex - 1) * pageSize},{pageSize}";
-            return Execute(c => c.Query<CheckInLogEntity>(sql, new { UserId = userId }));
-        }
-
         /// <summary>
         /// UNION ALL：查询所有分表数据
         /// </summary>
         private void UnionAllTest()
         {
+            var hexCount = 2;// 16进制位数
             var sqlList = new List<string>();
-            for (var i = 0; i < 256; i++)
+            for (var i = 0; i < Math.Pow(16, hexCount); i++)
             {
-                var tableName = $"OrderExtUser_{Convert.ToString(i, 16).PadLeft(2, '0').ToLower()}";
+                var tableName = $"OrderExtUser_{Convert.ToString(i, 16).PadLeft(hexCount, '0').ToLower()}";
                 sqlList.Add($"SELECT * FROM {tableName}");
             }
             var sql = string.Join(" UNION ALL ", sqlList);

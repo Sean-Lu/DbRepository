@@ -53,12 +53,22 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
 
         /// <summary>
+        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository, bool)"/>
+        /// </summary>
+        /// <param name="autoIncludeFields"></param>
+        /// <returns></returns>
+        public virtual SqlFactory<TEntity> NewSqlFactory(bool autoIncludeFields = true)
+        {
+            return SqlFactory<TEntity>.Build(this, autoIncludeFields);
+        }
+
+        /// <summary>
         /// 新增
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="returnId"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         public virtual bool Add(TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
@@ -70,9 +80,9 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// 新增
         /// </summary>
         /// <param name="entitys"></param>
-        /// <param name="returnId"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         public virtual bool Add(IList<TEntity> entitys, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
@@ -85,8 +95,8 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// 删除
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         public virtual bool Delete(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
@@ -99,8 +109,8 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// 更新
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         public virtual bool Update(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
@@ -113,37 +123,43 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// 查询
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual IEnumerable<TEntity> Query(SqlFactory sqlFactory)
+        public virtual IEnumerable<TEntity> Query(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Query<TEntity>(this, sqlFactory));
+            return Execute(connection => connection.Query<TEntity>(this, sqlFactory, commandTimeout), master);
         }
 
         /// <summary>
         /// 分页查询
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual IEnumerable<TEntity> QueryPage(SqlFactory sqlFactory)
+        public virtual IEnumerable<TEntity> QueryPage(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.QueryPage<TEntity>(this, sqlFactory));
+            return Execute(connection => connection.QueryPage<TEntity>(this, sqlFactory, commandTimeout), master);
         }
 
         /// <summary>
         /// 统计数量
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual int Count(SqlFactory sqlFactory)
+        public virtual int Count(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Count(this, sqlFactory));
+            return Execute(connection => connection.Count(this, sqlFactory, commandTimeout), master);
         }
 
         /// <summary>
         /// 表是否存在
         /// </summary>
         /// <param name="tableName"></param>
-        /// <param name="master"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         public virtual bool IsTableExists(string tableName, bool master = true)
         {
@@ -156,9 +172,9 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// 新增
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="returnId"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         public virtual async Task<bool> AddAsync(TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
@@ -170,9 +186,9 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// 新增
         /// </summary>
         /// <param name="entitys"></param>
-        /// <param name="returnId"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         public virtual async Task<bool> AddAsync(IList<TEntity> entitys, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
@@ -185,8 +201,8 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// 删除
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         public virtual async Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
@@ -199,8 +215,8 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// 更新
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         public virtual async Task<bool> UpdateAsync(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
@@ -213,37 +229,43 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// 查询
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<IEnumerable<TEntity>> QueryAsync(SqlFactory sqlFactory)
+        public virtual async Task<IEnumerable<TEntity>> QueryAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.QueryAsync<TEntity>(this, sqlFactory));
+            return await ExecuteAsync(async connection => await connection.QueryAsync<TEntity>(this, sqlFactory, commandTimeout), master);
         }
 
         /// <summary>
         /// 分页查询
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<IEnumerable<TEntity>> QueryPageAsync(SqlFactory sqlFactory)
+        public virtual async Task<IEnumerable<TEntity>> QueryPageAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.QueryPageAsync<TEntity>(this, sqlFactory));
+            return await ExecuteAsync(async connection => await connection.QueryPageAsync<TEntity>(this, sqlFactory, commandTimeout), master);
         }
 
         /// <summary>
         /// 统计数量
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<int> CountAsync(SqlFactory sqlFactory)
+        public virtual async Task<int> CountAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.CountAsync(this, sqlFactory));
+            return await ExecuteAsync(async connection => await connection.CountAsync(this, sqlFactory, commandTimeout), master);
         }
 
         /// <summary>
         /// 表是否存在
         /// </summary>
         /// <param name="tableName"></param>
-        /// <param name="master"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         public virtual async Task<bool> IsTableExistsAsync(string tableName, bool master = true)
         {

@@ -25,7 +25,8 @@ namespace Sean.Core.DbRepository.Contracts
         /// 输出执行的SQL语句
         /// </summary>
         /// <param name="sql"></param>
-        void OutputExecutedSql(string sql);
+        /// <param name="param"></param>
+        void OutputExecutedSql(string sql, object param);
 
         /// <summary>
         /// 同步执行
@@ -105,13 +106,22 @@ namespace Sean.Core.DbRepository.Contracts
         /// </summary>
         string MainTableName { get; }
 
+#if !NET40
+        /// <summary>
+        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository, bool)"/>
+        /// </summary>
+        /// <param name="autoIncludeFields"></param>
+        /// <returns></returns>
+        SqlFactory<TEntity> NewSqlFactory(bool autoIncludeFields = true);
+#endif
+
         /// <summary>
         /// 新增
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="returnId"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         bool Add(TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null);
 
@@ -119,9 +129,9 @@ namespace Sean.Core.DbRepository.Contracts
         /// 新增
         /// </summary>
         /// <param name="entitys"></param>
-        /// <param name="returnId"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         bool Add(IList<TEntity> entitys, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null);
 
@@ -129,8 +139,8 @@ namespace Sean.Core.DbRepository.Contracts
         /// 删除
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         bool Delete(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
 
@@ -138,8 +148,8 @@ namespace Sean.Core.DbRepository.Contracts
         /// 更新
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         bool Update(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
 
@@ -147,28 +157,34 @@ namespace Sean.Core.DbRepository.Contracts
         /// 查询
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        IEnumerable<TEntity> Query(SqlFactory sqlFactory);
+        IEnumerable<TEntity> Query(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 分页查询
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        IEnumerable<TEntity> QueryPage(SqlFactory sqlFactory);
+        IEnumerable<TEntity> QueryPage(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 统计数量
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        int Count(SqlFactory sqlFactory);
+        int Count(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 表是否存在
         /// </summary>
         /// <param name="tableName"></param>
-        /// <param name="master"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         bool IsTableExists(string tableName, bool master = true);
 
@@ -176,9 +192,9 @@ namespace Sean.Core.DbRepository.Contracts
         /// 新增
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="returnId"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<bool> AddAsync(TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null);
 
@@ -186,9 +202,9 @@ namespace Sean.Core.DbRepository.Contracts
         /// 新增
         /// </summary>
         /// <param name="entitys"></param>
-        /// <param name="returnId"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<bool> AddAsync(IList<TEntity> entitys, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null);
 
@@ -196,8 +212,8 @@ namespace Sean.Core.DbRepository.Contracts
         /// 删除
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
 
@@ -205,8 +221,8 @@ namespace Sean.Core.DbRepository.Contracts
         /// 更新
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<bool> UpdateAsync(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
 
@@ -214,28 +230,34 @@ namespace Sean.Core.DbRepository.Contracts
         /// 查询
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<IEnumerable<TEntity>> QueryAsync(SqlFactory sqlFactory);
+        Task<IEnumerable<TEntity>> QueryAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 分页查询
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<IEnumerable<TEntity>> QueryPageAsync(SqlFactory sqlFactory);
+        Task<IEnumerable<TEntity>> QueryPageAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 统计数量
         /// </summary>
         /// <param name="sqlFactory"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<int> CountAsync(SqlFactory sqlFactory);
+        Task<int> CountAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 表是否存在
         /// </summary>
         /// <param name="tableName"></param>
-        /// <param name="master"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         Task<bool> IsTableExistsAsync(string tableName, bool master = true);
     }

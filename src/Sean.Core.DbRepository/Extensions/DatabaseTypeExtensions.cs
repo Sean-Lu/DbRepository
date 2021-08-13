@@ -64,7 +64,7 @@ namespace Sean.Core.DbRepository.Extensions
         }
 
         /// <summary>
-        /// Mark as table or field name to avoid conflict with keywords.
+        /// Mark as table or field name to avoid conflict with keyword.
         /// </summary>
         /// <param name="databaseType"></param>
         /// <param name="tableOrFieldName"></param>

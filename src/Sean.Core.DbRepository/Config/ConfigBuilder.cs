@@ -24,14 +24,10 @@ namespace Sean.Core.DbRepository.Config
                     ExeConfigFilename = ConfigFilePath
                 }, ConfigurationUserLevel.None).GetSection(sectionName) as T;
             }
-            else
+
+            if (ConfigurationManager.GetSection(sectionName) is T section)
             {
-#if !NETSTANDARD
-                if (ConfigurationManager.GetSection(sectionName) is T section)
-                {
-                    return section;
-                }
-#endif
+                return section;
             }
 
             return default;

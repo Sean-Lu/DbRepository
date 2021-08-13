@@ -159,7 +159,7 @@ namespace Sean.Core.DbRepository
             var section = ConfigBuilder.Get<DbProviderMapSection>(ConfigBuilder.DbProviderMapSectionName);
             if (section == null)
             {
-                #region 设置默认值
+                #region 设置数据库驱动配置（同配置文件）
                 section = new DbProviderMapSection();
                 section.Databases.Clear();
                 section.Databases.Add(new DatabaseElement(DatabaseType.MySql, "MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));
