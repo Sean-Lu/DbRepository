@@ -81,8 +81,23 @@
         /// 大于等于
         /// </summary>
         GreaterOrEqual,
+        /// <summary>
+        /// IN
+        /// </summary>
+        In,
+        /// <summary>
+        /// NOT IN
+        /// </summary>
+        NotIn,
+        /// <summary>
+        /// LIKE
+        /// </summary>
+        Like,
     }
 
+    /// <summary>
+    /// WHERE SQL语句关键字：AND、OR
+    /// </summary>
     public enum WhereSqlKeyword
     {
         None,
@@ -94,6 +109,37 @@
         /// OR
         /// </summary>
         Or,
+    }
+
+    /// <summary>
+    /// 括号
+    /// </summary>
+    public enum Include
+    {
+        None,
+        /// <summary>
+        /// 左括号：(
+        /// </summary>
+        Left,
+        /// <summary>
+        /// 右括号：)
+        /// </summary>
+        Right
+    }
+
+    /// <summary>
+    /// ORDER BY 排序方式：ASC、DESC
+    /// </summary>
+    public enum OrderByType
+    {
+        /// <summary>
+        /// ASC：升序（默认排序方式）
+        /// </summary>
+        Asc,
+        /// <summary>
+        /// DESC：降序
+        /// </summary>
+        Desc
     }
 
     /// <summary>

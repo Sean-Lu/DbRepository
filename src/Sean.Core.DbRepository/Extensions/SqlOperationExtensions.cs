@@ -25,6 +25,12 @@ namespace Sean.Core.DbRepository.Extensions
                     return ">";
                 case SqlOperation.GreaterOrEqual:
                     return ">=";
+                case SqlOperation.In:
+                    return "IN";
+                case SqlOperation.NotIn:
+                    return "NOT IN";
+                case SqlOperation.Like:
+                    return "LIKE";
                 default:
                     throw new NotSupportedException(operation.ToString());
             }

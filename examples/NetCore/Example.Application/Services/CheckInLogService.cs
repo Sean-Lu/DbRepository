@@ -21,6 +21,7 @@ namespace Example.Application.Services
         {
             _mapper = mapper;
             _checkInLogRepository = checkInLogRepository;
+            //_checkInLogRepository.SubTableDate = DateTime.Now;// 按时间分表
         }
 
         public async Task<List<CheckInLogDto>> SearchAsync(long userId, int pageIndex, int pageSize)

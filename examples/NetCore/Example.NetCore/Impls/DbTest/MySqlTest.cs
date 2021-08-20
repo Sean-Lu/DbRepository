@@ -33,7 +33,7 @@ namespace Example.NetCore.Impls.DbTest
 
         public void Execute()
         {
-            var list = _checkInLogService.SearchAsync(100000, 5, 3).Result;
+            var list = _checkInLogService.SearchAsync(100000, 1, 3).Result;
             _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonHelper.SerializeFormatIndented(list)}");
         }
     }

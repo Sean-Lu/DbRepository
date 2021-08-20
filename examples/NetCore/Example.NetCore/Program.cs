@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Sean.Core.Ioc;
 using Sean.Utility.Contracts;
 using Sean.Utility.Extensions;
+using Sean.Utility.Impls.Log;
 
 namespace Example.NetCore
 {
@@ -24,6 +25,8 @@ namespace Example.NetCore
                 services.AddSimpleLocalLogger();
                 services.AddApplicationDI();
             });
+
+            SimpleLocalLoggerBase.DateTimeFormat = time => time.ToLongDateTime();
 
             ISimpleDo toDo = IocContainer.Instance.GetService<MySqlTest>();
             toDo.Execute();

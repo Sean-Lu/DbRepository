@@ -8,7 +8,7 @@ namespace Example.Application.Dtos
     /// 签到明细日志表
     /// </summary>
     [AutoMap(typeof(CheckInLogEntity), ReverseMap = true)]
-    public partial class CheckInLogDto
+    public class CheckInLogDto
     {
         /// <summary>
         /// 自增主键
@@ -27,7 +27,7 @@ namespace Example.Application.Dtos
         /// </summary>
         public DateTime CreateTime { get; set; }
         /// <summary>
-        /// 客户端IP地址
+        /// IP地址
         /// </summary>
         public string IP { get; set; }
     }

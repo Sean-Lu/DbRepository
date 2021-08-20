@@ -16,19 +16,6 @@ namespace Sean.Core.DbRepository.Contracts
         DbFactory Factory { get; }
 
         /// <summary>
-        /// 表的名称
-        /// </summary>
-        /// <returns></returns>
-        string TableName();
-
-        /// <summary>
-        /// 输出执行的SQL语句
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="param"></param>
-        void OutputExecutedSql(string sql, object param);
-
-        /// <summary>
         /// 同步执行
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -102,9 +89,37 @@ namespace Sean.Core.DbRepository.Contracts
     public interface IBaseRepository<TEntity> : IBaseRepository
     {
         /// <summary>
-        /// 主表
+        /// 主表表名
         /// </summary>
         string MainTableName { get; }
+
+        /// <summary>
+        /// 表名：默认返回主表表名 <see cref="MainTableName"/>
+        /// </summary>
+        /// <returns></returns>
+        string TableName();
+
+        /// <summary>
+        /// 返回创建表的SQL语句（在方法 <see cref="CreateTableIfNotExist"/> 中使用）
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        string CreateTableSql(string tableName);
+
+        /// <summary>
+        /// 如果表不存在，则执行SQL语句（<see cref="CreateTableSql"/>）来创建新表
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <returns></returns>
+        bool CreateTableIfNotExist(string tableName, bool master = true);
+
+        /// <summary>
+        /// 输出执行的SQL语句
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="param"></param>
+        void OutputExecutedSql(string sql, object param);
 
 #if !NET40
         /// <summary>
@@ -161,15 +176,6 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         IEnumerable<TEntity> Query(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
-
-        /// <summary>
-        /// 分页查询
-        /// </summary>
-        /// <param name="sqlFactory"></param>
-        /// <param name="master">true: 主库, false: 从库</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        IEnumerable<TEntity> QueryPage(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 统计数量
@@ -234,15 +240,6 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<IEnumerable<TEntity>> QueryAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
-
-        /// <summary>
-        /// 分页查询
-        /// </summary>
-        /// <param name="sqlFactory"></param>
-        /// <param name="master">true: 主库, false: 从库</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        Task<IEnumerable<TEntity>> QueryPageAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 统计数量

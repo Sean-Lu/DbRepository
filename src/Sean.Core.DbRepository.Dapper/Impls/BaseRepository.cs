@@ -26,7 +26,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
     public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<TEntity>
     {
         /// <summary>
-        /// 主表
+        /// 主表表名
         /// </summary>
         public virtual string MainTableName => typeof(TEntity).GetMainTableName();
 
@@ -44,12 +44,60 @@ namespace Sean.Core.DbRepository.Dapper.Impls
 
         #region 同步方法
         /// <summary>
-        /// 默认返回主表表名
+        /// 表名：默认返回主表表名 <see cref="MainTableName"/>
         /// </summary>
         /// <returns></returns>
-        public override string TableName()
+        public virtual string TableName()
         {
             return MainTableName;
+        }
+
+        /// <summary>
+        /// 返回创建表的SQL语句（在方法 <see cref="CreateTableIfNotExist"/> 中使用）
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public virtual string CreateTableSql(string tableName)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 如果表不存在，则执行SQL语句（<see cref="CreateTableSql"/>）来创建新表
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <returns></returns>
+        public virtual bool CreateTableIfNotExist(string tableName, bool master = true)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                return false;
+            }
+
+            var sql = CreateTableSql(tableName);
+            if (string.IsNullOrWhiteSpace(sql))
+            {
+                return false;
+            }
+
+            if (IsTableExists(tableName, master))
+            {
+                return true;
+            }
+
+            Execute(connection => connection.Execute(sql), master);
+            return true;
+        }
+
+        /// <summary>
+        /// 输出执行的SQL语句
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="param"></param>
+        public virtual void OutputExecutedSql(string sql, object param)
+        {
+
         }
 
         /// <summary>
@@ -132,18 +180,6 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
 
         /// <summary>
-        /// 分页查询
-        /// </summary>
-        /// <param name="sqlFactory"></param>
-        /// <param name="master">true: 主库, false: 从库</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public virtual IEnumerable<TEntity> QueryPage(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
-        {
-            return Execute(connection => connection.QueryPage<TEntity>(this, sqlFactory, commandTimeout), master);
-        }
-
-        /// <summary>
         /// 统计数量
         /// </summary>
         /// <param name="sqlFactory"></param>
@@ -163,6 +199,16 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// <returns></returns>
         public virtual bool IsTableExists(string tableName, bool master = true)
         {
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                return false;
+            }
+
+            if (TableInfoHelper.IsTableExists(tableName))
+            {
+                return true;
+            }
+
             return Execute(connection => connection.IsTableExists(this, tableName), master);
         }
         #endregion
@@ -238,18 +284,6 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
 
         /// <summary>
-        /// 分页查询
-        /// </summary>
-        /// <param name="sqlFactory"></param>
-        /// <param name="master">true: 主库, false: 从库</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public virtual async Task<IEnumerable<TEntity>> QueryPageAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
-        {
-            return await ExecuteAsync(async connection => await connection.QueryPageAsync<TEntity>(this, sqlFactory, commandTimeout), master);
-        }
-
-        /// <summary>
         /// 统计数量
         /// </summary>
         /// <param name="sqlFactory"></param>
@@ -269,6 +303,16 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// <returns></returns>
         public virtual async Task<bool> IsTableExistsAsync(string tableName, bool master = true)
         {
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                return false;
+            }
+
+            if (TableInfoHelper.IsTableExists(tableName))
+            {
+                return true;
+            }
+
             return await ExecuteAsync(async connection => await connection.IsTableExistsAsync(this, tableName), master);
         }
         #endregion

@@ -45,25 +45,6 @@ namespace Sean.Core.DbRepository.Impls
 
         #region 同步方法
         /// <summary>
-        /// 表的名称
-        /// </summary>
-        /// <returns></returns>
-        public virtual string TableName()
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// 输出执行的SQL语句
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="param"></param>
-        public virtual void OutputExecutedSql(string sql, object param)
-        {
-
-        }
-
-        /// <summary>
         /// 同步执行
         /// </summary>
         /// <typeparam name="T"></typeparam>

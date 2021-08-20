@@ -89,8 +89,10 @@ namespace Sean.Core.DbRepository.Factory
             get
             {
                 var selectFields = _includeFields.Any() ? string.Join(", ", _includeFields.Select(c => $"{_dbType.MarkAsTableOrFieldName(c)}")) : "*";
+                //const string rowNumAlias = "ROW_NUM";
                 if (_topNum != 0)
                 {
+                    // 查询前几行
                     switch (_dbType)
                     {
                         case DatabaseType.MySql:
@@ -105,26 +107,13 @@ namespace Sean.Core.DbRepository.Factory
                             var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {_topNum}" : $"{WhereSql} AND ROWNUM <= {_topNum}";
                             return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
                         default:
-                            throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(_topNum)}:{_topNum}]");
+                            //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(_topNum)}:{_topNum}]");
+                            return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNum};";// 同MySql
                     }
                 }
-                else
+                else if (_pageIndex >= 1)
                 {
-                    return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
-                }
-            }
-        }
-        /// <summary>
-        /// SQL：查询分页数据
-        /// </summary>
-        public virtual string QueryPageSql
-        {
-            get
-            {
-                var selectFields = _includeFields.Any() ? string.Join(", ", _includeFields.Select(c => $"{_dbType.MarkAsTableOrFieldName(c)}")) : "*";
-                //const string rowNumAlias = "ROW_NUM";
-                if (_pageIndex >= 1)
-                {
+                    // 分页查询
                     switch (_dbType)
                     {
                         case DatabaseType.MySql:
@@ -156,11 +145,13 @@ namespace Sean.Core.DbRepository.Factory
                                 return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(_pageIndex - 1) * _pageSize} AND t2.ROW_NUM <= {(_pageIndex - 1) * _pageSize + _pageSize};";
                             }
                         default:
-                            throw new NotSupportedException($"[{nameof(QueryPageSql)}]-[{_dbType}]-[{nameof(_pageIndex)}:{_pageIndex},{nameof(_pageSize)}:{_pageSize}]");
+                            //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(_pageIndex)}:{_pageIndex},{nameof(_pageSize)}:{_pageSize}]");
+                            return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(_pageIndex - 1) * _pageSize},{_pageSize};";// 同MySql
                     }
                 }
                 else
                 {
+                    // 普通查询
                     return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
                 }
             }
@@ -177,10 +168,9 @@ namespace Sean.Core.DbRepository.Factory
         }
 
         public string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
-
-        public string GroupBySql => !string.IsNullOrWhiteSpace(_groupBy) ? $" GROUP BY {_groupBy}" : string.Empty;
-        public string HavingSql => !string.IsNullOrWhiteSpace(_having) ? $" HAVING {_having}" : string.Empty;
-        public string OrderBySql => !string.IsNullOrWhiteSpace(_orderBy) ? $" ORDER BY {_orderBy}" : string.Empty;
+        public string GroupBySql => _groupBy.IsValueCreated && _groupBy.Value.Length > 0 ? $" GROUP BY {_groupBy.Value.ToString()}" : string.Empty;
+        public string HavingSql => _having.IsValueCreated && _having.Value.Length > 0 ? $" HAVING {_having.Value.ToString()}" : string.Empty;
+        public string OrderBySql => _orderBy.IsValueCreated && _orderBy.Value.Length > 0 ? $" ORDER BY {_orderBy.Value.ToString()}" : string.Empty;
         #endregion
 
         /// <summary>
@@ -207,9 +197,9 @@ namespace Sean.Core.DbRepository.Factory
         protected int _pageIndex;
         protected int _pageSize;
         protected Lazy<StringBuilder> _where = new();
-        protected string _groupBy;
-        protected string _having;
-        protected string _orderBy;
+        protected Lazy<StringBuilder> _groupBy = new();
+        protected Lazy<StringBuilder> _having = new();
+        protected Lazy<StringBuilder> _orderBy = new();
         protected object _parameter;
 
         protected SqlFactory(DatabaseType dbType, string tableName)
@@ -293,7 +283,7 @@ namespace Sean.Core.DbRepository.Factory
         }
 
         /// <summary>
-        /// TOP：仅用于 <see cref="QuerySql"/>
+        /// 查询前几行（仅用于 <see cref="QuerySql"/> ）
         /// </summary>
         /// <param name="top"></param>
         /// <returns></returns>
@@ -303,7 +293,7 @@ namespace Sean.Core.DbRepository.Factory
             return this;
         }
         /// <summary>
-        /// 分页条件：仅用于 <see cref="QueryPageSql"/>
+        /// 分页查询条件（仅用于 <see cref="QuerySql"/> ）
         /// </summary>
         /// <param name="pageIndex">最小值为1</param>
         /// <param name="pageSize"></param>
@@ -329,17 +319,28 @@ namespace Sean.Core.DbRepository.Factory
             }
             return this;
         }
-        public virtual SqlFactory WhereField(string fieldName, SqlOperation operation, WhereSqlKeyword keyword)
+        public virtual SqlFactory WhereField(string fieldName, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None)
         {
             if (!string.IsNullOrWhiteSpace(fieldName))
             {
                 if (_where.Value.Length > 0) this._where.Value.Append(" ");
+                else if (keyword == WhereSqlKeyword.And) this._where.Value.Append("1=1 ");
+
                 var keywordSqlString = keyword.ToSqlString();
                 if (!string.IsNullOrWhiteSpace(keywordSqlString))
                 {
                     this._where.Value.Append($"{keywordSqlString} ");
                 }
-                this._where.Value.Append($"{_dbType.MarkAsTableOrFieldName(fieldName)}{operation.ToSqlString()}{_dbType.MarkAsInputParameter(fieldName)}");
+
+                if (include == Include.Left)
+                {
+                    this._where.Value.Append(include.ToSqlString());
+                }
+                this._where.Value.Append($"{_dbType.MarkAsTableOrFieldName(fieldName)} {operation.ToSqlString()} {_dbType.MarkAsInputParameter(fieldName)}");
+                if (include == Include.Right)
+                {
+                    this._where.Value.Append(include.ToSqlString());
+                }
             }
             return this;
         }
@@ -350,7 +351,11 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public virtual SqlFactory GroupBy(string groupBy)
         {
-            this._groupBy = groupBy;
+            if (!string.IsNullOrWhiteSpace(groupBy))
+            {
+                if (_groupBy.Value.Length > 0) this._groupBy.Value.Append(" ");
+                this._groupBy.Value.Append(groupBy);
+            }
             return this;
         }
         /// <summary>
@@ -360,7 +365,11 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public virtual SqlFactory Having(string having)
         {
-            this._having = having;
+            if (!string.IsNullOrWhiteSpace(having))
+            {
+                if (_having.Value.Length > 0) this._having.Value.Append(" ");
+                this._having.Value.Append(having);
+            }
             return this;
         }
         /// <summary>
@@ -370,7 +379,21 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public virtual SqlFactory OrderBy(string orderBy)
         {
-            this._orderBy = orderBy;
+            if (!string.IsNullOrWhiteSpace(orderBy))
+            {
+                if (_orderBy.Value.Length > 0) this._orderBy.Value.Append(" ");
+                this._orderBy.Value.Append(orderBy);
+            }
+            return this;
+        }
+        public virtual SqlFactory OrderByField(OrderByType type, params string[] fieldNames)
+        {
+            if (fieldNames != null && fieldNames.Any())
+            {
+                if (_orderBy.Value.Length > 0) this._orderBy.Value.Append(", ");
+
+                _orderBy.Value.Append($"{string.Join(", ", fieldNames)} {type.ToSqlString()}");
+            }
             return this;
         }
 
@@ -464,105 +487,156 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="repository"></param>
         /// <param name="autoIncludeFields">是否自动包含字段（通过反射机制实现）：<see cref="SqlFactory.IncludeFields"/>、<see cref="SqlFactory.IdentityFields"/></param>
         /// <returns></returns>
-        public static SqlFactory<TEntity> Build(IBaseRepository repository, bool autoIncludeFields = true)
+        public static SqlFactory<TEntity> Build(IBaseRepository<TEntity> repository, bool autoIncludeFields = true)
         {
             return Build(repository.Factory.DbType, repository.TableName(), autoIncludeFields);
         }
 
         #region override methods
-        public virtual SqlFactory<TEntity> IncludeFields(params string[] fields)
+        /// <summary>
+        /// 包含字段
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> IncludeFields(params string[] fields)
         {
             return base.IncludeFields(fields) as SqlFactory<TEntity>;
         }
-
-        public virtual SqlFactory<TEntity> IgnoreFields(params string[] fields)
+        /// <summary>
+        /// 忽略字段
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> IgnoreFields(params string[] fields)
         {
             return base.IgnoreFields(fields) as SqlFactory<TEntity>;
         }
-
-        public virtual SqlFactory<TEntity> IdentityFields(params string[] fields)
+        /// <summary>
+        /// 自增字段
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> IdentityFields(params string[] fields)
         {
             return base.IdentityFields(fields) as SqlFactory<TEntity>;
         }
 
-        public virtual SqlFactory<TEntity> Top(int top)
+        /// <summary>
+        /// 查询前几行（仅用于 <see cref="SqlFactory.QuerySql"/> ）
+        /// </summary>
+        /// <param name="top"></param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> Top(int top)
         {
             return base.Top(top) as SqlFactory<TEntity>;
         }
-
-        public virtual SqlFactory<TEntity> Page(int pageIndex, int pageSize)
+        /// <summary>
+        /// 分页查询条件（仅用于 <see cref="SqlFactory.QuerySql"/> ）
+        /// </summary>
+        /// <param name="pageIndex">最小值为1</param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> Page(int pageIndex, int pageSize)
         {
             return base.Page(pageIndex, pageSize) as SqlFactory<TEntity>;
         }
 
-        public virtual SqlFactory<TEntity> Where(string where)
+        /// <summary>
+        /// WHERE column_name operator value
+        /// </summary>
+        /// <param name="where">不包含关键字：WHERE</param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> Where(string where)
         {
             return base.Where(where) as SqlFactory<TEntity>;
         }
-        public virtual SqlFactory<TEntity> WhereField(string fieldName, SqlOperation operation, WhereSqlKeyword keyword)
+        public new virtual SqlFactory<TEntity> WhereField(string fieldName, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None)
         {
-            return base.WhereField(fieldName, operation, keyword) as SqlFactory<TEntity>;
+            return base.WhereField(fieldName, operation, keyword, include) as SqlFactory<TEntity>;
         }
-
-        public virtual SqlFactory<TEntity> GroupBy(string groupBy)
+        /// <summary>
+        /// GROUP BY column_name
+        /// </summary>
+        /// <param name="groupBy">不包含关键字：GROUP BY</param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> GroupBy(string groupBy)
         {
             return base.GroupBy(groupBy) as SqlFactory<TEntity>;
         }
-
-        public virtual SqlFactory<TEntity> Having(string having)
+        /// <summary>
+        /// HAVING aggregate_function(column_name) operator value
+        /// </summary>
+        /// <param name="having">不包含关键字：HAVING</param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> Having(string having)
         {
             return base.Having(having) as SqlFactory<TEntity>;
         }
-
-        public virtual SqlFactory<TEntity> OrderBy(string orderBy)
+        /// <summary>
+        /// ORDER BY column_name,column_name ASC|DESC;
+        /// </summary>
+        /// <param name="orderBy">不包含关键字：ORDER BY</param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> OrderBy(string orderBy)
         {
             return base.OrderBy(orderBy) as SqlFactory<TEntity>;
         }
+        public new virtual SqlFactory<TEntity> OrderByField(OrderByType type, params string[] fieldNames)
+        {
+            return base.OrderByField(type, fieldNames) as SqlFactory<TEntity>;
+        }
 
-        public virtual SqlFactory<TEntity> ReturnLastInsertId(bool returnLastInsertId)
+        /// <summary>
+        /// 仅用于 <see cref="SqlFactory.InsertSql"/>
+        /// </summary>
+        /// <param name="returnLastInsertId"></param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> ReturnLastInsertId(bool returnLastInsertId)
         {
             return base.ReturnLastInsertId(returnLastInsertId) as SqlFactory<TEntity>;
         }
 
-        public virtual SqlFactory<TEntity> SetParameter(object param)
+        /// <summary>
+        /// 设置SQL入参
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> SetParameter(object param)
         {
             return base.SetParameter(param) as SqlFactory<TEntity>;
         }
         #endregion
 
-        public virtual SqlFactory<TEntity> Where(Expression<Func<TEntity, object>> expression)
+        public virtual SqlFactory<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
         {
-            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            return IncludeFields(fieldExpression.GetMemberName());
+        }
+        public virtual SqlFactory<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        {
+            return IgnoreFields(fieldExpression.GetMemberName());
+        }
+        public virtual SqlFactory<TEntity> IdentityFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        {
+            return IdentityFields(fieldExpression.GetMemberName());
+        }
 
-            string memberName = null;
-            var expressionBody = expression.Body;
+        public virtual SqlFactory<TEntity> WhereField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None)
+        {
+            return WhereField(fieldExpression.GetMemberName(), operation, keyword, include);
+        }
 
-            if (expression.ReturnType == typeof(bool))
-            {
+        public virtual SqlFactory<TEntity> GroupByField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        {
+            return GroupBy(fieldExpression.GetMemberName());
+        }
 
-            }
-
-            if (expressionBody is LambdaExpression lambdaExpression)
-            {
-                var aa = lambdaExpression.ReturnType;
-            }
-            if (expressionBody is UnaryExpression unaryExpression)
-            {
-                if (unaryExpression.Operand is MemberExpression memberExpression)
-                {
-                    memberName = memberExpression.Member.Name;
-                }
-            }
-            else if (expressionBody is MemberExpression memberExpression)
-            {
-                memberName = memberExpression.Member.Name;
-            }
-            else
-            {
-                throw new NotSupportedException($"暂不支持的 Expression.Body : {expressionBody.Type.Name}");
-            }
-
-            return this;
+        public virtual SqlFactory<TEntity> OrderByField<TProperty>(OrderByType type, Expression<Func<TEntity, TProperty>> fieldExpression)
+        {
+            return OrderByField(type, fieldExpression.GetMemberName());
+        }
+        public virtual SqlFactory<TEntity> OrderByField(OrderByType type, params Expression<Func<TEntity, object>>[] fieldExpression)
+        {
+            return OrderByField(type, fieldExpression.Select(c => c.GetMemberName()).ToArray());
         }
 
         /// <summary>

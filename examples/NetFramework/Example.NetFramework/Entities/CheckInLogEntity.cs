@@ -8,7 +8,7 @@ namespace Example.NetFramework.Entities
     /// 签到明细日志表
     /// </summary>
     [Table("CheckInLog", Schema = "public")]
-    public partial class CheckInLogEntity
+    public class CheckInLogEntity
     {
         /// <summary>
         /// 自增主键
@@ -28,7 +28,7 @@ namespace Example.NetFramework.Entities
         /// </summary>
         public DateTime CreateTime { get; set; }
         /// <summary>
-        /// 客户端IP地址
+        /// IP地址
         /// </summary>
         public string IP { get; set; }
     }

@@ -41,9 +41,10 @@ namespace Example.NetFramework.Impls.DbTest
             //_logger.LogInfo($"数据库当前时间：{time.ToLongDateTimeWithTimezone()}");
 
             #region 查询数据
-            var list = QueryPage(NewSqlFactory(true)
-                .Page(5, 3)
-                .Where($"{nameof(CheckInLogEntity.UserId)}=@{nameof(CheckInLogEntity.UserId)}")
+            var list = Query(NewSqlFactory(true)
+                .Page(1, 3)
+                .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
+                .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
                 .SetParameter(new { UserId = 100000 }));
             _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonHelper.SerializeFormatIndented(list)}");
             #endregion
