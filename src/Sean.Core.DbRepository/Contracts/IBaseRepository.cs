@@ -158,6 +158,14 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         bool Delete(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        bool Delete(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 更新
@@ -167,6 +175,14 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         bool Update(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        bool Update(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 查询
@@ -222,6 +238,14 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        Task<bool> DeleteAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 更新
@@ -231,6 +255,14 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<bool> UpdateAsync(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        Task<bool> UpdateAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 查询

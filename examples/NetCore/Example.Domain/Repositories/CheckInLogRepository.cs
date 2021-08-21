@@ -58,6 +58,27 @@ namespace Example.Domain.Repositories
             return sql;
         }
 
+        public async Task<bool> DeleteAsync(long id)
+        {
+            return await DeleteAsync(NewSqlFactory(false)
+                .WhereField(entity => entity.Id, SqlOperation.Equal)
+                .SetParameter(new { Id = id }));
+        }
+
+        public async Task<bool> DeleteAllAsync()
+        {
+            return await DeleteAsync(NewSqlFactory(false).Where("1=1"));
+        }
+
+        public async Task<bool> UpdateAsync(long id, int checkInType)
+        {
+            // 只更新部分字段（CheckInType），需要设置参数autoIncludeFields=false，否则会更新所有字段
+            return await UpdateAsync(NewSqlFactory(false)
+                .IncludeFields(entity => entity.CheckInType)
+                .WhereField(entity => entity.Id, SqlOperation.Equal)
+                .SetParameter(new { Id = id, CheckInType = checkInType }));
+        }
+
         public async Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
         {
             #region SqlFactory示例

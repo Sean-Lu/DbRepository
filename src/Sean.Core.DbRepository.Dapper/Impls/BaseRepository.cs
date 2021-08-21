@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Dapper;
 using Sean.Core.DbRepository.Contracts;
+using Sean.Core.DbRepository.Dapper.Cache;
 using Sean.Core.DbRepository.Dapper.Extensions;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DbRepository.Factory;
@@ -152,6 +153,19 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 ? Execute(connection => connection.Delete(this, entity, transaction, commandTimeout), true)
                 : transaction.Connection.Delete(this, entity, transaction, commandTimeout);
         }
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual bool Delete(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return transaction?.Connection == null
+                ? Execute(connection => connection.Delete(this, sqlFactory, transaction, commandTimeout), true)
+                : transaction.Connection.Delete(this, sqlFactory, transaction, commandTimeout);
+        }
 
         /// <summary>
         /// 更新
@@ -165,6 +179,19 @@ namespace Sean.Core.DbRepository.Dapper.Impls
             return transaction?.Connection == null
                 ? Execute(connection => connection.Update(this, entity, transaction, commandTimeout), true)
                 : transaction.Connection.Update(this, entity, transaction, commandTimeout);
+        }
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual bool Update(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return transaction?.Connection == null
+                ? Execute(connection => connection.Update(this, sqlFactory, transaction, commandTimeout), true)
+                : transaction.Connection.Update(this, sqlFactory, transaction, commandTimeout);
         }
 
         /// <summary>
@@ -204,7 +231,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 return false;
             }
 
-            if (TableInfoHelper.IsTableExists(tableName))
+            if (TableInfoCache.IsTableExists(tableName))
             {
                 return true;
             }
@@ -256,6 +283,19 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 ? await ExecuteAsync(async connection => await connection.DeleteAsync(this, entity, transaction, commandTimeout), true)
                 : await transaction.Connection.DeleteAsync(this, entity, transaction, commandTimeout);
         }
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual async Task<bool> DeleteAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return transaction?.Connection == null
+                ? await ExecuteAsync(async connection => await connection.DeleteAsync(this, sqlFactory, transaction, commandTimeout), true)
+                : await transaction.Connection.DeleteAsync(this, sqlFactory, transaction, commandTimeout);
+        }
 
         /// <summary>
         /// 更新
@@ -269,6 +309,19 @@ namespace Sean.Core.DbRepository.Dapper.Impls
             return transaction?.Connection == null
                 ? await ExecuteAsync(async connection => await connection.UpdateAsync(this, entity, transaction, commandTimeout), true)
                 : await transaction.Connection.UpdateAsync(this, entity, transaction, commandTimeout);
+        }
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual async Task<bool> UpdateAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return transaction?.Connection == null
+                ? await ExecuteAsync(async connection => await connection.UpdateAsync(this, sqlFactory, transaction, commandTimeout), true)
+                : await transaction.Connection.UpdateAsync(this, sqlFactory, transaction, commandTimeout);
         }
 
         /// <summary>
@@ -308,7 +361,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 return false;
             }
 
-            if (TableInfoHelper.IsTableExists(tableName))
+            if (TableInfoCache.IsTableExists(tableName))
             {
                 return true;
             }

@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Sean.Utility.Extensions;
 
-namespace Sean.Core.DbRepository.Dapper
+namespace Sean.Core.DbRepository.Dapper.Cache
 {
-    internal class TableInfoHelper
+    internal class TableInfoCache
     {
         private static readonly ConcurrentDictionary<string, bool> _tableExistsDic = new ConcurrentDictionary<string, bool>();
 
@@ -22,7 +18,7 @@ namespace Sean.Core.DbRepository.Dapper
             return false;
         }
 
-        public static void AddOrUpdateIsTableExist(string tableName, bool exist)
+        public static void IsTableExists(string tableName, bool exist)
         {
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));

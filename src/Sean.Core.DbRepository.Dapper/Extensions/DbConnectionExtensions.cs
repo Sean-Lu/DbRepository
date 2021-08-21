@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using Sean.Core.DbRepository.Contracts;
+using Sean.Core.DbRepository.Dapper.Cache;
 using Sean.Core.DbRepository.Dapper.Impls;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DbRepository.Factory;
@@ -65,6 +66,20 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             return connection.DeleteAsync(repository, entity, transaction, commandTimeout).Result;
         }
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static bool Delete<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return connection.DeleteAsync(repository, sqlFactory, transaction, commandTimeout).Result;
+        }
 
         /// <summary>
         /// 更新
@@ -79,6 +94,20 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         public static bool Update<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return connection.UpdateAsync(repository, entity, transaction, commandTimeout).Result;
+        }
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static bool Update<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return connection.UpdateAsync(repository, sqlFactory, transaction, commandTimeout).Result;
         }
 
         /// <summary>
@@ -228,10 +257,24 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<bool> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository);
+            var sqlFactory = SqlFactory<TEntity>.Build(repository).SetParameter(entity);
+            return await connection.DeleteAsync(repository, sqlFactory, transaction, commandTimeout);
+        }
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<bool> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
             var sql = sqlFactory.DeleteSql;
-            var result = await connection.ExecuteAsync(sql, entity, transaction, commandTimeout);
-            repository.OutputExecutedSql(sql, entity);
+            var result = await connection.ExecuteAsync(sql, sqlFactory.Parameter, transaction, commandTimeout);
+            repository.OutputExecutedSql(sql, sqlFactory.Parameter);
             return result > 0;
         }
 
@@ -247,10 +290,24 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<bool> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository);
+            var sqlFactory = SqlFactory<TEntity>.Build(repository).SetParameter(entity);
+            return await connection.UpdateAsync(repository, sqlFactory, transaction, commandTimeout);
+        }
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<bool> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
             var sql = sqlFactory.UpdateSql;
-            var result = await connection.ExecuteAsync(sql, entity, transaction, commandTimeout);
-            repository.OutputExecutedSql(sql, entity);
+            var result = await connection.ExecuteAsync(sql, sqlFactory.Parameter, transaction, commandTimeout);
+            repository.OutputExecutedSql(sql, sqlFactory.Parameter);
             return result > 0;
         }
 
@@ -300,7 +357,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 return false;
             }
 
-            if (TableInfoHelper.IsTableExists(tableName))
+            if (TableInfoCache.IsTableExists(tableName))
             {
                 return true;
             }
@@ -313,7 +370,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             var tableExists = result > 0;
             if (tableExists)
             {
-                TableInfoHelper.AddOrUpdateIsTableExist(tableName, true);
+                TableInfoCache.IsTableExists(tableName, true);
             }
             return tableExists;
         }

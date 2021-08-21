@@ -8,6 +8,8 @@ namespace Example.Application.Contracts
 {
     public interface ICheckInLogService
     {
+        Task<bool> AddAsync(CheckInLogDto checkInLogDto);
+
         Task<List<CheckInLogDto>> SearchAsync(long userId, int pageIndex, int pageSize);
     }
 }

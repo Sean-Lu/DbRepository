@@ -7,6 +7,8 @@ using AutoMapper;
 using Example.Application.Contracts;
 using Example.Application.Dtos;
 using Example.Domain.Contracts;
+using Example.Domain.Entities;
+using Sean.Core.DbRepository.Factory;
 
 namespace Example.Application.Services
 {
@@ -22,6 +24,11 @@ namespace Example.Application.Services
             _mapper = mapper;
             _checkInLogRepository = checkInLogRepository;
             //_checkInLogRepository.SubTableDate = DateTime.Now;// 按时间分表
+        }
+
+        public async Task<bool> AddAsync(CheckInLogDto checkInLogDto)
+        {
+            return await _checkInLogRepository.AddAsync(_mapper.Map<CheckInLogEntity>(checkInLogDto));
         }
 
         public async Task<List<CheckInLogDto>> SearchAsync(long userId, int pageIndex, int pageSize)

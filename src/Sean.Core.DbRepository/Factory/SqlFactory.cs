@@ -41,7 +41,7 @@ namespace Sean.Core.DbRepository.Factory
                 if (string.IsNullOrWhiteSpace(WhereSql))
                     throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
-                return $"{DeleteAllSql}{WhereSql};";
+                return $"DELETE FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql};";
             }
         }
         /// <summary>
@@ -51,7 +51,7 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                return $"DELETE FROM {_dbType.MarkAsTableOrFieldName(_tableName)}";
+                return $"DELETE FROM {_dbType.MarkAsTableOrFieldName(_tableName)};";
             }
         }
         /// <summary>
@@ -64,7 +64,11 @@ namespace Sean.Core.DbRepository.Factory
                 if (string.IsNullOrWhiteSpace(WhereSql))
                     throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
-                return $"{UpdateAllSql}{WhereSql};";
+                var list = _includeFields.Except(_identityFields).ToList();
+                if (!list.Any())
+                    return string.Empty;
+                var sets = list.Select(c => $"{_dbType.MarkAsTableOrFieldName(c)}={_dbType.MarkAsInputParameter(c)}");
+                return $"UPDATE {_dbType.MarkAsTableOrFieldName(_tableName)} SET {string.Join(", ", sets)}{WhereSql};";
             }
         }
         /// <summary>
@@ -78,7 +82,7 @@ namespace Sean.Core.DbRepository.Factory
                 if (!list.Any())
                     return string.Empty;
                 var sets = list.Select(c => $"{_dbType.MarkAsTableOrFieldName(c)}={_dbType.MarkAsInputParameter(c)}");
-                return $"UPDATE {_dbType.MarkAsTableOrFieldName(_tableName)} SET {string.Join(", ", sets)}{WhereSql}";
+                return $"UPDATE {_dbType.MarkAsTableOrFieldName(_tableName)} SET {string.Join(", ", sets)};";
             }
         }
         /// <summary>
@@ -358,6 +362,14 @@ namespace Sean.Core.DbRepository.Factory
             }
             return this;
         }
+        public virtual SqlFactory GroupByField(params string[] fieldNames)
+        {
+            if (fieldNames != null)
+            {
+                GroupBy(string.Join(", ", fieldNames));
+            }
+            return this;
+        }
         /// <summary>
         /// HAVING aggregate_function(column_name) operator value
         /// </summary>
@@ -433,8 +445,7 @@ namespace Sean.Core.DbRepository.Factory
             {
                 if (string.IsNullOrWhiteSpace(WhereSql))
                 {
-                    var keys = typeof(TEntity).GetPrimaryKeyProperties().Select(c => $"{_dbType.MarkAsTableOrFieldName(c.Name)}={_dbType.MarkAsInputParameter(c.Name)}");
-                    return $"{DeleteAllSql} WHERE {string.Join(" AND ", keys)};";
+                    typeof(TEntity).GetPrimaryKeys().ForEach(fieldName => WhereField(fieldName, SqlOperation.Equal));
                 }
 
                 return base.DeleteSql;
@@ -450,8 +461,7 @@ namespace Sean.Core.DbRepository.Factory
             {
                 if (string.IsNullOrWhiteSpace(WhereSql))
                 {
-                    var keys = typeof(TEntity).GetPrimaryKeyProperties().Select(c => $"{_dbType.MarkAsTableOrFieldName(c.Name)}={_dbType.MarkAsInputParameter(c.Name)}");
-                    return $"{UpdateAllSql} WHERE {string.Join(" AND ", keys)};";
+                    typeof(TEntity).GetPrimaryKeys().ForEach(fieldName => WhereField(fieldName, SqlOperation.Equal));
                 }
 
                 return base.UpdateSql;
@@ -476,8 +486,8 @@ namespace Sean.Core.DbRepository.Factory
             var sqlFactory = new SqlFactory<TEntity>(dbType, !string.IsNullOrWhiteSpace(tableName) ? tableName : typeof(TEntity).GetMainTableName());
             if (autoIncludeFields)
             {
-                sqlFactory.IncludeFields(typeof(TEntity).GetValidPropertiesForSql().Select(c => c.Name).ToArray());
-                sqlFactory.IdentityFields(typeof(TEntity).GetIdentityProperties().Select(c => c.Name).ToArray());
+                sqlFactory.IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
+                sqlFactory.IdentityFields(typeof(TEntity).GetIdentityFieldNames().ToArray());
             }
             return sqlFactory;
         }
@@ -563,6 +573,10 @@ namespace Sean.Core.DbRepository.Factory
         {
             return base.GroupBy(groupBy) as SqlFactory<TEntity>;
         }
+        public new virtual SqlFactory<TEntity> GroupByField(params string[] fieldNames)
+        {
+            return base.GroupByField(fieldNames) as SqlFactory<TEntity>;
+        }
         /// <summary>
         /// HAVING aggregate_function(column_name) operator value
         /// </summary>
@@ -611,13 +625,25 @@ namespace Sean.Core.DbRepository.Factory
         {
             return IncludeFields(fieldExpression.GetMemberName());
         }
+        public virtual SqlFactory<TEntity> IncludeFields(params Expression<Func<TEntity, object>>[] fieldExpression)
+        {
+            return IncludeFields(fieldExpression.Select(c => c.GetMemberName()).ToArray());
+        }
         public virtual SqlFactory<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
         {
             return IgnoreFields(fieldExpression.GetMemberName());
         }
+        public virtual SqlFactory<TEntity> IgnoreFields(params Expression<Func<TEntity, object>>[] fieldExpression)
+        {
+            return IgnoreFields(fieldExpression.Select(c => c.GetMemberName()).ToArray());
+        }
         public virtual SqlFactory<TEntity> IdentityFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
         {
             return IdentityFields(fieldExpression.GetMemberName());
+        }
+        public virtual SqlFactory<TEntity> IdentityFields(params Expression<Func<TEntity, object>>[] fieldExpression)
+        {
+            return IdentityFields(fieldExpression.Select(c => c.GetMemberName()).ToArray());
         }
 
         public virtual SqlFactory<TEntity> WhereField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None)
@@ -627,7 +653,11 @@ namespace Sean.Core.DbRepository.Factory
 
         public virtual SqlFactory<TEntity> GroupByField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
         {
-            return GroupBy(fieldExpression.GetMemberName());
+            return GroupByField(fieldExpression.GetMemberName());
+        }
+        public virtual SqlFactory<TEntity> GroupByField(params Expression<Func<TEntity, object>>[] fieldExpression)
+        {
+            return GroupByField(fieldExpression.Select(c => c.GetMemberName()).ToArray());
         }
 
         public virtual SqlFactory<TEntity> OrderByField<TProperty>(OrderByType type, Expression<Func<TEntity, TProperty>> fieldExpression)

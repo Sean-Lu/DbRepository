@@ -14,6 +14,12 @@ namespace Example.Domain.Contracts
         /// </summary>
         DateTime SubTableDate { get; set; }
 
+        Task<bool> DeleteAsync(long id);
+
+        Task<bool> DeleteAllAsync();
+
+        Task<bool> UpdateAsync(long id, int checkInType);
+
         Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize);
     }
 }

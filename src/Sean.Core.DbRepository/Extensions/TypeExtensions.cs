@@ -1,12 +1,14 @@
 ﻿#if !NET40
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using Sean.Core.DbRepository.Attributes;
+using Sean.Core.DbRepository.Cache;
 
 namespace Sean.Core.DbRepository.Extensions
 {
@@ -19,29 +21,17 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static string GetMainTableName(this Type entityClassType)
         {
-            return entityClassType.GetCustomAttributes<TableAttribute>(true).FirstOrDefault()?.Name ?? entityClassType.Name;
+            return TypeCache.GetEntityInfo(entityClassType).MainTableName;
         }
 
         /// <summary>
-        /// 过滤拥有<see cref="IgnoreAttribute"/>特性的所有字段
+        /// 获取所有数据库表字段（过滤：<see cref="IgnoreAttribute"/>）
         /// </summary>
         /// <param name="entityClassType"></param>
-        /// <param name="filter"></param>
         /// <returns></returns>
-        public static List<PropertyInfo> GetValidPropertiesForSql(this Type entityClassType, Predicate<PropertyInfo> filter = null)
+        public static List<string> GetAllFieldNames(this Type entityClassType)
         {
-            var list = new List<PropertyInfo>();
-            var propertyInfos = entityClassType.GetProperties();
-            foreach (var propertyInfo in propertyInfos)
-            {
-                if (propertyInfo.GetCustomAttributes<IgnoreAttribute>(false).Any()
-                    || filter != null && filter(propertyInfo))
-                {
-                    continue;
-                }
-                list.Add(propertyInfo);
-            }
-            return list;
+            return TypeCache.GetEntityInfo(entityClassType).FieldInfos.Select(c => c.FieldName).ToList();
         }
 
         /// <summary>
@@ -49,9 +39,9 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <param name="entityClassType"></param>
         /// <returns></returns>
-        public static List<PropertyInfo> GetPrimaryKeyProperties(this Type entityClassType)
+        public static List<string> GetPrimaryKeys(this Type entityClassType)
         {
-            return entityClassType.GetProperties().Where(propertyInfo => propertyInfo.GetCustomAttributes<KeyAttribute>(false).Any()).ToList();
+            return TypeCache.GetEntityInfo(entityClassType).FieldInfos.Where(c => c.PrimaryKey).Select(c => c.FieldName).ToList();
         }
 
         /// <summary>
@@ -61,9 +51,9 @@ namespace Sean.Core.DbRepository.Extensions
         /// <param name="includeProperties"></param>
         /// <param name="ignoreProperties"></param>
         /// <returns></returns>
-        public static List<PropertyInfo> GetIdentityProperties(this Type entityClassType)
+        public static List<string> GetIdentityFieldNames(this Type entityClassType)
         {
-            return entityClassType.GetProperties().Where(propertyInfo => propertyInfo.GetCustomAttributes<DatabaseGeneratedAttribute>(false).Any(c => c.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity)).ToList();
+            return TypeCache.GetEntityInfo(entityClassType).FieldInfos.Where(c => c.Identity).Select(c => c.FieldName).ToList();
         }
 
         /// <summary>
@@ -73,7 +63,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static PropertyInfo GetKeyIdentityProperty(this Type entityClassType)
         {
-            return entityClassType.GetProperties().FirstOrDefault(c => c.GetCustomAttributes<KeyAttribute>(false).Any() && c.GetCustomAttributes<DatabaseGeneratedAttribute>(false).Any(o => o.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity));
+            return TypeCache.GetEntityInfo(entityClassType).FieldInfos.FirstOrDefault(c => c.PrimaryKey && c.Identity)?.Property;
         }
     }
 }
