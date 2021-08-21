@@ -2,6 +2,8 @@
 
 > `ORM`，支持所有**关系型数据库**（实现`DbProviderFactory`），如：`MySQL`、`SQL Server`、`Oracle`、`SQLite`、`Access`、`Firebird`、`PostgreSql`、`DB2`、`Informix`等
 
+- 支持主从库分离（主库：增\删\改，从库：查）
+- 支持分表（水平分表）
 - 核心类：
 
 | Class                                         | 说明                                                         |
