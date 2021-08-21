@@ -7,11 +7,12 @@
 		<Authors>Sean</Authors>
 		<Copyright>Copyright © 2019-2021 Sean</Copyright>
 		<Description>linq2db</Description>
+		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
 		<Version>2.0.0-beta</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="linq2db" Version="3.4.2" />
+		<PackageReference Include="linq2db" Version="3.4.3" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -63,7 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MySql.Data">
-      <Version>8.0.25</Version>
+      <Version>8.0.26</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup />

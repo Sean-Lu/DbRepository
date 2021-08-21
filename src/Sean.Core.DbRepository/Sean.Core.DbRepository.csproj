@@ -6,8 +6,9 @@
 		<Authors>Sean</Authors>
 		<Copyright>Copyright © 2019-2021 Sean</Copyright>
 		<Description>ORM, Support all relational databases.</Description>
+		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
 		<LangVersion>latest</LangVersion>
-		<Version>2.0.0-beta2021081801</Version>
+		<Version>2.0.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net4'">
@@ -48,6 +49,6 @@
 	</ItemGroup>-->
 
 	<ItemGroup>
-		<PackageReference Include="Sean.Utility" Version="2.0.16-beta2021080501" />
+		<PackageReference Include="Sean.Utility" Version="2.0.16" />
 	</ItemGroup>
 </Project>
