@@ -34,6 +34,13 @@ Get<T>()、GetList<T>() 其中 T ：
 推荐使用Oracle官方提供的数据库连接驱动：Oracle.ManagedDataAccess（不需要安装Oracle客户端）。
 ```
 
+## Nuget Packages
+
+| Package                                                      | NuGet Stable                                                 | NuGet Pre-release                                            | Downloads                                                    |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [Sean.Core.DbRepository](https://www.nuget.org/packages/Sean.Core.DbRepository/) | [![Sean.Core.DbRepository](https://img.shields.io/nuget/v/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/) | [![Sean.Core.DbRepository](https://img.shields.io/nuget/vpre/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/) | [![Sean.Core.DbRepository](https://img.shields.io/nuget/dt/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/) | [![Sean.Core.DbRepository MyGet](https://img.shields.io/myget/sean/vpre/Sean.Core.DbRepository.svg)](https://www.myget.org/feed/sean/package/nuget/Sean.Core.DbRepository) |
+| [Sean.Core.DbRepository.Dapper](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/v/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/vpre/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/dt/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) |
+
 ## 数据库连接字符串配置
 
 - `.NET Framework`: `App.config`、`Web.config`
