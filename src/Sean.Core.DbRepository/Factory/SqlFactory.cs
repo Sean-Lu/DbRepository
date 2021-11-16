@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using Sean.Core.DbRepository.Contracts;
 using Sean.Core.DbRepository.Extensions;
-#if !NET40
-using System.ComponentModel.DataAnnotations;
-using System.Linq.Expressions;
-#endif
 
 namespace Sean.Core.DbRepository.Factory
 {
@@ -432,7 +429,6 @@ namespace Sean.Core.DbRepository.Factory
         }
     }
 
-#if !NET40
     public class SqlFactory<TEntity> : SqlFactory
     {
         #region override properties
@@ -686,5 +682,4 @@ namespace Sean.Core.DbRepository.Factory
             return this;
         }
     }
-#endif
 }

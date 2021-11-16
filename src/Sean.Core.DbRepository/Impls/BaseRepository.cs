@@ -41,6 +41,14 @@ namespace Sean.Core.DbRepository.Impls
             Factory = new DbFactory(configName);
         }
 #endif
+        /// <summary>
+        /// Create BaseRepository
+        /// </summary>
+        /// <param name="connectionStrings"></param>
+        protected BaseRepository(MultiConnectionStrings connectionStrings)
+        {
+            Factory = new DbFactory(connectionStrings);
+        }
         #endregion
 
         #region 同步方法
@@ -129,7 +137,7 @@ namespace Sean.Core.DbRepository.Impls
         #endregion
 
         #region 异步方法
-#if !NET40
+#if NETSTANDARD || NET45_OR_GREATER
         /// <summary>
         /// 异步执行
         /// </summary>
@@ -195,7 +203,9 @@ namespace Sean.Core.DbRepository.Impls
                 }
             }
         }
+#endif
 
+#if NETSTANDARD || NET451_OR_GREATER
         /// <summary>
         /// <para><see cref="DbTransaction"/>、<see cref="TransactionScope"/>的区别：</para>
         /// <para><see cref="DbTransaction"/>：每个<see cref="DbTransaction"/>是基于每个<see cref="DbConnection"/>的。这种设计对于跨越多个程序集或者多个方法的事务行为来说，不是非常好，需要把事务和数据库连接作为参数传入。</para>

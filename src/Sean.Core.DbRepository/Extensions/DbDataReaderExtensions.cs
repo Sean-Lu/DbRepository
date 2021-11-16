@@ -60,7 +60,7 @@ namespace Sean.Core.DbRepository.Extensions
 
             return result;
         }
-#if !NET40
+#if NETSTANDARD || NET45_OR_GREATER
         /// <summary>
         /// <see cref="DataSet"/>
         /// </summary>

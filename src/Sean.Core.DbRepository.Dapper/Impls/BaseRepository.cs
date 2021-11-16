@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
 using Dapper;
 using Sean.Core.DbRepository.Contracts;
 using Sean.Core.DbRepository.Dapper.Cache;
@@ -41,6 +35,9 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         {
         }
 #endif
+        protected BaseRepository(MultiConnectionStrings connectionStrings) : base(connectionStrings)
+        {
+        }
         #endregion
 
         #region 同步方法
@@ -241,6 +238,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         #endregion
 
         #region 异步方法
+#if NETSTANDARD || NET45_OR_GREATER
         /// <summary>
         /// 新增
         /// </summary>
@@ -368,6 +366,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
 
             return await ExecuteAsync(async connection => await connection.IsTableExistsAsync(this, tableName), master);
         }
+#endif
         #endregion
     }
 }

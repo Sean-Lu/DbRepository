@@ -26,6 +26,7 @@ namespace Example.NetFramework.Impls.DbTest
         private readonly ILogger _logger;
 
         public MySqlTest() : base()
+        //public MySqlTest() : base(new MultiConnectionStrings(new List<ConnectionStringOptions> { new ConnectionStringOptions("DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a", DatabaseType.MySql) }))
         {
             _logger = new SimpleLocalLogger<MySqlTest>();
         }

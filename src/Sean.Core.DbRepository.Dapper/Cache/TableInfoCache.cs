@@ -4,7 +4,7 @@ using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository.Dapper.Cache
 {
-    internal class TableInfoCache
+    public class TableInfoCache
     {
         private static readonly ConcurrentDictionary<string, bool> _tableExistsDic = new ConcurrentDictionary<string, bool>();
 

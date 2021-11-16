@@ -49,7 +49,7 @@ namespace Sean.Core.DbRepository.Contracts
         /// <returns></returns>
         T ExecuteTransactionScope<T>(Func<TransactionScope, T> toDoInTransactionScope);
 
-#if !NET40
+#if NETSTANDARD || NET45_OR_GREATER
         /// <summary>
         /// 异步执行
         /// </summary>
@@ -74,7 +74,9 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="func"></param>
         /// <returns></returns>
         Task<T> ExecuteTransactionAsync<T>(IDbConnection connection, Func<IDbTransaction, Task<T>> func);
+#endif
 
+#if NETSTANDARD || NET451_OR_GREATER
         /// <summary>
         /// <para><see cref="DbTransaction"/>、<see cref="TransactionScope"/>的区别：</para>
         /// <para><see cref="DbTransaction"/>：每个<see cref="DbTransaction"/>是基于每个<see cref="DbConnection"/>的。这种设计对于跨越多个程序集或者多个方法的事务行为来说，不是非常好，需要把事务和数据库连接作为参数传入。</para>
@@ -121,14 +123,12 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="param"></param>
         void OutputExecutedSql(string sql, object param);
 
-#if !NET40
         /// <summary>
         /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository, bool)"/>
         /// </summary>
         /// <param name="autoIncludeFields"></param>
         /// <returns></returns>
         SqlFactory<TEntity> NewSqlFactory(bool autoIncludeFields = true);
-#endif
 
         /// <summary>
         /// 新增
@@ -210,6 +210,7 @@ namespace Sean.Core.DbRepository.Contracts
         /// <returns></returns>
         bool IsTableExists(string tableName, bool master = true);
 
+#if NETSTANDARD || NET45_OR_GREATER
         /// <summary>
         /// 新增
         /// </summary>
@@ -289,5 +290,6 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         Task<bool> IsTableExistsAsync(string tableName, bool master = true);
+#endif
     }
 }

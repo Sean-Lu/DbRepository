@@ -1,11 +1,6 @@
-﻿#if !NET40
-using System;
-using System.Collections;
-using System.Collections.Concurrent;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using Sean.Core.DbRepository.Attributes;
 using Sean.Core.DbRepository.Cache;
@@ -48,8 +43,6 @@ namespace Sean.Core.DbRepository.Extensions
         /// 获取自增字段
         /// </summary>
         /// <param name="entityClassType"></param>
-        /// <param name="includeProperties"></param>
-        /// <param name="ignoreProperties"></param>
         /// <returns></returns>
         public static List<string> GetIdentityFieldNames(this Type entityClassType)
         {
@@ -67,4 +60,3 @@ namespace Sean.Core.DbRepository.Extensions
         }
     }
 }
-#endif

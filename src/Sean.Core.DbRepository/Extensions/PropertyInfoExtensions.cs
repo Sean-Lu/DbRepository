@@ -1,5 +1,4 @@
-﻿#if !NET40
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -17,7 +16,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static string GetFieldName(this PropertyInfo propertyInfo)
         {
-            var fieldAttribute = propertyInfo.GetCustomAttributes<FieldAttribute>(false).FirstOrDefault();
+            var fieldAttribute = propertyInfo.GetCustomAttributesExt<FieldAttribute>(false).FirstOrDefault();
             if (fieldAttribute != null)
             {
                 return fieldAttribute.Name;
@@ -27,4 +26,3 @@ namespace Sean.Core.DbRepository.Extensions
         }
     }
 }
-#endif
