@@ -2,12 +2,20 @@
 using System.Collections.Concurrent;
 using Sean.Utility.Extensions;
 
-namespace Sean.Core.DbRepository.Dapper.Cache
+namespace Sean.Core.DbRepository.Cache
 {
+    /// <summary>
+    /// 表信息缓存
+    /// </summary>
     public class TableInfoCache
     {
         private static readonly ConcurrentDictionary<string, bool> _tableExistsDic = new ConcurrentDictionary<string, bool>();
 
+        /// <summary>
+        /// 查询指定的表是否存在
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
         public static bool IsTableExists(string tableName)
         {
             if (!string.IsNullOrWhiteSpace(tableName) && _tableExistsDic.TryGetValue(tableName, out var tableExists) && tableExists)
@@ -18,6 +26,11 @@ namespace Sean.Core.DbRepository.Dapper.Cache
             return false;
         }
 
+        /// <summary>
+        /// 设置指定的表是否存在
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="exist"></param>
         public static void IsTableExists(string tableName, bool exist)
         {
             if (string.IsNullOrWhiteSpace(tableName))

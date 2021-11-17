@@ -53,7 +53,7 @@ namespace Sean.Core.DbRepository.Impls
 
         #region 同步方法
         /// <summary>
-        /// 同步执行
+        /// 执行
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
@@ -70,7 +70,7 @@ namespace Sean.Core.DbRepository.Impls
         }
 
         /// <summary>
-        /// 同步执行事务
+        /// 执行事务
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
@@ -80,21 +80,12 @@ namespace Sean.Core.DbRepository.Impls
             if (func == null) throw new ArgumentNullException(nameof(func));
 
             using (var connection = Factory.OpenConnection())
-            using (var trans = connection.BeginTransaction())
             {
-                try
-                {
-                    return func(trans);
-                }
-                catch
-                {
-                    trans.Rollback();
-                    throw;
-                }
+                return ExecuteTransaction(connection, func);
             }
         }
         /// <summary>
-        /// 同步执行事务
+        /// 执行事务
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="connection"></param>
@@ -166,17 +157,8 @@ namespace Sean.Core.DbRepository.Impls
             if (func == null) throw new ArgumentNullException(nameof(func));
 
             using (var connection = Factory.OpenConnection())
-            using (var trans = connection.BeginTransaction())
             {
-                try
-                {
-                    return await func(trans);
-                }
-                catch
-                {
-                    trans.Rollback();
-                    throw;
-                }
+                return await ExecuteTransactionAsync(connection, func);
             }
         }
         /// <summary>

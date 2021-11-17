@@ -4,8 +4,8 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using Sean.Core.DbRepository.Cache;
 using Sean.Core.DbRepository.Contracts;
-using Sean.Core.DbRepository.Dapper.Cache;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DbRepository.Factory;
 
@@ -53,7 +53,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             }
         }
         /// <summary>
-        /// 新增
+        /// 批量新增
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
@@ -211,7 +211,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         }
 
         /// <summary>
-        /// 表是否存在
+        /// 查询指定的表是否存在
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
@@ -281,7 +281,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             }
         }
         /// <summary>
-        /// 新增
+        /// 批量新增
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
@@ -439,7 +439,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         }
 
         /// <summary>
-        /// 表是否存在
+        /// 查询指定的表是否存在
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="repository"></param>

@@ -16,7 +16,7 @@ namespace Sean.Core.DbRepository.Contracts
         DbFactory Factory { get; }
 
         /// <summary>
-        /// 同步执行
+        /// 执行
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
@@ -25,14 +25,14 @@ namespace Sean.Core.DbRepository.Contracts
         T Execute<T>(Func<IDbConnection, T> func, bool master = true);
 
         /// <summary>
-        /// 同步执行事务
+        /// 执行事务
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <returns></returns>
         T ExecuteTransaction<T>(Func<IDbTransaction, T> func);
         /// <summary>
-        /// 同步执行事务
+        /// 执行事务
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="connection"></param>
@@ -113,8 +113,7 @@ namespace Sean.Core.DbRepository.Contracts
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="master">true: 主库, false: 从库</param>
-        /// <returns></returns>
-        bool CreateTableIfNotExist(string tableName, bool master = true);
+        void CreateTableIfNotExist(string tableName, bool master = true);
 
         /// <summary>
         /// 输出执行的SQL语句
@@ -141,7 +140,7 @@ namespace Sean.Core.DbRepository.Contracts
         bool Add(TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
-        /// 新增
+        /// 批量新增
         /// </summary>
         /// <param name="entitys"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
@@ -203,7 +202,7 @@ namespace Sean.Core.DbRepository.Contracts
         int Count(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
-        /// 表是否存在
+        /// 查询指定的表是否存在
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="master">true: 主库, false: 从库</param>
@@ -222,7 +221,7 @@ namespace Sean.Core.DbRepository.Contracts
         Task<bool> AddAsync(TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
-        /// 新增
+        /// 批量新增
         /// </summary>
         /// <param name="entitys"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
@@ -284,7 +283,7 @@ namespace Sean.Core.DbRepository.Contracts
         Task<int> CountAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
-        /// 表是否存在
+        /// 查询指定的表是否存在
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="master">true: 主库, false: 从库</param>

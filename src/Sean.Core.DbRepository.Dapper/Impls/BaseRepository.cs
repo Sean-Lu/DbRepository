@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using Dapper;
+using Sean.Core.DbRepository.Cache;
 using Sean.Core.DbRepository.Contracts;
-using Sean.Core.DbRepository.Dapper.Cache;
 using Sean.Core.DbRepository.Dapper.Extensions;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DbRepository.Factory;
@@ -57,7 +58,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// <returns></returns>
         public virtual string CreateTableSql(string tableName)
         {
-            return null;
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -65,27 +66,23 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="master">true: 主库, false: 从库</param>
-        /// <returns></returns>
-        public virtual bool CreateTableIfNotExist(string tableName, bool master = true)
+        public virtual void CreateTableIfNotExist(string tableName, bool master = true)
         {
             if (string.IsNullOrWhiteSpace(tableName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
+
+            if (IsTableExists(tableName, master))
             {
-                return false;
+                return;
             }
 
             var sql = CreateTableSql(tableName);
             if (string.IsNullOrWhiteSpace(sql))
             {
-                return false;
-            }
-
-            if (IsTableExists(tableName, master))
-            {
-                return true;
+                throw new Exception($"Value cannot be null or whitespace: {nameof(CreateTableSql)}.");
             }
 
             Execute(connection => connection.Execute(sql), master);
-            return true;
         }
 
         /// <summary>
@@ -123,7 +120,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 : transaction.Connection.Add(this, entity, returnId, transaction, commandTimeout);
         }
         /// <summary>
-        /// 新增
+        /// 批量新增
         /// </summary>
         /// <param name="entitys"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
@@ -216,7 +213,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
 
         /// <summary>
-        /// 表是否存在
+        /// 查询指定的表是否存在
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="master">true: 主库, false: 从库</param>
@@ -254,7 +251,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 : await transaction.Connection.AddAsync(this, entity, returnId, transaction, commandTimeout);
         }
         /// <summary>
-        /// 新增
+        /// 批量新增
         /// </summary>
         /// <param name="entitys"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
@@ -347,7 +344,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
 
         /// <summary>
-        /// 表是否存在
+        /// 查询指定的表是否存在
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="master">true: 主库, false: 从库</param>
