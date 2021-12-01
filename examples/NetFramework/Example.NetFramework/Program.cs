@@ -28,7 +28,7 @@ namespace Example.NetFramework
             };
             #endregion
 
-            #region 配置数据库提供者映射关系
+            #region 配置数据库驱动映射关系
 
             // 方式1：在配置文件中配置映射关系
             // 方式2：在代码里直接指定映射关系

@@ -8,7 +8,7 @@
 		<Description>ORM, Support all relational databases.</Description>
 		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
 		<LangVersion>latest</LangVersion>
-		<Version>2.0.2-beta2021120101</Version>
+		<Version>2.0.2-beta2021120102</Version>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net4'">

@@ -30,17 +30,17 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public static DbProviderFactory GetDbProviderFactory(DatabaseType type)
         {
-            if (!DbProviderMapDic.TryGetValue(type, out var map) || map == null)
+            DbProviderFactory factory = null;
+            if (DbProviderMapDic.TryGetValue(type, out var map) && map != null)
             {
-                return null;
-            }
+                if (map.ProviderFactory == null && !string.IsNullOrWhiteSpace(map.ProviderInvariantName))
+                {
+                    map.ProviderFactory = GetDbProviderFactory(map.ProviderInvariantName);
+                }
 
-            if (map.ProviderFactory == null && !string.IsNullOrWhiteSpace(map.ProviderInvariantName))
-            {
-                map.ProviderFactory = GetDbProviderFactory(map.ProviderInvariantName);
+                factory = map.ProviderFactory;
             }
-
-            return map.ProviderFactory;
+            return factory ?? throw new Exception($"请先在配置文件或代码中配置 [{type}] 数据库驱动映射关系。{Environment.NewLine}代码配置示例：DatabaseType.{type}.SetDbProviderMap(new DbProviderMap(\"{type}\", xxxFactory.Instance));");
         }
         /// <summary>
         /// Get the <see cref="DbProviderFactory"/> by specified database provider name

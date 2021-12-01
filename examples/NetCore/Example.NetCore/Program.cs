@@ -5,7 +5,6 @@ using Example.Application.Extensions;
 using Example.Infrastructure.Impls;
 using Example.NetCore.Impls.DbTest;
 using Microsoft.Extensions.DependencyInjection;
-using Sean.Core.DbRepository.Factory;
 using Sean.Core.Ioc;
 using Sean.Utility.Contracts;
 using Sean.Utility.Extensions;
@@ -29,7 +28,6 @@ namespace Example.NetCore
                 services.AddApplicationDI();
                 services.AddTransient<IJsonSerializer, NewJsonSerializer>();
                 JsonHelper.Serializer = NewJsonSerializer.Instance;
-                DbFactory.Serializer = NewJsonSerializer.Instance;
             });
 
             #region 配置Logger
