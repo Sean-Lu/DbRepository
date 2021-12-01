@@ -45,6 +45,8 @@
   <ItemGroup>
     <Compile Include="Entities\CheckInLogEntity.cs" />
     <Compile Include="Impls\DbTest\MySqlTest.cs" />
+    <Compile Include="Impls\DbTest\SQLiteTest.cs" />
+    <Compile Include="Impls\NewJsonSerializer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -64,6 +66,12 @@
   <ItemGroup>
     <PackageReference Include="MySql.Data">
       <Version>8.0.26</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="System.Data.SQLite">
+      <Version>1.0.115.5</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup />

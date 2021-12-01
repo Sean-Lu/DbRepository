@@ -64,10 +64,5 @@ namespace Sean.Core.DbRepository.Config
                 return (string)this[PropertyFactoryTypeAssemblyQualifiedName];
             }
         }
-
-        public DbProviderMap Map()
-        {
-            return new(Name, ProviderInvariantName, FactoryTypeAssemblyQualifiedName);
-        }
     }
 }

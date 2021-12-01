@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using Example.NetFramework.Entities;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Dapper.Impls;
 using Sean.Core.DbRepository.Extensions;
@@ -26,7 +27,7 @@ namespace Example.NetFramework.Impls.DbTest
         private readonly ILogger _logger;
 
         public MySqlTest() : base()
-        //public MySqlTest() : base(new MultiConnectionStrings(new List<ConnectionStringOptions> { new ConnectionStringOptions("DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a", DatabaseType.MySql) }))
+        //public MySqlTest() : base(new MultiConnectionSettings(new List<ConnectionStringOptions> { new ConnectionStringOptions("DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a", DatabaseType.MySql) }))
         {
             _logger = new SimpleLocalLogger<MySqlTest>();
         }
@@ -47,7 +48,7 @@ namespace Example.NetFramework.Impls.DbTest
                 .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
                 .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
                 .SetParameter(new { UserId = 100000 }));
-            _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonHelper.SerializeFormatIndented(list)}");
+            _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonConvert.SerializeObject(list, Formatting.Indented)}");
             #endregion
 
             #region 新增单条数据

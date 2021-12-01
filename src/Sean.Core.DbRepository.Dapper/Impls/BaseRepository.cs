@@ -36,7 +36,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         {
         }
 #endif
-        protected BaseRepository(MultiConnectionStrings connectionStrings) : base(connectionStrings)
+        protected BaseRepository(MultiConnectionSettings connectionSettings) : base(connectionSettings)
         {
         }
         #endregion

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using Sean.Core.DbRepository.Factory;
 using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository.Extensions
@@ -26,27 +27,20 @@ namespace Sean.Core.DbRepository.Extensions
             }
 
             var type = typeof(T);
-            T model;
+            T model = default;
             if (type.IsValueType// 值类型，如：int、long、double、decimal、DateTime、bool等
                 || type == typeof(string)
             )
             {
-                var json = JsonHelper.Serialize(Convert.ChangeType(dr[0], Nullable.GetUnderlyingType(type) ?? type));
-                model = JsonHelper.Deserialize<T>(json);
+                var json = DbFactory.Serializer.Serialize(Convert.ChangeType(dr[0], Nullable.GetUnderlyingType(type) ?? type));
+                model = DbFactory.Serializer.Deserialize<T>(json);
             }
             else if (type == typeof(object))
             {
-                try
-                {
-                    //dynamic动态类型
-                    var json = JsonHelper.Serialize(dr.ToDataTable());
-                    var list = JsonHelper.Deserialize<List<T>>(json);
-                    model = list.FirstOrDefault();
-                }
-                catch
-                {
-                    model = default;
-                }
+                // object、dynamic动态类型
+                var json = DbFactory.Serializer.Serialize(dr.ToDataTable());
+                var list = DbFactory.Serializer.Deserialize<List<T>>(json);
+                model = list.FirstOrDefault();
             }
             else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)
             {

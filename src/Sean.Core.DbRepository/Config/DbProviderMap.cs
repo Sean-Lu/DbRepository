@@ -4,22 +4,20 @@ namespace Sean.Core.DbRepository.Config
 {
     public class DbProviderMap
     {
-        public DbProviderMap(DatabaseType type, string providerInvariantName, string factoryTypeAssemblyQualifiedName)
+        public DbProviderMap(string providerInvariantName, string factoryTypeAssemblyQualifiedName)
         {
-            Type = type;
             ProviderInvariantName = providerInvariantName;
             FactoryTypeAssemblyQualifiedName = factoryTypeAssemblyQualifiedName;
         }
 
-        public DbProviderMap(DatabaseType type, DbProviderFactory providerFactory)
+        public DbProviderMap(string providerInvariantName, DbProviderFactory providerFactory)
         {
-            Type = type;
+            ProviderInvariantName = providerInvariantName;
             ProviderFactory = providerFactory;
         }
 
-        public DatabaseType Type { get; set; }
-        public string ProviderInvariantName { get; set; }
-        public string FactoryTypeAssemblyQualifiedName { get; set; }
-        public DbProviderFactory ProviderFactory { get; set; }
+        public string ProviderInvariantName { get; }
+        public string FactoryTypeAssemblyQualifiedName { get; }
+        public DbProviderFactory ProviderFactory { get; internal set; }
     }
 }

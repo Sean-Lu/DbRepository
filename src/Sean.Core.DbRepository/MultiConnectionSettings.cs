@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Sean.Core.DbRepository
 {
-    public class MultiConnectionStrings
+    public class MultiConnectionSettings
     {
         /// <summary>
         /// 数据库连接字符串，可以配置多个，后缀是以1开始的数字，示例：xxx.master（主库）、xxx.secondary1（从库1）、xxx.secondary2（从库2）
@@ -25,9 +25,9 @@ namespace Sean.Core.DbRepository
         private int _times;
 
 #if NETSTANDARD
-        public MultiConnectionStrings(IConfiguration configuration = null, string configName = Constants.Master)
+        public MultiConnectionSettings(IConfiguration configuration = null, string configName = Constants.Master)
 #else
-        public MultiConnectionStrings(string configName = Constants.Master)
+        public MultiConnectionSettings(string configName = Constants.Master)
 #endif
         {
             if (string.IsNullOrWhiteSpace(configName))
@@ -73,7 +73,7 @@ namespace Sean.Core.DbRepository
             }
         }
 
-        public MultiConnectionStrings(List<ConnectionStringOptions> list)
+        public MultiConnectionSettings(List<ConnectionStringOptions> list)
         {
             _connectionStrings = list ?? throw new ArgumentNullException(nameof(list));
         }
@@ -96,7 +96,7 @@ namespace Sean.Core.DbRepository
             if (string.IsNullOrWhiteSpace(options.ConnectionString))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(options.ConnectionString));
 
-            if (string.IsNullOrWhiteSpace(options.ProviderName) && options.DbType == DatabaseType.Unknown)
+            if (string.IsNullOrWhiteSpace(options.ProviderName) && options.DbType == DatabaseType.Unknown && options.ProviderFactory == null)
             {
                 options.ConnectionString = GetValidConnectionString(options.ConnectionString, out var databaseType, out var providerName);
                 options.DbType = databaseType;
@@ -196,7 +196,7 @@ namespace Sean.Core.DbRepository
             var originalConnString = _configuration.GetConnectionString(connStringKeyPrefix);
             if (!string.IsNullOrWhiteSpace(originalConnString))
             {
-                AddConnectionString(new ConnectionStringOptions(originalConnString, null, master));
+                AddConnectionString(new ConnectionStringOptions(originalConnString, master));
             }
             else if (_connSections != null && _connSections.Any())
             {
@@ -204,7 +204,7 @@ namespace Sean.Core.DbRepository
                 {
                     var section = _connSections.Find(c => c.Key == $"{connStringKeyPrefix}{i + 1}");
                     if (string.IsNullOrWhiteSpace(section?.Value)) break;
-                    AddConnectionString(new ConnectionStringOptions(section.Value, null, master));
+                    AddConnectionString(new ConnectionStringOptions(section.Value, master));
                 }
             }
 #else

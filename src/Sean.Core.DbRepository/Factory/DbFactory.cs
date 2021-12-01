@@ -13,7 +13,9 @@ using Microsoft.Extensions.Configuration;
 #endif
 using Sean.Core.DbRepository.Contracts;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Utility.Contracts;
 using Sean.Utility.Format;
+using Sean.Utility.Serialize;
 
 namespace Sean.Core.DbRepository.Factory
 {
@@ -22,6 +24,11 @@ namespace Sean.Core.DbRepository.Factory
     /// </summary>
     public class DbFactory
     {
+        /// <summary>
+        /// 获取或设置 <see cref="IJsonSerializer"/> ，默认值：<see cref="JsonSerializer.Instance"/>
+        /// </summary>
+        public static IJsonSerializer Serializer { get; set; } = JsonSerializer.Instance;
+
         /// <summary>
         /// <see cref="DbProviderFactory"/>
         /// </summary>
@@ -38,9 +45,12 @@ namespace Sean.Core.DbRepository.Factory
             get => _dbType;
             set => OnDatabaseTypeChanged(value);
         }
-        public MultiConnectionStrings ConnectionStrings
+        /// <summary>
+        /// 数据库连接配置（支持多数据库：主\从库）
+        /// </summary>
+        public MultiConnectionSettings ConnectionSettings
         {
-            get => _connectionStrings;
+            get => _connectionSettings;
             set => OnConnectionStringChanged(value);
         }
         /// <summary>
@@ -54,7 +64,7 @@ namespace Sean.Core.DbRepository.Factory
 
         private DbProviderFactory _providerFactory;
         private DatabaseType _dbType;
-        private MultiConnectionStrings _connectionStrings;
+        private MultiConnectionSettings _connectionSettings;
 
         #region Constructors
 #if NETSTANDARD
@@ -67,18 +77,18 @@ namespace Sean.Core.DbRepository.Factory
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(configName));
 
 #if NETSTANDARD
-            ConnectionStrings = new MultiConnectionStrings(configuration, configName);
+            ConnectionSettings = new MultiConnectionSettings(configuration, configName);
 #else
-            ConnectionStrings = new MultiConnectionStrings(configName);
+            ConnectionSettings = new MultiConnectionSettings(configName);
 #endif
         }
         /// <summary>
         /// Create DbFactory
         /// </summary>
-        /// <param name="connectionStrings"></param>
-        public DbFactory(MultiConnectionStrings connectionStrings)
+        /// <param name="connectionSettings"></param>
+        public DbFactory(MultiConnectionSettings connectionSettings)
         {
-            ConnectionStrings = connectionStrings ?? throw new ArgumentNullException(nameof(connectionStrings));
+            ConnectionSettings = connectionSettings ?? throw new ArgumentNullException(nameof(connectionSettings));
         }
         #endregion
 
@@ -678,7 +688,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public IDbConnection CreateConnection(bool master)
         {
-            return CreateConnection(_connectionStrings?.GetConnectionString(master));
+            return CreateConnection(_connectionSettings?.GetConnectionString(master));
         }
         /// <summary>
         /// Create a new connection with specified connection string
@@ -818,28 +828,36 @@ namespace Sean.Core.DbRepository.Factory
             _dbType = dbType;
             _providerFactory = _dbType.GetDbProviderFactory();
         }
-        private void OnConnectionStringChanged(MultiConnectionStrings connectionStrings)
+        private void OnConnectionStringChanged(MultiConnectionSettings connectionSettings)
         {
-            _connectionStrings = connectionStrings;
+            _connectionSettings = connectionSettings;
 
-            if (_connectionStrings?.ConnectionStrings == null || !_connectionStrings.ConnectionStrings.Any())
+            if (_connectionSettings?.ConnectionStrings == null || !_connectionSettings.ConnectionStrings.Any())
             {
                 _dbType = DatabaseType.Unknown;
                 _providerFactory = null;
             }
             else
             {
-                var dbType = _connectionStrings.ConnectionStrings.FirstOrDefault(c => c.DbType != DatabaseType.Unknown)?.DbType ?? DatabaseType.Unknown;
-                if (dbType != DatabaseType.Unknown)
+                var providerFactory = _connectionSettings.ConnectionStrings.FirstOrDefault(c => c.ProviderFactory != null)?.ProviderFactory;
+                if (providerFactory != null)// 1. 直接指定 DbProviderFactory：简单粗暴，直截了当，不需要额外配置数据库驱动映射关系，也支持任何实现了 DbProviderFactory 的关系型数据库。
                 {
-                    DbType = dbType;
+                    ProviderFactory = providerFactory;
                 }
                 else
                 {
-                    var providerName = _connectionStrings.ConnectionStrings.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.ProviderName))?.ProviderName;
-                    if (!string.IsNullOrWhiteSpace(providerName))
+                    var dbType = _connectionSettings.ConnectionStrings.FirstOrDefault(c => c.DbType != DatabaseType.Unknown)?.DbType;
+                    if (dbType.HasValue && dbType.Value != DatabaseType.Unknown)// 2. 通过 DatabaseType 映射获取到 DbProviderFactory：需要配置数据库驱动映射关系
                     {
-                        ProviderFactory = DbProviderFactoryManager.GetDbProviderFactory(providerName);
+                        DbType = dbType.Value;
+                    }
+                    else
+                    {
+                        var providerName = _connectionSettings.ConnectionStrings.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.ProviderName))?.ProviderName;
+                        if (!string.IsNullOrWhiteSpace(providerName))// 3. 通过 ProviderName 映射获取到 DbProviderFactory：需要配置数据库驱动映射关系
+                        {
+                            ProviderFactory = DbProviderFactoryManager.GetDbProviderFactory(providerName);
+                        }
                     }
                 }
             }

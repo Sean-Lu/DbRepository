@@ -44,10 +44,10 @@ namespace Sean.Core.DbRepository.Impls
         /// <summary>
         /// Create BaseRepository
         /// </summary>
-        /// <param name="connectionStrings"></param>
-        protected BaseRepository(MultiConnectionStrings connectionStrings)
+        /// <param name="connectionSettings"></param>
+        protected BaseRepository(MultiConnectionSettings connectionSettings)
         {
-            Factory = new DbFactory(connectionStrings);
+            Factory = new DbFactory(connectionSettings);
         }
         #endregion
 

@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 using Dapper;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Impls;
 using Sean.Utility.Contracts;
@@ -22,7 +23,7 @@ namespace Example.NetCore.Impls.DbTest
         {
             var sql = "SELECT top 2 * FROM Test";
             var result = Execute(c => c.Query<dynamic>(sql, new { }));
-            Console.WriteLine(JsonHelper.Serialize(result));
+            Console.WriteLine(JsonConvert.SerializeObject(result));
         }
     }
 }

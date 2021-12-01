@@ -2,11 +2,14 @@
 using System.Linq;
 using System.Reflection;
 using Example.Application.Extensions;
+using Example.Infrastructure.Impls;
 using Example.NetCore.Impls.DbTest;
 using Microsoft.Extensions.DependencyInjection;
+using Sean.Core.DbRepository.Factory;
 using Sean.Core.Ioc;
 using Sean.Utility.Contracts;
 using Sean.Utility.Extensions;
+using Sean.Utility.Format;
 using Sean.Utility.Impls.Log;
 
 namespace Example.NetCore
@@ -24,9 +27,14 @@ namespace Example.NetCore
                 });
                 services.AddSimpleLocalLogger();
                 services.AddApplicationDI();
+                services.AddTransient<IJsonSerializer, NewJsonSerializer>();
+                JsonHelper.Serializer = NewJsonSerializer.Instance;
+                DbFactory.Serializer = NewJsonSerializer.Instance;
             });
 
+            #region 配置Logger
             SimpleLocalLoggerBase.DateTimeFormat = time => time.ToLongDateTime();
+            #endregion
 
             ISimpleDo toDo = IocContainer.Instance.GetService<MySqlTest>();
             toDo.Execute();

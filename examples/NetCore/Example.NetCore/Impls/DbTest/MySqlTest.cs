@@ -5,6 +5,7 @@ using Example.Application.Contracts;
 using Example.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Dapper;
 using Sean.Core.DbRepository.Dapper.Impls;
@@ -34,7 +35,7 @@ namespace Example.NetCore.Impls.DbTest
         public void Execute()
         {
             var list = _checkInLogService.SearchAsync(100000, 1, 3).Result;
-            _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonHelper.SerializeFormatIndented(list)}");
+            _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonConvert.SerializeObject(list,Formatting.Indented)}");
         }
     }
 }

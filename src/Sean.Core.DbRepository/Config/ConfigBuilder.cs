@@ -15,22 +15,28 @@ namespace Sean.Core.DbRepository.Config
             ConfigFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"dllconfigs\{Assembly.GetExecutingAssembly().GetName().Name}.dll.config");
         }
 
-        public static T Get<T>(string sectionName) where T : class
+        public static T Get<T>(string sectionName)
         {
-            if (File.Exists(ConfigFilePath))
-            {
-                return ConfigurationManager.OpenMappedExeConfiguration(new ExeConfigurationFileMap
-                {
-                    ExeConfigFilename = ConfigFilePath
-                }, ConfigurationUserLevel.None).GetSection(sectionName) as T;
-            }
-
             if (ConfigurationManager.GetSection(sectionName) is T section)
             {
                 return section;
             }
 
             return default;
+        }
+
+        public static DbProviderMapSection GetDbProviderMapSection()
+        {
+            var sectionName = "dbProviderMap";
+            if (File.Exists(ConfigFilePath))
+            {
+                return ConfigurationManager.OpenMappedExeConfiguration(new ExeConfigurationFileMap
+                {
+                    ExeConfigFilename = ConfigFilePath
+                }, ConfigurationUserLevel.None).GetSection(sectionName) as DbProviderMapSection;
+            }
+
+            return Get<DbProviderMapSection>(sectionName);
         }
     }
 }

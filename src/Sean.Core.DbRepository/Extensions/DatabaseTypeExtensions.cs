@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.Linq;
 using Sean.Core.DbRepository.Config;
 using Sean.Utility.Extensions;
 
@@ -19,28 +20,24 @@ namespace Sean.Core.DbRepository.Extensions
             return providerMap;
         }
 
-        public static void UpdateDbProviderMap(this DatabaseType type, Action<DbProviderMap> action)
-        {
-            DbProviderFactoryManager.DbProviderMapDic.TryGetValue(type, out var providerMap);
-            providerMap ??= new DbProviderMap(type, null);
-            action?.Invoke(providerMap);
-            type.SetDbProviderMap(providerMap);
-        }
-
         public static void SetDbProviderMap(this DatabaseType type, DbProviderMap providerMap)
         {
             if (providerMap != null)
             {
-                if (providerMap.Type != type)
+                if (!string.IsNullOrWhiteSpace(providerMap.ProviderInvariantName))
                 {
-                    providerMap.Type = type;
-                }
+                    if (DbProviderFactoryManager.DbProviderMapDic.Any(c => c.Key != type && c.Value != null && c.Value.ProviderInvariantName == providerMap.ProviderInvariantName))
+                    {
+                        throw new Exception($"{nameof(DbProviderMap)}.{nameof(DbProviderMap.ProviderInvariantName)} 的值不能重复：{providerMap.ProviderInvariantName}");
+                    }
+
 #if NETSTANDARD2_1 || NET5_0
-                if (!string.IsNullOrWhiteSpace(providerMap.ProviderInvariantName) && !string.IsNullOrWhiteSpace(providerMap.FactoryTypeAssemblyQualifiedName))
-                {
-                    DbProviderFactoryManager.RegisterFactory(providerMap.ProviderInvariantName, providerMap.FactoryTypeAssemblyQualifiedName);
-                }
+                    if (!string.IsNullOrWhiteSpace(providerMap.FactoryTypeAssemblyQualifiedName))
+                    {
+                        DbProviderFactoryManager.RegisterFactory(providerMap.ProviderInvariantName, providerMap.FactoryTypeAssemblyQualifiedName);
+                    }
 #endif
+                }
             }
             DbProviderFactoryManager.DbProviderMapDic.AddOrUpdate(type, providerMap);
         }

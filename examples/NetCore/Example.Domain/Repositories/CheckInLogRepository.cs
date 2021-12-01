@@ -6,6 +6,7 @@ using Dapper;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Dapper.Extensions;
 using Sean.Core.DbRepository.Dapper.Impls;
@@ -29,7 +30,7 @@ namespace Example.Domain.Repositories
 
         public override void OutputExecutedSql(string sql, object param)
         {
-            _logger.LogInfo($"执行了SQL: {sql}{Environment.NewLine}参数：{JsonHelper.SerializeFormatIndented(param)}");
+            _logger.LogInfo($"执行了SQL: {sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(param, Formatting.Indented)}");
         }
 
         public override string TableName()

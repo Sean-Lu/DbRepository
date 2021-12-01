@@ -5,8 +5,7 @@ using System.IO;
 using System.Linq;
 using Sean.Core.DbRepository.Config;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Utility.Extensions;
-using Sean.Utility.IO;
+using Sean.Utility.Config;
 
 namespace Sean.Core.DbRepository
 {
@@ -31,28 +30,17 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public static DbProviderFactory GetDbProviderFactory(DatabaseType type)
         {
-            if (DbProviderMapDic.TryGetValue(type, out var map) && map is { ProviderFactory: { } })
+            if (!DbProviderMapDic.TryGetValue(type, out var map) || map == null)
             {
-                return map.ProviderFactory;
+                return null;
             }
 
-            DbProviderFactory dbProviderFactory = null;
-            if (!string.IsNullOrWhiteSpace(map?.ProviderInvariantName))
+            if (map.ProviderFactory == null && !string.IsNullOrWhiteSpace(map.ProviderInvariantName))
             {
-                try
-                {
-                    dbProviderFactory = GetDbProviderFactory(map.ProviderInvariantName);
-                }
-                finally
-                {
-                    if (dbProviderFactory != null)
-                    {
-                        map.ProviderFactory = dbProviderFactory;
-                        type.SetDbProviderMap(map);
-                    }
-                }
+                map.ProviderFactory = GetDbProviderFactory(map.ProviderInvariantName);
             }
-            return dbProviderFactory;
+
+            return map.ProviderFactory;
         }
         /// <summary>
         /// Get the <see cref="DbProviderFactory"/> by specified database provider name
@@ -64,6 +52,28 @@ namespace Sean.Core.DbRepository
             if (string.IsNullOrWhiteSpace(providerName))
             {
                 return null;
+            }
+
+            var map = DbProviderMapDic.FirstOrDefault(c => c.Value != null && !string.IsNullOrWhiteSpace(c.Value.ProviderInvariantName) && c.Value.ProviderInvariantName == providerName).Value;
+            if (map != null)
+            {
+                if (map.ProviderFactory != null)
+                {
+                    return map.ProviderFactory;
+                }
+                else if (!string.IsNullOrWhiteSpace(map.FactoryTypeAssemblyQualifiedName))
+                {
+                    var type = Type.GetType(map.FactoryTypeAssemblyQualifiedName);
+                    if (type != null)
+                    {
+                        DbProviderFactory instance = Activator.CreateInstance(type) as DbProviderFactory;
+                        if (instance != null)
+                        {
+                            map.ProviderFactory = instance;
+                            return map.ProviderFactory;
+                        }
+                    }
+                }
             }
 
 #if NETSTANDARD2_0
@@ -145,7 +155,7 @@ namespace Sean.Core.DbRepository
                     {
                         var providerInvariantName = XmlHelper.GetXmlAttributeValue(xmlNode, "providerInvariantName");
                         var factoryTypeAssemblyQualifiedName = XmlHelper.GetXmlAttributeValue(xmlNode, "factoryTypeAssemblyQualifiedName");
-                        map = new DbProviderMap(dbType, providerInvariantName, factoryTypeAssemblyQualifiedName);
+                        map = new DbProviderMap(providerInvariantName, factoryTypeAssemblyQualifiedName);
                     }
                     dbType.SetDbProviderMap(map);
                 });
@@ -156,30 +166,34 @@ namespace Sean.Core.DbRepository
         /// </summary>
         private static void LoadConfigFromConfigurationFile()
         {
-            var section = ConfigBuilder.Get<DbProviderMapSection>(ConfigBuilder.DbProviderMapSectionName);
+            var section = ConfigBuilder.GetDbProviderMapSection();
             if (section == null)
             {
-                #region 设置数据库驱动配置（同配置文件）
-                section = new DbProviderMapSection();
-                section.Databases.Clear();
-                section.Databases.Add(new DatabaseElement(DatabaseType.MySql, "MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));
-                section.Databases.Add(new DatabaseElement(DatabaseType.SqlServer, "System.Data.SqlClient", "System.Data.SqlClient.SqlClientFactory,System.Data"));
-                section.Databases.Add(new DatabaseElement(DatabaseType.SqlServerCe, "Microsoft.SqlServerCe.Client", "Microsoft.SqlServerCe.Client.SqlCeClientFactory,Microsoft.SqlServerCe.Client"));
-                section.Databases.Add(new DatabaseElement(DatabaseType.Oracle, "Oracle.ManagedDataAccess.Client", "Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"));
-                section.Databases.Add(new DatabaseElement(DatabaseType.SQLite, "System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));
-                section.Databases.Add(new DatabaseElement(DatabaseType.Access, "System.Data.OleDb", "System.Data.OleDb.OleDbFactory,System.Data"));
-                section.Databases.Add(new DatabaseElement(DatabaseType.Firebird, "FirebirdSql.Data.FirebirdClient", "FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"));
-                section.Databases.Add(new DatabaseElement(DatabaseType.PostgreSql, "Npgsql", "Npgsql.NpgsqlFactory,Npgsql"));
-                section.Databases.Add(new DatabaseElement(DatabaseType.DB2, "IBM.Data.DB2", "IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"));
-                section.Databases.Add(new DatabaseElement(DatabaseType.Informix, "IBM.Data.Informix", "IBM.Data.Informix.IfxFactory,IBM.Data.Informix"));
+                #region 设置默认的数据库驱动配置（同配置文件：\dllconfigs\Sean.Core.DbRepository.dll.config）
+                //section = new DbProviderMapSection();
+                //section.Databases.Clear();
+                //section.Databases.Add(new DatabaseElement(DatabaseType.MySql, "MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));
+                //section.Databases.Add(new DatabaseElement(DatabaseType.SqlServer, "System.Data.SqlClient", "System.Data.SqlClient.SqlClientFactory,System.Data"));
+                //section.Databases.Add(new DatabaseElement(DatabaseType.SqlServerCe, "Microsoft.SqlServerCe.Client", "Microsoft.SqlServerCe.Client.SqlCeClientFactory,Microsoft.SqlServerCe.Client"));
+                //section.Databases.Add(new DatabaseElement(DatabaseType.Oracle, "Oracle.ManagedDataAccess.Client", "Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"));
+                //section.Databases.Add(new DatabaseElement(DatabaseType.SQLite, "System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));
+                //section.Databases.Add(new DatabaseElement(DatabaseType.Access, "System.Data.OleDb", "System.Data.OleDb.OleDbFactory,System.Data"));
+                //section.Databases.Add(new DatabaseElement(DatabaseType.Firebird, "FirebirdSql.Data.FirebirdClient", "FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"));
+                //section.Databases.Add(new DatabaseElement(DatabaseType.PostgreSql, "Npgsql", "Npgsql.NpgsqlFactory,Npgsql"));
+                //section.Databases.Add(new DatabaseElement(DatabaseType.DB2, "IBM.Data.DB2", "IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"));
+                //section.Databases.Add(new DatabaseElement(DatabaseType.Informix, "IBM.Data.Informix", "IBM.Data.Informix.IfxFactory,IBM.Data.Informix"));
                 #endregion
             }
 
-            var databases = section.Databases?.OfType<DatabaseElement>().ToList();
+            var databases = section?.Databases?.OfType<DatabaseElement>().ToList();
             ((DatabaseType[])Enum.GetValues(typeof(DatabaseType))).ToList().ForEach(dbType =>
             {
-                var map = databases?.FirstOrDefault(c => dbType == c.Name)?.Map();
-                dbType.SetDbProviderMap(map);
+                var element = databases?.FirstOrDefault(c => dbType == c.Name);
+                if (element != null)
+                {
+                    var map = new DbProviderMap(element.ProviderInvariantName, element.FactoryTypeAssemblyQualifiedName);
+                    dbType.SetDbProviderMap(map);
+                }
             });
         }
     }
