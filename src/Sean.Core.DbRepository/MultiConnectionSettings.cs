@@ -113,8 +113,18 @@ namespace Sean.Core.DbRepository
         {
             if (!master && _connectionStrings.Count(c => !c.Master) < 1)
             {
+                // 如果没有从库配置，则默认取主库配置
                 master = true;
             }
+
+            // 单连接配置
+            if (_connectionStrings.Count == 1)
+            {
+                var options = _connectionStrings.FirstOrDefault();
+                return options != null && options.Master == master ? options.ConnectionString : string.Empty;
+            }
+
+            // 多连接配置
             var list = _connectionStrings.Where(c => c.Master == master).ToList();
             var connString = list.Count < 2 ? list.FirstOrDefault()?.ConnectionString : list[Interlocked.Increment(ref _times) % list.Count]?.ConnectionString;
             return connString;
@@ -123,11 +133,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="connectionString">"xxx;ProviderName=xxx" 或 "xxx;DatabaseType=xxx"</param>
+        /// <param name="connectionString">示例："xxx;ProviderName=xxx" 或 "xxx;DatabaseType=xxx"</param>
         /// <param name="databaseType"></param>
         /// <param name="providerName"></param>
         /// <returns></returns>
-        public string GetValidConnectionString(string connectionString, out DatabaseType databaseType, out string providerName)
+        public static string GetValidConnectionString(string connectionString, out DatabaseType databaseType, out string providerName)
         {
             databaseType = DatabaseType.Unknown;
             providerName = null;
@@ -159,7 +169,7 @@ namespace Sean.Core.DbRepository
             return validConnString;
         }
 
-        public Dictionary<string, string> GetConnectionDictionary(string connectionString)
+        public static Dictionary<string, string> GetConnectionDictionary(string connectionString)
         {
             var result = new Dictionary<string, string>();
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -179,7 +189,7 @@ namespace Sean.Core.DbRepository
             return result;
         }
 
-        public string GetConnectionString(Dictionary<string, string> dic)
+        public static string GetConnectionString(Dictionary<string, string> dic)
         {
             var list = new List<string>();
             dic.ForEach(c =>
