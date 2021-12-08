@@ -39,7 +39,7 @@ namespace Example.NetFramework
 
             #endregion
 
-            DbFactory.Serializer = NewJsonSerializer.Instance;
+            JsonHelper.Serializer = NewJsonSerializer.Instance;
 
             //ISimpleDo toDo = new MySqlTest();
             ISimpleDo toDo = new SQLiteTest();

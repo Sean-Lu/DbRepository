@@ -26,7 +26,8 @@ namespace Example.NetFramework.Impls.DbTest
         public void Execute()
         {
             var sql = "select * from sqlite_master where type='table' order by name limit 2";
-            var result = Execute(c => c.Query<dynamic>(sql, new { }));
+            var result = Factory.GetList<dynamic>(sql);
+            //var result = Execute(c => c.Query<dynamic>(sql, new { }));
             _logger.LogInfo(JsonConvert.SerializeObject(result, Formatting.Indented));
         }
     }

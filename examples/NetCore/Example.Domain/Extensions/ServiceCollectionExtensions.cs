@@ -19,7 +19,6 @@ namespace Example.Domain.Extensions
         public static void AddDomainDI(this IServiceCollection services)
         {
             services.RegisterServicesByAssemblyInterface(Assembly.GetExecutingAssembly(), "Repository", ServiceLifetime.Transient);
-            DbFactory.Serializer = NewJsonSerializer.Instance;
             DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", MySqlClientFactory.Instance));
         }
     }

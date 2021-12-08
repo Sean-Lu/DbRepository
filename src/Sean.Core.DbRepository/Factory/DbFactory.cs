@@ -25,11 +25,6 @@ namespace Sean.Core.DbRepository.Factory
     public class DbFactory
     {
         /// <summary>
-        /// 获取或设置 <see cref="IJsonSerializer"/> ，默认值：<see cref="JsonSerializer.Instance"/>
-        /// </summary>
-        public static IJsonSerializer Serializer { get; set; } = JsonSerializer.Instance;
-
-        /// <summary>
         /// <see cref="DbProviderFactory"/>
         /// </summary>
         public DbProviderFactory ProviderFactory
