@@ -13,23 +13,16 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net4'">
-		<Reference Include="System.ComponentModel.DataAnnotations" />
-		<Reference Include="System.Transactions" />
 		<PackageReference Include="Dapper" Version="1.50.2" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
-		<Reference Include="System.ComponentModel.DataAnnotations" />
-		<Reference Include="System.Transactions" />
 		<PackageReference Include="Dapper" Version="1.50.2" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-		<Reference Include="System.ComponentModel.DataAnnotations" />
-		<Reference Include="System.Transactions" />
 		<PackageReference Include="Dapper" Version="2.0.123" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
 		<PackageReference Include="Dapper" Version="2.0.123" />
 	</ItemGroup>
 
