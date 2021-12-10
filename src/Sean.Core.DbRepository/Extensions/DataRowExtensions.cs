@@ -28,12 +28,15 @@ namespace Sean.Core.DbRepository.Extensions
 
             var type = typeof(T);
             T model = default;
-            if (type.IsValueType// 值类型，如：int、long、double、decimal、DateTime、bool等
+            if (type.IsValueType// 值类型，如：int、long、double、decimal、DateTime、bool、可空类型等
                 || type == typeof(string)
             )
             {
-                var json = JsonHelper.Serialize(Convert.ChangeType(dr[0], Nullable.GetUnderlyingType(type) ?? type));
-                model = JsonHelper.Deserialize<T>(json);
+                if (dr[0] != DBNull.Value)// 对象不能从 DBNull 转换为其他类型。
+                {
+                    var json = JsonHelper.Serialize(Convert.ChangeType(dr[0], Nullable.GetUnderlyingType(type) ?? type));
+                    model = JsonHelper.Deserialize<T>(json);
+                }
             }
             else if (type == typeof(object))// dynamic动态类型
             {
