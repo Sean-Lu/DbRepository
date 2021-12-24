@@ -90,6 +90,7 @@ namespace Sean.Core.DbRepository.Factory
         #region ExecuteCommandInfo
         public T ExecuteCommandInfo<T>(DbCommandInfo commandInfo, Func<DbCommand, T> func)
         {
+            if (commandInfo == null) throw new ArgumentNullException(nameof(commandInfo));
             if (func == null)
             {
                 return default;
@@ -120,6 +121,7 @@ namespace Sean.Core.DbRepository.Factory
 #if !NET40
         public async Task<T> ExecuteCommandInfoAsync<T>(DbCommandInfo commandInfo, Func<DbCommand, Task<T>> func)
         {
+            if (commandInfo == null) throw new ArgumentNullException(nameof(commandInfo));
             if (func == null)
             {
                 return default;
@@ -152,7 +154,7 @@ namespace Sean.Core.DbRepository.Factory
 
         #region ExecuteNonQuery【增\删\改】
         /// <summary>   
-        /// Execute insert or delete or update operation on the database and return the number of rows affected.
+        /// 执行 新增\删除\修改 操作，并返回受影响的行数
         /// </summary>   
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
@@ -167,7 +169,7 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
         /// <summary>
-        /// Execute insert or delete or update operation on the database and return the number of rows affected.
+        /// 执行 新增\删除\修改 操作，并返回受影响的行数
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -184,7 +186,7 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
         /// <summary>   
-        /// Execute insert or delete or update operation on the database and return the number of rows affected.
+        /// 执行 新增\删除\修改 操作，并返回受影响的行数
         /// </summary>
         /// <param name="trans">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -201,7 +203,7 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
         /// <summary>   
-        /// Execute insert or delete or update operation on the database and return the number of rows affected.
+        /// 执行 新增\删除\修改 操作，并返回受影响的行数
         /// </summary>   
         /// <returns></returns>
         public int ExecuteNonQuery(DbCommandInfo commandInfo)
@@ -210,7 +212,7 @@ namespace Sean.Core.DbRepository.Factory
         }
 #if !NET40
         /// <summary>   
-        /// Execute insert or delete or update operation on the database and return the number of rows affected.
+        /// 执行 新增\删除\修改 操作，并返回受影响的行数
         /// </summary>   
         /// <returns></returns>
         public async Task<int> ExecuteNonQueryAsync(DbCommandInfo commandInfo)
@@ -222,7 +224,7 @@ namespace Sean.Core.DbRepository.Factory
 
         #region ExecuteDataTable【数据表】
         /// <summary>   
-        /// Execute SQL and return a DataTable containing query results
+        /// 执行查询，并返回 <see cref="DataTable"/>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -237,7 +239,7 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
         /// <summary>   
-        /// Execute SQL and return a DataTable containing query results
+        /// 执行查询，并返回 <see cref="DataTable"/>
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -252,7 +254,7 @@ namespace Sean.Core.DbRepository.Factory
             return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
         /// <summary>
-        /// Execute SQL and return a DataTable containing query results
+        /// 执行查询，并返回 <see cref="DataTable"/>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -263,7 +265,7 @@ namespace Sean.Core.DbRepository.Factory
         }
 #if !NET40
         /// <summary>
-        /// Execute SQL and return a DataTable containing query results
+        /// 执行查询，并返回 <see cref="DataTable"/>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -277,7 +279,7 @@ namespace Sean.Core.DbRepository.Factory
 
         #region ExecuteDataSet【数据集】
         /// <summary>   
-        /// Execute SQL and return a DataSet containing query results
+        /// 执行查询，并返回 <see cref="DataSet"/>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -292,7 +294,7 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
         /// <summary>   
-        /// Execute SQL and return a DataSet containing query results
+        /// 执行查询，并返回 <see cref="DataSet"/>
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -326,7 +328,7 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
         /// <summary>
-        /// Execute SQL and return a DataSet containing query results
+        /// 执行查询，并返回 <see cref="DataSet"/>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -356,7 +358,7 @@ namespace Sean.Core.DbRepository.Factory
         }
 #if !NET40
         /// <summary>
-        /// Execute SQL and return a DataSet containing query results
+        /// 执行查询，并返回 <see cref="DataSet"/>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -371,7 +373,7 @@ namespace Sean.Core.DbRepository.Factory
                         // 如果创建 DbDataAdapter 失败，则尝试通过 DbDataReader 读取器来获取数据
                         using (var reader = await command.ExecuteReaderAsync(CommandBehavior.Default))
                         {
-                            return await reader.GetDataSetAsync();
+                            return reader.GetDataSet();
                         }
                     }
                     else
@@ -389,7 +391,7 @@ namespace Sean.Core.DbRepository.Factory
 
         #region ExecuteReader【数据阅读器】
         /// <summary>   
-        /// Execute sql and return an associated DbDataReader instance
+        /// 执行查询，并返回 <see cref="DbDataReader"/>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -398,13 +400,14 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public IDataReader ExecuteReader(string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
-            using (var conn = CreateConnection(master))
+            var conn = CreateConnection(master);
+            using (var command = CreateDbCommand(null, conn, commandType, commandText, parameters))
             {
-                return ExecuteReader(conn, commandText, parameters, commandType);
+                return command.ExecuteReader(CommandBehavior.CloseConnection);
             }
         }
         /// <summary>   
-        /// Execute sql and return an associated DbDataReader instance
+        /// 执行查询，并返回 <see cref="DbDataReader"/>
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -417,34 +420,40 @@ namespace Sean.Core.DbRepository.Factory
 
             using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
             {
-                return command.ExecuteReader(CommandBehavior.CloseConnection);
+                return command.ExecuteReader(CommandBehavior.Default);
             }
         }
         /// <summary>
-        /// Execute sql and return an associated DbDataReader instance
+        /// 执行查询，并返回 <see cref="DbDataReader"/>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
         public IDataReader ExecuteReader(DbCommandInfo commandInfo)
         {
-            return ExecuteCommandInfo(commandInfo, command => command.ExecuteReader(CommandBehavior.CloseConnection));
+            using (var command = CreateDbCommand(commandInfo))
+            {
+                return command.ExecuteReader(CommandBehavior.Default);
+            }
         }
 #if !NET40
         /// <summary>
-        /// Execute sql and return an associated DbDataReader instance
+        /// 执行查询，并返回 <see cref="DbDataReader"/>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
         public async Task<IDataReader> ExecuteReaderAsync(DbCommandInfo commandInfo)
         {
-            return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteReaderAsync(CommandBehavior.CloseConnection));
+            using (var command = CreateDbCommand(commandInfo))
+            {
+                return await command.ExecuteReaderAsync(CommandBehavior.Default);
+            }
         }
 #endif
         #endregion
 
         #region ExecuteScalar【返回结果集中的第一行第一列】
         /// <summary>
-        /// Execute sql and return the first row and first column of the query result
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -459,7 +468,7 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
         /// <summary>
-        /// Execute sql and return the first row and first column of the query result
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -476,7 +485,7 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
         /// <summary>
-        /// Execute sql and return the first row and first column of the query result
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -486,7 +495,7 @@ namespace Sean.Core.DbRepository.Factory
         }
 
         /// <summary>
-        /// Execute sql and return the first row and first column of the query result
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -501,7 +510,7 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
         /// <summary>
-        /// Execute sql and return the first row and first column of the query result
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -511,10 +520,10 @@ namespace Sean.Core.DbRepository.Factory
         public T ExecuteScalar<T>(IDbConnection connection, string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             var obj = ExecuteScalar(connection, commandText, parameters, commandType);
-            return ObjectConvert.ConvertObjectByJson<T>(obj);
+            return ObjectConvert.ChangeType<T>(obj);
         }
         /// <summary>
-        /// Execute sql and return the first row and first column of the query result
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
@@ -522,12 +531,12 @@ namespace Sean.Core.DbRepository.Factory
         public T ExecuteScalar<T>(DbCommandInfo commandInfo)
         {
             var obj = ExecuteScalar(commandInfo);
-            return ObjectConvert.ConvertObjectByJson<T>(obj);
+            return ObjectConvert.ChangeType<T>(obj);
         }
 
 #if !NET40
         /// <summary>
-        /// Execute sql and return the first row and first column of the query result
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -536,7 +545,7 @@ namespace Sean.Core.DbRepository.Factory
             return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteScalarAsync());
         }
         /// <summary>
-        /// Execute sql and return the first row and first column of the query result
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
@@ -544,7 +553,7 @@ namespace Sean.Core.DbRepository.Factory
         public async Task<T> ExecuteScalarAsync<T>(DbCommandInfo commandInfo)
         {
             var obj = await ExecuteScalarAsync(commandInfo);
-            return ObjectConvert.ConvertObjectByJson<T>(obj);
+            return ObjectConvert.ChangeType<T>(obj);
         }
 #endif
         #endregion
@@ -579,8 +588,13 @@ namespace Sean.Core.DbRepository.Factory
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
-            var table = ExecuteDataTable(connection, commandText, parameters, commandType);
-            return table?.ToList<T>(IgnoreCaseWhenMatchField);
+            //var table = ExecuteDataTable(connection, commandText, parameters, commandType);
+            //return table?.ToList<T>(IgnoreCaseWhenMatchField);
+
+            using (var dataReader = ExecuteReader(connection, commandText, parameters, commandType))
+            {
+                return dataReader.GetList<T>(IgnoreCaseWhenMatchField);
+            }
         }
         /// <summary>
         /// Query multiple entity or special type value collections
@@ -590,8 +604,13 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns>Entity or special type value list</returns>
         public List<T> GetList<T>(DbCommandInfo commandInfo)
         {
-            var table = ExecuteDataTable(commandInfo);
-            return table?.ToList<T>(IgnoreCaseWhenMatchField);
+            //var table = ExecuteDataTable(commandInfo);
+            //return table?.ToList<T>(IgnoreCaseWhenMatchField);
+
+            using (var dataReader = ExecuteReader(commandInfo))
+            {
+                return dataReader.GetList<T>(IgnoreCaseWhenMatchField);
+            }
         }
 #if !NET40
         /// <summary>
@@ -602,8 +621,13 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns>Entity or special type value list</returns>
         public async Task<List<T>> GetListAsync<T>(DbCommandInfo commandInfo)
         {
-            var table = await ExecuteDataTableAsync(commandInfo);
-            return table?.ToList<T>(IgnoreCaseWhenMatchField);
+            //var table = await ExecuteDataTableAsync(commandInfo);
+            //return table?.ToList<T>(IgnoreCaseWhenMatchField);
+
+            using (var dataReader = await ExecuteReaderAsync(commandInfo))
+            {
+                return dataReader.GetList<T>(IgnoreCaseWhenMatchField);
+            }
         }
 #endif
         #endregion

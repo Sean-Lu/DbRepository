@@ -175,6 +175,11 @@ namespace Sean.Core.DbRepository.Factory
         #endregion
 
         /// <summary>
+        /// 表名
+        /// </summary>
+        public string TableName => _tableName;
+
+        /// <summary>
         /// 获取SQL入参
         /// </summary>
         public object Parameter => _parameter;
