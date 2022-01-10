@@ -34,9 +34,9 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// The parameters of the SQL statement or stored procedure.
         /// </summary>
-        public IList<DbParameter> Parameters { get; set; }
+        public IEnumerable<DbParameter> Parameters { get; set; }
 
-        public DbCommandInfo(string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text, int? commandTimeout = null)
+        public DbCommandInfo(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, int? commandTimeout = null)
         {
             CommandText = commandText;
             Parameters = parameters;

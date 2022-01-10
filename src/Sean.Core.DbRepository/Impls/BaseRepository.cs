@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using System.Transactions;
 using Sean.Core.DbRepository.Contracts;
+using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DbRepository.Factory;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
@@ -52,6 +53,30 @@ namespace Sean.Core.DbRepository.Impls
         #endregion
 
         #region 同步方法
+        /// <summary>
+        /// <see cref="SqlFactory.Build(DatabaseType, string)"/>
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public virtual SqlFactory NewSqlFactory(string tableName)
+        {
+            return SqlFactory.Build(Factory.DbType, tableName);
+        }
+        /// <summary>
+        /// <see cref="SqlFactory{TEntity}.Build(DatabaseType, bool, string)"/>
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="autoIncludeFields"></param>
+        /// <returns></returns>
+        public virtual SqlFactory<TEntity> NewSqlFactory<TEntity>(bool autoIncludeFields, string tableName = null)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                tableName = typeof(TEntity).GetMainTableName();
+            }
+            return SqlFactory<TEntity>.Build(Factory.DbType, autoIncludeFields, tableName);
+        }
+
         /// <summary>
         /// 执行
         /// </summary>

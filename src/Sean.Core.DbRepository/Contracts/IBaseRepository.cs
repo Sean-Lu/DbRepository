@@ -16,6 +16,20 @@ namespace Sean.Core.DbRepository.Contracts
         DbFactory Factory { get; }
 
         /// <summary>
+        /// <see cref="SqlFactory.Build(DatabaseType, string)"/>
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        SqlFactory NewSqlFactory(string tableName);
+        /// <summary>
+        /// <see cref="SqlFactory{TEntity}.Build(DatabaseType, bool, string)"/>
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="autoIncludeFields"></param>
+        /// <returns></returns>
+        SqlFactory<TEntity> NewSqlFactory<TEntity>(bool autoIncludeFields, string tableName = null);
+
+        /// <summary>
         /// 执行
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -123,11 +137,11 @@ namespace Sean.Core.DbRepository.Contracts
         void OutputExecutedSql(string sql, object param);
 
         /// <summary>
-        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository, bool)"/>
+        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository{TEntity}, bool)"/>
         /// </summary>
         /// <param name="autoIncludeFields"></param>
         /// <returns></returns>
-        SqlFactory<TEntity> NewSqlFactory(bool autoIncludeFields = true);
+        SqlFactory<TEntity> NewSqlFactory(bool autoIncludeFields);
 
         /// <summary>
         /// 新增

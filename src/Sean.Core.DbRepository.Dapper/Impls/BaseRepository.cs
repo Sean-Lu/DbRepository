@@ -96,11 +96,11 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
 
         /// <summary>
-        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository, bool)"/>
+        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository{TEntity}, bool)"/>
         /// </summary>
         /// <param name="autoIncludeFields"></param>
         /// <returns></returns>
-        public virtual SqlFactory<TEntity> NewSqlFactory(bool autoIncludeFields = true)
+        public virtual SqlFactory<TEntity> NewSqlFactory(bool autoIncludeFields)
         {
             return SqlFactory<TEntity>.Build(this, autoIncludeFields);
         }

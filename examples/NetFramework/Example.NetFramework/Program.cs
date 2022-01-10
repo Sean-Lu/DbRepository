@@ -41,8 +41,8 @@ namespace Example.NetFramework
 
             JsonHelper.Serializer = NewJsonSerializer.Instance;
 
-            //ISimpleDo toDo = new MySqlTest();
-            ISimpleDo toDo = new SQLiteTest();
+            ISimpleDo toDo = new MySqlTest();
+            //ISimpleDo toDo = new SQLiteTest();
             toDo.Execute();
 
             Console.ReadLine();

@@ -13,9 +13,7 @@ using Microsoft.Extensions.Configuration;
 #endif
 using Sean.Core.DbRepository.Contracts;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Utility.Contracts;
 using Sean.Utility.Format;
-using Sean.Utility.Serialize;
 
 namespace Sean.Core.DbRepository.Factory
 {
@@ -161,7 +159,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="commandType">Command type</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
-        public int ExecuteNonQuery(string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public int ExecuteNonQuery(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var conn = CreateConnection(master))
             {
@@ -176,7 +174,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public int ExecuteNonQuery(IDbConnection connection, string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public int ExecuteNonQuery(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -193,7 +191,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public int ExecuteNonQuery(IDbTransaction trans, string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public int ExecuteNonQuery(IDbTransaction trans, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (trans == null) throw new ArgumentNullException(nameof(trans));
 
@@ -231,7 +229,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
-        public DataTable ExecuteDataTable(string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public DataTable ExecuteDataTable(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var conn = CreateConnection(master))
             {
@@ -246,7 +244,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public DataTable ExecuteDataTable(IDbConnection connection, string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public DataTable ExecuteDataTable(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -286,7 +284,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
-        public DataSet ExecuteDataSet(string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public DataSet ExecuteDataSet(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var conn = CreateConnection(master))
             {
@@ -301,7 +299,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="commandText">Command text to be executed</param>   
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public DataSet ExecuteDataSet(IDbConnection connection, string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public DataSet ExecuteDataSet(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -398,7 +396,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
-        public IDataReader ExecuteReader(string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public IDataReader ExecuteReader(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             var conn = CreateConnection(master);
             using (var command = CreateDbCommand(null, conn, commandType, commandText, parameters))
@@ -414,7 +412,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public IDataReader ExecuteReader(IDbConnection connection, string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public IDataReader ExecuteReader(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -460,7 +458,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
-        public object ExecuteScalar(string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public object ExecuteScalar(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var conn = CreateConnection(master))
             {
@@ -475,7 +473,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="sql">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public object ExecuteScalar(IDbConnection connection, string sql, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public object ExecuteScalar(IDbConnection connection, string sql, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -502,7 +500,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
-        public T ExecuteScalar<T>(string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public T ExecuteScalar<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var conn = CreateConnection(master))
             {
@@ -517,7 +515,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public T ExecuteScalar<T>(IDbConnection connection, string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public T ExecuteScalar<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             var obj = ExecuteScalar(connection, commandText, parameters, commandType);
             return ObjectConvert.ChangeType<T>(obj);
@@ -568,7 +566,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns>Entity or special type value list</returns>
-        public List<T> GetList<T>(string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public List<T> GetList<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var conn = CreateConnection(master))
             {
@@ -584,7 +582,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
         /// <returns>Entity or special type value list</returns>
-        public List<T> GetList<T>(IDbConnection connection, string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public List<T> GetList<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -642,7 +640,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns>Entity or special type value</returns>
-        public T Get<T>(string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public T Get<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var conn = CreateConnection(master))
             {
@@ -658,7 +656,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
         /// <returns>Entity or special type value</returns>
-        public T Get<T>(IDbConnection connection, string commandText, IList<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public T Get<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -795,7 +793,7 @@ namespace Sean.Core.DbRepository.Factory
         {
             return CreateDbCommand(commandInfo.Transaction, commandInfo.Connection, commandInfo.CommandType, commandInfo.CommandText, commandInfo.Parameters, commandInfo.CommandTimeout);
         }
-        public DbCommand CreateDbCommand(IDbTransaction trans, IDbConnection connection, CommandType commandType, string commandText, IList<DbParameter> parameters, int? commandTimeout = null)
+        public DbCommand CreateDbCommand(IDbTransaction trans, IDbConnection connection, CommandType commandType, string commandText, IEnumerable<DbParameter> parameters, int? commandTimeout = null)
         {
             IDbCommand command = _providerFactory.CreateCommand() ?? throw new Exception("Failed to create DbCommand.");
             command.Transaction = trans;

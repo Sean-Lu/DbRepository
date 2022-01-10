@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Text;
 using Sean.Core.DbRepository.Attributes;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository.Cache
 {
@@ -48,7 +47,7 @@ namespace Sean.Core.DbRepository.Cache
                 entityInfo.FieldInfos.Add(fieldInfo);
             }
 
-            _entityInfoDic.AddOrUpdate(entityClassType, entityInfo);
+            _entityInfoDic.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);
             return entityInfo;
         }
     }

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using Sean.Core.DbRepository.Config;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Utility.Config;
 
 namespace Sean.Core.DbRepository
 {
@@ -84,7 +83,7 @@ namespace Sean.Core.DbRepository
 #endif
         }
 
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1 || NET5_0
         /// <summary>
         /// <see cref="DbProviderFactories.RegisterFactory(string,string)"/>
         /// </summary>
@@ -141,26 +140,27 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 以XML文件的方式读取配置
         /// </summary>
-        private static void LoadConfigFromXmlFile()
-        {
-            if (File.Exists(ConfigBuilder.ConfigFilePath))
-            {
-                const string xpathTemplate = "/configuration/dbProviderMap/databases/database[@name='{0}']";
-                ((DatabaseType[])Enum.GetValues(typeof(DatabaseType))).ToList().ForEach(dbType =>
-                {
-                    DbProviderMap map = null;
-                    var xpath = string.Format(xpathTemplate, dbType.ToString());
-                    var xmlNode = XmlHelper.GetXmlNode(ConfigBuilder.ConfigFilePath, xpath);
-                    if (xmlNode != null)
-                    {
-                        var providerInvariantName = XmlHelper.GetXmlAttributeValue(xmlNode, "providerInvariantName");
-                        var factoryTypeAssemblyQualifiedName = XmlHelper.GetXmlAttributeValue(xmlNode, "factoryTypeAssemblyQualifiedName");
-                        map = new DbProviderMap(providerInvariantName, factoryTypeAssemblyQualifiedName);
-                    }
-                    dbType.SetDbProviderMap(map);
-                });
-            }
-        }
+        //private static void LoadConfigFromXmlFile()
+        //{
+        //    if (File.Exists(ConfigBuilder.ConfigFilePath))
+        //    {
+        //        const string xpathTemplate = "/configuration/dbProviderMap/databases/database[@name='{0}']";
+        //        ((DatabaseType[])Enum.GetValues(typeof(DatabaseType))).ToList().ForEach(dbType =>
+        //        {
+        //            DbProviderMap map = null;
+        //            var xpath = string.Format(xpathTemplate, dbType.ToString());
+        //            var xmlNode = XmlHelper.GetXmlNode(ConfigBuilder.ConfigFilePath, xpath);
+        //            if (xmlNode != null)
+        //            {
+        //                var providerInvariantName = XmlHelper.GetXmlAttributeValue(xmlNode, "providerInvariantName");
+        //                var factoryTypeAssemblyQualifiedName = XmlHelper.GetXmlAttributeValue(xmlNode, "factoryTypeAssemblyQualifiedName");
+        //                map = new DbProviderMap(providerInvariantName, factoryTypeAssemblyQualifiedName);
+        //            }
+        //            dbType.SetDbProviderMap(map);
+        //        });
+        //    }
+        //}
+
         /// <summary>
         /// 以配置文件的方式读取配置
         /// </summary>

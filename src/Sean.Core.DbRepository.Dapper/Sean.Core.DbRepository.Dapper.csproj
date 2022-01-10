@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net4;net45;net461;netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>net4;net45;net461;netstandard2.0;netstandard2.1</TargetFrameworks>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Sean</Authors>
@@ -9,7 +9,7 @@
 		<Description>ORM, Support all relational databases.</Description>
 		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
 		<LangVersion>latest</LangVersion>
-		<Version>2.0.3-beta2021122401</Version>
+		<Version>2.0.3</Version>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net4'">
@@ -23,6 +23,9 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Dapper" Version="2.0.123" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
 		<PackageReference Include="Dapper" Version="2.0.123" />
 	</ItemGroup>
 

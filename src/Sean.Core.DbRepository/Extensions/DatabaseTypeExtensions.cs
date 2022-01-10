@@ -2,7 +2,6 @@
 using System.Data.Common;
 using System.Linq;
 using Sean.Core.DbRepository.Config;
-using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository.Extensions
 {
@@ -39,7 +38,7 @@ namespace Sean.Core.DbRepository.Extensions
 #endif
                 }
             }
-            DbProviderFactoryManager.DbProviderMapDic.AddOrUpdate(type, providerMap);
+            DbProviderFactoryManager.DbProviderMapDic.AddOrUpdate(type, providerMap, (_, _) => providerMap);
         }
         #endregion
 

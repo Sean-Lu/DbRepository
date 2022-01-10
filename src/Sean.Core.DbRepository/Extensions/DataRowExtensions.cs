@@ -34,8 +34,6 @@ namespace Sean.Core.DbRepository.Extensions
                 var value = dr[0];
                 if (value != DBNull.Value)// 对象不能从 DBNull 转换为其他类型。
                 {
-                    //var json = JsonHelper.Serialize(ObjectConvert.ChangeType(dr[0], type));
-                    //model = JsonHelper.Deserialize<T>(json);
                     model = ObjectConvert.ChangeType<T>(value);
                 }
             }

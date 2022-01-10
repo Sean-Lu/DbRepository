@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository.Cache
 {
@@ -35,7 +34,7 @@ namespace Sean.Core.DbRepository.Cache
         {
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
-            _tableExistsDic.AddOrUpdate(tableName, exist);
+            _tableExistsDic.AddOrUpdate(tableName, exist, (_, _) => exist);
         }
     }
 }

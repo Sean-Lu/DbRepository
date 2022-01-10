@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Threading;
-using Sean.Utility.Extensions;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
 #endif
@@ -177,7 +176,7 @@ namespace Sean.Core.DbRepository
                 return result;
             }
 
-            connectionString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ForEach(c =>
+            connectionString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList().ForEach(c =>
             {
                 if (string.IsNullOrWhiteSpace(c)) return;
                 var index = c.IndexOf('=');
@@ -192,10 +191,10 @@ namespace Sean.Core.DbRepository
         public static string GetConnectionString(Dictionary<string, string> dic)
         {
             var list = new List<string>();
-            dic.ForEach(c =>
+            foreach (var keyValuePair in dic)
             {
-                list.Add($"{c.Key}={c.Value}");
-            });
+                list.Add($"{keyValuePair.Key}={keyValuePair.Value}");
+            }
             return string.Join(";", list);
         }
 

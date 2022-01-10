@@ -26,11 +26,7 @@ namespace Example.NetCore.Impls.DbTest
         {
             var sql = "SELECT SYSDATE FROM DUAL";
             var result = Execute(c => c.QuerySingle<DateTime>(sql, new { }));
-            if (result.Kind == DateTimeKind.Unspecified)
-            {
-                result = result.SetDateTimeKind(DateTimeKind.Utc).ToLocalTime();
-            }
-            Console.WriteLine(result.ToLongDateTimeWithTimezone());
+            Console.WriteLine(result.SetDateTimeKindIfUnspecified().ToLongDateTimeWithTimezone());
         }
     }
 }

@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\TestEntity.cs" />
     <Compile Include="Entities\CheckInLogEntity.cs" />
     <Compile Include="Impls\DbTest\MySqlTest.cs" />
     <Compile Include="Impls\DbTest\SQLiteTest.cs" />
@@ -69,6 +70,9 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Sean.Utility">
+      <Version>2.1.1</Version>
     </PackageReference>
     <PackageReference Include="System.Data.SQLite">
       <Version>1.0.115.5</Version>

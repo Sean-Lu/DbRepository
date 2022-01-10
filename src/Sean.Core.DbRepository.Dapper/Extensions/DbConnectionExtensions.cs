@@ -32,7 +32,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            var sqlFactory = SqlFactory<TEntity>.Build(repository).ReturnLastInsertId(returnId, out var keyIdentityProperty);
+            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).ReturnLastInsertId(returnId, out var keyIdentityProperty);
             var sql = sqlFactory.InsertSql;
             if (returnId && keyIdentityProperty != null)
             {
@@ -68,7 +68,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             if (entitys == null) throw new ArgumentNullException(nameof(entitys));
             if (!entitys.Any()) return false;
 
-            var sqlFactory = SqlFactory<TEntity>.Build(repository).ReturnLastInsertId(returnId, out var keyIdentityProperty);
+            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).ReturnLastInsertId(returnId, out var keyIdentityProperty);
             if (returnId && keyIdentityProperty != null)
             {
                 var success = true;
@@ -124,7 +124,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static bool Delete<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository).SetParameter(entity);
+            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
             return connection.Delete(repository, sqlFactory, transaction, commandTimeout);
         }
         /// <summary>
@@ -157,7 +157,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static bool Update<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository).SetParameter(entity);
+            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
             return connection.Update(repository, sqlFactory, transaction, commandTimeout);
         }
         /// <summary>
@@ -260,7 +260,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            var sqlFactory = SqlFactory<TEntity>.Build(repository).ReturnLastInsertId(returnId, out var keyIdentityProperty);
+            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).ReturnLastInsertId(returnId, out var keyIdentityProperty);
             var sql = sqlFactory.InsertSql;
             if (returnId && keyIdentityProperty != null)
             {
@@ -296,7 +296,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             if (entitys == null) throw new ArgumentNullException(nameof(entitys));
             if (!entitys.Any()) return false;
 
-            var sqlFactory = SqlFactory<TEntity>.Build(repository).ReturnLastInsertId(returnId, out var keyIdentityProperty);
+            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).ReturnLastInsertId(returnId, out var keyIdentityProperty);
             if (returnId && keyIdentityProperty != null)
             {
                 var success = true;
@@ -352,7 +352,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<bool> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository).SetParameter(entity);
+            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
             return await connection.DeleteAsync(repository, sqlFactory, transaction, commandTimeout);
         }
         /// <summary>
@@ -385,7 +385,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<bool> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository).SetParameter(entity);
+            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
             return await connection.UpdateAsync(repository, sqlFactory, transaction, commandTimeout);
         }
         /// <summary>

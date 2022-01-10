@@ -41,8 +41,6 @@ namespace Sean.Core.DbRepository.Extensions
                     var value = dataReader[0];
                     if (value != DBNull.Value)// 对象不能从 DBNull 转换为其他类型。
                     {
-                        //var json = JsonHelper.Serialize(ObjectConvert.ChangeType(dr[0], type));
-                        //model = JsonHelper.Deserialize<T>(json);
                         model = ObjectConvert.ChangeType<T>(value);
                     }
                 }
@@ -87,8 +85,9 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static DataTable GetDataTable(this IDataReader dataReader)
         {
-            var dataSet = dataReader.GetDataSet();
-            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+            var table = new DataTable();
+            table.Load(dataReader);
+            return table;
         }
         /// <summary>
         /// <see cref="DataSet"/>

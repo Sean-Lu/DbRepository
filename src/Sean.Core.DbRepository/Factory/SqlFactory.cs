@@ -20,12 +20,12 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                var list = _includeFields.Except(_identityFields).ToList();
+                var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var fields = list.Select(c => _dbType.MarkAsTableOrFieldName(c));
-                var parameters = list.Select(c => _dbType.MarkAsInputParameter(c));
-                return $"INSERT INTO {_dbType.MarkAsTableOrFieldName(_tableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});{(_returnLastInsertId ? _dbType.GetSqlForSelectLastInsertId() : string.Empty)}";
+                var fields = list.Select(c => DbType.MarkAsTableOrFieldName(c));
+                var parameters = list.Select(c => DbType.MarkAsInputParameter(c));
+                return $"INSERT INTO {DbType.MarkAsTableOrFieldName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});{(_returnLastInsertId ? DbType.GetSqlForSelectLastInsertId() : string.Empty)}";
             }
         }
         /// <summary>
@@ -38,7 +38,7 @@ namespace Sean.Core.DbRepository.Factory
                 if (string.IsNullOrWhiteSpace(WhereSql))
                     throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
-                return $"DELETE FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql};";
+                return $"DELETE FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql};";
             }
         }
         /// <summary>
@@ -48,7 +48,7 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                return $"DELETE FROM {_dbType.MarkAsTableOrFieldName(_tableName)};";
+                return $"DELETE FROM {DbType.MarkAsTableOrFieldName(TableName)};";
             }
         }
         /// <summary>
@@ -61,11 +61,11 @@ namespace Sean.Core.DbRepository.Factory
                 if (string.IsNullOrWhiteSpace(WhereSql))
                     throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
-                var list = _includeFields.Except(_identityFields).ToList();
+                var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var sets = list.Select(c => $"{_dbType.MarkAsTableOrFieldName(c)}={_dbType.MarkAsInputParameter(c)}");
-                return $"UPDATE {_dbType.MarkAsTableOrFieldName(_tableName)} SET {string.Join(", ", sets)}{WhereSql};";
+                var sets = list.Select(c => $"{DbType.MarkAsTableOrFieldName(c)}={DbType.MarkAsInputParameter(c)}");
+                return $"UPDATE {DbType.MarkAsTableOrFieldName(TableName)} SET {string.Join(", ", sets)}{WhereSql};";
             }
         }
         /// <summary>
@@ -75,11 +75,11 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                var list = _includeFields.Except(_identityFields).ToList();
+                var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var sets = list.Select(c => $"{_dbType.MarkAsTableOrFieldName(c)}={_dbType.MarkAsInputParameter(c)}");
-                return $"UPDATE {_dbType.MarkAsTableOrFieldName(_tableName)} SET {string.Join(", ", sets)};";
+                var sets = list.Select(c => $"{DbType.MarkAsTableOrFieldName(c)}={DbType.MarkAsInputParameter(c)}");
+                return $"UPDATE {DbType.MarkAsTableOrFieldName(TableName)} SET {string.Join(", ", sets)};";
             }
         }
         /// <summary>
@@ -89,71 +89,71 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                var selectFields = _includeFields.Any() ? string.Join(", ", _includeFields.Select(c => $"{_dbType.MarkAsTableOrFieldName(c)}")) : "*";
+                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(c => $"{DbType.MarkAsTableOrFieldName(c)}")) : "*";
                 //const string rowNumAlias = "ROW_NUM";
-                if (_topNum != 0)
+                if (TopNumber != 0)
                 {
                     // 查询前几行
-                    switch (_dbType)
+                    switch (DbType)
                     {
                         case DatabaseType.MySql:
                         case DatabaseType.SQLite:
                         case DatabaseType.PostgreSql:
-                            return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNum};";
+                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {TopNumber};";
                         case DatabaseType.SqlServer:
                         case DatabaseType.SqlServerCe:
                         case DatabaseType.Access:
-                            return $"SELECT TOP {_topNum} {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                            return $"SELECT TOP {TopNumber} {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
                         case DatabaseType.Oracle:
-                            var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {_topNum}" : $"{WhereSql} AND ROWNUM <= {_topNum}";
-                            return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
+                            var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {TopNumber}" : $"{WhereSql} AND ROWNUM <= {TopNumber}";
+                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
                         default:
-                            //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(_topNum)}:{_topNum}]");
-                            return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNum};";// 同MySql
+                            //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(TopNumber)}:{TopNumber}]");
+                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {TopNumber};";// 同MySql
                     }
                 }
-                else if (_pageIndex >= 1)
+                else if (PageIndex >= 1)
                 {
                     // 分页查询
-                    switch (_dbType)
+                    switch (DbType)
                     {
                         case DatabaseType.MySql:
                         case DatabaseType.SQLite:
-                            return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(_pageIndex - 1) * _pageSize},{_pageSize};";
+                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(PageIndex - 1) * PageSize},{PageSize};";
                         case DatabaseType.PostgreSql:
-                            return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_pageSize} OFFSET {(_pageIndex - 1) * _pageSize};";
+                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {PageSize} OFFSET {(PageIndex - 1) * PageSize};";
                         case DatabaseType.SqlServer:
                         case DatabaseType.SqlServerCe:
-                            return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} OFFSET {(_pageIndex - 1) * _pageSize} ROWS FETCH NEXT {_pageSize} ROWS ONLY;";
+                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} OFFSET {(PageIndex - 1) * PageSize} ROWS FETCH NEXT {PageSize} ROWS ONLY;";
                         case DatabaseType.DB2:
                             // SQL Server、Oracle等数据库都支持：ROW_NUMBER() OVER()
-                            return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(_pageIndex - 1) * _pageSize} AND t2.ROW_NUM <= {(_pageIndex - 1) * _pageSize + _pageSize};";
+                            return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize} AND t2.ROW_NUM <= {(PageIndex - 1) * PageSize + PageSize};";
                         case DatabaseType.Access:
-                            return $"SELECT TOP {_pageSize} {selectFields} FROM (SELECT TOP {(_pageIndex - 1) * _pageSize + _pageSize} {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}) t2;";
+                            return $"SELECT TOP {PageSize} {selectFields} FROM (SELECT TOP {(PageIndex - 1) * PageSize + PageSize} {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}) t2;";
                         case DatabaseType.Oracle:
                             if (string.IsNullOrWhiteSpace(OrderBySql))
                             {
                                 // 无ORDER BY排序
                                 // SQL示例：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 AND ROWNUM<=10) t2 WHERE t2.ROW_NUM>5;
-                                var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {(_pageIndex - 1) * _pageSize + _pageSize}" : $"{WhereSql} AND ROWNUM <= {(_pageIndex - 1) * _pageSize + _pageSize}";
-                                return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(_pageIndex - 1) * _pageSize};";
+                                var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {(PageIndex - 1) * PageSize + PageSize}" : $"{WhereSql} AND ROWNUM <= {(PageIndex - 1) * PageSize + PageSize}";
+                                return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize};";
                             }
                             else
                             {
                                 // 有ORDER BY排序
                                 // SQL示例1：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM (SELECT ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 ORDER BY ID DESC) t2 WHERE ROWNUM<=10) t3 WHERE t3.ROW_NUM>5
                                 // SQL示例2：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROW_NUMBER() OVER(ORDER BY ID DESC) ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456) t2 WHERE t2.ROW_NUM>5 AND t2.ROW_NUM<=10;
-                                return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(_pageIndex - 1) * _pageSize} AND t2.ROW_NUM <= {(_pageIndex - 1) * _pageSize + _pageSize};";
+                                return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize} AND t2.ROW_NUM <= {(PageIndex - 1) * PageSize + PageSize};";
                             }
                         default:
-                            //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(_pageIndex)}:{_pageIndex},{nameof(_pageSize)}:{_pageSize}]");
-                            return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(_pageIndex - 1) * _pageSize},{_pageSize};";// 同MySql
+                            //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(PageIndex)}:{PageIndex},{nameof(PageSize)}:{PageSize}]");
+                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(PageIndex - 1) * PageSize},{PageSize};";// 同MySql
                     }
                 }
                 else
                 {
                     // 普通查询
-                    return $"SELECT {selectFields} FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                    return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
                 }
             }
         }
@@ -164,7 +164,7 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                return $"SELECT COUNT(1) FROM {_dbType.MarkAsTableOrFieldName(_tableName)}{WhereSql}{GroupBySql}{HavingSql};";
+                return $"SELECT COUNT(1) FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql};";
             }
         }
 
@@ -175,46 +175,58 @@ namespace Sean.Core.DbRepository.Factory
         #endregion
 
         /// <summary>
+        /// 数据库类型
+        /// </summary>
+        public DatabaseType DbType { get; }
+
+        /// <summary>
         /// 表名
         /// </summary>
-        public string TableName => _tableName;
+        public string TableName { get; }
 
         /// <summary>
         /// 获取SQL入参
         /// </summary>
-        public object Parameter => _parameter;
+        public object Parameter { get; private set; }
 
-        protected readonly DatabaseType _dbType;
-        protected readonly string _tableName;
-        protected bool _returnLastInsertId;
         /// <summary>
         /// 包含字段
         /// </summary>
-        protected List<string> _includeFields = new();
+        public List<string> IncludeFieldsList { get; } = new();
         /// <summary>
         /// 忽略字段
         /// </summary>
-        protected List<string> _ignoreFields = new();
+        public List<string> IgnoreFieldsList { get; } = new();
         /// <summary>
         /// 自增字段
         /// </summary>
-        protected List<string> _identityFields = new();
-        protected int _topNum;
-        protected int _pageIndex;
-        protected int _pageSize;
-        protected Lazy<StringBuilder> _where = new();
-        protected Lazy<StringBuilder> _groupBy = new();
-        protected Lazy<StringBuilder> _having = new();
-        protected Lazy<StringBuilder> _orderBy = new();
-        protected object _parameter;
+        public List<string> IdentityFieldsList { get; } = new();
+        /// <summary>
+        /// SELECT TOP {<see cref="TopNumber"/>}
+        /// </summary>
+        public int TopNumber { get; private set; }
+        /// <summary>
+        /// LIMIT {(<see cref="PageIndex"/> - 1) * <see cref="PageSize"/>},{<see cref="PageSize"/>}
+        /// </summary>
+        public int PageIndex { get; private set; }
+        /// <summary>
+        /// LIMIT {(<see cref="PageIndex"/> - 1) * <see cref="PageSize"/>},{<see cref="PageSize"/>}
+        /// </summary>
+        public int PageSize { get; private set; }
+
+        private readonly Lazy<StringBuilder> _where = new();
+        private readonly Lazy<StringBuilder> _groupBy = new();
+        private readonly Lazy<StringBuilder> _having = new();
+        private readonly Lazy<StringBuilder> _orderBy = new();
+        private bool _returnLastInsertId;
 
         protected SqlFactory(DatabaseType dbType, string tableName)
         {
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
-            _dbType = dbType;
-            _tableName = tableName;
+            DbType = dbType;
+            TableName = tableName;
         }
 
         public static SqlFactory Build(DatabaseType dbType, string tableName)
@@ -233,12 +245,12 @@ namespace Sean.Core.DbRepository.Factory
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !_includeFields.Contains(field))
+                    if (!string.IsNullOrWhiteSpace(field) && !IncludeFieldsList.Contains(field))
                     {
-                        _includeFields.Add(field);
-                        if (_ignoreFields.Contains(field))
+                        IncludeFieldsList.Add(field);
+                        if (IgnoreFieldsList.Contains(field))
                         {
-                            _ignoreFields.Remove(field);
+                            IgnoreFieldsList.Remove(field);
                         }
                     }
                 }
@@ -256,12 +268,12 @@ namespace Sean.Core.DbRepository.Factory
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !_ignoreFields.Contains(field))
+                    if (!string.IsNullOrWhiteSpace(field) && !IgnoreFieldsList.Contains(field))
                     {
-                        _ignoreFields.Add(field);
-                        if (_includeFields.Contains(field))
+                        IgnoreFieldsList.Add(field);
+                        if (IncludeFieldsList.Contains(field))
                         {
-                            _includeFields.Remove(field);
+                            IncludeFieldsList.Remove(field);
                         }
                     }
                 }
@@ -279,9 +291,9 @@ namespace Sean.Core.DbRepository.Factory
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !_identityFields.Contains(field))
+                    if (!string.IsNullOrWhiteSpace(field) && !IdentityFieldsList.Contains(field))
                     {
-                        _identityFields.Add(field);
+                        IdentityFieldsList.Add(field);
                     }
                 }
             }
@@ -295,7 +307,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public virtual SqlFactory Top(int top)
         {
-            this._topNum = top;
+            this.TopNumber = top;
             return this;
         }
         /// <summary>
@@ -306,8 +318,8 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public virtual SqlFactory Page(int pageIndex, int pageSize)
         {
-            this._pageIndex = Math.Max(1, pageIndex);
-            this._pageSize = pageSize;
+            this.PageIndex = Math.Max(1, pageIndex);
+            this.PageSize = pageSize;
             return this;
         }
 
@@ -342,7 +354,7 @@ namespace Sean.Core.DbRepository.Factory
                 {
                     this._where.Value.Append(include.ToSqlString());
                 }
-                this._where.Value.Append($"{_dbType.MarkAsTableOrFieldName(fieldName)} {operation.ToSqlString()} {_dbType.MarkAsInputParameter(fieldName)}");
+                this._where.Value.Append($"{DbType.MarkAsTableOrFieldName(fieldName)} {operation.ToSqlString()} {DbType.MarkAsInputParameter(fieldName)}");
                 if (include == Include.Right)
                 {
                     this._where.Value.Append(include.ToSqlString());
@@ -429,7 +441,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public virtual SqlFactory SetParameter(object param)
         {
-            this._parameter = param;
+            this.Parameter = param;
             return this;
         }
     }
@@ -480,9 +492,13 @@ namespace Sean.Core.DbRepository.Factory
         /// </summary>
         /// <param name="dbType"></param>
         /// <param name="tableName"></param>
-        /// <param name="autoIncludeFields">是否自动包含字段（通过反射机制实现）：<see cref="SqlFactory.IncludeFields"/>、<see cref="SqlFactory.IdentityFields"/></param>
+        /// <param name="autoIncludeFields">
+        /// 是否自动包含字段（通过反射机制实现）：
+        /// <para><see cref="SqlFactory.IncludeFields"/></para>
+        /// <para><see cref="SqlFactory.IdentityFields"/></para>
+        /// </param>
         /// <returns></returns>
-        public static SqlFactory<TEntity> Build(DatabaseType dbType, string tableName = null, bool autoIncludeFields = true)
+        public static SqlFactory<TEntity> Build(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
         {
             var sqlFactory = new SqlFactory<TEntity>(dbType, !string.IsNullOrWhiteSpace(tableName) ? tableName : typeof(TEntity).GetMainTableName());
             if (autoIncludeFields)
@@ -496,11 +512,15 @@ namespace Sean.Core.DbRepository.Factory
         /// 创建新的 <see cref="SqlFactory{TEntity}"/> 实例
         /// </summary>
         /// <param name="repository"></param>
-        /// <param name="autoIncludeFields">是否自动包含字段（通过反射机制实现）：<see cref="SqlFactory.IncludeFields"/>、<see cref="SqlFactory.IdentityFields"/></param>
+        /// <param name="autoIncludeFields">
+        /// 是否自动包含字段（通过反射机制实现）：
+        /// <para><see cref="SqlFactory.IncludeFields"/></para>
+        /// <para><see cref="SqlFactory.IdentityFields"/></para>
+        /// </param>
         /// <returns></returns>
-        public static SqlFactory<TEntity> Build(IBaseRepository<TEntity> repository, bool autoIncludeFields = true)
+        public static SqlFactory<TEntity> Build(IBaseRepository<TEntity> repository, bool autoIncludeFields)
         {
-            return Build(repository.Factory.DbType, repository.TableName(), autoIncludeFields);
+            return Build(repository.Factory.DbType, autoIncludeFields, repository.TableName());
         }
 
         #region override methods
@@ -678,7 +698,8 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public virtual SqlFactory<TEntity> ReturnLastInsertId(bool returnLastInsertId, out PropertyInfo keyIdentityProperty)
         {
-            _returnLastInsertId = returnLastInsertId;
+            base.ReturnLastInsertId(returnLastInsertId);
+
             keyIdentityProperty = null;
             if (returnLastInsertId)
             {
