@@ -11,6 +11,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="MySql.Data" Version="8.0.26" />
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.3" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.114.3" />
 	</ItemGroup>
 
 </Project>
