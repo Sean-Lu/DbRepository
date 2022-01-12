@@ -74,7 +74,7 @@
     <PackageReference Include="Sean.Utility">
       <Version>2.1.1</Version>
     </PackageReference>
-    <PackageReference Include="System.Data.SQLite">
+    <PackageReference Include="System.Data.SQLite.Core">
       <Version>1.0.115.5</Version>
     </PackageReference>
   </ItemGroup>
