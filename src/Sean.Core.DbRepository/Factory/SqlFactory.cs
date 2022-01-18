@@ -158,6 +158,17 @@ namespace Sean.Core.DbRepository.Factory
             }
         }
         /// <summary>
+        /// SQL：查询数据（忽略WHERE过滤条件）
+        /// </summary>
+        public virtual string QueryAllSql
+        {
+            get
+            {
+                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(c => $"{DbType.MarkAsTableOrFieldName(c)}")) : "*";
+                return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)};";
+            }
+        }
+        /// <summary>
         /// SQL：统计数量
         /// </summary>
         public virtual string CountSql
@@ -165,6 +176,16 @@ namespace Sean.Core.DbRepository.Factory
             get
             {
                 return $"SELECT COUNT(1) FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql};";
+            }
+        }
+        /// <summary>
+        /// SQL：统计数量（忽略WHERE过滤条件）
+        /// </summary>
+        public virtual string CountAllSql
+        {
+            get
+            {
+                return $"SELECT COUNT(1) FROM {DbType.MarkAsTableOrFieldName(TableName)};";
             }
         }
 

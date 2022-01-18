@@ -63,12 +63,7 @@ namespace Example.Domain.Repositories
         {
             return await DeleteAsync(NewSqlFactory(false)
                 .WhereField(entity => entity.Id, SqlOperation.Equal)
-                .SetParameter(new { Id = id }));
-        }
-
-        public async Task<bool> DeleteAllAsync()
-        {
-            return await DeleteAsync(NewSqlFactory(false).Where("1=1"));
+                .SetParameter(new { Id = id })) > 0;
         }
 
         public async Task<bool> UpdateAsync(long id, int checkInType)
@@ -77,7 +72,7 @@ namespace Example.Domain.Repositories
             return await UpdateAsync(NewSqlFactory(false)
                 .IncludeFields(entity => entity.CheckInType)
                 .WhereField(entity => entity.Id, SqlOperation.Equal)
-                .SetParameter(new { Id = id, CheckInType = checkInType }));
+                .SetParameter(new { Id = id, CheckInType = checkInType })) > 0;
         }
 
         public async Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
@@ -116,6 +111,11 @@ namespace Example.Domain.Repositories
             // 返回结果示例2：
             return await QueryAsync(sqlFactory, false);
             #endregion
+        }
+
+        public async Task<IEnumerable<CheckInLogEntity>> GetAllAsync()
+        {
+            return await QueryAsync(NewSqlFactory(false), false);
         }
     }
 }

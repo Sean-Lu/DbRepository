@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using Sean.Core.DbRepository.Cache;
@@ -41,7 +42,6 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
         #endregion
 
-        #region 同步方法
         /// <summary>
         /// 表名：默认返回主表表名 <see cref="MainTableName"/>
         /// </summary>
@@ -105,8 +105,9 @@ namespace Sean.Core.DbRepository.Dapper.Impls
             return SqlFactory<TEntity>.Build(this, autoIncludeFields);
         }
 
+        #region 同步方法
         /// <summary>
-        /// 新增
+        /// 新增数据
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
@@ -120,22 +121,22 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 : transaction.Connection.Add(this, entity, returnId, transaction, commandTimeout);
         }
         /// <summary>
-        /// 批量新增
+        /// 批量新增数据
         /// </summary>
-        /// <param name="entitys"></param>
+        /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual bool Add(IList<TEntity> entitys, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual bool Add(IList<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return transaction?.Connection == null
-                ? Execute(connection => connection.Add(this, entitys, returnId, transaction, commandTimeout), true)
-                : transaction.Connection.Add(this, entitys, returnId, transaction, commandTimeout);
+                ? Execute(connection => connection.Add(this, entities, returnId, transaction, commandTimeout), true)
+                : transaction.Connection.Add(this, entities, returnId, transaction, commandTimeout);
         }
 
         /// <summary>
-        /// 删除
+        /// 删除数据
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="transaction">事务</param>
@@ -148,21 +149,33 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 : transaction.Connection.Delete(this, entity, transaction, commandTimeout);
         }
         /// <summary>
-        /// 删除
+        /// 删除数据
         /// </summary>
         /// <param name="sqlFactory"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual bool Delete(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual int Delete(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return transaction?.Connection == null
                 ? Execute(connection => connection.Delete(this, sqlFactory, transaction, commandTimeout), true)
                 : transaction.Connection.Delete(this, sqlFactory, transaction, commandTimeout);
         }
+        /// <summary>
+        /// 删除所有数据
+        /// </summary>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual int DeleteAll(IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return transaction?.Connection == null
+                ? Execute(connection => connection.DeleteAll(this, transaction, commandTimeout), true)
+                : transaction.Connection.DeleteAll(this, transaction, commandTimeout);
+        }
 
         /// <summary>
-        /// 更新
+        /// 更新数据
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="transaction">事务</param>
@@ -175,13 +188,13 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 : transaction.Connection.Update(this, entity, transaction, commandTimeout);
         }
         /// <summary>
-        /// 更新
+        /// 更新数据
         /// </summary>
         /// <param name="sqlFactory"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual bool Update(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual int Update(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return transaction?.Connection == null
                 ? Execute(connection => connection.Update(this, sqlFactory, transaction, commandTimeout), true)
@@ -189,7 +202,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
 
         /// <summary>
-        /// 查询
+        /// 查询数据
         /// </summary>
         /// <param name="sqlFactory"></param>
         /// <param name="master">true: 主库, false: 从库</param>
@@ -197,7 +210,20 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// <returns></returns>
         public virtual IEnumerable<TEntity> Query(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Query<TEntity>(this, sqlFactory, commandTimeout), master);
+            return Execute(connection => connection.Query(this, sqlFactory, commandTimeout), master);
+        }
+
+        /// <summary>
+        /// 查询单个数据
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual TEntity Get(SqlFactory sqlFactory, bool singleCheck = false, bool master = true, int? commandTimeout = null)
+        {
+            return Execute(connection => connection.Get(this, sqlFactory, singleCheck, commandTimeout), master);
         }
 
         /// <summary>
@@ -210,6 +236,16 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         public virtual int Count(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
             return Execute(connection => connection.Count(this, sqlFactory, commandTimeout), master);
+        }
+        /// <summary>
+        /// 统计所有数量
+        /// </summary>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual int CountAll(bool master = true, int? commandTimeout = null)
+        {
+            return Execute(connection => connection.CountAll(this, commandTimeout), master);
         }
 
         /// <summary>
@@ -237,7 +273,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         #region 异步方法
 #if NETSTANDARD || NET45_OR_GREATER
         /// <summary>
-        /// 新增
+        /// 新增数据
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
@@ -251,22 +287,22 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 : await transaction.Connection.AddAsync(this, entity, returnId, transaction, commandTimeout);
         }
         /// <summary>
-        /// 批量新增
+        /// 批量新增数据
         /// </summary>
-        /// <param name="entitys"></param>
+        /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<bool> AddAsync(IList<TEntity> entitys, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual async Task<bool> AddAsync(IList<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return transaction?.Connection == null
-                ? await ExecuteAsync(async connection => await connection.AddAsync(this, entitys, returnId, transaction, commandTimeout), true)
-                : await transaction.Connection.AddAsync(this, entitys, returnId, transaction, commandTimeout);
+                ? await ExecuteAsync(async connection => await connection.AddAsync(this, entities, returnId, transaction, commandTimeout), true)
+                : await transaction.Connection.AddAsync(this, entities, returnId, transaction, commandTimeout);
         }
 
         /// <summary>
-        /// 删除
+        /// 删除数据
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="transaction">事务</param>
@@ -279,21 +315,33 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 : await transaction.Connection.DeleteAsync(this, entity, transaction, commandTimeout);
         }
         /// <summary>
-        /// 删除
+        /// 删除数据
         /// </summary>
         /// <param name="sqlFactory"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<bool> DeleteAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual async Task<int> DeleteAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return transaction?.Connection == null
                 ? await ExecuteAsync(async connection => await connection.DeleteAsync(this, sqlFactory, transaction, commandTimeout), true)
                 : await transaction.Connection.DeleteAsync(this, sqlFactory, transaction, commandTimeout);
         }
+        /// <summary>
+        /// 删除所有数据
+        /// </summary>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual async Task<int> DeleteAllAsync(IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return transaction?.Connection == null
+                ? await ExecuteAsync(async connection => await connection.DeleteAllAsync(this, transaction, commandTimeout), true)
+                : await transaction.Connection.DeleteAllAsync(this, transaction, commandTimeout);
+        }
 
         /// <summary>
-        /// 更新
+        /// 更新数据
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="transaction">事务</param>
@@ -306,13 +354,13 @@ namespace Sean.Core.DbRepository.Dapper.Impls
                 : await transaction.Connection.UpdateAsync(this, entity, transaction, commandTimeout);
         }
         /// <summary>
-        /// 更新
+        /// 更新数据
         /// </summary>
         /// <param name="sqlFactory"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<bool> UpdateAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual async Task<int> UpdateAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return transaction?.Connection == null
                 ? await ExecuteAsync(async connection => await connection.UpdateAsync(this, sqlFactory, transaction, commandTimeout), true)
@@ -320,7 +368,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
 
         /// <summary>
-        /// 查询
+        /// 查询数据
         /// </summary>
         /// <param name="sqlFactory"></param>
         /// <param name="master">true: 主库, false: 从库</param>
@@ -329,6 +377,19 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         public virtual async Task<IEnumerable<TEntity>> QueryAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.QueryAsync<TEntity>(this, sqlFactory, commandTimeout), master);
+        }
+
+        /// <summary>
+        /// 查询单个数据
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual async Task<TEntity> GetAsync(SqlFactory sqlFactory, bool singleCheck = false, bool master = true, int? commandTimeout = null)
+        {
+            return await Execute(async connection => await connection.GetAsync(this, sqlFactory, singleCheck, commandTimeout), master);
         }
 
         /// <summary>
@@ -341,6 +402,16 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         public virtual async Task<int> CountAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.CountAsync(this, sqlFactory, commandTimeout), master);
+        }
+        /// <summary>
+        /// 统计所有数量
+        /// </summary>
+        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual async Task<int> CountAllAsync(bool master = true, int? commandTimeout = null)
+        {
+            return await ExecuteAsync(async connection => await connection.CountAllAsync(this, commandTimeout), master);
         }
 
         /// <summary>
