@@ -28,7 +28,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static bool Add<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static bool Add<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
@@ -63,7 +63,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static bool Add<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, IList<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static bool Add<TEntity>(this IDbConnection connection, IBaseRepository repository, IList<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (entities == null) throw new ArgumentNullException(nameof(entities));
             if (!entities.Any()) return false;
@@ -122,7 +122,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static bool Delete<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static bool Delete<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
             return connection.Delete(repository, sqlFactory, transaction, commandTimeout) > 0;
@@ -130,14 +130,26 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="sqlFactory"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static int Delete<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int Delete<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return connection.Delete(repository, (SqlFactory)sqlFactory, transaction, commandTimeout);
+        }
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static int Delete(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var sql = sqlFactory.DeleteSql;
             var result = connection.Execute(sql, sqlFactory.Parameter, transaction, commandTimeout);
@@ -153,7 +165,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static int DeleteAll<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int DeleteAll<TEntity>(this IDbConnection connection, IBaseRepository repository, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var sqlFactory = SqlFactory<TEntity>.Build(repository, false);
             var sql = sqlFactory.DeleteAllSql;
@@ -172,22 +184,34 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static bool Update<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static bool Update<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
-            return connection.Update(repository, sqlFactory, transaction, commandTimeout) > 0;
+            return connection.Update<TEntity>(repository, sqlFactory, transaction, commandTimeout) > 0;
         }
         /// <summary>
         /// 更新数据
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="sqlFactory"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static int Update<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int Update<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return connection.Update(repository, (SqlFactory)sqlFactory, transaction, commandTimeout);
+        }
+        /// <summary>
+        /// 更新数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static int Update(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var sql = sqlFactory.UpdateSql;
             var result = connection.Execute(sql, sqlFactory.Parameter, transaction, commandTimeout);
@@ -203,7 +227,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="sqlFactory"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static IEnumerable<TEntity> Query<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, int? commandTimeout = null)
+        public static IEnumerable<TEntity> Query<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, int? commandTimeout = null)
         {
             var sql = sqlFactory.QuerySql;
             var result = connection.Query<TEntity>(sql, sqlFactory.Parameter, null, commandTimeout: commandTimeout);
@@ -220,7 +244,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static TEntity Get<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, bool singleCheck = false, int? commandTimeout = null)
+        public static TEntity Get<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, bool singleCheck = false, int? commandTimeout = null)
         {
             var sql = sqlFactory.QuerySql;
             var result = singleCheck ? connection.QuerySingleOrDefault<TEntity>(sql, sqlFactory.Parameter, null, commandTimeout: commandTimeout)
@@ -237,7 +261,19 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="sqlFactory"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static int Count<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, int? commandTimeout = null)
+        public static int Count<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, int? commandTimeout = null)
+        {
+            return connection.Count(repository, (SqlFactory)sqlFactory, commandTimeout);
+        }
+        /// <summary>
+        /// 统计数量
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static int Count(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, int? commandTimeout = null)
         {
             var sql = sqlFactory.CountSql;
             var result = connection.QueryFirstOrDefault<int>(sql, sqlFactory.Parameter, null, commandTimeout);
@@ -251,7 +287,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static int CountAll<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, int? commandTimeout = null)
+        public static int CountAll<TEntity>(this IDbConnection connection, IBaseRepository repository, int? commandTimeout = null)
         {
             var sqlFactory = SqlFactory<TEntity>.Build(repository, false);
             var sql = sqlFactory.CountAllSql;
@@ -267,7 +303,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static bool IsTableExists<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, string tableName)
+        public static bool IsTableExists(this IDbConnection connection, IBaseRepository repository, string tableName)
         {
             if (string.IsNullOrWhiteSpace(tableName))
             {
@@ -306,7 +342,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<bool> AddAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<bool> AddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
@@ -341,7 +377,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<bool> AddAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, IList<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<bool> AddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IList<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (entities == null) throw new ArgumentNullException(nameof(entities));
             if (!entities.Any()) return false;
@@ -400,22 +436,34 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<bool> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<bool> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
-            return await connection.DeleteAsync(repository, sqlFactory, transaction, commandTimeout) > 0;
+            return await connection.DeleteAsync<TEntity>(repository, sqlFactory, transaction, commandTimeout) > 0;
         }
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="sqlFactory"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<int> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<int> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return await connection.DeleteAsync(repository, (SqlFactory)sqlFactory, transaction, commandTimeout);
+        }
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<int> DeleteAsync(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var sql = sqlFactory.DeleteSql;
             var result = await connection.ExecuteAsync(sql, sqlFactory.Parameter, transaction, commandTimeout);
@@ -431,7 +479,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<int> DeleteAllAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<int> DeleteAllAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var sqlFactory = SqlFactory<TEntity>.Build(repository, false);
             var sql = sqlFactory.DeleteAllSql;
@@ -450,22 +498,34 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<bool> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<bool> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
-            return await connection.UpdateAsync(repository, sqlFactory, transaction, commandTimeout) > 0;
+            return await connection.UpdateAsync<TEntity>(repository, sqlFactory, transaction, commandTimeout) > 0;
         }
         /// <summary>
         /// 更新数据
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="sqlFactory"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<int> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<int> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return await connection.UpdateAsync(repository, (SqlFactory)sqlFactory, transaction, commandTimeout);
+        }
+        /// <summary>
+        /// 更新数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<int> UpdateAsync(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var sql = sqlFactory.UpdateSql;
             var result = await connection.ExecuteAsync(sql, sqlFactory.Parameter, transaction, commandTimeout);
@@ -481,7 +541,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="sqlFactory"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<IEnumerable<TEntity>> QueryAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, int? commandTimeout = null)
+        public static async Task<IEnumerable<TEntity>> QueryAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, int? commandTimeout = null)
         {
             var sql = sqlFactory.QuerySql;
             var result = await connection.QueryAsync<TEntity>(sql, sqlFactory.Parameter, null, commandTimeout: commandTimeout);
@@ -498,7 +558,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<TEntity> GetAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, bool singleCheck = false, int? commandTimeout = null)
+        public static async Task<TEntity> GetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, bool singleCheck = false, int? commandTimeout = null)
         {
             var sql = sqlFactory.QuerySql;
             var result = await (singleCheck ? connection.QuerySingleOrDefaultAsync<TEntity>(sql, sqlFactory.Parameter, null, commandTimeout: commandTimeout)
@@ -515,7 +575,19 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="sqlFactory"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<int> CountAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, SqlFactory sqlFactory, int? commandTimeout = null)
+        public static async Task<int> CountAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, int? commandTimeout = null)
+        {
+            return await connection.CountAsync(repository, (SqlFactory)sqlFactory, commandTimeout);
+        }
+        /// <summary>
+        /// 统计数量
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<int> CountAsync(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, int? commandTimeout = null)
         {
             var sql = sqlFactory.CountSql;
             var result = await connection.QueryFirstOrDefaultAsync<int>(sql, sqlFactory.Parameter, null, commandTimeout);
@@ -529,7 +601,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<int> CountAllAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, int? commandTimeout = null)
+        public static async Task<int> CountAllAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, int? commandTimeout = null)
         {
             var sqlFactory = SqlFactory<TEntity>.Build(repository, false);
             var sql = sqlFactory.CountAllSql;
@@ -545,7 +617,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static async Task<bool> IsTableExistsAsync<TEntity>(this IDbConnection connection, IBaseRepository<TEntity> repository, string tableName)
+        public static async Task<bool> IsTableExistsAsync(this IDbConnection connection, IBaseRepository repository, string tableName)
         {
             if (string.IsNullOrWhiteSpace(tableName))
             {

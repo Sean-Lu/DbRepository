@@ -16,6 +16,26 @@ namespace Sean.Core.DbRepository.Contracts
         DbFactory Factory { get; }
 
         /// <summary>
+        /// 表名
+        /// </summary>
+        /// <returns></returns>
+        string TableName();
+
+        /// <summary>
+        /// 返回创建表的SQL语句
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        string CreateTableSql(string tableName);
+
+        /// <summary>
+        /// 输出执行的SQL语句
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="param"></param>
+        void OutputExecutedSql(string sql, object param);
+
+        /// <summary>
         /// <see cref="SqlFactory.Build(DatabaseType, string)"/>
         /// </summary>
         /// <param name="tableName"></param>
@@ -110,34 +130,14 @@ namespace Sean.Core.DbRepository.Contracts
         string MainTableName { get; }
 
         /// <summary>
-        /// 表名：默认返回主表表名 <see cref="MainTableName"/>
-        /// </summary>
-        /// <returns></returns>
-        string TableName();
-
-        /// <summary>
-        /// 返回创建表的SQL语句（在方法 <see cref="CreateTableIfNotExist"/> 中使用）
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        string CreateTableSql(string tableName);
-
-        /// <summary>
-        /// 如果表不存在，则执行SQL语句（<see cref="CreateTableSql"/>）来创建新表
+        /// 如果表不存在，则执行SQL语句（<see cref="IBaseRepository.CreateTableSql"/>）来创建新表
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="master">true: 主库, false: 从库</param>
         void CreateTableIfNotExist(string tableName, bool master = true);
 
         /// <summary>
-        /// 输出执行的SQL语句
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="param"></param>
-        void OutputExecutedSql(string sql, object param);
-
-        /// <summary>
-        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository{TEntity}, bool)"/>
+        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository, bool)"/>
         /// </summary>
         /// <param name="autoIncludeFields"></param>
         /// <returns></returns>

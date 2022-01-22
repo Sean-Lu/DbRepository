@@ -50,6 +50,27 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static string MarkAsInputParameter(this DatabaseType databaseType, string parameter)
         {
+            if (string.IsNullOrWhiteSpace(parameter))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(parameter));
+
+            if (parameter.Contains(" "))
+            {
+                parameter = parameter.Substring(parameter.LastIndexOf(" ") + 1);
+            }
+            else if (parameter.Contains("."))
+            {
+                parameter = parameter.Substring(parameter.LastIndexOf(".") + 1);
+            }
+
+            if (parameter.StartsWith("["))
+            {
+                parameter = parameter.Trim('[');
+            }
+            else if (parameter.StartsWith("`"))
+            {
+                parameter = parameter.Trim('`');
+            }
+
             switch (databaseType)
             {
                 case DatabaseType.Oracle:
@@ -67,20 +88,28 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static string MarkAsTableOrFieldName(this DatabaseType databaseType, string tableOrFieldName)
         {
-            if (!string.IsNullOrWhiteSpace(tableOrFieldName))
+            if (string.IsNullOrWhiteSpace(tableOrFieldName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableOrFieldName));
+
+            if (tableOrFieldName.StartsWith("[")
+                || tableOrFieldName.StartsWith("`")
+                || tableOrFieldName.Contains(".")// SELECT a.FieldName FROM TableName a
+                || tableOrFieldName.Contains(" ")// SELECT FieldName AS Alias FROM TableName
+                )
             {
-                switch (databaseType)
-                {
-                    case DatabaseType.SqlServer:
-                        if (!tableOrFieldName.StartsWith("[")) return $"[{tableOrFieldName}]";
-                        break;
-                    case DatabaseType.MySql:
-                    case DatabaseType.SQLite:
-                        if (!tableOrFieldName.StartsWith("`")) return $"`{tableOrFieldName}`";
-                        break;
-                }
+                return tableOrFieldName;
             }
-            return tableOrFieldName;
+
+            switch (databaseType)
+            {
+                case DatabaseType.SqlServer:
+                    return $"[{tableOrFieldName}]";
+                case DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                    return $"`{tableOrFieldName}`";
+                default:
+                    return tableOrFieldName;
+            }
         }
 
         /// <summary>

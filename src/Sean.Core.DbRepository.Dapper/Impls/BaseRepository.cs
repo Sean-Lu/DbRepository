@@ -46,23 +46,13 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// 表名：默认返回主表表名 <see cref="MainTableName"/>
         /// </summary>
         /// <returns></returns>
-        public virtual string TableName()
+        public override string TableName()
         {
             return MainTableName;
         }
 
         /// <summary>
-        /// 返回创建表的SQL语句（在方法 <see cref="CreateTableIfNotExist"/> 中使用）
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public virtual string CreateTableSql(string tableName)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// 如果表不存在，则执行SQL语句（<see cref="CreateTableSql"/>）来创建新表
+        /// 如果表不存在，则执行SQL语句（<see cref="BaseRepository.CreateTableSql"/>）来创建新表
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="master">true: 主库, false: 从库</param>
@@ -86,17 +76,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
 
         /// <summary>
-        /// 输出执行的SQL语句
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="param"></param>
-        public virtual void OutputExecutedSql(string sql, object param)
-        {
-
-        }
-
-        /// <summary>
-        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository{TEntity}, bool)"/>
+        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository, bool)"/>
         /// </summary>
         /// <param name="autoIncludeFields"></param>
         /// <returns></returns>
@@ -170,8 +150,8 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         public virtual int DeleteAll(IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return transaction?.Connection == null
-                ? Execute(connection => connection.DeleteAll(this, transaction, commandTimeout), true)
-                : transaction.Connection.DeleteAll(this, transaction, commandTimeout);
+                ? Execute(connection => connection.DeleteAll<TEntity>(this, transaction, commandTimeout), true)
+                : transaction.Connection.DeleteAll<TEntity>(this, transaction, commandTimeout);
         }
 
         /// <summary>
@@ -210,7 +190,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// <returns></returns>
         public virtual IEnumerable<TEntity> Query(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Query(this, sqlFactory, commandTimeout), master);
+            return Execute(connection => connection.Query<TEntity>(this, sqlFactory, commandTimeout), master);
         }
 
         /// <summary>
@@ -223,7 +203,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// <returns></returns>
         public virtual TEntity Get(SqlFactory sqlFactory, bool singleCheck = false, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Get(this, sqlFactory, singleCheck, commandTimeout), master);
+            return Execute(connection => connection.Get<TEntity>(this, sqlFactory, singleCheck, commandTimeout), master);
         }
 
         /// <summary>
@@ -245,7 +225,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// <returns></returns>
         public virtual int CountAll(bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.CountAll(this, commandTimeout), master);
+            return Execute(connection => connection.CountAll<TEntity>(this, commandTimeout), master);
         }
 
         /// <summary>
@@ -336,8 +316,8 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         public virtual async Task<int> DeleteAllAsync(IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return transaction?.Connection == null
-                ? await ExecuteAsync(async connection => await connection.DeleteAllAsync(this, transaction, commandTimeout), true)
-                : await transaction.Connection.DeleteAllAsync(this, transaction, commandTimeout);
+                ? await ExecuteAsync(async connection => await connection.DeleteAllAsync<TEntity>(this, transaction, commandTimeout), true)
+                : await transaction.Connection.DeleteAllAsync<TEntity>(this, transaction, commandTimeout);
         }
 
         /// <summary>
@@ -389,7 +369,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// <returns></returns>
         public virtual async Task<TEntity> GetAsync(SqlFactory sqlFactory, bool singleCheck = false, bool master = true, int? commandTimeout = null)
         {
-            return await Execute(async connection => await connection.GetAsync(this, sqlFactory, singleCheck, commandTimeout), master);
+            return await Execute(async connection => await connection.GetAsync<TEntity>(this, sqlFactory, singleCheck, commandTimeout), master);
         }
 
         /// <summary>
@@ -411,7 +391,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         /// <returns></returns>
         public virtual async Task<int> CountAllAsync(bool master = true, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.CountAllAsync(this, commandTimeout), master);
+            return await ExecuteAsync(async connection => await connection.CountAllAsync<TEntity>(this, commandTimeout), master);
         }
 
         /// <summary>

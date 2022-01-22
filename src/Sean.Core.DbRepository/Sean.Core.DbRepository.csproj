@@ -4,11 +4,11 @@
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Sean</Authors>
-		<Copyright>Copyright © 2019-2021 Sean</Copyright>
+		<Copyright>Copyright © 2019-2022 Sean</Copyright>
 		<Description>ORM, Support all relational databases.</Description>
 		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
 		<LangVersion>latest</LangVersion>
-		<Version>2.0.4</Version>
+		<Version>2.0.5-beta2022012301</Version>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net4'">

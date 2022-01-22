@@ -52,7 +52,35 @@ namespace Sean.Core.DbRepository.Impls
         }
         #endregion
 
-        #region 同步方法
+        /// <summary>
+        /// 表名
+        /// </summary>
+        /// <returns></returns>
+        public virtual string TableName()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 返回创建表的SQL语句
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public virtual string CreateTableSql(string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 输出执行的SQL语句
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="param"></param>
+        public virtual void OutputExecutedSql(string sql, object param)
+        {
+
+        }
+
         /// <summary>
         /// <see cref="SqlFactory.Build(DatabaseType, string)"/>
         /// </summary>
@@ -77,6 +105,7 @@ namespace Sean.Core.DbRepository.Impls
             return SqlFactory<TEntity>.Build(Factory.DbType, autoIncludeFields, tableName);
         }
 
+        #region 同步方法
         /// <summary>
         /// 执行
         /// </summary>

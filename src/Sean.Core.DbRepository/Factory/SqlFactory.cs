@@ -23,8 +23,8 @@ namespace Sean.Core.DbRepository.Factory
                 var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var fields = list.Select(c => DbType.MarkAsTableOrFieldName(c));
-                var parameters = list.Select(c => DbType.MarkAsInputParameter(c));
+                var fields = list.Select(fieldName => DbType.MarkAsTableOrFieldName(fieldName));
+                var parameters = list.Select(fieldName => DbType.MarkAsInputParameter(fieldName));
                 return $"INSERT INTO {DbType.MarkAsTableOrFieldName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});{(_returnLastInsertId ? DbType.GetSqlForSelectLastInsertId() : string.Empty)}";
             }
         }
@@ -64,7 +64,7 @@ namespace Sean.Core.DbRepository.Factory
                 var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var sets = list.Select(c => $"{DbType.MarkAsTableOrFieldName(c)}={DbType.MarkAsInputParameter(c)}");
+                var sets = list.Select(fieldName => $"{DbType.MarkAsTableOrFieldName(fieldName)}={DbType.MarkAsInputParameter(fieldName)}");
                 return $"UPDATE {DbType.MarkAsTableOrFieldName(TableName)} SET {string.Join(", ", sets)}{WhereSql};";
             }
         }
@@ -78,7 +78,7 @@ namespace Sean.Core.DbRepository.Factory
                 var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var sets = list.Select(c => $"{DbType.MarkAsTableOrFieldName(c)}={DbType.MarkAsInputParameter(c)}");
+                var sets = list.Select(fieldName => $"{DbType.MarkAsTableOrFieldName(fieldName)}={DbType.MarkAsInputParameter(fieldName)}");
                 return $"UPDATE {DbType.MarkAsTableOrFieldName(TableName)} SET {string.Join(", ", sets)};";
             }
         }
@@ -89,7 +89,7 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(c => $"{DbType.MarkAsTableOrFieldName(c)}")) : "*";
+                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(fieldName => $"{DbType.MarkAsTableOrFieldName(fieldName)}")) : "*";
                 //const string rowNumAlias = "ROW_NUM";
                 if (TopNumber != 0)
                 {
@@ -164,7 +164,7 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(c => $"{DbType.MarkAsTableOrFieldName(c)}")) : "*";
+                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(fieldName => $"{DbType.MarkAsTableOrFieldName(fieldName)}")) : "*";
                 return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)};";
             }
         }
@@ -539,7 +539,7 @@ namespace Sean.Core.DbRepository.Factory
         /// <para><see cref="SqlFactory.IdentityFields"/></para>
         /// </param>
         /// <returns></returns>
-        public static SqlFactory<TEntity> Build(IBaseRepository<TEntity> repository, bool autoIncludeFields)
+        public static SqlFactory<TEntity> Build(IBaseRepository repository, bool autoIncludeFields)
         {
             return Build(repository.Factory.DbType, autoIncludeFields, repository.TableName());
         }
