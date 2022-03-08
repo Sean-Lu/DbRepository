@@ -85,6 +85,8 @@ namespace Sean.Core.DbRepository
         /// <param name="list"></param>
         public MultiConnectionSettings(IEnumerable<ConnectionStringOptions> list)
         {
+            _connectionStrings = new List<ConnectionStringOptions>();
+
             if (list != null)
             {
                 foreach (var options in list)
@@ -99,6 +101,8 @@ namespace Sean.Core.DbRepository
         /// <param name="options"></param>
         public MultiConnectionSettings(ConnectionStringOptions options)
         {
+            _connectionStrings = new List<ConnectionStringOptions>();
+
             AddConnectionString(options);
         }
         #endregion
