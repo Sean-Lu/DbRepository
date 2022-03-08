@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Dapper;
 using Sean.Core.DbRepository.Cache;
@@ -186,7 +187,7 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         }
 
         /// <summary>
-        /// 更新数据
+        /// 更新数据（实体所有字段都会更新）
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="transaction">事务</param>
@@ -195,6 +196,22 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         public virtual bool Update(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.Update(this, entity, transaction, commandTimeout), true, transaction);
+        }
+        /// <summary>
+        /// 更新数据（更新指定的字段，实体必须有主键字段且有值）
+        /// </summary>
+        /// <param name="fieldExpression">指定需要更新的字段。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：new { entity.Status, entity.UpdateTime }</para>
+        /// <para>多个字段（数组\IEnumerable）：new object[] { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="entity">实体</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual bool Update(Expression<Func<TEntity, object>> fieldExpression, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return Execute(connection => connection.Update(this, fieldExpression, entity, transaction, commandTimeout), true, transaction);
         }
         /// <summary>
         /// 更新数据
@@ -358,6 +375,22 @@ namespace Sean.Core.DbRepository.Dapper.Impls
         public virtual async Task<bool> UpdateAsync(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.UpdateAsync(this, entity, transaction, commandTimeout), true, transaction);
+        }
+        /// <summary>
+        /// 更新数据（更新指定的字段，实体必须有主键字段且有值）
+        /// </summary>
+        /// <param name="fieldExpression">指定需要更新的字段。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：new { entity.Status, entity.UpdateTime }</para>
+        /// <para>多个字段（数组\IEnumerable）：new object[] { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="entity">实体</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual async Task<bool> UpdateAsync(Expression<Func<TEntity, object>> fieldExpression, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return await ExecuteAsync(async connection => await connection.UpdateAsync(this, fieldExpression, entity, transaction, commandTimeout), true, transaction);
         }
         /// <summary>
         /// 更新数据

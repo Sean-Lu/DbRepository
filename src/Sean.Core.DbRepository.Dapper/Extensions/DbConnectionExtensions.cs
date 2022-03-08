@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Dapper;
 using Sean.Core.DbRepository.Cache;
@@ -168,7 +169,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         }
 
         /// <summary>
-        /// 更新数据
+        /// 更新数据（实体所有字段都会更新）
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
@@ -181,6 +182,30 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
             return connection.Update<TEntity>(repository, sqlFactory, transaction, commandTimeout) > 0;
+        }
+        /// <summary>
+        /// 更新数据（更新指定的字段，实体必须有主键字段且有值）
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="fieldExpression">指定需要更新的字段。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：new { entity.Status, entity.UpdateTime }</para>
+        /// <para>多个字段（数组\IEnumerable）：new object[] { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="entity">实体</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static bool Update<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, object>> fieldExpression, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            var body = fieldExpression.Body;
+            var fields = body.GetMemberNames();
+            var sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+                .IncludeFields(fields.ToArray())
+                .SetParameter(entity);
+            return sqlFactory.ExecuteUpdateSql(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
         }
         /// <summary>
         /// 更新数据
@@ -485,6 +510,30 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
             return await connection.UpdateAsync<TEntity>(repository, sqlFactory, transaction, commandTimeout) > 0;
+        }
+        /// <summary>
+        /// 更新数据（更新指定的字段，实体必须有主键字段且有值）
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="fieldExpression">指定需要更新的字段。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：new { entity.Status, entity.UpdateTime }</para>
+        /// <para>多个字段（数组\IEnumerable）：new object[] { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="entity">实体</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<bool> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, object>> fieldExpression, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            var body = fieldExpression.Body;
+            var fields = body.GetMemberNames();
+            var sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+                .IncludeFields(fields.ToArray())
+                .SetParameter(entity);
+            return await sqlFactory.ExecuteUpdateSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
         }
         /// <summary>
         /// 更新数据
