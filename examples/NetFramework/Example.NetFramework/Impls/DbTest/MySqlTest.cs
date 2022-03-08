@@ -27,7 +27,7 @@ namespace Example.NetFramework.Impls.DbTest
         private readonly ILogger _logger;
 
         public MySqlTest() : base()
-        //public MySqlTest() : base(new MultiConnectionSettings(new List<ConnectionStringOptions> { new ConnectionStringOptions("DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a", DatabaseType.MySql) }))
+        //public MySqlTest() : base(new MultiConnectionSettings(new ConnectionStringOptions("DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a", DatabaseType.MySql)))
         {
             _logger = new SimpleLocalLogger<MySqlTest>();
         }
@@ -48,9 +48,10 @@ namespace Example.NetFramework.Impls.DbTest
             #region 查询数据
             var list = Query(NewSqlFactory(true)
                 .Page(1, 3)
+                .InnerJoin<UserEntity, long>(entity => entity.UserId, entity2 => entity2.Id)
                 .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
                 .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
-                .SetParameter(new { UserId = 100000 }), false);// 从库查询
+                .SetParameter(new { UserId = 100010 }), false);// 从库查询
             _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonConvert.SerializeObject(list, Formatting.Indented)}");
             #endregion
 

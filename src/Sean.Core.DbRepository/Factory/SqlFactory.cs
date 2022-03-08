@@ -23,9 +23,9 @@ namespace Sean.Core.DbRepository.Factory
                 var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var fields = list.Select(fieldName => DbType.MarkAsTableOrFieldName(fieldName));
-                var parameters = list.Select(fieldName => DbType.MarkAsInputParameter(fieldName));
-                return $"INSERT INTO {DbType.MarkAsTableOrFieldName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});{(_returnLastInsertId ? DbType.GetSqlForSelectLastInsertId() : string.Empty)}";
+                var fields = list.Select(fieldName => FormatFieldName(fieldName));
+                var parameters = list.Select(fieldName => FormatInputParameter(fieldName));
+                return $"INSERT INTO {FormatTableName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});{(_returnLastInsertId ? DbType.GetSqlForSelectLastInsertId() : string.Empty)}";
             }
         }
         /// <summary>
@@ -38,7 +38,7 @@ namespace Sean.Core.DbRepository.Factory
                 if (string.IsNullOrWhiteSpace(WhereSql))
                     throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
-                return $"DELETE FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql};";
+                return $"DELETE FROM {FormatTableName(TableName)}{WhereSql};";
             }
         }
         /// <summary>
@@ -48,7 +48,7 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                return $"DELETE FROM {DbType.MarkAsTableOrFieldName(TableName)};";
+                return $"DELETE FROM {FormatTableName(TableName)};";
             }
         }
         /// <summary>
@@ -64,8 +64,8 @@ namespace Sean.Core.DbRepository.Factory
                 var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var sets = list.Select(fieldName => $"{DbType.MarkAsTableOrFieldName(fieldName)}={DbType.MarkAsInputParameter(fieldName)}");
-                return $"UPDATE {DbType.MarkAsTableOrFieldName(TableName)} SET {string.Join(", ", sets)}{WhereSql};";
+                var sets = list.Select(fieldName => $"{FormatFieldName(fieldName)}={FormatInputParameter(fieldName)}");
+                return $"UPDATE {FormatTableName(TableName)} SET {string.Join(", ", sets)}{WhereSql};";
             }
         }
         /// <summary>
@@ -78,8 +78,8 @@ namespace Sean.Core.DbRepository.Factory
                 var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var sets = list.Select(fieldName => $"{DbType.MarkAsTableOrFieldName(fieldName)}={DbType.MarkAsInputParameter(fieldName)}");
-                return $"UPDATE {DbType.MarkAsTableOrFieldName(TableName)} SET {string.Join(", ", sets)};";
+                var sets = list.Select(fieldName => $"{FormatFieldName(fieldName)}={FormatInputParameter(fieldName)}");
+                return $"UPDATE {FormatTableName(TableName)} SET {string.Join(", ", sets)};";
             }
         }
         /// <summary>
@@ -89,7 +89,7 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(fieldName => $"{DbType.MarkAsTableOrFieldName(fieldName)}")) : "*";
+                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(fieldName => $"{FormatFieldName(fieldName)}")) : "*";
                 //const string rowNumAlias = "ROW_NUM";
                 if (TopNumber != 0)
                 {
@@ -99,17 +99,17 @@ namespace Sean.Core.DbRepository.Factory
                         case DatabaseType.MySql:
                         case DatabaseType.SQLite:
                         case DatabaseType.PostgreSql:
-                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {TopNumber};";
+                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {TopNumber};";
                         case DatabaseType.SqlServer:
                         case DatabaseType.SqlServerCe:
                         case DatabaseType.Access:
-                            return $"SELECT TOP {TopNumber} {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                            return $"SELECT TOP {TopNumber} {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
                         case DatabaseType.Oracle:
                             var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {TopNumber}" : $"{WhereSql} AND ROWNUM <= {TopNumber}";
-                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
+                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
                         default:
                             //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(TopNumber)}:{TopNumber}]");
-                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {TopNumber};";// 同MySql
+                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {TopNumber};";// 同MySql
                     }
                 }
                 else if (PageIndex >= 1)
@@ -119,41 +119,41 @@ namespace Sean.Core.DbRepository.Factory
                     {
                         case DatabaseType.MySql:
                         case DatabaseType.SQLite:
-                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(PageIndex - 1) * PageSize},{PageSize};";
+                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(PageIndex - 1) * PageSize},{PageSize};";
                         case DatabaseType.PostgreSql:
-                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {PageSize} OFFSET {(PageIndex - 1) * PageSize};";
+                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {PageSize} OFFSET {(PageIndex - 1) * PageSize};";
                         case DatabaseType.SqlServer:
                         case DatabaseType.SqlServerCe:
-                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} OFFSET {(PageIndex - 1) * PageSize} ROWS FETCH NEXT {PageSize} ROWS ONLY;";
+                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} OFFSET {(PageIndex - 1) * PageSize} ROWS FETCH NEXT {PageSize} ROWS ONLY;";
                         case DatabaseType.DB2:
                             // SQL Server、Oracle等数据库都支持：ROW_NUMBER() OVER()
-                            return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize} AND t2.ROW_NUM <= {(PageIndex - 1) * PageSize + PageSize};";
+                            return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize} AND t2.ROW_NUM <= {(PageIndex - 1) * PageSize + PageSize};";
                         case DatabaseType.Access:
-                            return $"SELECT TOP {PageSize} {selectFields} FROM (SELECT TOP {(PageIndex - 1) * PageSize + PageSize} {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}) t2;";
+                            return $"SELECT TOP {PageSize} {selectFields} FROM (SELECT TOP {(PageIndex - 1) * PageSize + PageSize} {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}) t2;";
                         case DatabaseType.Oracle:
                             if (string.IsNullOrWhiteSpace(OrderBySql))
                             {
                                 // 无ORDER BY排序
                                 // SQL示例：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 AND ROWNUM<=10) t2 WHERE t2.ROW_NUM>5;
                                 var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {(PageIndex - 1) * PageSize + PageSize}" : $"{WhereSql} AND ROWNUM <= {(PageIndex - 1) * PageSize + PageSize}";
-                                return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize};";
+                                return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize};";
                             }
                             else
                             {
                                 // 有ORDER BY排序
                                 // SQL示例1：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM (SELECT ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 ORDER BY ID DESC) t2 WHERE ROWNUM<=10) t3 WHERE t3.ROW_NUM>5
                                 // SQL示例2：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROW_NUMBER() OVER(ORDER BY ID DESC) ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456) t2 WHERE t2.ROW_NUM>5 AND t2.ROW_NUM<=10;
-                                return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize} AND t2.ROW_NUM <= {(PageIndex - 1) * PageSize + PageSize};";
+                                return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize} AND t2.ROW_NUM <= {(PageIndex - 1) * PageSize + PageSize};";
                             }
                         default:
                             //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(PageIndex)}:{PageIndex},{nameof(PageSize)}:{PageSize}]");
-                            return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(PageIndex - 1) * PageSize},{PageSize};";// 同MySql
+                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(PageIndex - 1) * PageSize},{PageSize};";// 同MySql
                     }
                 }
                 else
                 {
                     // 普通查询
-                    return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                    return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
                 }
             }
         }
@@ -164,8 +164,8 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(fieldName => $"{DbType.MarkAsTableOrFieldName(fieldName)}")) : "*";
-                return $"SELECT {selectFields} FROM {DbType.MarkAsTableOrFieldName(TableName)};";
+                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(fieldName => $"{FormatFieldName(fieldName)}")) : "*";
+                return $"SELECT {selectFields} FROM {FormatTableName(TableName)};";
             }
         }
         /// <summary>
@@ -175,7 +175,7 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                return $"SELECT COUNT(1) FROM {DbType.MarkAsTableOrFieldName(TableName)}{WhereSql}{GroupBySql}{HavingSql};";
+                return $"SELECT COUNT(1) FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql};";
             }
         }
         /// <summary>
@@ -185,10 +185,11 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                return $"SELECT COUNT(1) FROM {DbType.MarkAsTableOrFieldName(TableName)};";
+                return $"SELECT COUNT(1) FROM {FormatTableName(TableName)};";
             }
         }
 
+        public string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
         public string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
         public string GroupBySql => _groupBy.IsValueCreated && _groupBy.Value.Length > 0 ? $" GROUP BY {_groupBy.Value.ToString()}" : string.Empty;
         public string HavingSql => _having.IsValueCreated && _having.Value.Length > 0 ? $" HAVING {_having.Value.ToString()}" : string.Empty;
@@ -235,6 +236,9 @@ namespace Sean.Core.DbRepository.Factory
         /// </summary>
         public int PageSize { get; private set; }
 
+        public bool MultiTableQuery => _joinTable.IsValueCreated && _joinTable.Value.Length > 0;
+
+        private readonly Lazy<StringBuilder> _joinTable = new();
         private readonly Lazy<StringBuilder> _where = new();
         private readonly Lazy<StringBuilder> _groupBy = new();
         private readonly Lazy<StringBuilder> _having = new();
@@ -344,6 +348,61 @@ namespace Sean.Core.DbRepository.Factory
             return this;
         }
 
+        #region 表关联查询
+        /// <summary>
+        /// INNER JOIN
+        /// </summary>
+        /// <param name="joinTableSql">不包含关键字：INNER JOIN</param>
+        /// <returns></returns>
+        public virtual SqlFactory InnerJoin(string joinTableSql)
+        {
+            if (!string.IsNullOrWhiteSpace(joinTableSql))
+            {
+                this._joinTable.Value.Append($" INNER JOIN {joinTableSql}");
+            }
+            return this;
+        }
+        /// <summary>
+        /// LEFT JOIN
+        /// </summary>
+        /// <param name="joinTableSql">不包含关键字：LEFT JOIN</param>
+        /// <returns></returns>
+        public virtual SqlFactory LeftJoin(string joinTableSql)
+        {
+            if (!string.IsNullOrWhiteSpace(joinTableSql))
+            {
+                this._joinTable.Value.Append($" LEFT JOIN {joinTableSql}");
+            }
+            return this;
+        }
+        /// <summary>
+        /// RIGHT JOIN
+        /// </summary>
+        /// <param name="joinTableSql">不包含关键字：RIGHT JOIN</param>
+        /// <returns></returns>
+        public virtual SqlFactory RightJoin(string joinTableSql)
+        {
+            if (!string.IsNullOrWhiteSpace(joinTableSql))
+            {
+                this._joinTable.Value.Append($" RIGHT JOIN {joinTableSql}");
+            }
+            return this;
+        }
+        /// <summary>
+        /// FULL JOIN
+        /// </summary>
+        /// <param name="joinTableSql">不包含关键字：FULL JOIN</param>
+        /// <returns></returns>
+        public virtual SqlFactory FullJoin(string joinTableSql)
+        {
+            if (!string.IsNullOrWhiteSpace(joinTableSql))
+            {
+                this._joinTable.Value.Append($" FULL JOIN {joinTableSql}");
+            }
+            return this;
+        }
+        #endregion
+
         /// <summary>
         /// WHERE column_name operator value
         /// </summary>
@@ -358,7 +417,16 @@ namespace Sean.Core.DbRepository.Factory
             }
             return this;
         }
-        public virtual SqlFactory WhereField(string fieldName, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None)
+        /// <summary>
+        /// WHERE column_name operator value
+        /// </summary>
+        /// <param name="fieldName">字段名称</param>
+        /// <param name="operation"></param>
+        /// <param name="keyword"></param>
+        /// <param name="include"></param>
+        /// <param name="paramName">参数名称，默认同 <paramref name="fieldName"/></param>
+        /// <returns></returns>
+        public virtual SqlFactory WhereField(string fieldName, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
         {
             if (!string.IsNullOrWhiteSpace(fieldName))
             {
@@ -375,7 +443,7 @@ namespace Sean.Core.DbRepository.Factory
                 {
                     this._where.Value.Append(include.ToSqlString());
                 }
-                this._where.Value.Append($"{DbType.MarkAsTableOrFieldName(fieldName)} {operation.ToSqlString()} {DbType.MarkAsInputParameter(fieldName)}");
+                this._where.Value.Append($"{FormatFieldName(fieldName)} {operation.ToSqlString()} {FormatInputParameter(!string.IsNullOrWhiteSpace(paramName) ? paramName : fieldName)}");
                 if (include == Include.Right)
                 {
                     this._where.Value.Append(include.ToSqlString());
@@ -401,7 +469,7 @@ namespace Sean.Core.DbRepository.Factory
         {
             if (fieldNames != null)
             {
-                GroupBy(string.Join(", ", fieldNames));
+                GroupBy(string.Join(", ", fieldNames.Select(fieldName => FormatFieldName(fieldName))));
             }
             return this;
         }
@@ -439,7 +507,7 @@ namespace Sean.Core.DbRepository.Factory
             {
                 if (_orderBy.Value.Length > 0) this._orderBy.Value.Append(", ");
 
-                _orderBy.Value.Append($"{string.Join(", ", fieldNames)} {type.ToSqlString()}");
+                _orderBy.Value.Append($"{string.Join(", ", fieldNames.Select(fieldName => FormatFieldName(fieldName)))} {type.ToSqlString()}");
             }
             return this;
         }
@@ -464,6 +532,25 @@ namespace Sean.Core.DbRepository.Factory
         {
             this.Parameter = param;
             return this;
+        }
+
+        protected virtual string FormatTableName(string tableName)
+        {
+            return DbType.MarkAsTableOrFieldName(tableName);
+
+        }
+        protected virtual string FormatFieldName(string fieldName)
+        {
+            if (!MultiTableQuery)
+            {
+                return DbType.MarkAsTableOrFieldName(fieldName);
+            }
+
+            return $"{FormatTableName(TableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
+        }
+        protected virtual string FormatInputParameter(string parameterName)
+        {
+            return DbType.MarkAsInputParameter(parameterName);
         }
     }
 
@@ -593,6 +680,45 @@ namespace Sean.Core.DbRepository.Factory
             return base.Page(pageIndex, pageSize) as SqlFactory<TEntity>;
         }
 
+        #region 表关联查询
+        /// <summary>
+        /// INNER JOIN
+        /// </summary>
+        /// <param name="joinTableSql">不包含关键字：INNER JOIN</param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> InnerJoin(string joinTableSql)
+        {
+            return base.InnerJoin(joinTableSql) as SqlFactory<TEntity>;
+        }
+        /// <summary>
+        /// LEFT JOIN
+        /// </summary>
+        /// <param name="joinTableSql">不包含关键字：LEFT JOIN</param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> LeftJoin(string joinTableSql)
+        {
+            return base.LeftJoin(joinTableSql) as SqlFactory<TEntity>;
+        }
+        /// <summary>
+        /// RIGHT JOIN
+        /// </summary>
+        /// <param name="joinTableSql">不包含关键字：RIGHT JOIN</param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> RightJoin(string joinTableSql)
+        {
+            return base.RightJoin(joinTableSql) as SqlFactory<TEntity>;
+        }
+        /// <summary>
+        /// FULL JOIN
+        /// </summary>
+        /// <param name="joinTableSql">不包含关键字：FULL JOIN</param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> FullJoin(string joinTableSql)
+        {
+            return base.FullJoin(joinTableSql) as SqlFactory<TEntity>;
+        }
+        #endregion
+
         /// <summary>
         /// WHERE column_name operator value
         /// </summary>
@@ -602,9 +728,18 @@ namespace Sean.Core.DbRepository.Factory
         {
             return base.Where(where) as SqlFactory<TEntity>;
         }
-        public new virtual SqlFactory<TEntity> WhereField(string fieldName, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None)
+        /// <summary>
+        /// WHERE column_name operator value
+        /// </summary>
+        /// <param name="fieldName">字段名称</param>
+        /// <param name="operation"></param>
+        /// <param name="keyword"></param>
+        /// <param name="include"></param>
+        /// <param name="paramName">参数名称，默认同 <paramref name="fieldName"/></param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> WhereField(string fieldName, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
         {
-            return base.WhereField(fieldName, operation, keyword, include) as SqlFactory<TEntity>;
+            return base.WhereField(fieldName, operation, keyword, include, paramName) as SqlFactory<TEntity>;
         }
         /// <summary>
         /// GROUP BY column_name
@@ -688,9 +823,66 @@ namespace Sean.Core.DbRepository.Factory
             return IdentityFields(fieldExpression.Select(c => c.GetMemberName()).ToArray());
         }
 
-        public virtual SqlFactory<TEntity> WhereField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None)
+        #region 表关联查询
+        /// <summary>
+        /// INNER JOIN table_name2 ON table_name1.column_name=table_name2.column_name
+        /// </summary>
+        /// <param name="fieldExpression"></param>
+        /// <param name="fieldExpression2"></param>
+        /// <returns></returns>
+        public virtual SqlFactory<TEntity> InnerJoin<TEntity2, TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, Expression<Func<TEntity2, TProperty>> fieldExpression2)
         {
-            return WhereField(fieldExpression.GetMemberName(), operation, keyword, include);
+            var joinTableName = FormatTableName(typeof(TEntity2).GetMainTableName());
+            return InnerJoin($"{joinTableName} ON {FormatTableName(TableName)}.{FormatFieldName(fieldExpression.GetMemberName())}={joinTableName}.{FormatFieldName(fieldExpression2.GetMemberName())}");
+        }
+        /// <summary>
+        /// LEFT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
+        /// </summary>
+        /// <param name="fieldExpression"></param>
+        /// <param name="fieldExpression2"></param>
+        /// <returns></returns>
+        public virtual SqlFactory<TEntity> LeftJoin<TEntity2, TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, Expression<Func<TEntity2, TProperty>> fieldExpression2)
+        {
+            var joinTableName = FormatTableName(typeof(TEntity2).GetMainTableName());
+            return LeftJoin($"{joinTableName} ON {FormatTableName(TableName)}.{FormatFieldName(fieldExpression.GetMemberName())}={joinTableName}.{FormatFieldName(fieldExpression2.GetMemberName())}");
+        }
+        /// <summary>
+        /// RIGHT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
+        /// </summary>
+        /// <param name="fieldExpression"></param>
+        /// <param name="fieldExpression2"></param>
+        /// <returns></returns>
+        public virtual SqlFactory<TEntity> RightJoin<TEntity2, TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, Expression<Func<TEntity2, TProperty>> fieldExpression2)
+        {
+            var joinTableName = FormatTableName(typeof(TEntity2).GetMainTableName());
+            return RightJoin($"{joinTableName} ON {FormatTableName(TableName)}.{FormatFieldName(fieldExpression.GetMemberName())}={joinTableName}.{FormatFieldName(fieldExpression2.GetMemberName())}");
+        }
+        /// <summary>
+        /// FULL JOIN table_name2 ON table_name1.column_name=table_name2.column_name
+        /// </summary>
+        /// <param name="fieldExpression"></param>
+        /// <param name="fieldExpression2"></param>
+        /// <returns></returns>
+        public virtual SqlFactory<TEntity> FullJoin<TEntity2, TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, Expression<Func<TEntity2, TProperty>> fieldExpression2)
+        {
+            var joinTableName = FormatTableName(typeof(TEntity2).GetMainTableName());
+            return FullJoin($"{joinTableName} ON {FormatTableName(TableName)}.{FormatFieldName(fieldExpression.GetMemberName())}={joinTableName}.{FormatFieldName(fieldExpression2.GetMemberName())}");
+        }
+        #endregion
+
+        /// <summary>
+        /// WHERE column_name operator value
+        /// </summary>
+        /// <typeparam name="TProperty"></typeparam>
+        /// <param name="fieldExpression"></param>
+        /// <param name="operation"></param>
+        /// <param name="keyword"></param>
+        /// <param name="include"></param>
+        /// <param name="paramName">参数名称，默认同 <paramref name="fieldExpression"/> 返回的 fieldName</param>
+        /// <returns></returns>
+        public virtual SqlFactory<TEntity> WhereField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
+        {
+            return WhereField(fieldExpression.GetMemberName(), operation, keyword, include, paramName);
         }
 
         public virtual SqlFactory<TEntity> GroupByField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)

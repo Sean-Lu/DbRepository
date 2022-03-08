@@ -99,9 +99,17 @@ namespace Example.Domain.Repositories
                 .Page(pageIndex, pageSize)
                 .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
                 .WhereField(entity => entity.CheckInType, SqlOperation.In, WhereSqlKeyword.And)
+                .WhereField(entity => entity.CreateTime, SqlOperation.GreaterOrEqual, WhereSqlKeyword.And, paramName: "StartTime")
+                .WhereField(entity => entity.CreateTime, SqlOperation.Less, WhereSqlKeyword.And, paramName: "EndTime")
                 .OrderByField(OrderByType.Asc, entity => entity.UserId)
                 .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
-                .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } });
+                .SetParameter(new
+                {
+                    UserId = userId,
+                    CheckInType = new[] { 1, 2 },
+                    StartTime = DateTime.Parse("2020-1-1 00:00:00"),
+                    EndTime = DateTime.Now
+                });
             #endregion
 
             #region 返回结果示例

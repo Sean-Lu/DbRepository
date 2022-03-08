@@ -18,20 +18,39 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dataReader"></param>
-        /// <param name="ignoreCase">是否忽略大小写</param>
+        /// <param name="caseSensitive">表字段匹配属性名称时，是否大小写敏感</param>
         /// <returns></returns>
-        public static List<T> GetList<T>(this IDataReader dataReader, bool ignoreCase = false)
+        public static T Get<T>(this IDataReader dataReader, bool caseSensitive = false)
+        {
+            var list = dataReader.GetList<T>(caseSensitive, 1);
+            return list.FirstOrDefault();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dataReader"></param>
+        /// <param name="caseSensitive">表字段匹配属性名称时，是否大小写敏感</param>
+        /// <param name="readCount">读取的记录数。如果值为null，表示读取所有记录数。</param>
+        /// <returns></returns>
+        public static List<T> GetList<T>(this IDataReader dataReader, bool caseSensitive = false, int? readCount = null)
         {
             if (dataReader == null)
             {
                 return null;
             }
 
-            //return dataReader.GetDataTable().ToList<T>(ignoreCase);
+            //return dataReader.GetDataTable().ToList<T>(caseSensitive);
 
             var list = new List<T>();
+            var count = 0;
             while (dataReader.Read())
             {
+                if (readCount.HasValue && readCount.Value > 0 && count >= readCount.Value)
+                {
+                    break;
+                }
+
                 T model = default;
                 var type = typeof(T);
                 if (type.IsValueType// 值类型，如：int、long、double、decimal、DateTime、bool、可空类型等
@@ -57,11 +76,13 @@ namespace Sean.Core.DbRepository.Extensions
                 else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)
                 {
                     model = Activator.CreateInstance<T>();//new T();
+                    var properties = type.GetProperties();
                     for (var i = 0; i < dataReader.FieldCount; i++)
                     {
-                        var propertyInfo = ignoreCase
-                            ? type.GetProperties().FirstOrDefault(c => c.Name.ToLower() == dataReader.GetName(i).ToLower())
-                            : type.GetProperty(dataReader.GetName(i));
+                        var fieldName = dataReader.GetName(i);
+                        var propertyInfo = !caseSensitive
+                            ? properties.FirstOrDefault(c => c.Name.ToLower() == fieldName.ToLower())
+                            : type.GetProperty(fieldName);
                         var value = dataReader[i];
                         if (propertyInfo != null && propertyInfo.CanWrite && value != DBNull.Value)
                         {
@@ -71,9 +92,11 @@ namespace Sean.Core.DbRepository.Extensions
                 }
                 else
                 {
-                    throw new NotSupportedException($"The reflection of this type [{type.FullName}] is not currently supported.");
+                    throw new NotSupportedException($"Unsupported type: {type.FullName}");
                 }
                 list.Add(model);
+
+                count++;
             }
             return list;
         }
@@ -85,9 +108,8 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static DataTable GetDataTable(this IDataReader dataReader)
         {
-            var table = new DataTable();
-            table.Load(dataReader);
-            return table;
+            var dataSet = dataReader.GetDataSet();
+            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
         /// <summary>
         /// <see cref="DataSet"/>

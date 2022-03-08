@@ -47,13 +47,13 @@ namespace Sean.Core.DbRepository.Factory
             set => OnConnectionStringChanged(value);
         }
         /// <summary>
-        /// The time (in seconds) to wait for the command to execute. The default value is 30 seconds.
+        /// 默认的执行超时时间（单位：秒），默认值：30秒
         /// </summary>
         public int? DefaultCommandTimeout { get; set; }
         /// <summary>
-        /// Whether to ignore case when table fields match class attributes (only valid when returning generic data, such as: Get&lt;T&gt;()、GetList&lt;T&gt;()), the default value is true.
+        /// 表字段匹配属性名称时，是否大小写敏感。默认值：false，仅在泛型查询方法中有效（Get&lt;T&gt;()、GetList&lt;T&gt;()）
         /// </summary>
-        public bool IgnoreCaseWhenMatchField { get; set; } = true;
+        public bool CaseSensitiveWhenMatchField { get; set; } = false;
 
         private DbProviderFactory _providerFactory;
         private DatabaseType _dbType;
@@ -61,27 +61,65 @@ namespace Sean.Core.DbRepository.Factory
 
         #region Constructors
 #if NETSTANDARD
+        /// <summary>
+        /// Single or clustered database.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="configName">Configuration ConnectionStrings name</param>
         public DbFactory(IConfiguration configuration = null, string configName = Constants.Master)
-#else
-        public DbFactory(string configName = Constants.Master)
-#endif
         {
             if (string.IsNullOrWhiteSpace(configName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(configName));
 
-#if NETSTANDARD
             ConnectionSettings = new MultiConnectionSettings(configuration, configName);
-#else
-            ConnectionSettings = new MultiConnectionSettings(configName);
-#endif
         }
+#else
         /// <summary>
-        /// Create DbFactory
+        /// Single or clustered database.
+        /// </summary>
+        /// <param name="configName">Configuration ConnectionStrings name</param>
+        public DbFactory(string configName = Constants.Master)
+        {
+            if (string.IsNullOrWhiteSpace(configName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(configName));
+
+            ConnectionSettings = new MultiConnectionSettings(configName);
+        }
+#endif
+        /// <summary>
+        /// Single or clustered database.
         /// </summary>
         /// <param name="connectionSettings"></param>
         public DbFactory(MultiConnectionSettings connectionSettings)
         {
             ConnectionSettings = connectionSettings ?? throw new ArgumentNullException(nameof(connectionSettings));
+        }
+        /// <summary>
+        /// Single database.
+        /// </summary>
+        /// <param name="connString"></param>
+        /// <param name="type"></param>
+        public DbFactory(string connString, DatabaseType type) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, type)))
+        {
+
+        }
+        /// <summary>
+        /// Single database.
+        /// </summary>
+        /// <param name="connString"></param>
+        /// <param name="factory"></param>
+        public DbFactory(string connString, DbProviderFactory factory) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, factory)))
+        {
+
+        }
+        /// <summary>
+        /// Single database.
+        /// </summary>
+        /// <param name="connString"></param>
+        /// <param name="providerName"></param>
+        public DbFactory(string connString, string providerName) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, providerName)))
+        {
+
         }
         #endregion
 
@@ -587,11 +625,11 @@ namespace Sean.Core.DbRepository.Factory
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
             //var table = ExecuteDataTable(connection, commandText, parameters, commandType);
-            //return table?.ToList<T>(IgnoreCaseWhenMatchField);
+            //return table?.ToList<T>(CaseSensitiveWhenMatchField);
 
             using (var dataReader = ExecuteReader(connection, commandText, parameters, commandType))
             {
-                return dataReader.GetList<T>(IgnoreCaseWhenMatchField);
+                return dataReader.GetList<T>(CaseSensitiveWhenMatchField);
             }
         }
         /// <summary>
@@ -603,11 +641,11 @@ namespace Sean.Core.DbRepository.Factory
         public List<T> GetList<T>(DbCommandInfo commandInfo)
         {
             //var table = ExecuteDataTable(commandInfo);
-            //return table?.ToList<T>(IgnoreCaseWhenMatchField);
+            //return table?.ToList<T>(CaseSensitiveWhenMatchField);
 
             using (var dataReader = ExecuteReader(commandInfo))
             {
-                return dataReader.GetList<T>(IgnoreCaseWhenMatchField);
+                return dataReader.GetList<T>(CaseSensitiveWhenMatchField);
             }
         }
 #if !NET40
@@ -620,11 +658,11 @@ namespace Sean.Core.DbRepository.Factory
         public async Task<List<T>> GetListAsync<T>(DbCommandInfo commandInfo)
         {
             //var table = await ExecuteDataTableAsync(commandInfo);
-            //return table?.ToList<T>(IgnoreCaseWhenMatchField);
+            //return table?.ToList<T>(CaseSensitiveWhenMatchField);
 
             using (var dataReader = await ExecuteReaderAsync(commandInfo))
             {
-                return dataReader.GetList<T>(IgnoreCaseWhenMatchField);
+                return dataReader.GetList<T>(CaseSensitiveWhenMatchField);
             }
         }
 #endif
@@ -660,8 +698,10 @@ namespace Sean.Core.DbRepository.Factory
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
-            var list = GetList<T>(connection, commandText, parameters, commandType);
-            return list != null ? list.FirstOrDefault() : default;
+            using (var dataReader = ExecuteReader(connection, commandText, parameters, commandType))
+            {
+                return dataReader.Get<T>(CaseSensitiveWhenMatchField);
+            }
         }
         /// <summary>
         /// Query a single entity or special type value
@@ -671,8 +711,10 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns>Entity or special type value</returns>
         public T Get<T>(DbCommandInfo commandInfo)
         {
-            var list = GetList<T>(commandInfo);
-            return list != null ? list.FirstOrDefault() : default;
+            using (var dataReader = ExecuteReader(commandInfo))
+            {
+                return dataReader.Get<T>(CaseSensitiveWhenMatchField);
+            }
         }
 #if !NET40
         /// <summary>
@@ -683,8 +725,10 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns>Entity or special type value</returns>
         public async Task<T> GetAsync<T>(DbCommandInfo commandInfo)
         {
-            var list = await GetListAsync<T>(commandInfo);
-            return list != null ? list.FirstOrDefault() : default;
+            using (var dataReader = await ExecuteReaderAsync(commandInfo))
+            {
+                return dataReader.Get<T>(CaseSensitiveWhenMatchField);
+            }
         }
 #endif
         #endregion

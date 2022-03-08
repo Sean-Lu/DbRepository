@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
@@ -25,30 +26,58 @@ namespace Sean.Core.DbRepository.Impls
         #region Constructors
 #if NETSTANDARD
         /// <summary>
-        /// Create BaseRepository
+        /// Single or clustered database.
         /// </summary>
-        /// <param name="configName">Configuration name</param>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="configName">Configuration ConnectionStrings name</param>
         protected BaseRepository(IConfiguration configuration = null, string configName = Constants.Master)
         {
             Factory = new DbFactory(configuration, configName);
         }
 #else
         /// <summary>
-        /// Create BaseRepository
+        /// Single or clustered database.
         /// </summary>
-        /// <param name="configName">Configuration name</param>
+        /// <param name="configName">Configuration ConnectionStrings name</param>
         protected BaseRepository(string configName = Constants.Master)
         {
             Factory = new DbFactory(configName);
         }
 #endif
         /// <summary>
-        /// Create BaseRepository
+        /// Single or clustered database.
         /// </summary>
         /// <param name="connectionSettings"></param>
         protected BaseRepository(MultiConnectionSettings connectionSettings)
         {
             Factory = new DbFactory(connectionSettings);
+        }
+        /// <summary>
+        /// Single database.
+        /// </summary>
+        /// <param name="connString"></param>
+        /// <param name="type"></param>
+        protected BaseRepository(string connString, DatabaseType type) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, type)))
+        {
+
+        }
+        /// <summary>
+        /// Single database.
+        /// </summary>
+        /// <param name="connString"></param>
+        /// <param name="factory"></param>
+        protected BaseRepository(string connString, DbProviderFactory factory) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, factory)))
+        {
+
+        }
+        /// <summary>
+        /// Single database.
+        /// </summary>
+        /// <param name="connString"></param>
+        /// <param name="providerName"></param>
+        protected BaseRepository(string connString, string providerName) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, providerName)))
+        {
+
         }
         #endregion
 
@@ -105,22 +134,28 @@ namespace Sean.Core.DbRepository.Impls
             return SqlFactory<TEntity>.Build(Factory.DbType, autoIncludeFields, tableName);
         }
 
-        #region 同步方法
+        #region Synchronous method
         /// <summary>
         /// 执行
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true)
+        public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var connection = Factory.OpenConnection(master))
+            if (transaction == null)
             {
-                return func(connection);
+                using (var connection = Factory.OpenConnection(master))
+                {
+                    return func(connection);
+                }
             }
+
+            return func(transaction.Connection);
         }
 
         /// <summary>
@@ -181,7 +216,7 @@ namespace Sean.Core.DbRepository.Impls
         }
         #endregion
 
-        #region 异步方法
+        #region Asynchronous method
 #if NETSTANDARD || NET45_OR_GREATER
         /// <summary>
         /// 异步执行
@@ -189,15 +224,21 @@ namespace Sean.Core.DbRepository.Impls
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true)
+        public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var connection = Factory.OpenConnection(master))
+            if (transaction == null)
             {
-                return await func(connection);
+                using (var connection = Factory.OpenConnection(master))
+                {
+                    return await func(connection);
+                }
             }
+
+            return await func(transaction.Connection);
         }
 
         /// <summary>

@@ -53,15 +53,6 @@ namespace Sean.Core.DbRepository.Extensions
             if (string.IsNullOrWhiteSpace(parameter))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(parameter));
 
-            if (parameter.Contains(" "))
-            {
-                parameter = parameter.Substring(parameter.LastIndexOf(" ") + 1);
-            }
-            else if (parameter.Contains("."))
-            {
-                parameter = parameter.Substring(parameter.LastIndexOf(".") + 1);
-            }
-
             if (parameter.StartsWith("["))
             {
                 parameter = parameter.Trim('[');
@@ -93,8 +84,9 @@ namespace Sean.Core.DbRepository.Extensions
 
             if (tableOrFieldName.StartsWith("[")
                 || tableOrFieldName.StartsWith("`")
-                || tableOrFieldName.Contains(".")// SELECT a.FieldName FROM TableName a
-                || tableOrFieldName.Contains(" ")// SELECT FieldName AS Alias FROM TableName
+                || tableOrFieldName.Contains(".")// example: SELECT a.FieldName FROM TableName a
+                || tableOrFieldName.Contains(" ")// example: SELECT FieldName AS Alias FROM TableName
+                || tableOrFieldName.Contains("(")// example: SELECT COUNT(FieldName) FROM TableName
                 )
             {
                 return tableOrFieldName;

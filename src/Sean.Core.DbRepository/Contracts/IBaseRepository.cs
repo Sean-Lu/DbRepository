@@ -55,8 +55,9 @@ namespace Sean.Core.DbRepository.Contracts
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        T Execute<T>(Func<IDbConnection, T> func, bool master = true);
+        T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null);
 
         /// <summary>
         /// 执行事务
@@ -90,8 +91,9 @@ namespace Sean.Core.DbRepository.Contracts
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true);
+        Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null);
 
         /// <summary>
         /// 异步执行事务
@@ -181,7 +183,7 @@ namespace Sean.Core.DbRepository.Contracts
         int Delete(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
-        /// 删除所有数据
+        /// 删除全部数据
         /// </summary>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
@@ -204,6 +206,14 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         int Update(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 更新全部数据
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        int UpdateAll(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 查询数据
@@ -234,7 +244,7 @@ namespace Sean.Core.DbRepository.Contracts
         int Count(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
-        /// 统计所有数量
+        /// 统计全部数量
         /// </summary>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
@@ -288,7 +298,7 @@ namespace Sean.Core.DbRepository.Contracts
         Task<int> DeleteAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
-        /// 删除所有数据
+        /// 删除全部数据
         /// </summary>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
@@ -311,6 +321,14 @@ namespace Sean.Core.DbRepository.Contracts
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<int> UpdateAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 更新全部数据
+        /// </summary>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        Task<int> UpdateAllAsync(SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 查询数据
@@ -341,7 +359,7 @@ namespace Sean.Core.DbRepository.Contracts
         Task<int> CountAsync(SqlFactory sqlFactory, bool master = true, int? commandTimeout = null);
 
         /// <summary>
-        /// 统计所有数量
+        /// 统计全部数量
         /// </summary>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>

@@ -16,9 +16,9 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dr">数据行</param>
-        /// <param name="ignoreCase">是否忽略大小写</param>
+        /// <param name="caseSensitive">表字段匹配属性名称时，是否大小写敏感</param>
         /// <returns></returns>
-        public static T ToEntity<T>(this DataRow dr, bool ignoreCase = false)
+        public static T ToEntity<T>(this DataRow dr, bool caseSensitive = false)
         {
             if (dr == null)
             {
@@ -46,12 +46,14 @@ namespace Sean.Core.DbRepository.Extensions
             else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)
             {
                 model = Activator.CreateInstance<T>();//new T();
+                var properties = type.GetProperties();
                 foreach (DataColumn column in dr.Table.Columns)
                 {
-                    var propertyInfo = ignoreCase
-                        ? type.GetProperties().FirstOrDefault(c => c.Name.ToLower() == column.ColumnName.ToLower())
-                        : type.GetProperty(column.ColumnName);
-                    var value = dr[column.ColumnName];
+                    var fieldName = column.ColumnName;
+                    var propertyInfo = !caseSensitive
+                        ? properties.FirstOrDefault(c => c.Name.ToLower() == fieldName.ToLower())
+                        : type.GetProperty(fieldName);
+                    var value = dr[fieldName];
                     if (propertyInfo != null && propertyInfo.CanWrite && value != DBNull.Value)
                     {
                         propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
@@ -60,7 +62,7 @@ namespace Sean.Core.DbRepository.Extensions
             }
             else
             {
-                throw new NotSupportedException($"The reflection of this type [{type.FullName}] is not currently supported.");
+                throw new NotSupportedException($"Unsupported type: {type.FullName}");
             }
 
             return model;

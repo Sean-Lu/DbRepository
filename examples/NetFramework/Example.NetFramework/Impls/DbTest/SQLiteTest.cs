@@ -22,7 +22,7 @@ namespace Example.NetFramework.Impls.DbTest
         private readonly ILogger _logger;
 
         public SQLiteTest() : base("test_SQLite")
-        //public SQLiteTest() : base(new MultiConnectionSettings(new List<ConnectionStringOptions> { new ConnectionStringOptions(@"data source=D:\test.db;version=3", DatabaseType.SQLite) }))
+        //public SQLiteTest() : base(new MultiConnectionSettings(new ConnectionStringOptions(@"data source=D:\test.db;version=3", DatabaseType.SQLite)))
         {
             _logger = new SimpleLocalLogger<SQLiteTest>();
         }

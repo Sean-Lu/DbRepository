@@ -12,10 +12,9 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="connectionString">数据库连接字符串，需要在该参数中添加 <see cref="DatabaseType"/> 或 ProviderName 属性来指定数据库连接驱动。</param>
         /// <param name="master">true: 主库, false: 从库</param>
-        public ConnectionStringOptions(string connectionString, bool master = true)
+        public ConnectionStringOptions(string connectionString, bool master = true) : this(connectionString, (string)null, master)
         {
-            ConnectionString = connectionString;
-            Master = master;
+
         }
         /// <summary>
         /// 数据库连接配置

@@ -9,6 +9,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace Sean.Core.DbRepository
 {
+    /// <summary>
+    /// Single or clustered database settings.
+    /// </summary>
     public class MultiConnectionSettings
     {
         /// <summary>
@@ -23,6 +26,11 @@ namespace Sean.Core.DbRepository
         private readonly List<ConnectionStringOptions> _connectionStrings;
         private int _times;
 
+        #region Constructors
+        /// <summary>
+        /// Single or clustered database.
+        /// </summary>
+        /// <param name="configName">Configuration ConnectionStrings name</param>
 #if NETSTANDARD
         public MultiConnectionSettings(IConfiguration configuration = null, string configName = Constants.Master)
 #else
@@ -71,11 +79,29 @@ namespace Sean.Core.DbRepository
                 }
             }
         }
-
-        public MultiConnectionSettings(List<ConnectionStringOptions> list)
+        /// <summary>
+        /// Single or clustered database.
+        /// </summary>
+        /// <param name="list"></param>
+        public MultiConnectionSettings(IEnumerable<ConnectionStringOptions> list)
         {
-            _connectionStrings = list ?? throw new ArgumentNullException(nameof(list));
+            if (list != null)
+            {
+                foreach (var options in list)
+                {
+                    AddConnectionString(options);
+                }
+            }
         }
+        /// <summary>
+        /// Single database.
+        /// </summary>
+        /// <param name="options"></param>
+        public MultiConnectionSettings(ConnectionStringOptions options)
+        {
+            AddConnectionString(options);
+        }
+        #endregion
 
         /// <summary>
         /// 清空所有数据库连接字符串
@@ -97,7 +123,12 @@ namespace Sean.Core.DbRepository
 
             if (string.IsNullOrWhiteSpace(options.ProviderName) && options.DbType == DatabaseType.Unknown && options.ProviderFactory == null)
             {
-                options.ConnectionString = GetValidConnectionString(options.ConnectionString, out var databaseType, out var providerName);
+                ParseConnectionString(options.ConnectionString, out var relConnString, out var databaseType, out var providerName);
+                if (string.IsNullOrWhiteSpace(options.ProviderName) && options.DbType == DatabaseType.Unknown)
+                {
+                    throw new Exception($"无效的数据库连接配置[{options.ConnectionString}]，请设置[{Constants.ConfigurationProviderName}]或[{Constants.ConfigurationDatabaseType}]的值。");
+                }
+                options.ConnectionString = relConnString;
                 options.DbType = databaseType;
                 options.ProviderName = providerName;
             }
@@ -117,7 +148,7 @@ namespace Sean.Core.DbRepository
             }
 
             // 单连接配置
-            if (_connectionStrings.Count == 1)
+            if (_connectionStrings.Count <= 1)
             {
                 var options = _connectionStrings.FirstOrDefault();
                 return options != null && options.Master == master ? options.ConnectionString : string.Empty;
@@ -133,21 +164,22 @@ namespace Sean.Core.DbRepository
         /// 
         /// </summary>
         /// <param name="connectionString">示例："xxx;ProviderName=xxx" 或 "xxx;DatabaseType=xxx"</param>
+        /// <param name="relConnString"></param>
         /// <param name="databaseType"></param>
         /// <param name="providerName"></param>
         /// <returns></returns>
-        public static string GetValidConnectionString(string connectionString, out DatabaseType databaseType, out string providerName)
+        public static void ParseConnectionString(string connectionString, out string relConnString, out DatabaseType databaseType, out string providerName)
         {
+            relConnString = null;
             databaseType = DatabaseType.Unknown;
             providerName = null;
 
-            string validConnString;
             if (connectionString.Contains(Constants.ConfigurationProviderName))
             {
                 var dic = GetConnectionDictionary(connectionString);
                 providerName = dic?.FirstOrDefault(c => c.Key == Constants.ConfigurationProviderName).Value;
                 dic?.Remove(Constants.ConfigurationProviderName);
-                validConnString = GetConnectionString(dic);
+                relConnString = GetConnectionString(dic);
             }
             else if (connectionString.Contains(Constants.ConfigurationDatabaseType))
             {
@@ -158,14 +190,12 @@ namespace Sean.Core.DbRepository
                     databaseType = dbType;
                 }
                 dic?.Remove(Constants.ConfigurationDatabaseType);
-                validConnString = GetConnectionString(dic);
+                relConnString = GetConnectionString(dic);
             }
             else
             {
-                validConnString = connectionString;
+                relConnString = connectionString;
             }
-
-            return validConnString;
         }
 
         public static Dictionary<string, string> GetConnectionDictionary(string connectionString)
