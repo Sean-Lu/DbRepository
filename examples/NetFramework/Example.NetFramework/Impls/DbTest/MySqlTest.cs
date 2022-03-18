@@ -1,20 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Dapper;
 using Example.NetFramework.Entities;
-using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Dapper.Impls;
-using Sean.Core.DbRepository.Extensions;
-using Sean.Core.DbRepository.Factory;
-using Sean.Core.DbRepository.Impls;
+using Sean.Core.DbRepository.Dapper;
 using Sean.Utility.Contracts;
-using Sean.Utility.Extensions;
-using Sean.Utility.Format;
 using Sean.Utility.Impls.Log;
 
 namespace Example.NetFramework.Impls.DbTest
@@ -34,7 +25,7 @@ namespace Example.NetFramework.Impls.DbTest
 
         public override void OutputExecutedSql(string sql, object param)
         {
-            _logger.LogInfo($"执行了SQL: {sql}");
+            _logger.LogInfo($"执行了SQL: {sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(param, Formatting.Indented)}");
         }
 
         public void Execute()
@@ -48,7 +39,7 @@ namespace Example.NetFramework.Impls.DbTest
             #region 查询数据
             var list = Query(NewSqlFactory(true)
                 .Page(1, 3)
-                .InnerJoin<UserEntity, long>(entity => entity.UserId, entity2 => entity2.Id)
+                .InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
                 .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
                 .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
                 .SetParameter(new { UserId = 100010 }), false);// 从库查询

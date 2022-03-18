@@ -3,9 +3,7 @@ using Dapper;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Impls;
 using Sean.Utility.Contracts;
-using Sean.Utility.Format;
 
 namespace Example.NetCore.Impls.DbTest
 {

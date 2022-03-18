@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Impls;
 using Sean.Utility.Contracts;
 
 namespace Example.NetCore.Impls.DbTest

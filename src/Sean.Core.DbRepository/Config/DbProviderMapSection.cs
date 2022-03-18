@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace Sean.Core.DbRepository.Config
+namespace Sean.Core.DbRepository
 {
     public class DbProviderMapSection : ConfigurationSection
     {

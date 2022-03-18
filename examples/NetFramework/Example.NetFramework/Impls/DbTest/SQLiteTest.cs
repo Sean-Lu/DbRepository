@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Data.SQLite;
 using System.Globalization;
 using System.Reflection;
 using Dapper;
 using Example.NetFramework.Entities;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Impls;
 using Sean.Utility.Contracts;
 using Sean.Utility.Impls.Log;
 

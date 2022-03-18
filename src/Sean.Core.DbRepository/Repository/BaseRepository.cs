@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 using System.Transactions;
-using Sean.Core.DbRepository.Contracts;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Core.DbRepository.Factory;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
 #endif
 
-namespace Sean.Core.DbRepository.Impls
+namespace Sean.Core.DbRepository
 {
     /// <summary>
     /// Database table base repository

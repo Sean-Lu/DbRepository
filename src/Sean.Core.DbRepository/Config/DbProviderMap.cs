@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 
-namespace Sean.Core.DbRepository.Config
+namespace Sean.Core.DbRepository
 {
     public class DbProviderMap
     {

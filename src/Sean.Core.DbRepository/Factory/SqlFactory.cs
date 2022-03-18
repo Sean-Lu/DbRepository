@@ -5,12 +5,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using Sean.Core.DbRepository.Contracts;
 using Sean.Core.DbRepository.Extensions;
 
-namespace Sean.Core.DbRepository.Factory
+namespace Sean.Core.DbRepository
 {
-    public class SqlFactory
+    public class SqlFactory : IInsertableSql, IDeleteableSql, IUpdateableSql, IQueryableSql, ICountableSql
     {
         #region SQL
         /// <summary>
@@ -24,62 +23,38 @@ namespace Sean.Core.DbRepository.Factory
                 if (!list.Any())
                     return string.Empty;
                 var fields = list.Select(fieldName => FormatFieldName(fieldName));
-                var parameters = list.Select(fieldName => FormatInputParameter(fieldName));
-                return $"INSERT INTO {FormatTableName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});{(_returnLastInsertId ? DbType.GetSqlForSelectLastInsertId() : string.Empty)}";
+                var parameters = list.Select(fieldName => SqlAdapter.FormatInputParameter(fieldName));
+                return $"INSERT INTO {SqlAdapter.FormatTableName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});{(_returnLastInsertId ? SqlAdapter.GetSqlForSelectLastInsertId() : string.Empty)}";
             }
         }
         /// <summary>
-        /// SQL：删除数据（为了防止误删除，需要指定WHERE过滤条件，否则会主动抛出异常）
+        /// SQL：删除数据（为了防止误删除，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="AllowEmptyWhereClause"/> 设置允许空 WHERE 子句）
         /// </summary>
         public virtual string DeleteSql
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(WhereSql))
+                if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
                     throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
-                return $"DELETE FROM {FormatTableName(TableName)}{WhereSql};";
+                return $"DELETE FROM {SqlAdapter.FormatTableName(TableName)}{WhereSql};";
             }
         }
         /// <summary>
-        /// SQL：删除表所有数据（忽略WHERE过滤条件）
-        /// </summary>
-        public virtual string DeleteAllSql
-        {
-            get
-            {
-                return $"DELETE FROM {FormatTableName(TableName)};";
-            }
-        }
-        /// <summary>
-        /// SQL：更新数据（为了防止误更新，需要指定WHERE过滤条件，否则会主动抛出异常）
+        /// SQL：更新数据（为了防止误更新，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="AllowEmptyWhereClause"/> 设置允许空 WHERE 子句）
         /// </summary>
         public virtual string UpdateSql
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(WhereSql))
+                if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
                     throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
                 var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var sets = list.Select(fieldName => $"{FormatFieldName(fieldName)}={FormatInputParameter(fieldName)}");
-                return $"UPDATE {FormatTableName(TableName)} SET {string.Join(", ", sets)}{WhereSql};";
-            }
-        }
-        /// <summary>
-        /// SQL：更新表所有数据（忽略WHERE过滤条件）
-        /// </summary>
-        public virtual string UpdateAllSql
-        {
-            get
-            {
-                var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
-                if (!list.Any())
-                    return string.Empty;
-                var sets = list.Select(fieldName => $"{FormatFieldName(fieldName)}={FormatInputParameter(fieldName)}");
-                return $"UPDATE {FormatTableName(TableName)} SET {string.Join(", ", sets)};";
+                var sets = list.Select(fieldName => $"{FormatFieldName(fieldName)}={SqlAdapter.FormatInputParameter(fieldName)}");
+                return $"UPDATE {SqlAdapter.FormatTableName(TableName)} SET {string.Join(", ", sets)}{WhereSql};";
             }
         }
         /// <summary>
@@ -91,81 +66,44 @@ namespace Sean.Core.DbRepository.Factory
             {
                 var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(fieldName => $"{FormatFieldName(fieldName)}")) : "*";
                 //const string rowNumAlias = "ROW_NUM";
-                if (TopNumber != 0)
+                if (_topNumber.HasValue)
                 {
                     // 查询前几行
-                    switch (DbType)
+                    switch (SqlAdapter.DbType)
                     {
                         case DatabaseType.MySql:
                         case DatabaseType.SQLite:
                         case DatabaseType.PostgreSql:
-                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {TopNumber};";
+                            return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";
                         case DatabaseType.SqlServer:
                         case DatabaseType.SqlServerCe:
                         case DatabaseType.Access:
-                            return $"SELECT TOP {TopNumber} {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                            return $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
                         case DatabaseType.Oracle:
-                            var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {TopNumber}" : $"{WhereSql} AND ROWNUM <= {TopNumber}";
-                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
+                            var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {_topNumber}" : $"{WhereSql} AND ROWNUM <= {_topNumber}";
+                            return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
                         default:
                             //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(TopNumber)}:{TopNumber}]");
-                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {TopNumber};";// 同MySql
+                            return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";// 同MySql
                     }
                 }
-                else if (PageIndex >= 1)
+                else if (_pageIndex.HasValue && _pageSize.HasValue)
                 {
                     // 分页查询
-                    switch (DbType)
-                    {
-                        case DatabaseType.MySql:
-                        case DatabaseType.SQLite:
-                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(PageIndex - 1) * PageSize},{PageSize};";
-                        case DatabaseType.PostgreSql:
-                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {PageSize} OFFSET {(PageIndex - 1) * PageSize};";
-                        case DatabaseType.SqlServer:
-                        case DatabaseType.SqlServerCe:
-                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} OFFSET {(PageIndex - 1) * PageSize} ROWS FETCH NEXT {PageSize} ROWS ONLY;";
-                        case DatabaseType.DB2:
-                            // SQL Server、Oracle等数据库都支持：ROW_NUMBER() OVER()
-                            return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize} AND t2.ROW_NUM <= {(PageIndex - 1) * PageSize + PageSize};";
-                        case DatabaseType.Access:
-                            return $"SELECT TOP {PageSize} {selectFields} FROM (SELECT TOP {(PageIndex - 1) * PageSize + PageSize} {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}) t2;";
-                        case DatabaseType.Oracle:
-                            if (string.IsNullOrWhiteSpace(OrderBySql))
-                            {
-                                // 无ORDER BY排序
-                                // SQL示例：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 AND ROWNUM<=10) t2 WHERE t2.ROW_NUM>5;
-                                var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {(PageIndex - 1) * PageSize + PageSize}" : $"{WhereSql} AND ROWNUM <= {(PageIndex - 1) * PageSize + PageSize}";
-                                return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize};";
-                            }
-                            else
-                            {
-                                // 有ORDER BY排序
-                                // SQL示例1：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM (SELECT ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 ORDER BY ID DESC) t2 WHERE ROWNUM<=10) t3 WHERE t3.ROW_NUM>5
-                                // SQL示例2：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROW_NUMBER() OVER(ORDER BY ID DESC) ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456) t2 WHERE t2.ROW_NUM>5 AND t2.ROW_NUM<=10;
-                                return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {(PageIndex - 1) * PageSize} AND t2.ROW_NUM <= {(PageIndex - 1) * PageSize + PageSize};";
-                            }
-                        default:
-                            //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(PageIndex)}:{PageIndex},{nameof(PageSize)}:{PageSize}]");
-                            return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {(PageIndex - 1) * PageSize},{PageSize};";// 同MySql
-                    }
+                    var offset = (_pageIndex.Value - 1) * _pageSize.Value;// 偏移量
+                    var rows = _pageSize.Value;// 行数
+                    return GetQuerySql(selectFields, offset, rows);
+                }
+                else if (_offset.HasValue && _rows.HasValue)
+                {
+                    // 根据偏移量查询
+                    return GetQuerySql(selectFields, _offset.Value, _rows.Value);
                 }
                 else
                 {
                     // 普通查询
-                    return $"SELECT {selectFields} FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                    return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
                 }
-            }
-        }
-        /// <summary>
-        /// SQL：查询数据（忽略WHERE过滤条件）
-        /// </summary>
-        public virtual string QueryAllSql
-        {
-            get
-            {
-                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(fieldName => $"{FormatFieldName(fieldName)}")) : "*";
-                return $"SELECT {selectFields} FROM {FormatTableName(TableName)};";
             }
         }
         /// <summary>
@@ -175,31 +113,12 @@ namespace Sean.Core.DbRepository.Factory
         {
             get
             {
-                return $"SELECT COUNT(1) FROM {FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql};";
+                return $"SELECT COUNT(1) FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql};";
             }
         }
-        /// <summary>
-        /// SQL：统计数量（忽略WHERE过滤条件）
-        /// </summary>
-        public virtual string CountAllSql
-        {
-            get
-            {
-                return $"SELECT COUNT(1) FROM {FormatTableName(TableName)};";
-            }
-        }
-
-        public string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
-        public string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
-        public string GroupBySql => _groupBy.IsValueCreated && _groupBy.Value.Length > 0 ? $" GROUP BY {_groupBy.Value.ToString()}" : string.Empty;
-        public string HavingSql => _having.IsValueCreated && _having.Value.Length > 0 ? $" HAVING {_having.Value.ToString()}" : string.Empty;
-        public string OrderBySql => _orderBy.IsValueCreated && _orderBy.Value.Length > 0 ? $" ORDER BY {_orderBy.Value.ToString()}" : string.Empty;
         #endregion
 
-        /// <summary>
-        /// 数据库类型
-        /// </summary>
-        public DatabaseType DbType { get; }
+        public ISqlAdapter SqlAdapter { get; }
 
         /// <summary>
         /// 表名
@@ -223,20 +142,17 @@ namespace Sean.Core.DbRepository.Factory
         /// 自增字段
         /// </summary>
         public List<string> IdentityFieldsList { get; } = new();
-        /// <summary>
-        /// SELECT TOP {<see cref="TopNumber"/>}
-        /// </summary>
-        public int TopNumber { get; private set; }
-        /// <summary>
-        /// LIMIT {(<see cref="PageIndex"/> - 1) * <see cref="PageSize"/>},{<see cref="PageSize"/>}
-        /// </summary>
-        public int PageIndex { get; private set; }
-        /// <summary>
-        /// LIMIT {(<see cref="PageIndex"/> - 1) * <see cref="PageSize"/>},{<see cref="PageSize"/>}
-        /// </summary>
-        public int PageSize { get; private set; }
 
-        public bool MultiTableQuery => _joinTable.IsValueCreated && _joinTable.Value.Length > 0;
+        protected string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
+        protected string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
+        protected string GroupBySql => _groupBy.IsValueCreated && _groupBy.Value.Length > 0 ? $" GROUP BY {_groupBy.Value.ToString()}" : string.Empty;
+        protected string HavingSql => _having.IsValueCreated && _having.Value.Length > 0 ? $" HAVING {_having.Value.ToString()}" : string.Empty;
+        protected string OrderBySql => _orderBy.IsValueCreated && _orderBy.Value.Length > 0 ? $" ORDER BY {_orderBy.Value.ToString()}" : string.Empty;
+
+        /// <summary>
+        /// 是否是表关联查询
+        /// </summary>
+        protected bool MultiTableQuery => _joinTable.IsValueCreated && _joinTable.Value.Length > 0;
 
         private readonly Lazy<StringBuilder> _joinTable = new();
         private readonly Lazy<StringBuilder> _where = new();
@@ -244,13 +160,19 @@ namespace Sean.Core.DbRepository.Factory
         private readonly Lazy<StringBuilder> _having = new();
         private readonly Lazy<StringBuilder> _orderBy = new();
         private bool _returnLastInsertId;
+        private bool _allowEmptyWhereClause;
+        private int? _topNumber;
+        private int? _pageIndex;
+        private int? _pageSize;
+        private int? _offset;
+        private int? _rows;
 
         protected SqlFactory(DatabaseType dbType, string tableName)
         {
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
-            DbType = dbType;
+            SqlAdapter = new DefaultSqlAdapter(dbType);
             TableName = tableName;
         }
 
@@ -326,25 +248,40 @@ namespace Sean.Core.DbRepository.Factory
         }
 
         /// <summary>
-        /// 查询前几行（仅用于 <see cref="QuerySql"/> ）
+        /// 设置 TOP 查询参数
+        /// <para>SELECT TOP {<paramref name="top"/>}</para>
         /// </summary>
         /// <param name="top"></param>
         /// <returns></returns>
-        public virtual SqlFactory Top(int top)
+        public virtual SqlFactory Top(int? top)
         {
-            this.TopNumber = top;
+            this._topNumber = top;
             return this;
         }
         /// <summary>
-        /// 分页查询条件（仅用于 <see cref="QuerySql"/> ）
+        /// 设置分页查询参数
+        /// <para>LIMIT {(<paramref name="pageIndex"/> - 1) * <paramref name="pageSize"/>},{<paramref name="pageSize"/>}</para>
         /// </summary>
-        /// <param name="pageIndex">最小值为1</param>
-        /// <param name="pageSize"></param>
+        /// <param name="pageIndex">分页参数：当前页号（最小值为1）</param>
+        /// <param name="pageSize">分页参数：页大小</param>
         /// <returns></returns>
-        public virtual SqlFactory Page(int pageIndex, int pageSize)
+        public virtual SqlFactory Page(int? pageIndex, int? pageSize)
         {
-            this.PageIndex = Math.Max(1, pageIndex);
-            this.PageSize = pageSize;
+            this._pageIndex = pageIndex;
+            this._pageSize = pageSize;
+            return this;
+        }
+        /// <summary>
+        /// 设置偏移量查询参数
+        /// <para>LIMIT {<paramref name="offset"/>},{<paramref name="rows"/>}</para>
+        /// </summary>
+        /// <param name="offset">偏移量</param>
+        /// <param name="rows">行数</param>
+        /// <returns></returns>
+        public virtual SqlFactory Offset(int? offset, int? rows)
+        {
+            this._offset = offset;
+            this._rows = rows;
             return this;
         }
 
@@ -443,7 +380,7 @@ namespace Sean.Core.DbRepository.Factory
                 {
                     this._where.Value.Append(include.ToSqlString());
                 }
-                this._where.Value.Append($"{FormatFieldName(fieldName)} {operation.ToSqlString()} {FormatInputParameter(!string.IsNullOrWhiteSpace(paramName) ? paramName : fieldName)}");
+                this._where.Value.Append($"{FormatFieldName(fieldName)} {operation.ToSqlString()} {SqlAdapter.FormatInputParameter(!string.IsNullOrWhiteSpace(paramName) ? paramName : fieldName)}");
                 if (include == Include.Right)
                 {
                     this._where.Value.Append(include.ToSqlString());
@@ -501,6 +438,14 @@ namespace Sean.Core.DbRepository.Factory
             }
             return this;
         }
+        public virtual SqlFactory OrderBy(OrderByCondition orderByCondition)
+        {
+            if (orderByCondition != null)
+            {
+                orderByCondition.Resolve(this);
+            }
+            return this;
+        }
         public virtual SqlFactory OrderByField(OrderByType type, params string[] fieldNames)
         {
             if (fieldNames != null && fieldNames.Any())
@@ -513,13 +458,25 @@ namespace Sean.Core.DbRepository.Factory
         }
 
         /// <summary>
-        /// 仅用于 <see cref="InsertSql"/>
+        /// 是否返回自增主键id（仅用于 <see cref="InsertSql"/>）
         /// </summary>
         /// <param name="returnLastInsertId"></param>
         /// <returns></returns>
         public virtual SqlFactory ReturnLastInsertId(bool returnLastInsertId)
         {
             this._returnLastInsertId = returnLastInsertId;
+            return this;
+        }
+
+        /// <summary>
+        /// 是否允许空的WHERE子句（适用于：<see cref="DeleteSql"/>、<see cref="UpdateSql"/>）
+        /// <para>注：为了防止执行错误的SQL导致不可逆的结果，默认不允许空的WHERE子句</para>
+        /// </summary>
+        /// <param name="allowEmptyWhereClause"></param>
+        /// <returns></returns>
+        public virtual SqlFactory AllowEmptyWhereClause(bool allowEmptyWhereClause)
+        {
+            this._allowEmptyWhereClause = allowEmptyWhereClause;
             return this;
         }
 
@@ -534,23 +491,52 @@ namespace Sean.Core.DbRepository.Factory
             return this;
         }
 
-        protected virtual string FormatTableName(string tableName)
+        protected virtual string FormatFieldName(string fieldName, string tableName = null)
         {
-            return DbType.MarkAsTableOrFieldName(tableName);
-
-        }
-        protected virtual string FormatFieldName(string fieldName)
-        {
-            if (!MultiTableQuery)
+            if (MultiTableQuery || !string.IsNullOrWhiteSpace(tableName))
             {
-                return DbType.MarkAsTableOrFieldName(fieldName);
+                return $"{SqlAdapter.FormatTableName(tableName ?? TableName)}.{SqlAdapter.FormatFieldName(fieldName)}";
             }
 
-            return $"{FormatTableName(TableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
+            return SqlAdapter.FormatFieldName(fieldName);
         }
-        protected virtual string FormatInputParameter(string parameterName)
+
+        private string GetQuerySql(string selectFields, int offset, int rows)
         {
-            return DbType.MarkAsInputParameter(parameterName);
+            switch (SqlAdapter.DbType)
+            {
+                case DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                    return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows};";
+                case DatabaseType.PostgreSql:
+                    return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {rows} OFFSET {offset};";
+                case DatabaseType.SqlServer:
+                case DatabaseType.SqlServerCe:
+                    return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} OFFSET {offset} ROWS FETCH NEXT {rows} ROWS ONLY;";
+                case DatabaseType.DB2:
+                    // SQL Server、Oracle等数据库都支持：ROW_NUMBER() OVER()
+                    return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {offset + rows};";
+                case DatabaseType.Access:
+                    return $"SELECT TOP {rows} {selectFields} FROM (SELECT TOP {offset + rows} {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}) t2;";
+                case DatabaseType.Oracle:
+                    if (string.IsNullOrWhiteSpace(OrderBySql))
+                    {
+                        // 无ORDER BY排序
+                        // SQL示例：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 AND ROWNUM<=10) t2 WHERE t2.ROW_NUM>5;
+                        var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {offset + rows}" : $"{WhereSql} AND ROWNUM <= {offset + rows}";
+                        return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset};";
+                    }
+                    else
+                    {
+                        // 有ORDER BY排序
+                        // SQL示例1：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM (SELECT ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 ORDER BY ID DESC) t2 WHERE ROWNUM<=10) t3 WHERE t3.ROW_NUM>5
+                        // SQL示例2：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROW_NUMBER() OVER(ORDER BY ID DESC) ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456) t2 WHERE t2.ROW_NUM>5 AND t2.ROW_NUM<=10;
+                        return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {offset + rows};";
+                    }
+                default:
+                    //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(PageIndex)}:{PageIndex},{nameof(PageSize)}:{PageSize}]");
+                    return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows};";// 同MySql
+            }
         }
     }
 
@@ -600,8 +586,7 @@ namespace Sean.Core.DbRepository.Factory
         /// </summary>
         /// <param name="dbType"></param>
         /// <param name="tableName"></param>
-        /// <param name="autoIncludeFields">
-        /// 是否自动包含字段（通过反射机制实现）：
+        /// <param name="autoIncludeFields">是否自动包含字段（反射解析实体类）：
         /// <para><see cref="SqlFactory.IncludeFields"/></para>
         /// <para><see cref="SqlFactory.IdentityFields"/></para>
         /// </param>
@@ -620,8 +605,7 @@ namespace Sean.Core.DbRepository.Factory
         /// 创建新的 <see cref="SqlFactory{TEntity}"/> 实例
         /// </summary>
         /// <param name="repository"></param>
-        /// <param name="autoIncludeFields">
-        /// 是否自动包含字段（通过反射机制实现）：
+        /// <param name="autoIncludeFields">是否自动包含字段（反射解析实体类）：
         /// <para><see cref="SqlFactory.IncludeFields"/></para>
         /// <para><see cref="SqlFactory.IdentityFields"/></para>
         /// </param>
@@ -661,23 +645,36 @@ namespace Sean.Core.DbRepository.Factory
         }
 
         /// <summary>
-        /// 查询前几行（仅用于 <see cref="SqlFactory.QuerySql"/> ）
+        /// 设置 TOP 查询参数
+        /// <para>SELECT TOP {<paramref name="top"/>}</para>
         /// </summary>
         /// <param name="top"></param>
         /// <returns></returns>
-        public new virtual SqlFactory<TEntity> Top(int top)
+        public new virtual SqlFactory<TEntity> Top(int? top)
         {
             return base.Top(top) as SqlFactory<TEntity>;
         }
         /// <summary>
-        /// 分页查询条件（仅用于 <see cref="SqlFactory.QuerySql"/> ）
+        /// 设置分页查询参数
+        /// <para>LIMIT {(<paramref name="pageIndex"/> - 1) * <paramref name="pageSize"/>},{<paramref name="pageSize"/>}</para>
         /// </summary>
-        /// <param name="pageIndex">最小值为1</param>
-        /// <param name="pageSize"></param>
+        /// <param name="pageIndex">分页参数：当前页号（最小值为1）</param>
+        /// <param name="pageSize">分页参数：页大小</param>
         /// <returns></returns>
-        public new virtual SqlFactory<TEntity> Page(int pageIndex, int pageSize)
+        public new virtual SqlFactory<TEntity> Page(int? pageIndex, int? pageSize)
         {
             return base.Page(pageIndex, pageSize) as SqlFactory<TEntity>;
+        }
+        /// <summary>
+        /// 设置偏移量查询参数
+        /// <para>LIMIT {<paramref name="offset"/>},{<paramref name="rows"/>}</para>
+        /// </summary>
+        /// <param name="offset">偏移量</param>
+        /// <param name="rows">行数</param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> Offset(int? offset, int? rows)
+        {
+            return base.Offset(offset, rows) as SqlFactory<TEntity>;
         }
 
         #region 表关联查询
@@ -772,19 +769,34 @@ namespace Sean.Core.DbRepository.Factory
         {
             return base.OrderBy(orderBy) as SqlFactory<TEntity>;
         }
+        public new virtual SqlFactory<TEntity> OrderBy(OrderByCondition orderByCondition)
+        {
+            return base.OrderBy(orderByCondition) as SqlFactory<TEntity>;
+        }
         public new virtual SqlFactory<TEntity> OrderByField(OrderByType type, params string[] fieldNames)
         {
             return base.OrderByField(type, fieldNames) as SqlFactory<TEntity>;
         }
 
         /// <summary>
-        /// 仅用于 <see cref="SqlFactory.InsertSql"/>
+        /// 是否返回自增主键id（仅用于 <see cref="SqlFactory.InsertSql"/>）
         /// </summary>
         /// <param name="returnLastInsertId"></param>
         /// <returns></returns>
         public new virtual SqlFactory<TEntity> ReturnLastInsertId(bool returnLastInsertId)
         {
             return base.ReturnLastInsertId(returnLastInsertId) as SqlFactory<TEntity>;
+        }
+
+        /// <summary>
+        /// 是否允许空的WHERE子句（适用于：<see cref="SqlFactory.DeleteSql"/>、<see cref="SqlFactory.UpdateSql"/>）
+        /// <para>注：为了防止执行错误的SQL导致不可逆的结果，默认不允许空的WHERE子句</para>
+        /// </summary>
+        /// <param name="allowEmptyWhereClause"></param>
+        /// <returns></returns>
+        public new virtual SqlFactory<TEntity> AllowEmptyWhereClause(bool allowEmptyWhereClause)
+        {
+            return base.AllowEmptyWhereClause(allowEmptyWhereClause) as SqlFactory<TEntity>;
         }
 
         /// <summary>
@@ -798,29 +810,91 @@ namespace Sean.Core.DbRepository.Factory
         }
         #endregion
 
-        public virtual SqlFactory<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public Dictionary<string, object> ConvertToParameter(object instance, string[] fields = null)
         {
-            return IncludeFields(fieldExpression.GetMemberName());
+            if (instance == null) return null;
+
+            var paramDic = new Dictionary<string, object>();
+            if (fields != null && fields.Any())
+            {
+                // 指定字段
+                foreach (var field in fields)
+                {
+                    var propertyInfo = instance.GetType().GetProperty(field);
+                    if (propertyInfo == null)
+                    {
+                        throw new InvalidOperationException($"在[{typeof(TEntity).FullName}]中未找到公共属性：{field}");
+                    }
+
+                    paramDic.Add(propertyInfo.Name, propertyInfo.GetValue(instance, null));
+                }
+            }
+            else
+            {
+                // 所有字段
+                foreach (var propertyInfo in instance.GetType().GetProperties())
+                {
+                    paramDic.Add(propertyInfo.Name, propertyInfo.GetValue(instance, null));
+                }
+            }
+            return paramDic;
         }
-        public virtual SqlFactory<TEntity> IncludeFields(params Expression<Func<TEntity, object>>[] fieldExpression)
+
+        /// <summary>
+        /// 包含字段
+        /// </summary>
+        /// <typeparam name="TProperty"></typeparam>
+        /// <param name="fieldExpression"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public virtual SqlFactory<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, TEntity entity = default)
         {
-            return IncludeFields(fieldExpression.Select(c => c.GetMemberName()).ToArray());
+            if (fieldExpression == null)
+            {
+                if (entity != null)
+                {
+                    SetParameter(entity);
+                }
+                return this;
+            }
+
+            var fields = fieldExpression.GetMemberNames().ToArray();
+            IncludeFields(fields);
+
+            if (entity != null)
+            {
+                var paramDic = ConvertToParameter(entity, null); //ConvertToParameter(entity, fields);
+                if (paramDic != null && paramDic.Any())
+                {
+                    SetParameter(paramDic);
+                }
+            }
+
+            return this;
         }
+        /// <summary>
+        /// 忽略字段
+        /// </summary>
+        /// <typeparam name="TProperty"></typeparam>
+        /// <param name="fieldExpression"></param>
+        /// <returns></returns>
         public virtual SqlFactory<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
         {
-            return IgnoreFields(fieldExpression.GetMemberName());
+            if (fieldExpression == null) return this;
+            var fields = fieldExpression.GetMemberNames().ToArray();
+            return IgnoreFields(fields);
         }
-        public virtual SqlFactory<TEntity> IgnoreFields(params Expression<Func<TEntity, object>>[] fieldExpression)
-        {
-            return IgnoreFields(fieldExpression.Select(c => c.GetMemberName()).ToArray());
-        }
+        /// <summary>
+        /// 自增字段
+        /// </summary>
+        /// <typeparam name="TProperty"></typeparam>
+        /// <param name="fieldExpression"></param>
+        /// <returns></returns>
         public virtual SqlFactory<TEntity> IdentityFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
         {
-            return IdentityFields(fieldExpression.GetMemberName());
-        }
-        public virtual SqlFactory<TEntity> IdentityFields(params Expression<Func<TEntity, object>>[] fieldExpression)
-        {
-            return IdentityFields(fieldExpression.Select(c => c.GetMemberName()).ToArray());
+            if (fieldExpression == null) return this;
+            var fields = fieldExpression.GetMemberNames().ToArray();
+            return IdentityFields(fields);
         }
 
         #region 表关联查询
@@ -830,10 +904,10 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="fieldExpression"></param>
         /// <param name="fieldExpression2"></param>
         /// <returns></returns>
-        public virtual SqlFactory<TEntity> InnerJoin<TEntity2, TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, Expression<Func<TEntity2, TProperty>> fieldExpression2)
+        public virtual SqlFactory<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
         {
-            var joinTableName = FormatTableName(typeof(TEntity2).GetMainTableName());
-            return InnerJoin($"{joinTableName} ON {FormatTableName(TableName)}.{FormatFieldName(fieldExpression.GetMemberName())}={joinTableName}.{FormatFieldName(fieldExpression2.GetMemberName())}");
+            var joinTableName = typeof(TEntity2).GetMainTableName();
+            return InnerJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {GetJoinFields(fieldExpression, fieldExpression2, joinTableName)}");
         }
         /// <summary>
         /// LEFT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
@@ -841,10 +915,10 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="fieldExpression"></param>
         /// <param name="fieldExpression2"></param>
         /// <returns></returns>
-        public virtual SqlFactory<TEntity> LeftJoin<TEntity2, TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, Expression<Func<TEntity2, TProperty>> fieldExpression2)
+        public virtual SqlFactory<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
         {
-            var joinTableName = FormatTableName(typeof(TEntity2).GetMainTableName());
-            return LeftJoin($"{joinTableName} ON {FormatTableName(TableName)}.{FormatFieldName(fieldExpression.GetMemberName())}={joinTableName}.{FormatFieldName(fieldExpression2.GetMemberName())}");
+            var joinTableName = typeof(TEntity2).GetMainTableName();
+            return LeftJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {GetJoinFields(fieldExpression, fieldExpression2, joinTableName)}");
         }
         /// <summary>
         /// RIGHT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
@@ -852,10 +926,10 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="fieldExpression"></param>
         /// <param name="fieldExpression2"></param>
         /// <returns></returns>
-        public virtual SqlFactory<TEntity> RightJoin<TEntity2, TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, Expression<Func<TEntity2, TProperty>> fieldExpression2)
+        public virtual SqlFactory<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
         {
-            var joinTableName = FormatTableName(typeof(TEntity2).GetMainTableName());
-            return RightJoin($"{joinTableName} ON {FormatTableName(TableName)}.{FormatFieldName(fieldExpression.GetMemberName())}={joinTableName}.{FormatFieldName(fieldExpression2.GetMemberName())}");
+            var joinTableName = typeof(TEntity2).GetMainTableName();
+            return RightJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {GetJoinFields(fieldExpression, fieldExpression2, joinTableName)}");
         }
         /// <summary>
         /// FULL JOIN table_name2 ON table_name1.column_name=table_name2.column_name
@@ -863,12 +937,45 @@ namespace Sean.Core.DbRepository.Factory
         /// <param name="fieldExpression"></param>
         /// <param name="fieldExpression2"></param>
         /// <returns></returns>
-        public virtual SqlFactory<TEntity> FullJoin<TEntity2, TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, Expression<Func<TEntity2, TProperty>> fieldExpression2)
+        public virtual SqlFactory<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
         {
-            var joinTableName = FormatTableName(typeof(TEntity2).GetMainTableName());
-            return FullJoin($"{joinTableName} ON {FormatTableName(TableName)}.{FormatFieldName(fieldExpression.GetMemberName())}={joinTableName}.{FormatFieldName(fieldExpression2.GetMemberName())}");
+            var joinTableName = typeof(TEntity2).GetMainTableName();
+            return FullJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {GetJoinFields(fieldExpression, fieldExpression2, joinTableName)}");
+        }
+
+        private string GetJoinFields<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string joinTableName)
+        {
+            var fields = fieldExpression.GetMemberNames();
+            var fields2 = fieldExpression2.GetMemberNames();
+            if (!fields.Any())
+            {
+                throw new InvalidOperationException("The specified number of fields must be greater than 0.");
+            }
+            if (fields.Count != fields2.Count)
+            {
+                throw new InvalidOperationException("The specified number of fields must be equal.");
+            }
+
+            var list = new List<string>();
+            for (var i = 0; i < fields.Count; i++)
+            {
+                list.Add($"{FormatFieldName(fields[i], TableName)}={FormatFieldName(fields2[i], joinTableName)}");
+            }
+
+            return string.Join(" AND ", list);
         }
         #endregion
+
+        /// <summary>
+        /// 解析WHERE过滤条件
+        /// </summary>
+        /// <param name="whereExpression"></param>
+        /// <returns></returns>
+        public virtual SqlFactory<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression)
+        {
+            if (whereExpression == null) return this;
+            return whereExpression.ResolveWhereExpression(this);
+        }
 
         /// <summary>
         /// WHERE column_name operator value
@@ -882,29 +989,23 @@ namespace Sean.Core.DbRepository.Factory
         /// <returns></returns>
         public virtual SqlFactory<TEntity> WhereField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
         {
-            return WhereField(fieldExpression.GetMemberName(), operation, keyword, include, paramName);
+            var fields = fieldExpression.GetMemberNames();
+            fields.ForEach(field => WhereField(field, operation, keyword, include, paramName));
+            return this;
         }
 
         public virtual SqlFactory<TEntity> GroupByField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
         {
-            return GroupByField(fieldExpression.GetMemberName());
-        }
-        public virtual SqlFactory<TEntity> GroupByField(params Expression<Func<TEntity, object>>[] fieldExpression)
-        {
-            return GroupByField(fieldExpression.Select(c => c.GetMemberName()).ToArray());
+            return GroupByField(fieldExpression.GetMemberNames().ToArray());
         }
 
         public virtual SqlFactory<TEntity> OrderByField<TProperty>(OrderByType type, Expression<Func<TEntity, TProperty>> fieldExpression)
         {
-            return OrderByField(type, fieldExpression.GetMemberName());
-        }
-        public virtual SqlFactory<TEntity> OrderByField(OrderByType type, params Expression<Func<TEntity, object>>[] fieldExpression)
-        {
-            return OrderByField(type, fieldExpression.Select(c => c.GetMemberName()).ToArray());
+            return OrderByField(type, fieldExpression.GetMemberNames().ToArray());
         }
 
         /// <summary>
-        /// 仅用于 <see cref="InsertSql"/>
+        /// 是否返回自增主键id（仅用于 <see cref="SqlFactory.InsertSql"/>）
         /// </summary>
         /// <param name="returnLastInsertId"></param>
         /// <param name="keyIdentityProperty"></param>

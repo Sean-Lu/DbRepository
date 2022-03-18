@@ -1,7 +1,7 @@
 ﻿#if NET40
 using System;
 
-namespace Sean.Core.DbRepository.Attributes
+namespace Sean.Core.DbRepository
 {
     /// <summary>
     /// 指定数据库生成属性值的方式。

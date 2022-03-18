@@ -3,7 +3,7 @@ using System.Configuration;
 using System.IO;
 using System.Reflection;
 
-namespace Sean.Core.DbRepository.Config
+namespace Sean.Core.DbRepository
 {
     internal class ConfigBuilder
     {

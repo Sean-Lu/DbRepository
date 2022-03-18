@@ -1,12 +1,9 @@
 ﻿using System;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using Oracle.ManagedDataAccess.Client;
 using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Impls;
 using Sean.Utility.Contracts;
 using Sean.Utility.Extensions;
-using Sean.Utility.Format;
 
 namespace Example.NetCore.Impls.DbTest
 {

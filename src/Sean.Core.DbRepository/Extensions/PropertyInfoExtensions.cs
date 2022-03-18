@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
-using System.Text;
-using Sean.Core.DbRepository.Attributes;
 
 namespace Sean.Core.DbRepository.Extensions
 {
@@ -23,6 +19,22 @@ namespace Sean.Core.DbRepository.Extensions
             }
 
             return propertyInfo.Name;
+        }
+
+        /// <summary>
+        /// 检查是否是静态成员
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsStaticProperty(this PropertyInfo propertyInfo)
+        {
+            var getMethod = propertyInfo.GetGetMethod();
+            if (getMethod != null)
+            {
+                return getMethod.IsStatic;
+            }
+
+            var setMethod = propertyInfo.GetSetMethod();
+            return setMethod.IsStatic;
         }
     }
 }

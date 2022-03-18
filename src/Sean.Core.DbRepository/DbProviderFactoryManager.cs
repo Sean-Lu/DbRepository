@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Data.Common;
-using System.IO;
 using System.Linq;
-using Sean.Core.DbRepository.Config;
 using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository

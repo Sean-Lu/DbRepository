@@ -1,8 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using AutoMapper;
-using Sean.Core.DbRepository.Attributes;
 
 namespace Example.Domain.Entities
 {

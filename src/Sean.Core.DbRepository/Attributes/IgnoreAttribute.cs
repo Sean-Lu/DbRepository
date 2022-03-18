@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sean.Core.DbRepository.Attributes
+namespace Sean.Core.DbRepository
 {
     /// <summary>
     /// 忽略字段

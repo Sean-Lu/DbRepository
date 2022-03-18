@@ -1,7 +1,6 @@
 ﻿using System.Configuration;
-using Sean.Core.DbRepository.Factory;
 
-namespace Sean.Core.DbRepository.Config
+namespace Sean.Core.DbRepository
 {
     public class DatabaseElement : ConfigurationElement
     {

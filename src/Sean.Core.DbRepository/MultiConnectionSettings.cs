@@ -128,13 +128,13 @@ namespace Sean.Core.DbRepository
             if (string.IsNullOrWhiteSpace(options.ProviderName) && options.DbType == DatabaseType.Unknown && options.ProviderFactory == null)
             {
                 ParseConnectionString(options.ConnectionString, out var relConnString, out var databaseType, out var providerName);
+                options.ConnectionString = relConnString;
+                options.DbType = databaseType;
+                options.ProviderName = providerName;
                 if (string.IsNullOrWhiteSpace(options.ProviderName) && options.DbType == DatabaseType.Unknown)
                 {
                     throw new Exception($"无效的数据库连接配置[{options.ConnectionString}]，请设置[{Constants.ConfigurationProviderName}]或[{Constants.ConfigurationDatabaseType}]的值。");
                 }
-                options.ConnectionString = relConnString;
-                options.DbType = databaseType;
-                options.ProviderName = providerName;
             }
 
             _connectionStrings.Add(options);

@@ -4,7 +4,7 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 
-namespace Sean.Core.DbRepository.Config
+namespace Sean.Core.DbRepository
 {
     [ConfigurationCollection(typeof(DatabaseElement), AddItemName = "database")]
     public class DatabaseElementCollection : ConfigurationElementCollection

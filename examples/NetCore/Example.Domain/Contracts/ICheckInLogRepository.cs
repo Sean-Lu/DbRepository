@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Example.Domain.Entities;
-using Sean.Core.DbRepository.Contracts;
+using Sean.Core.DbRepository;
 
 namespace Example.Domain.Contracts
 {

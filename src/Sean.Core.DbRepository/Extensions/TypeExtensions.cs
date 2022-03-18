@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Sean.Core.DbRepository.Attributes;
-using Sean.Core.DbRepository.Cache;
 
 namespace Sean.Core.DbRepository.Extensions
 {

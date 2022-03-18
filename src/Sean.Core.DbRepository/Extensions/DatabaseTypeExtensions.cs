@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data.Common;
 using System.Linq;
-using Sean.Core.DbRepository.Config;
 
 namespace Sean.Core.DbRepository.Extensions
 {
@@ -43,12 +42,12 @@ namespace Sean.Core.DbRepository.Extensions
         #endregion
 
         /// <summary>
-        /// Mark as input parameter.
+        /// Mark as SQL input parameter.
         /// </summary>
         /// <param name="databaseType"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static string MarkAsInputParameter(this DatabaseType databaseType, string parameter)
+        public static string MarkAsSqlInputParameter(this DatabaseType databaseType, string parameter)
         {
             if (string.IsNullOrWhiteSpace(parameter))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(parameter));
@@ -84,6 +83,7 @@ namespace Sean.Core.DbRepository.Extensions
 
             if (tableOrFieldName.StartsWith("[")
                 || tableOrFieldName.StartsWith("`")
+                || tableOrFieldName.StartsWith("\"")
                 || tableOrFieldName.Contains(".")// example: SELECT a.FieldName FROM TableName a
                 || tableOrFieldName.Contains(" ")// example: SELECT FieldName AS Alias FROM TableName
                 || tableOrFieldName.Contains("(")// example: SELECT COUNT(FieldName) FROM TableName
@@ -99,29 +99,10 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.MySql:
                 case DatabaseType.SQLite:
                     return $"`{tableOrFieldName}`";
+                case DatabaseType.PostgreSql:
+                    return $"\"{tableOrFieldName}\"";
                 default:
                     return tableOrFieldName;
-            }
-        }
-
-        /// <summary>
-        /// SQL语句：获取上一次插入id
-        /// </summary>
-        /// <param name="dbType"></param>
-        /// <returns></returns>
-        public static string GetSqlForSelectLastInsertId(this DatabaseType dbType)
-        {
-            switch (dbType)
-            {
-                case DatabaseType.MySql:
-                    return "SELECT LAST_INSERT_ID();";
-                case DatabaseType.SqlServer:
-                case DatabaseType.Access:
-                    return "SELECT @@Identity;";
-                case DatabaseType.SQLite:
-                    return "SELECT last_insert_rowid();";
-                default:
-                    throw new NotSupportedException($"[{nameof(GetSqlForSelectLastInsertId)}]-[{dbType}]");
             }
         }
 
@@ -137,15 +118,17 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    return $"SELECT COUNT(1) FROM information_schema.tables WHERE table_schema = '{dbName}' and table_name = '{tableName}';";
+                    return $"SELECT COUNT(1) FROM information_schema.tables WHERE table_schema = '{dbName}' AND table_name = '{tableName}';";
                 case DatabaseType.SqlServer:
-                    return $"SELECT COUNT(1) FROM sys.tables WHERE type = 'u' and name='{tableName}';";
+                    return $"SELECT COUNT(1) FROM sys.tables WHERE type = 'u' AND name='{tableName}';";
                 case DatabaseType.Oracle:
                     return $"SELECT COUNT(1) FROM user_tables WHERE table_name='{tableName}';";
                 case DatabaseType.SQLite:
-                    return $"SELECT COUNT(1) FROM sqlite_master WHERE type = 'table' and name='{tableName}';";
+                    return $"SELECT COUNT(1) FROM sqlite_master WHERE type = 'table' AND name='{tableName}';";
                 case DatabaseType.Access:
-                    return $"SELECT COUNT(1) FROM MsysObjects WHERE type = 1 and name = '{tableName}';";
+                    return $"SELECT COUNT(1) FROM MsysObjects WHERE type = 1 AND name = '{tableName}';";
+                case DatabaseType.PostgreSql:
+                    return $"SELECT COUNT(1) FROM pg_class WHERE relname = '{tableName}';";
                 default:
                     throw new NotSupportedException($"[{nameof(GetSqlForIsTableExists)}]-[{dbType}]");
             }
@@ -164,13 +147,15 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    return $"SELECT COUNT(1) FROM information_schema.columns WHERE table_schema = '{dbName}' and table_name = '{tableName}' and column_name = '{fieldName}';";
+                    return $"SELECT COUNT(1) FROM information_schema.columns WHERE table_schema = '{dbName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
                 case DatabaseType.SqlServer:
-                    return $"SELECT COUNT(1) FROM sys.columns WHERE object_id = object_id('{tableName}') and name='{fieldName}';";
+                    return $"SELECT COUNT(1) FROM sys.columns WHERE object_id = object_id('{tableName}') AND name='{fieldName}';";
                 case DatabaseType.Oracle:
-                    return $"SELECT COUNT(1) FROM user_tab_columns WHERE table_name='{tableName}' and column_name='{fieldName}';";
+                    return $"SELECT COUNT(1) FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}';";
                 case DatabaseType.SQLite:
                     return $"PRAGMA table_info('{tableName}');";
+                case DatabaseType.PostgreSql:
+                    return $"SELECT COUNT(1) FROM information_schema.columns WHERE table_schema = '{dbName}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
                 default:
                     throw new NotSupportedException($"[{nameof(GetSqlForIsFieldExists)}]-[{dbType}]");
             }

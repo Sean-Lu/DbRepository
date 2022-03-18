@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace Sean.Core.DbRepository.Cache
+namespace Sean.Core.DbRepository.Dapper
 {
     /// <summary>
     /// 表信息缓存
     /// </summary>
-    public class TableInfoCache
+    internal class TableInfoCache
     {
         private static readonly ConcurrentDictionary<string, bool> _tableExistsDic = new ConcurrentDictionary<string, bool>();
 

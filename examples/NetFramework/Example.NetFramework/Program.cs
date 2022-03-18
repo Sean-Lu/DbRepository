@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Data.SQLite;
-using Dapper;
 using Example.NetFramework.Impls;
 using Example.NetFramework.Impls.DbTest;
-using MySql.Data.MySqlClient;
-using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Config;
-using Sean.Core.DbRepository.Extensions;
-using Sean.Core.DbRepository.Factory;
 using Sean.Utility.Contracts;
 using Sean.Utility.Extensions;
 using Sean.Utility.Format;
@@ -24,7 +17,7 @@ namespace Example.NetFramework
             SimpleLocalLoggerBase.DefaultLoggerOptions = new SimpleLocalLoggerOptions
             {
                 LogToConsole = true,
-                LogToLocalFile = false
+                LogToLocalFile = true
             };
             #endregion
 

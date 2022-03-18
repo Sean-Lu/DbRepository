@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Data.Common;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
-using Sean.Core.DbRepository.Config;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
 #endif
-using Sean.Core.DbRepository.Contracts;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Utility.Format;
 
-namespace Sean.Core.DbRepository.Factory
+namespace Sean.Core.DbRepository
 {
     /// <summary>
     /// Database factory

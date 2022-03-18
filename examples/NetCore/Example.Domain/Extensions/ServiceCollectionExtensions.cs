@@ -2,14 +2,11 @@
 using System.Data.SQLite;
 using System.Reflection;
 using Example.Infrastructure.Extensions;
-using Example.Infrastructure.Impls;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
 using Oracle.ManagedDataAccess.Client;
 using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Config;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Core.DbRepository.Factory;
 
 namespace Example.Domain.Extensions
 {

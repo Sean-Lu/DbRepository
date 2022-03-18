@@ -1,4 +1,4 @@
-﻿namespace Sean.Core.DbRepository.Attributes
+﻿namespace Sean.Core.DbRepository
 {
     /// <summary>
     /// 数据库表字段

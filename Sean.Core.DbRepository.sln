@@ -32,6 +32,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{E708322C-9400-4359-8D35-AEA5E87CBE3F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sean.Core.DbRepository.Test", "test\Sean.Core.DbRepository.Test\Sean.Core.DbRepository.Test.csproj", "{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +78,10 @@ Global
 		{6F71737A-29A3-4D10-A5BF-E275A67A10D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F71737A-29A3-4D10-A5BF-E275A67A10D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F71737A-29A3-4D10-A5BF-E275A67A10D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -86,6 +94,7 @@ Global
 		{83A84003-86B5-4D06-953B-C6C817E33FE1} = {671A131E-A24E-45E5-AD14-37238EBF44C2}
 		{B7350710-D1A0-466C-A521-ED38929B3923} = {671A131E-A24E-45E5-AD14-37238EBF44C2}
 		{6F71737A-29A3-4D10-A5BF-E275A67A10D8} = {B7350710-D1A0-466C-A521-ED38929B3923}
+		{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE} = {E708322C-9400-4359-8D35-AEA5E87CBE3F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {45207871-A31A-4F76-8C92-C46E7ADD1F61}

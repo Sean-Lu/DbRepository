@@ -3,15 +3,21 @@
 > `ORM`，支持所有**关系型数据库**（实现`DbProviderFactory`），如：`MySQL`、`SQL Server`、`Oracle`、`SQLite`、`Access`、`Firebird`、`PostgreSql`、`DB2`、`Informix`等
 
 - 支持主从库分离（主库：增\删\改，从库：查）
-- 支持分表（水平分表）
+- 支持分表
+- 支持`Expression`表达式树（自动转换为参数化SQL语句）
+
+```
+注：非参数化SQL会有SQL注入的风险。
+```
+
 - 核心类：
 
-| Class                                         | 说明                                                         |
-| --------------------------------------------- | ------------------------------------------------------------ |
+| Class                                         | 说明                                                    |
+| --------------------------------------------- | ----------------------------------------------------- |
 | `BaseRepository<TEntity>`<br>`BaseRepository` | 抽象类，基于`DbFactory`+`Dapper`扩展，支持的数据库见枚举：`DatabaseType` |
-| `DbFactory`                                   | 数据库工厂，支持所有关系型数据库（实现`DbProviderFactory`）  |
-| `SqlFactory`                                  | `SQL`创建工厂（增\删\改\查\...）                             |
-| `DbProviderFactoryManager`                    | `System.Data.Common.DbProviderFactory`                       |
+| `DbFactory`                                   | 数据库工厂，支持所有关系型数据库（实现`DbProviderFactory`）               |
+| `SqlFactory`                                  | `SQL`创建工厂（增\删\改\查\...）                                |
+| `DbProviderFactoryManager`                    | `System.Data.Common.DbProviderFactory`                |
 
 - `DbFactory`特别说明：
 
@@ -20,8 +26,8 @@ Get<T>()、GetList<T>() 其中 T ：
 1. 支持自定义的Model实体模型（字段映射默认不区分大小写：IgnoreCaseWhenMatchField = true）
 2. 支持dynamic（动态类型）
 2. 支持以下类型（默认只取查询结果的第一列数据）：
-	- 值类型，如：int、long、double、decimal、DateTime、bool等
-	- string字符串类型（特殊的引用类型）
+    - 值类型，如：int、long、double、decimal、DateTime、bool等
+    - string字符串类型（特殊的引用类型）
 3. 部分特殊类型暂时不支持，如：KeyValuePair<long, decimal>
 
 注：Dapper不仅支持以上所有类型，兼容性和性能也更好，建议使用：BaseRepository<TEntity> + Dapper
@@ -36,9 +42,9 @@ Get<T>()、GetList<T>() 其中 T ：
 
 ## Nuget Packages
 
-| Package                                                      | NuGet Stable                                                 | NuGet Pre-release                                            | Downloads                                                    |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [Sean.Core.DbRepository](https://www.nuget.org/packages/Sean.Core.DbRepository/) | [![Sean.Core.DbRepository](https://img.shields.io/nuget/v/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/) | [![Sean.Core.DbRepository](https://img.shields.io/nuget/vpre/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/) | [![Sean.Core.DbRepository](https://img.shields.io/nuget/dt/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/) | [![Sean.Core.DbRepository MyGet](https://img.shields.io/myget/sean/vpre/Sean.Core.DbRepository.svg)](https://www.myget.org/feed/sean/package/nuget/Sean.Core.DbRepository) |
+| Package                                                                                        | NuGet Stable                                                                                                                                                        | NuGet Pre-release                                                                                                                                                      | Downloads                                                                                                                                                            |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Sean.Core.DbRepository](https://www.nuget.org/packages/Sean.Core.DbRepository/)               | [![Sean.Core.DbRepository](https://img.shields.io/nuget/v/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/)                      | [![Sean.Core.DbRepository](https://img.shields.io/nuget/vpre/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/)                      | [![Sean.Core.DbRepository](https://img.shields.io/nuget/dt/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/)                      |
 | [Sean.Core.DbRepository.Dapper](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/v/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/vpre/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/dt/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) |
 
 ## 数据库连接字符串配置
@@ -48,22 +54,22 @@ Get<T>()、GetList<T>() 其中 T ：
 ```
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
-	<connectionStrings>
-		<!--主库：可以配置多个，后缀是以1开始的数字-->
-		<add name="master" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
-		<!--从库：可以配置多个，后缀是以1开始的数字-->
-		<add name="secondary1" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
-		<add name="secondary2" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
-	</connectionStrings>
-	<appSettings>
+    <connectionStrings>
+        <!--主库：可以配置多个，后缀是以1开始的数字-->
+        <add name="master" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
+        <!--从库：可以配置多个，后缀是以1开始的数字-->
+        <add name="secondary1" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
+        <add name="secondary2" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
+    </connectionStrings>
+    <appSettings>
 
-	</appSettings>
-	<system.data>
-		<DbProviderFactories>
-			<remove invariant="MySql.Data.MySqlClient" />
-			<add name="MySQL Data Provider" invariant="MySql.Data.MySqlClient" description=".Net Framework Data Provider for MySQL" type="MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data"/>
-		</DbProviderFactories>
-	</system.data>
+    </appSettings>
+    <system.data>
+        <DbProviderFactories>
+            <remove invariant="MySql.Data.MySqlClient" />
+            <add name="MySQL Data Provider" invariant="MySql.Data.MySqlClient" description=".Net Framework Data Provider for MySQL" type="MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data"/>
+        </DbProviderFactories>
+    </system.data>
 </configuration>
 ```
 
@@ -92,31 +98,71 @@ Get<T>()、GetList<T>() 其中 T ：
 ```
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
-	<configSections>
-		<section name="dbProviderMap" type="Sean.Core.DbRepository.Config.DbProviderMapSection, Sean.Core.DbRepository" />
-	</configSections>
-	<dbProviderMap>
-		<databases>
-			<!-- Note: Only support relational database -->
-			<database name="MySql" providerInvariantName="MySql.Data.MySqlClient" factoryTypeAssemblyQualifiedName="MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"/>
-			<database name="SqlServer" providerInvariantName="System.Data.SqlClient" factoryTypeAssemblyQualifiedName="System.Data.SqlClient.SqlClientFactory,System.Data"/>
-			<database name="SqlServerCe" providerInvariantName="Microsoft.SqlServerCe.Client" factoryTypeAssemblyQualifiedName="Microsoft.SqlServerCe.Client.SqlCeClientFactory,Microsoft.SqlServerCe.Client"/>
-			<database name="Oracle" providerInvariantName="Oracle.ManagedDataAccess.Client" factoryTypeAssemblyQualifiedName="Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"/>
-			<database name="SQLite" providerInvariantName="System.Data.SQLite" factoryTypeAssemblyQualifiedName="System.Data.SQLite.SQLiteFactory,System.Data.SQLite"/>
-			<database name="Access" providerInvariantName="System.Data.OleDb" factoryTypeAssemblyQualifiedName="System.Data.OleDb.OleDbFactory,System.Data"/>
-			<database name="Firebird" providerInvariantName="FirebirdSql.Data.FirebirdClient" factoryTypeAssemblyQualifiedName="FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"/>
-			<database name="PostgreSql" providerInvariantName="Npgsql" factoryTypeAssemblyQualifiedName="Npgsql.NpgsqlFactory,Npgsql"/>
-			<database name="DB2" providerInvariantName="IBM.Data.DB2" factoryTypeAssemblyQualifiedName="IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"/>
-			<database name="Informix" providerInvariantName="IBM.Data.Informix" factoryTypeAssemblyQualifiedName="IBM.Data.Informix.IfxFactory,IBM.Data.Informix"/>
-		</databases>
-	</dbProviderMap>
+    <configSections>
+        <section name="dbProviderMap" type="Sean.Core.DbRepository.Config.DbProviderMapSection, Sean.Core.DbRepository" />
+    </configSections>
+    <dbProviderMap>
+        <databases>
+            <!-- Note: Only support relational database -->
+            <database name="MySql" providerInvariantName="MySql.Data.MySqlClient" factoryTypeAssemblyQualifiedName="MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"/>
+            <database name="SqlServer" providerInvariantName="System.Data.SqlClient" factoryTypeAssemblyQualifiedName="System.Data.SqlClient.SqlClientFactory,System.Data"/>
+            <database name="SqlServerCe" providerInvariantName="Microsoft.SqlServerCe.Client" factoryTypeAssemblyQualifiedName="Microsoft.SqlServerCe.Client.SqlCeClientFactory,Microsoft.SqlServerCe.Client"/>
+            <database name="Oracle" providerInvariantName="Oracle.ManagedDataAccess.Client" factoryTypeAssemblyQualifiedName="Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"/>
+            <database name="SQLite" providerInvariantName="System.Data.SQLite" factoryTypeAssemblyQualifiedName="System.Data.SQLite.SQLiteFactory,System.Data.SQLite"/>
+            <database name="Access" providerInvariantName="System.Data.OleDb" factoryTypeAssemblyQualifiedName="System.Data.OleDb.OleDbFactory,System.Data"/>
+            <database name="Firebird" providerInvariantName="FirebirdSql.Data.FirebirdClient" factoryTypeAssemblyQualifiedName="FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"/>
+            <database name="PostgreSql" providerInvariantName="Npgsql" factoryTypeAssemblyQualifiedName="Npgsql.NpgsqlFactory,Npgsql"/>
+            <database name="DB2" providerInvariantName="IBM.Data.DB2" factoryTypeAssemblyQualifiedName="IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"/>
+            <database name="Informix" providerInvariantName="IBM.Data.Informix" factoryTypeAssemblyQualifiedName="IBM.Data.Informix.IfxFactory,IBM.Data.Informix"/>
+        </databases>
+    </dbProviderMap>
 </configuration>
 ```
 
 ## 使用示例
 
-- 项目：`examples\Example.NetCore`
-- 项目：`examples\Example.NetFramework`
+> 项目：`examples\Example.NetCore`
+> 
+> 项目：`examples\Example.NetFramework`
+
+- 表达式树：**`Expression<Func<TEntity, object>> fieldExpression`**
+
+```csharp
+// 单个字段：
+entity => entity.Status
+
+// 多个字段（匿名类型）：
+entity => new { entity.Status, entity.UpdateTime }
+
+// 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.FieldExpressionTest
+```
+
+- 表达式树：**`Expression<Func<TEntity, bool>> whereExpression`**
+
+```csharp
+// 常量
+entity => entity.UserId == 10001L
+
+// 变量
+entity => entity.UserId == _model.UserId
+
+// bool
+entity => entity.IsVip
+
+// bool
+entity => !entity.IsVip
+
+// &&
+entity => entity.UserId == _model.UserId && entity.AccountBalance < accountBalance
+
+// ||
+entity => entity.UserId == _model.UserId || entity.AccountBalance >= accountBalance
+
+// StartsWith
+entity => entity.UserId == _model.UserId && entity.Remark.StartsWith("测试")
+
+// 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.WhereExpressionTest
+```
 
 ## 常见问题
 

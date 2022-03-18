@@ -7,11 +7,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 #endif
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using Sean.Core.DbRepository.Attributes;
 using Sean.Core.DbRepository.Extensions;
 
-namespace Sean.Core.DbRepository.Cache
+namespace Sean.Core.DbRepository
 {
     internal class TypeCache
     {
@@ -37,7 +35,7 @@ namespace Sean.Core.DbRepository.Cache
                     continue;
                 }
 
-                var fieldInfo = new FieldInfo
+                var fieldInfo = new TableFieldInfo
                 {
                     Property = propertyInfo,
                     FieldName = propertyInfo.GetFieldName(),
@@ -62,10 +60,10 @@ namespace Sean.Core.DbRepository.Cache
         /// <summary>
         /// 所有字段信息
         /// </summary>
-        public List<FieldInfo> FieldInfos { get; set; } = new();
+        public List<TableFieldInfo> FieldInfos { get; set; } = new();
     }
 
-    internal class FieldInfo
+    internal class TableFieldInfo
     {
         public PropertyInfo Property { get; set; }
         /// <summary>

@@ -19,15 +19,18 @@ namespace Example.NetCore
         {
             IocContainer.Instance.ConfigureServices(services =>
             {
+                services.AddApplicationDI();
+
+                services.AddSimpleLocalLogger();
+
+                services.AddTransient<IJsonSerializer, NewJsonSerializer>();
+                JsonHelper.Serializer = NewJsonSerializer.Instance;
+
                 var types = Assembly.GetExecutingAssembly().GetTypes().Where(c => c.IsClass && typeof(ISimpleDo).IsAssignableFrom(c)).ToList();
                 types.ForEach(c =>
                 {
                     services.AddTransient(c);
                 });
-                services.AddSimpleLocalLogger();
-                services.AddApplicationDI();
-                services.AddTransient<IJsonSerializer, NewJsonSerializer>();
-                JsonHelper.Serializer = NewJsonSerializer.Instance;
             });
 
             #region 配置Logger

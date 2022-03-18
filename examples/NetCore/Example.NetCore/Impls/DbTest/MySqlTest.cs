@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using Dapper;
 using Example.Application.Contracts;
-using Example.Domain.Entities;
 using Microsoft.Extensions.Configuration;
-using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
-using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Dapper;
-using Sean.Core.DbRepository.Dapper.Impls;
-using Sean.Core.DbRepository.Factory;
 using Sean.Utility.Contracts;
-using Sean.Utility.Format;
 
 namespace Example.NetCore.Impls.DbTest
 {

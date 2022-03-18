@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace Sean.Core.DbRepository.Extensions
@@ -32,7 +33,34 @@ namespace Sean.Core.DbRepository.Extensions
                 case SqlOperation.Like:
                     return "LIKE";
                 default:
-                    throw new NotSupportedException(operation.ToString());
+                    throw new NotImplementedException($"未实现的SQL操作符类型：{operation.ToString()}");
+            }
+        }
+
+        public static string ToSqlString(this ExpressionType expressionType)
+        {
+            switch (expressionType)
+            {
+                case ExpressionType.Equal:
+                    return "=";
+                case ExpressionType.NotEqual:
+                    return "<>";
+                case ExpressionType.GreaterThan:
+                    return ">";
+                case ExpressionType.GreaterThanOrEqual:
+                    return ">=";
+                case ExpressionType.LessThan:
+                    return "<";
+                case ExpressionType.LessThanOrEqual:
+                    return "<=";
+                case ExpressionType.And:
+                case ExpressionType.AndAlso:
+                    return "AND";
+                case ExpressionType.Or:
+                case ExpressionType.OrElse:
+                    return "OR";
+                default:
+                    throw new NotImplementedException($"未实现的表达式树节点的节点类型：{expressionType}");
             }
         }
     }

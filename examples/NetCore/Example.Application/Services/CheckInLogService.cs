@@ -8,7 +8,6 @@ using Example.Application.Contracts;
 using Example.Application.Dtos;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
-using Sean.Core.DbRepository.Factory;
 
 namespace Example.Application.Services
 {

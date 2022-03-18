@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using Dapper;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Dapper.Extensions;
-using Sean.Core.DbRepository.Dapper.Impls;
+using Sean.Core.DbRepository.Dapper;
 using Sean.Utility.Contracts;
-using Sean.Utility.Format;
 
 namespace Example.Domain.Repositories
 {
     public class CheckInLogRepository : BaseRepository<CheckInLogEntity>, ICheckInLogRepository
     {
+        /// <summary>
+        /// 用于分表
+        /// </summary>
         public DateTime SubTableDate { get; set; }
 
         private readonly ILogger _logger;
@@ -35,15 +34,11 @@ namespace Example.Domain.Repositories
 
         public override string TableName()
         {
-            if (SubTableDate != DateTime.MinValue)
-            {
-                // 自定义表名规则：按时间分表
-                var tableName = $"{MainTableName}_{SubTableDate.ToString("yyyyMM")}";
-                CreateTableIfNotExist(tableName, true);
-                return tableName;
-            }
-
-            return base.TableName();
+            var tableName = SubTableDate != DateTime.MinValue
+                ? $"{MainTableName}_{SubTableDate:yyyyMM}"// 自定义表名规则：按时间分表
+                : base.TableName();
+            CreateTableIfNotExist(tableName, true);// 自动创建表（如果表不存在）
+            return tableName;
         }
 
         public override string CreateTableSql(string tableName)
@@ -123,7 +118,9 @@ namespace Example.Domain.Repositories
 
         public async Task<IEnumerable<CheckInLogEntity>> GetAllAsync()
         {
-            return await QueryAsync(NewSqlFactory(false), false);
+            //return await QueryAsync(NewSqlFactory(false), false);
+
+            return await QueryAsync(entity => true, master: false);
         }
     }
 }

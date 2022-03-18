@@ -5,10 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Dapper;
-using Sean.Core.DbRepository.Cache;
-using Sean.Core.DbRepository.Contracts;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Core.DbRepository.Factory;
 
 namespace Sean.Core.DbRepository.Dapper.Extensions
 {
@@ -33,7 +30,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, true)
+            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
                 .ReturnLastInsertId(returnId, out var keyIdentityProperty)
                 .SetParameter(entity);
             if (returnId && keyIdentityProperty != null)
@@ -69,7 +66,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             if (entities == null) throw new ArgumentNullException(nameof(entities));
             if (!entities.Any()) return false;
 
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, true)
+            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
                 .ReturnLastInsertId(returnId, out var keyIdentityProperty)
                 .SetParameter(entities);
             if (returnId && keyIdentityProperty != null)
@@ -111,9 +108,23 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 return sqlFactory.ExecuteInsertSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
             }
         }
+        /// <summary>
+        /// 新增数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static bool Add(this IDbConnection connection, IBaseRepository repository, IInsertableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return sqlFactory.ExecuteInsertSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+        }
 
         /// <summary>
         /// 删除数据
+        /// <para>Delete by primary key.</para>
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
@@ -124,21 +135,26 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static bool Delete<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, false).SetParameter(entity);
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
+            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false).SetParameter(entity);
             return connection.Delete(repository, sqlFactory, transaction, commandTimeout) > 0;
         }
         /// <summary>
         /// 删除数据
         /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
-        /// <param name="sqlFactory"></param>
+        /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static int Delete<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int Delete<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            return connection.Delete(repository, (SqlFactory)sqlFactory, transaction, commandTimeout);
+            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+                .Where(whereExpression);
+            return sqlFactory.ExecuteDeleteSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
         /// <summary>
         /// 删除数据
@@ -149,63 +165,38 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static int Delete(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int Delete(this IDbConnection connection, IBaseRepository repository, IDeleteableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return sqlFactory.ExecuteDeleteSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
-        /// <summary>
-        /// 删除全部数据
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static int DeleteAll<TEntity>(this IDbConnection connection, IBaseRepository repository, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, false);
-            return sqlFactory.ExecuteDeleteAllSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
-        }
 
         /// <summary>
-        /// 更新数据（实体所有字段都会更新）
+        /// 更新数据
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
-        /// <param name="entity"></param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static bool Update<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
-            return connection.Update<TEntity>(repository, sqlFactory, transaction, commandTimeout) > 0;
-        }
-        /// <summary>
-        /// 更新数据（更新指定的字段，实体必须有主键字段且有值）
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="fieldExpression">指定需要更新的字段。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：new { entity.Status, entity.UpdateTime }</para>
-        /// <para>多个字段（数组\IEnumerable）：new object[] { entity.Status, entity.UpdateTime }</para>
-        /// </param>
         /// <param name="entity">实体</param>
+        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
+        /// <para>注：</para>
+        /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
+        /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
+        /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static bool Update<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, object>> fieldExpression, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int Update<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var body = fieldExpression.Body;
-            var fields = body.GetMemberNames();
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, false)
-                .IncludeFields(fields.ToArray())
-                .SetParameter(entity);
-            return sqlFactory.ExecuteUpdateSql(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                .IncludeFields(fieldExpression, entity)
+                .Where(whereExpression);
+            return connection.Update(repository, sqlFactory, transaction, commandTimeout);
         }
         /// <summary>
         /// 更新数据
@@ -216,35 +207,9 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static int Update<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            return connection.Update(repository, (SqlFactory)sqlFactory, transaction, commandTimeout);
-        }
-        /// <summary>
-        /// 更新数据
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="sqlFactory"></param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static int Update(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int Update(this IDbConnection connection, IBaseRepository repository, IUpdateableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return sqlFactory.ExecuteUpdateSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
-        }
-        /// <summary>
-        /// 更新全部数据
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="sqlFactory"></param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static int UpdateAll(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            return sqlFactory.ExecuteUpdateAllSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
 
         /// <summary>
@@ -255,8 +220,56 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="sqlFactory"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static IEnumerable<TEntity> Query<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, int? commandTimeout = null)
+        public static IEnumerable<TEntity> Query<TEntity>(this IDbConnection connection, IBaseRepository repository, IQueryableSql sqlFactory, int? commandTimeout = null)
         {
+            return sqlFactory.ExecuteQuerySql<TEntity>(connection, commandTimeout, repository.OutputExecutedSql);
+        }
+        /// <summary>
+        /// 查询数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="whereExpression">WHERE过滤条件</param>
+        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="orderByCondition">排序条件</param>
+        /// <param name="pageIndex">分页参数：当前页号（最小值为1）</param>
+        /// <param name="pageSize">分页参数：页大小</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static IEnumerable<TEntity> Query<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, int? commandTimeout = null)
+        {
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                .Where(whereExpression)
+                .OrderBy(orderByCondition)
+                .Page(pageIndex, pageSize);
+            return sqlFactory.ExecuteQuerySql<TEntity>(connection, commandTimeout, repository.OutputExecutedSql);
+        }
+        /// <summary>
+        /// 查询数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="whereExpression">WHERE过滤条件</param>
+        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="orderByCondition">排序条件</param>
+        /// <param name="offset">偏移量</param>
+        /// <param name="rows">行数</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static IEnumerable<TEntity> QueryOffset<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, int? commandTimeout = null)
+        {
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                .Where(whereExpression)
+                .OrderBy(orderByCondition)
+                .Offset(offset, rows);
             return sqlFactory.ExecuteQuerySql<TEntity>(connection, commandTimeout, repository.OutputExecutedSql);
         }
 
@@ -269,8 +282,28 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static TEntity Get<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, bool singleCheck = false, int? commandTimeout = null)
+        public static TEntity Get<TEntity>(this IDbConnection connection, IBaseRepository repository, IQueryableSql sqlFactory, bool singleCheck = false, int? commandTimeout = null)
         {
+            return sqlFactory.ExecuteQuerySingleSql<TEntity>(connection, singleCheck, commandTimeout, repository.OutputExecutedSql);
+        }
+        /// <summary>
+        /// 查询单个数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="whereExpression">WHERE过滤条件</param>
+        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static TEntity Get<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool singleCheck = false, int? commandTimeout = null)
+        {
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                .Where(whereExpression);
             return sqlFactory.ExecuteQuerySingleSql<TEntity>(connection, singleCheck, commandTimeout, repository.OutputExecutedSql);
         }
 
@@ -282,33 +315,23 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="sqlFactory"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static int Count<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, int? commandTimeout = null)
+        public static int Count(this IDbConnection connection, IBaseRepository repository, ICountableSql sqlFactory, int? commandTimeout = null)
         {
-            return connection.Count(repository, (SqlFactory)sqlFactory, commandTimeout);
+            return sqlFactory.ExecuteCountSql(connection, commandTimeout, repository.OutputExecutedSql);
         }
         /// <summary>
         /// 统计数量
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
-        /// <param name="sqlFactory"></param>
+        /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static int Count(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, int? commandTimeout = null)
+        public static int Count<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, int? commandTimeout = null)
         {
+            ICountableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+                .Where(whereExpression);
             return sqlFactory.ExecuteCountSql(connection, commandTimeout, repository.OutputExecutedSql);
-        }
-        /// <summary>
-        /// 统计全部数量
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static int CountAll<TEntity>(this IDbConnection connection, IBaseRepository repository, int? commandTimeout = null)
-        {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, false);
-            return sqlFactory.ExecuteCountAllSql(connection, commandTimeout, repository.OutputExecutedSql);
         }
 
         /// <summary>
@@ -361,7 +384,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, true)
+            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
                 .ReturnLastInsertId(returnId, out var keyIdentityProperty)
                 .SetParameter(entity);
             if (returnId && keyIdentityProperty != null)
@@ -397,7 +420,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             if (entities == null) throw new ArgumentNullException(nameof(entities));
             if (!entities.Any()) return false;
 
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, true)
+            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
                 .ReturnLastInsertId(returnId, out var keyIdentityProperty)
                 .SetParameter(entities);
             if (returnId && keyIdentityProperty != null)
@@ -439,9 +462,23 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 return await sqlFactory.ExecuteInsertSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
             }
         }
+        /// <summary>
+        /// 新增数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<bool> AddAsync(this IDbConnection connection, IBaseRepository repository, IInsertableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return await sqlFactory.ExecuteInsertSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+        }
 
         /// <summary>
         /// 删除数据
+        /// <para>Delete by primary key.</para>
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
@@ -452,48 +489,39 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<bool> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
-            return await connection.DeleteAsync<TEntity>(repository, sqlFactory, transaction, commandTimeout) > 0;
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
+            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
+            return await connection.DeleteAsync(repository, sqlFactory, transaction, commandTimeout) > 0;
         }
         /// <summary>
         /// 删除数据
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="sqlFactory"></param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static async Task<int> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            return await connection.DeleteAsync(repository, (SqlFactory)sqlFactory, transaction, commandTimeout);
-        }
-        /// <summary>
-        /// 删除数据
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="sqlFactory"></param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static async Task<int> DeleteAsync(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            return await sqlFactory.ExecuteDeleteSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
-        }
-        /// <summary>
-        /// 删除全部数据
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
+        /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<int> DeleteAllAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<int> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, false);
-            return await sqlFactory.ExecuteDeleteAllSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+                .Where(whereExpression);
+            return await sqlFactory.ExecuteDeleteSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+        }
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="sqlFactory"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<int> DeleteAsync(this IDbConnection connection, IBaseRepository repository, IDeleteableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return await sqlFactory.ExecuteDeleteSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
 
         /// <summary>
@@ -502,38 +530,27 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
-        /// <param name="entity"></param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static async Task<bool> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
-            return await connection.UpdateAsync<TEntity>(repository, sqlFactory, transaction, commandTimeout) > 0;
-        }
-        /// <summary>
-        /// 更新数据（更新指定的字段，实体必须有主键字段且有值）
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="fieldExpression">指定需要更新的字段。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：new { entity.Status, entity.UpdateTime }</para>
-        /// <para>多个字段（数组\IEnumerable）：new object[] { entity.Status, entity.UpdateTime }</para>
-        /// </param>
         /// <param name="entity">实体</param>
+        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
+        /// <para>注：</para>
+        /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
+        /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
+        /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<bool> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, object>> fieldExpression, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<int> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            var body = fieldExpression.Body;
-            var fields = body.GetMemberNames();
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, false)
-                .IncludeFields(fields.ToArray())
-                .SetParameter(entity);
-            return await sqlFactory.ExecuteUpdateSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                .IncludeFields(fieldExpression, entity)
+                .Where(whereExpression);
+            return await connection.UpdateAsync(repository, sqlFactory, transaction, commandTimeout);
         }
         /// <summary>
         /// 更新数据
@@ -544,35 +561,9 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<int> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            return await connection.UpdateAsync(repository, (SqlFactory)sqlFactory, transaction, commandTimeout);
-        }
-        /// <summary>
-        /// 更新数据
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="sqlFactory"></param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static async Task<int> UpdateAsync(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<int> UpdateAsync(this IDbConnection connection, IBaseRepository repository, IUpdateableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await sqlFactory.ExecuteUpdateSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
-        }
-        /// <summary>
-        /// 更新全部数据
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="sqlFactory"></param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static async Task<int> UpdateAllAsync(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            return await sqlFactory.ExecuteUpdateAllSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
 
         /// <summary>
@@ -583,8 +574,56 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="sqlFactory"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<IEnumerable<TEntity>> QueryAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, int? commandTimeout = null)
+        public static async Task<IEnumerable<TEntity>> QueryAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IQueryableSql sqlFactory, int? commandTimeout = null)
         {
+            return await sqlFactory.ExecuteQuerySqlAsync<TEntity>(connection, commandTimeout, repository.OutputExecutedSql);
+        }
+        /// <summary>
+        /// 查询数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="whereExpression">WHERE过滤条件</param>
+        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="orderByCondition">排序条件</param>
+        /// <param name="pageIndex">分页参数：当前页号（最小值为1）</param>
+        /// <param name="pageSize">分页参数：页大小</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<TEntity>> QueryAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, int? commandTimeout = null)
+        {
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                .Where(whereExpression)
+                .OrderBy(orderByCondition)
+                .Page(pageIndex, pageSize);
+            return await sqlFactory.ExecuteQuerySqlAsync<TEntity>(connection, commandTimeout, repository.OutputExecutedSql);
+        }
+        /// <summary>
+        /// 查询数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="whereExpression">WHERE过滤条件</param>
+        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="orderByCondition">排序条件</param>
+        /// <param name="offset">偏移量</param>
+        /// <param name="rows">行数</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<TEntity>> QueryOffsetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, int? commandTimeout = null)
+        {
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                .Where(whereExpression)
+                .OrderBy(orderByCondition)
+                .Offset(offset, rows);
             return await sqlFactory.ExecuteQuerySqlAsync<TEntity>(connection, commandTimeout, repository.OutputExecutedSql);
         }
 
@@ -597,8 +636,28 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<TEntity> GetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, bool singleCheck = false, int? commandTimeout = null)
+        public static async Task<TEntity> GetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IQueryableSql sqlFactory, bool singleCheck = false, int? commandTimeout = null)
         {
+            return await sqlFactory.ExecuteQuerySingleSqlAsync<TEntity>(connection, singleCheck, commandTimeout, repository.OutputExecutedSql);
+        }
+        /// <summary>
+        /// 查询单个数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="whereExpression">WHERE过滤条件</param>
+        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<TEntity> GetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool singleCheck = false, int? commandTimeout = null)
+        {
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                .Where(whereExpression);
             return await sqlFactory.ExecuteQuerySingleSqlAsync<TEntity>(connection, singleCheck, commandTimeout, repository.OutputExecutedSql);
         }
 
@@ -610,33 +669,23 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="sqlFactory"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<int> CountAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, SqlFactory<TEntity> sqlFactory, int? commandTimeout = null)
+        public static async Task<int> CountAsync(this IDbConnection connection, IBaseRepository repository, ICountableSql sqlFactory, int? commandTimeout = null)
         {
-            return await connection.CountAsync(repository, (SqlFactory)sqlFactory, commandTimeout);
+            return await sqlFactory.ExecuteCountSqlAsync(connection, commandTimeout, repository.OutputExecutedSql);
         }
         /// <summary>
         /// 统计数量
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="repository"></param>
-        /// <param name="sqlFactory"></param>
+        /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<int> CountAsync(this IDbConnection connection, IBaseRepository repository, SqlFactory sqlFactory, int? commandTimeout = null)
+        public static async Task<int> CountAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, int? commandTimeout = null)
         {
+            ICountableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+                .Where(whereExpression);
             return await sqlFactory.ExecuteCountSqlAsync(connection, commandTimeout, repository.OutputExecutedSql);
-        }
-        /// <summary>
-        /// 统计全部数量
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static async Task<int> CountAllAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, int? commandTimeout = null)
-        {
-            var sqlFactory = SqlFactory<TEntity>.Build(repository, false);
-            return await sqlFactory.ExecuteCountAllSqlAsync(connection, commandTimeout, repository.OutputExecutedSql);
         }
 
         /// <summary>

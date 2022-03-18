@@ -1,7 +1,7 @@
 ﻿#if NET40
 using System;
 
-namespace Sean.Core.DbRepository.Attributes
+namespace Sean.Core.DbRepository
 {
     /// <summary>
     /// 指定类将映射到的数据库表。
