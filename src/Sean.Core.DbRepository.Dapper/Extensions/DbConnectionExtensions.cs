@@ -213,6 +213,49 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         }
 
         /// <summary>
+        /// 数值字段递增
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public static bool Incr<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
+        {
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+                .IncludeFields(fieldExpression)
+                .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}")
+                .Where(whereExpression);
+            return connection.Update(repository, sqlFactory, transaction, commandTimeout) > 0;
+        }
+        /// <summary>
+        /// 数值字段递减
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public static bool Decr<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
+        {
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+                .IncludeFields(fieldExpression)
+                .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}")
+                .Where(whereExpression);
+            return connection.Update(repository, sqlFactory, transaction, commandTimeout) > 0;
+        }
+
+        /// <summary>
         /// 查询数据
         /// </summary>
         /// <param name="connection"></param>
@@ -564,6 +607,49 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         public static async Task<int> UpdateAsync(this IDbConnection connection, IBaseRepository repository, IUpdateableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await sqlFactory.ExecuteUpdateSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+        }
+
+        /// <summary>
+        /// 数值字段递增
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public static async Task<bool> IncrAsync<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
+        {
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+                .IncludeFields(fieldExpression)
+                .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}")
+                .Where(whereExpression);
+            return await connection.UpdateAsync(repository, sqlFactory, transaction, commandTimeout) > 0;
+        }
+        /// <summary>
+        /// 数值字段递减
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public static async Task<bool> DecrAsync<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
+        {
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+                .IncludeFields(fieldExpression)
+                .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}")
+                .Where(whereExpression);
+            return await connection.UpdateAsync(repository, sqlFactory, transaction, commandTimeout) > 0;
         }
 
         /// <summary>

@@ -19,7 +19,7 @@ namespace Sean.Core.DbRepository
         {
             get
             {
-                var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
+                var list = _includeFieldsList.Except(_identityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
                 var fields = list.Select(fieldName => FormatFieldName(fieldName));
@@ -50,10 +50,12 @@ namespace Sean.Core.DbRepository
                 if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
                     throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
-                var list = IncludeFieldsList.Except(IdentityFieldsList).ToList();
+                var list = _includeFieldsList.Except(_identityFieldsList).ToList();
                 if (!list.Any())
                     return string.Empty;
-                var sets = list.Select(fieldName => $"{FormatFieldName(fieldName)}={SqlAdapter.FormatInputParameter(fieldName)}");
+                var sets = _fieldCustomHandler != null
+                    ? list.Select(fieldName => _fieldCustomHandler(fieldName, SqlAdapter))
+                    : list.Select(fieldName => $"{FormatFieldName(fieldName)}={SqlAdapter.FormatInputParameter(fieldName)}");
                 return $"UPDATE {SqlAdapter.FormatTableName(TableName)} SET {string.Join(", ", sets)}{WhereSql};";
             }
         }
@@ -64,7 +66,7 @@ namespace Sean.Core.DbRepository
         {
             get
             {
-                var selectFields = IncludeFieldsList.Any() ? string.Join(", ", IncludeFieldsList.Select(fieldName => $"{FormatFieldName(fieldName)}")) : "*";
+                var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldName => $"{FormatFieldName(fieldName)}")) : "*";
                 //const string rowNumAlias = "ROW_NUM";
                 if (_topNumber.HasValue)
                 {
@@ -133,15 +135,15 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 包含字段
         /// </summary>
-        public List<string> IncludeFieldsList { get; } = new();
+        private readonly List<string> _includeFieldsList = new();
         /// <summary>
         /// 忽略字段
         /// </summary>
-        public List<string> IgnoreFieldsList { get; } = new();
+        private readonly List<string> _ignoreFieldsList = new();
         /// <summary>
         /// 自增字段
         /// </summary>
-        public List<string> IdentityFieldsList { get; } = new();
+        private readonly List<string> _identityFieldsList = new();
 
         protected string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
         protected string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
@@ -166,6 +168,8 @@ namespace Sean.Core.DbRepository
         private int? _pageSize;
         private int? _offset;
         private int? _rows;
+
+        private Func<string, ISqlAdapter, string> _fieldCustomHandler;
 
         protected SqlFactory(DatabaseType dbType, string tableName)
         {
@@ -192,12 +196,12 @@ namespace Sean.Core.DbRepository
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !IncludeFieldsList.Contains(field))
+                    if (!string.IsNullOrWhiteSpace(field) && !_includeFieldsList.Contains(field))
                     {
-                        IncludeFieldsList.Add(field);
-                        if (IgnoreFieldsList.Contains(field))
+                        _includeFieldsList.Add(field);
+                        if (_ignoreFieldsList.Contains(field))
                         {
-                            IgnoreFieldsList.Remove(field);
+                            _ignoreFieldsList.Remove(field);
                         }
                     }
                 }
@@ -215,12 +219,12 @@ namespace Sean.Core.DbRepository
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !IgnoreFieldsList.Contains(field))
+                    if (!string.IsNullOrWhiteSpace(field) && !_ignoreFieldsList.Contains(field))
                     {
-                        IgnoreFieldsList.Add(field);
-                        if (IncludeFieldsList.Contains(field))
+                        _ignoreFieldsList.Add(field);
+                        if (_includeFieldsList.Contains(field))
                         {
-                            IncludeFieldsList.Remove(field);
+                            _includeFieldsList.Remove(field);
                         }
                     }
                 }
@@ -238,9 +242,9 @@ namespace Sean.Core.DbRepository
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !IdentityFieldsList.Contains(field))
+                    if (!string.IsNullOrWhiteSpace(field) && !_identityFieldsList.Contains(field))
                     {
-                        IdentityFieldsList.Add(field);
+                        _identityFieldsList.Add(field);
                     }
                 }
             }
@@ -488,6 +492,12 @@ namespace Sean.Core.DbRepository
         public virtual SqlFactory SetParameter(object param)
         {
             this.Parameter = param;
+            return this;
+        }
+
+        public virtual SqlFactory SetFieldCustomHandler(Func<string, ISqlAdapter, string> fieldCustomHandler)
+        {
+            _fieldCustomHandler = fieldCustomHandler;
             return this;
         }
 
@@ -807,6 +817,11 @@ namespace Sean.Core.DbRepository
         public new virtual SqlFactory<TEntity> SetParameter(object param)
         {
             return base.SetParameter(param) as SqlFactory<TEntity>;
+        }
+
+        public new virtual SqlFactory<TEntity> SetFieldCustomHandler(Func<string, ISqlAdapter, string> fieldCustomHandler)
+        {
+            return base.SetFieldCustomHandler(fieldCustomHandler) as SqlFactory<TEntity>;
         }
         #endregion
 

@@ -225,6 +225,29 @@ namespace Sean.Core.DbRepository
         int Update(IUpdateableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
+        /// 数值字段递增
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        bool Incr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
+        /// <summary>
+        /// 数值字段递减
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        bool Decr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
+
+        /// <summary>
         /// 查询数据
         /// </summary>
         /// <param name="sqlFactory"></param>
@@ -390,6 +413,29 @@ namespace Sean.Core.DbRepository
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<int> UpdateAsync(IUpdateableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
+
+        /// <summary>
+        /// 数值字段递增
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        Task<bool> IncrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
+        /// <summary>
+        /// 数值字段递减
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        Task<bool> DecrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
 
         /// <summary>
         /// 查询数据

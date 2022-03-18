@@ -227,6 +227,35 @@ namespace Sean.Core.DbRepository.Dapper
         }
 
         /// <summary>
+        /// 数值字段递增
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public virtual bool Incr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
+        {
+            return Execute(connection => connection.Incr(this, value, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
+        }
+        /// <summary>
+        /// 数值字段递减
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public virtual bool Decr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
+        {
+            return Execute(connection => connection.Decr(this, value, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
+        }
+
+        /// <summary>
         /// 查询数据
         /// </summary>
         /// <param name="sqlFactory"></param>
@@ -451,6 +480,35 @@ namespace Sean.Core.DbRepository.Dapper
         public virtual async Task<int> UpdateAsync(IUpdateableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.UpdateAsync(this, sqlFactory, transaction, commandTimeout), true, transaction);
+        }
+
+        /// <summary>
+        /// 数值字段递增
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public virtual async Task<bool> IncrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
+        {
+            return await ExecuteAsync(async connection => await connection.IncrAsync(this, value, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
+        }
+        /// <summary>
+        /// 数值字段递减
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="fieldExpression"></param>
+        /// <param name="whereExpression"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public virtual async Task<bool> DecrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
+        {
+            return await ExecuteAsync(async connection => await connection.DecrAsync(this, value, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
         }
 
         /// <summary>
