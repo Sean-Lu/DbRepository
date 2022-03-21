@@ -6,7 +6,6 @@ using Example.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Dapper;
 using Sean.Utility.Contracts;
 
 namespace Example.Domain.Repositories

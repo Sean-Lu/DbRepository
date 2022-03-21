@@ -19,10 +19,12 @@ namespace Example.Domain.Entities
         /// <summary>
         /// 用户id
         /// </summary>
+        [Column("UserId")]
         public long UserId { get; set; }
         /// <summary>
         /// 用户名称
         /// </summary>
+        [Column("UserName")]
         public string UserName { get; set; }
         /// <summary>
         /// 性别
@@ -69,8 +71,11 @@ namespace Example.Domain.Entities
         /// </summary>
         public DateTime UpdateTime { get; set; }
 
-        [Ignore]
+        #region 忽略字段
+        //[Ignore]
+        [NotMapped]
         public int? NullableTest { get; set; }
+        #endregion
     }
 
     public enum SexType

@@ -18,7 +18,7 @@ namespace Sean.Core.DbRepository.Extensions
         }
 
         /// <summary>
-        /// 获取所有数据库表字段（过滤：<see cref="IgnoreAttribute"/>）
+        /// 获取所有数据库表字段
         /// </summary>
         /// <param name="entityClassType"></param>
         /// <returns></returns>

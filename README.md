@@ -164,6 +164,23 @@ entity => entity.UserId == _model.UserId && entity.Remark.StartsWith("测试")
 // 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.WhereExpressionTest
 ```
 
+- 常用实体类注解：
+
+```csharp
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+```
+
+| Attribute                                     | Description                              |
+| --------------------------------------------- | ---------------------------------------- |
+| `TableAttribute`                              | 自定义表名                                    |
+| `KeyAttribute`                                | 标记为主键字段                                  |
+| `DatabaseGeneratedAttribute`                  | 设置数据库生成字段值的方式<br>（通常和`KeyAttribute`一起使用） |
+| `ColumnAttribute`                             | 自定义字段名                                   |
+| `NotMappedAttribute`<br>~~`IgnoreAttribute`~~ | 标记为为忽略字段                                 |
+| ~~`ForeignKeyAttribute`~~                     | 标记为外键字段（***暂不支持***）                      |
+| `SequenceAttribute`                           | Oracle: Sequence（生成自增Id）                 |
+
 ## 常见问题
 
 > 注：从`.NET Standard` 2.1版本开始（`.NET Core` >= 3.0）才有`System.Data.Common.DbProviderFactories`

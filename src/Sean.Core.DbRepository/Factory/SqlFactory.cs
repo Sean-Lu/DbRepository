@@ -24,7 +24,22 @@ namespace Sean.Core.DbRepository
                     return string.Empty;
                 var fields = list.Select(fieldName => FormatFieldName(fieldName));
                 var parameters = list.Select(fieldName => SqlAdapter.FormatInputParameter(fieldName));
-                return $"INSERT INTO {SqlAdapter.FormatTableName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});{(_returnLastInsertId ? SqlAdapter.GetSqlForSelectLastInsertId() : string.Empty)}";
+                //return $"INSERT INTO {SqlAdapter.FormatTableName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});{(_returnLastInsertId ? SqlAdapter.GetSqlForSelectLastInsertId() : string.Empty)}";
+                var sb = new StringBuilder($"INSERT INTO {SqlAdapter.FormatTableName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});");
+                if (_returnLastInsertId)
+                {
+                    switch (SqlAdapter.DbType)
+                    {
+                        case DatabaseType.Oracle:
+                            var sequence = TypeCache.GetEntityInfo(_tableEntityType)?.Sequence;
+                            sb.Append(string.Format(SqlAdapter.GetSqlForSelectLastInsertId(), sequence));
+                            break;
+                        default:
+                            sb.Append(SqlAdapter.GetSqlForSelectLastInsertId());
+                            break;
+                    }
+                }
+                return sb.ToString();
             }
         }
         /// <summary>
@@ -168,6 +183,7 @@ namespace Sean.Core.DbRepository
         private int? _pageSize;
         private int? _offset;
         private int? _rows;
+        private Type _tableEntityType;
 
         private Func<string, ISqlAdapter, string> _fieldCustomHandler;
 
@@ -501,6 +517,12 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
+        protected virtual SqlFactory Table<TEntity>()
+        {
+            this._tableEntityType = typeof(TEntity);
+            return this;
+        }
+
         protected virtual string FormatFieldName(string fieldName, string tableName = null)
         {
             if (MultiTableQuery || !string.IsNullOrWhiteSpace(tableName))
@@ -588,7 +610,7 @@ namespace Sean.Core.DbRepository
 
         private SqlFactory(DatabaseType dbType, string tableName) : base(dbType, tableName)
         {
-
+            base.Table<TEntity>();
         }
 
         /// <summary>
@@ -603,7 +625,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public static SqlFactory<TEntity> Build(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
         {
-            var sqlFactory = new SqlFactory<TEntity>(dbType, !string.IsNullOrWhiteSpace(tableName) ? tableName : typeof(TEntity).GetMainTableName());
+            var sqlFactory = new SqlFactory<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
             if (autoIncludeFields)
             {
                 sqlFactory.IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
@@ -622,7 +644,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public static SqlFactory<TEntity> Build(IBaseRepository repository, bool autoIncludeFields)
         {
-            return Build(repository.Factory.DbType, autoIncludeFields, repository.TableName());
+            return Build(repository.DbType, autoIncludeFields, repository.TableName());
         }
 
         #region override methods

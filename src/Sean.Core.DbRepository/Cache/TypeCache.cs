@@ -17,6 +17,11 @@ namespace Sean.Core.DbRepository
 
         public static EntityInfo GetEntityInfo(Type entityClassType)
         {
+            if (entityClassType == null)
+            {
+                return null;
+            }
+
             if (_entityInfoDic.TryGetValue(entityClassType, out var entityInfo) && entityInfo != null)
             {
                 return entityInfo;
@@ -24,13 +29,15 @@ namespace Sean.Core.DbRepository
 
             entityInfo = new EntityInfo
             {
-                MainTableName = entityClassType.GetCustomAttributesExt<TableAttribute>(true).FirstOrDefault()?.Name ?? entityClassType.Name
+                MainTableName = entityClassType.GetCustomAttributesExt<TableAttribute>(true).FirstOrDefault()?.Name ?? entityClassType.Name,
+                Sequence = entityClassType.GetCustomAttributesExt<SequenceAttribute>(true).FirstOrDefault()?.Name
             };
 
             var propertyInfos = entityClassType.GetProperties();
             foreach (var propertyInfo in propertyInfos)
             {
-                if (propertyInfo.GetCustomAttributesExt<IgnoreAttribute>(false).Any())
+                if (propertyInfo.GetCustomAttributesExt<NotMappedAttribute>(false).Any()
+                    || propertyInfo.GetCustomAttributesExt<IgnoreAttribute>(false).Any())
                 {
                     continue;
                 }
@@ -56,6 +63,11 @@ namespace Sean.Core.DbRepository
         /// 主表表名
         /// </summary>
         public string MainTableName { get; set; }
+
+        /// <summary>
+        /// 序列
+        /// </summary>
+        public string Sequence { get; set; }
 
         /// <summary>
         /// 所有字段信息

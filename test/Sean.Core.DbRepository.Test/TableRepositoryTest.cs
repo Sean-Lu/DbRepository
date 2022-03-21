@@ -108,11 +108,11 @@ namespace Sean.Core.DbRepository.Test
             var getResult = _testRepository.Get(entity => entity.Id == testEntity.Id, entity => new { entity.Id, entity.AccountBalance });
             Assert.IsTrue(getResult != null && getResult.Id > 0 && getResult.AccountBalance == 10.0M);
 
-            _logger.LogInfo("Incr - 数值递减");
+            _logger.LogInfo("Decr - 数值递减");
             var incrResult2 = _testRepository.Decr(2.0M, entity => entity.AccountBalance, entity => entity.Id == testEntity.Id);
             Assert.IsTrue(incrResult2);
 
-            _logger.LogInfo("Incr - 验证");
+            _logger.LogInfo("Decr - 验证");
             var getResult2 = _testRepository.Get(entity => entity.Id == testEntity.Id, entity => new { entity.Id, entity.AccountBalance });
             Assert.IsTrue(getResult2 != null && getResult2.Id > 0 && getResult2.AccountBalance == 8.0M);
 

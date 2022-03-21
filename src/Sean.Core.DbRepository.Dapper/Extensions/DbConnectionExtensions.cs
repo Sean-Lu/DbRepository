@@ -396,7 +396,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 return true;
             }
 
-            var dbType = repository.Factory.DbType;
+            var dbType = repository.DbType;
             var dbName = connection.Database;
             var sql = dbType.GetSqlForIsTableExists(dbName, tableName);
             var result = connection.QueryFirstOrDefault<int>(sql);
@@ -793,7 +793,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 return true;
             }
 
-            var dbType = repository.Factory.DbType;
+            var dbType = repository.DbType;
             var dbName = connection.Database;
             var sql = dbType.GetSqlForIsTableExists(dbName, tableName);
             var result = await connection.QueryFirstOrDefaultAsync<int>(sql);

@@ -4,7 +4,6 @@ using Dapper;
 using Example.NetFramework.Entities;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Dapper;
 using Sean.Utility.Contracts;
 using Sean.Utility.Impls.Log;
 

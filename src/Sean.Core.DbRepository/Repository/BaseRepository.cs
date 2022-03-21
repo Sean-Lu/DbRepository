@@ -20,6 +20,8 @@ namespace Sean.Core.DbRepository
         /// </summary>
         public DbFactory Factory { get; }
 
+        public DatabaseType DbType => Factory.DbType;
+
         #region Constructors
 #if NETSTANDARD
         /// <summary>
@@ -84,7 +86,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public virtual string TableName()
         {
-            throw new NotImplementedException();
+            return null;
         }
 
         /// <summary>
@@ -94,7 +96,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public virtual string CreateTableSql(string tableName)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
         /// <summary>
@@ -108,15 +110,6 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// <see cref="SqlFactory.Build(DatabaseType, string)"/>
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public virtual SqlFactory NewSqlFactory(string tableName)
-        {
-            return SqlFactory.Build(Factory.DbType, tableName);
-        }
-        /// <summary>
         /// <see cref="SqlFactory{TEntity}.Build(DatabaseType, bool, string)"/>
         /// </summary>
         /// <param name="tableName"></param>
@@ -124,11 +117,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public virtual SqlFactory<TEntity> NewSqlFactory<TEntity>(bool autoIncludeFields, string tableName = null)
         {
-            if (string.IsNullOrWhiteSpace(tableName))
-            {
-                tableName = typeof(TEntity).GetMainTableName();
-            }
-            return SqlFactory<TEntity>.Build(Factory.DbType, autoIncludeFields, tableName);
+            return SqlFactory<TEntity>.Build(DbType, autoIncludeFields, tableName ?? TableName() ?? typeof(TEntity).GetMainTableName());
         }
 
         #region Synchronous method

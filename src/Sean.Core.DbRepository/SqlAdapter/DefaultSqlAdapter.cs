@@ -27,25 +27,27 @@ namespace Sean.Core.DbRepository
             return DbType.MarkAsSqlInputParameter(parameter);
         }
 
-        /// <summary>
-        /// SQL语句：获取上一次插入id
-        /// </summary>
-        /// <returns></returns>
         public virtual string GetSqlForSelectLastInsertId()
         {
             switch (DbType)
             {
                 case DatabaseType.MySql:
-                    return "SELECT LAST_INSERT_ID();";
+                    return "SELECT LAST_INSERT_ID() AS Id;";
                 case DatabaseType.SqlServer:
-                case DatabaseType.Access:
-                    return "SELECT @@Identity;";
-                case DatabaseType.SQLite:
-                    return "SELECT last_insert_rowid();";
-                case DatabaseType.PostgreSql:
-                    return "SELECT LASTVAL();";
+                    // IDENT_CURRENT('TableName'): 返回为任何会话和任何作用域中的特定表最后生成的标识值
+                    // SCOPE_IDENTITY(): 返回为当前会话和当前作用域中的任何表最后生成的标识值
+                    // @@IDENTITY: 返回为当前会话的所有作用域中的任何表最后生成的标识值
+
+                    //return "SELECT @@IDENTITY AS Id;";
+                    return "SELECT SCOPE_IDENTITY() AS Id;";
                 case DatabaseType.Oracle:
-                    return "SELECT {0}.CURRVAL FROM dual;";// {0} => sequence
+                    return "SELECT {0}.CURRVAL AS Id FROM dual;";// {0} => sequence
+                case DatabaseType.SQLite:
+                    return "SELECT LAST_INSERT_ROWID() AS Id;";
+                case DatabaseType.Access:
+                    return "SELECT @@IDENTITY AS Id;";
+                case DatabaseType.PostgreSql:
+                    return "SELECT LASTVAL() AS Id;";
                 default:
                     throw new NotSupportedException($"[{nameof(GetSqlForSelectLastInsertId)}]-[{DbType}]");
             }

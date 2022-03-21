@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Reflection;
 
 namespace Sean.Core.DbRepository.Extensions
@@ -12,7 +13,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static string GetFieldName(this PropertyInfo propertyInfo)
         {
-            var fieldAttribute = propertyInfo.GetCustomAttributesExt<FieldAttribute>(false).FirstOrDefault();
+            var fieldAttribute = propertyInfo.GetCustomAttributesExt<ColumnAttribute>(false).FirstOrDefault();
             if (fieldAttribute != null)
             {
                 return fieldAttribute.Name;

@@ -16,6 +16,11 @@ namespace Sean.Core.DbRepository
         DbFactory Factory { get; }
 
         /// <summary>
+        /// Database type
+        /// </summary>
+        DatabaseType DbType { get; }
+
+        /// <summary>
         /// 表名
         /// </summary>
         /// <returns></returns>
@@ -35,12 +40,6 @@ namespace Sean.Core.DbRepository
         /// <param name="param"></param>
         void OutputExecutedSql(string sql, object param);
 
-        /// <summary>
-        /// <see cref="SqlFactory.Build(DatabaseType, string)"/>
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        SqlFactory NewSqlFactory(string tableName);
         /// <summary>
         /// <see cref="SqlFactory{TEntity}.Build(DatabaseType, bool, string)"/>
         /// </summary>
