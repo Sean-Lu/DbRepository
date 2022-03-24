@@ -99,7 +99,7 @@ Get<T>()、GetList<T>() 其中 T ：
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
     <configSections>
-        <section name="dbProviderMap" type="Sean.Core.DbRepository.Config.DbProviderMapSection, Sean.Core.DbRepository" />
+        <section name="dbProviderMap" type="Sean.Core.DbRepository.DbProviderMapSection, Sean.Core.DbRepository" />
     </configSections>
     <dbProviderMap>
         <databases>
@@ -164,22 +164,18 @@ entity => entity.UserId == _model.UserId && entity.Remark.StartsWith("测试")
 // 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.WhereExpressionTest
 ```
 
-- 常用实体类注解：
+- 常用`TableEntity`实体类注解：
 
-```csharp
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-```
-
-| Attribute                                     | Description                              |
-| --------------------------------------------- | ---------------------------------------- |
-| `TableAttribute`                              | 自定义表名                                    |
-| `KeyAttribute`                                | 标记为主键字段                                  |
-| `DatabaseGeneratedAttribute`                  | 设置数据库生成字段值的方式<br>（通常和`KeyAttribute`一起使用） |
-| `ColumnAttribute`                             | 自定义字段名                                   |
-| `NotMappedAttribute`<br>~~`IgnoreAttribute`~~ | 标记为为忽略字段                                 |
-| ~~`ForeignKeyAttribute`~~                     | 标记为外键字段（***暂不支持***）                      |
-| `SequenceAttribute`                           | Oracle: Sequence（生成自增Id）                 |
+| Attribute                    | AttributeUsage | Namespace                                      | Description                          |
+| ---------------------------- | -------------- | ---------------------------------------------- | ------------------------------------ |
+| `TableAttribute`             | Class          | `System.ComponentModel.DataAnnotations.Schema` | 自定义表名                                |
+| `KeyAttribute`               | Property       | `System.ComponentModel.DataAnnotations`        | 标记为主键字段                              |
+| `DatabaseGeneratedAttribute` | Property       | `System.ComponentModel.DataAnnotations.Schema` | 设置数据库生成字段值的方式（通常和`KeyAttribute`一起使用） |
+| `ColumnAttribute`            | Property       | `System.ComponentModel.DataAnnotations.Schema` | 自定义字段名                               |
+| `NotMappedAttribute`         | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为为忽略字段                             |
+| ~~`IgnoreAttribute`~~        | Property       | `Sean.Core.DbRepository`                       | 标记为为忽略字段                             |
+| ~~`ForeignKeyAttribute`~~    | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为外键字段（***暂不支持***）                  |
+| `SequenceAttribute`          | Class          | `Sean.Core.DbRepository`                       | Oracle: Sequence（生成自增Id）             |
 
 ## 常见问题
 

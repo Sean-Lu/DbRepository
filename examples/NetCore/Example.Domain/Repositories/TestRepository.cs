@@ -37,6 +37,7 @@ namespace Example.Domain.Repositories
   `Id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `UserId` bigint NOT NULL COMMENT '用户id',
   `UserName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '用户名称',
+  `Age` int NOT NULL DEFAULT '0' COMMENT '年龄',
   `Sex` tinyint NOT NULL DEFAULT '0' COMMENT '性别',
   `PhoneNumber` varchar(50) DEFAULT NULL COMMENT '电话号码',
   `Email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '邮箱',

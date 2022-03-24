@@ -17,9 +17,7 @@ namespace Sean.Core.DbRepository
                     StringBuilder sqlBuilder = new StringBuilder();
                     var leftClause = Parse(binaryExpression.Left, adhesive);
                     sqlBuilder.Append($"({leftClause})");
-
                     sqlBuilder.Append($" {binaryExpression.NodeType.ToLogicSymbol()} ");
-
                     var rightClause = Parse(binaryExpression.Right, adhesive);
                     sqlBuilder.Append($"({rightClause})");
 
@@ -61,28 +59,27 @@ namespace Sean.Core.DbRepository
                     // example: entity => string.IsNullOrEmpty(entity.Email)
                     return ConditionBuilder.BuildIsNullOrEmptyCondition(methodCallExpression, adhesive);
                 }
-                else if (methodCallExpression.Method.DeclaringType == typeof(Enumerable)
-                    && methodCallExpression.Arguments.Count == 2
-                    && methodCallExpression.Method.Name == nameof(Enumerable.Contains))
+                else if (methodCallExpression.Method.Name == "Contains")
                 {
-                    //"In" condition, Support the `Contains` extension Method of IEnumerable<TSource> Type
-                    //For example: List<string> values = new List<string> { "foo", "bar"};
-                    //             values.Contains(u.Name)  
-                    return ConditionBuilder.BuildInCondition(methodCallExpression.Arguments[1] as MemberExpression, methodCallExpression.Arguments[0], adhesive);
-                }
-                else if (methodCallExpression.Method.DeclaringType.IsGenericType
-                    && methodCallExpression.Method.DeclaringType.GetGenericTypeDefinition() == typeof(List<>)
-                    && methodCallExpression.Arguments.Count == 1
-                    && methodCallExpression.Method.Name == "Contains")
-                {
-                    //"In" Condition, Support the `Contains` Method of List<T> type
-                    //For example: string[] values = new string[]{ "foo", "bar"};
-                    //             values.Contains(u.Name)  
-                    return ConditionBuilder.BuildInCondition(methodCallExpression.Arguments[0] as MemberExpression, methodCallExpression.Object, adhesive);
-                }
-                else
-                {
-                    throw new NotSupportedException($"不支持的 Expression 类型：{expression.GetType()}");
+                    if (methodCallExpression.Method.DeclaringType == typeof(Enumerable)
+                        && methodCallExpression.Arguments.Count == 2)
+                    {
+                        //"In" Condition, Support the `Contains` Method of IEnumerable<T> type
+                        //For example: string[] values = new string[]{ "foo", "bar"};
+                        //             values.Contains(u.Name)
+                        return ConditionBuilder.BuildInCondition(methodCallExpression.Arguments[1] as MemberExpression, methodCallExpression.Arguments[0], adhesive);
+                    }
+                    else if (methodCallExpression.Method.DeclaringType != null
+                             && (methodCallExpression.Method.DeclaringType.IsGenericType
+                                 && methodCallExpression.Method.DeclaringType.GetGenericTypeDefinition() == typeof(ICollection<>)
+                                 || methodCallExpression.Method.DeclaringType.GetInterfaces().Where(c => c.IsGenericType).Any(c => c.GetGenericTypeDefinition() == typeof(ICollection<>)))
+                             && methodCallExpression.Arguments.Count == 1)
+                    {
+                        //"In" condition, Support the `Contains` extension Method of ICollection<TSource> Type
+                        //For example: List<string> values = new List<string> { "foo", "bar"};
+                        //             values.Contains(u.Name)
+                        return ConditionBuilder.BuildInCondition(methodCallExpression.Arguments[0] as MemberExpression, methodCallExpression.Object, adhesive);
+                    }
                 }
             }
             else if (expression is MemberExpression trueMemberExpression && trueMemberExpression.Type == typeof(bool))
@@ -149,7 +146,7 @@ namespace Sean.Core.DbRepository
                 }
             }
 
-            throw new NotSupportedException($"不支持的 Expression 类型: {expression.GetType()}");
+            throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
         }
 
         private static bool IsDataComparator(ExpressionType expressionType)

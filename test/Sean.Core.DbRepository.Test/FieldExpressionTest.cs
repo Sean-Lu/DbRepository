@@ -24,6 +24,7 @@ namespace Sean.Core.DbRepository.Test
             //};
         }
 
+        #region 通过 TEntity 返回字段（推荐）
         /// <summary>
         /// 单个字段
         /// </summary>
@@ -86,6 +87,166 @@ namespace Sean.Core.DbRepository.Test
             };
             AssertFields(expectedFields, fields);
         }
+        #endregion
+
+        #region 不通过 TEntity 返回字段
+        /// <summary>
+        /// List
+        /// </summary>
+        [TestMethod]
+        public void ValidateList()
+        {
+            List<string> fieldList = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        /// <summary>
+        /// List
+        /// </summary>
+        [TestMethod]
+        public void ValidateList2()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = entity => new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        /// <summary>
+        /// List
+        /// </summary>
+        [TestMethod]
+        public void ValidateListFromMethod()
+        {
+            List<string> fieldList = GetFieldList();
+            Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        /// <summary>
+        /// List
+        /// </summary>
+        [TestMethod]
+        public void ValidateListFromMethod2()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = entity => GetFieldList();
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        /// <summary>
+        /// IList
+        /// </summary>
+        [TestMethod]
+        public void ValidateIList()
+        {
+            IList<string> fieldList = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        /// <summary>
+        /// List
+        /// </summary>
+        [TestMethod]
+        public void ValidateIEnumerable()
+        {
+            IEnumerable<string> fieldList = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        /// <summary>
+        /// Array
+        /// </summary>
+        [TestMethod]
+        public void ValidateArray()
+        {
+            string[] fieldList = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            }.ToArray();
+            Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        /// <summary>
+        /// Array
+        /// </summary>
+        [TestMethod]
+        public void ValidateArray2()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = entity => new string[]
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
+            AssertFields(expectedFields, fields);
+        }
+        #endregion
 
         private void AssertFields(List<string> expectedFields, List<string> actualFields)
         {
@@ -94,6 +255,15 @@ namespace Sean.Core.DbRepository.Test
             {
                 Assert.IsTrue(actualFields.Contains(field), $"The {nameof(actualFields)} does not contain <{field}>.");
             }
+        }
+
+        private List<string> GetFieldList()
+        {
+            return new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime)
+            };
         }
     }
 }

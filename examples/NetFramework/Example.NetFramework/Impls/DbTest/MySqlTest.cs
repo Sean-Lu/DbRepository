@@ -38,7 +38,7 @@ namespace Example.NetFramework.Impls.DbTest
             #region 查询数据
             var list = Query(NewSqlFactory(true)
                 .Page(1, 3)
-                .InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
+                //.InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
                 .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
                 .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
                 .SetParameter(new { UserId = 100010 }), false);// 从库查询

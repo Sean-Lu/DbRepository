@@ -161,7 +161,7 @@ namespace Sean.Core.DbRepository
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        bool Add(IList<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null);
+        bool Add(IEnumerable<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 新增数据
         /// </summary>
@@ -214,6 +214,23 @@ namespace Sean.Core.DbRepository
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 批量更新数据
+        /// </summary>
+        /// <param name="entities">实体</param>
+        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
+        /// <para>注：</para>
+        /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
+        /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 更新数据
         /// </summary>
@@ -268,7 +285,7 @@ namespace Sean.Core.DbRepository
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, bool master = true, int? commandTimeout = null);
+        IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询数据
         /// </summary>
@@ -283,7 +300,7 @@ namespace Sean.Core.DbRepository
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, bool master = true, int? commandTimeout = null);
+        IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 查询单个数据
@@ -351,7 +368,7 @@ namespace Sean.Core.DbRepository
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<bool> AddAsync(IList<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null);
+        Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 新增数据
         /// </summary>
@@ -404,6 +421,23 @@ namespace Sean.Core.DbRepository
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 批量更新数据
+        /// </summary>
+        /// <param name="entities">实体</param>
+        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
+        /// <para>注：</para>
+        /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
+        /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 更新数据
         /// </summary>
@@ -458,7 +492,7 @@ namespace Sean.Core.DbRepository
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, bool master = true, int? commandTimeout = null);
+        Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询数据
         /// </summary>
@@ -473,7 +507,7 @@ namespace Sean.Core.DbRepository
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, bool master = true, int? commandTimeout = null);
+        Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 查询单个数据

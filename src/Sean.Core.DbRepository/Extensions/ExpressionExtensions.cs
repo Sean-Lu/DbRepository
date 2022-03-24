@@ -50,7 +50,7 @@ namespace Sean.Core.DbRepository.Extensions
                     }
                     else
                     {
-                        throw new InvalidOperationException($"[Expression]表达式不支持的SQL入参类型：{sqlFactory.Parameter.GetType().FullName}");
+                        throw new InvalidOperationException($"SQL input parameter type not supported by expression: {sqlFactory.Parameter.GetType().FullName}");
                     }
                 }
             }
@@ -110,7 +110,7 @@ namespace Sean.Core.DbRepository.Extensions
                 foreach (var subExpression in newArrayExpression.Expressions)
                 {
                     var memberName = subExpression.GetMemberName();
-                    if (!result.Contains(memberName))
+                    if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                     {
                         result.Add(memberName);
                     }
@@ -123,7 +123,7 @@ namespace Sean.Core.DbRepository.Extensions
                     foreach (var argument in initializer.Arguments)
                     {
                         var memberName = argument.GetMemberName();
-                        if (!result.Contains(memberName))
+                        if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                         {
                             result.Add(memberName);
                         }
@@ -141,11 +141,49 @@ namespace Sean.Core.DbRepository.Extensions
                     }
                 }
             }
+            else if (fieldExpression is MemberExpression memberExpression
+                     && memberExpression.Expression is ConstantExpression constantExpression)
+            {
+                var value = constantExpression.Value;
+                if (value != null)
+                {
+                    var valueType = value.GetType();
+                    var fieldInfo = valueType.GetField(memberExpression.Member.Name);
+                    if (fieldInfo != null)
+                    {
+                        var actualValue = fieldInfo.GetValue(value);
+                        if (actualValue is IEnumerable<string> fields)
+                        {
+                            foreach (var field in fields)
+                            {
+                                if (!string.IsNullOrWhiteSpace(field) && !result.Contains(field))
+                                {
+                                    result.Add(field);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (fieldExpression is MethodCallExpression methodCallExpression)
+            {
+                var value = ConstantExtractor.ParseConstant(methodCallExpression);
+                if (value is IEnumerable<string> fields)
+                {
+                    foreach (var field in fields)
+                    {
+                        if (!string.IsNullOrWhiteSpace(field) && !result.Contains(field))
+                        {
+                            result.Add(field);
+                        }
+                    }
+                }
+            }
             else
             {
                 // 单个字段
                 var memberName = fieldExpression.GetMemberName();
-                if (!result.Contains(memberName))
+                if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                 {
                     result.Add(memberName);
                 }
@@ -153,7 +191,7 @@ namespace Sean.Core.DbRepository.Extensions
 
             if (!result.Any())
             {
-                throw new ArgumentException($"Unsupported expression type: {fieldExpression.NodeType}", nameof(fieldExpression));
+                throw new NotSupportedException($"Unsupported expression type: {fieldExpression.GetType()}");
             }
 
             return result;
@@ -162,25 +200,23 @@ namespace Sean.Core.DbRepository.Extensions
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
-            string memberName = null;
             if (expression is UnaryExpression unaryExpression)
             {
                 if (unaryExpression.Operand is MemberExpression memberExpression)
                 {
-                    memberName = memberExpression.Member.Name;
+                    return memberExpression.Member.Name;
                 }
+            }
+            else if (expression is ConstantExpression constantExpression)
+            {
+                return constantExpression.Value as string;
             }
             else if (expression is MemberExpression memberExpression)
             {
-                memberName = memberExpression.Member.Name;
+                return memberExpression.Member.Name;
             }
 
-            if (string.IsNullOrWhiteSpace(memberName))
-            {
-                throw new ArgumentException($"Unsupported expression type: {expression.NodeType}", nameof(expression));
-            }
-
-            return memberName;
+            throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
         }
         #endregion
     }

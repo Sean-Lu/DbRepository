@@ -52,7 +52,7 @@ namespace Sean.Core.DbRepository
                     valueSymbol = "%{0}%";
                     break;
                 default:
-                    throw new NotSupportedException($"不支持的方法：{methodCallExpression.Method.Name}");
+                    throw new NotSupportedException($"Unsupported method: {methodCallExpression.Method.Name}");
             }
 
             if (methodCallExpression.Object is MemberExpression memberExpression)
@@ -65,7 +65,7 @@ namespace Sean.Core.DbRepository
                 return new StringBuilder(string.Format($"{fieldName} {symbol}", $"{adhesive.SqlAdapter.FormatInputParameter(parameterName)}"));
             }
 
-            throw new NotSupportedException($"不支持的 Expression 类型：{methodCallExpression.Object?.GetType()}");
+            throw new NotSupportedException($"Unsupported expression type: {methodCallExpression.Object?.GetType()}");
         }
 
         public static StringBuilder BuildInCondition(MemberExpression memberExpression, Expression valueExpression, WhereClauseAdhesive adhesive)
@@ -89,7 +89,7 @@ namespace Sean.Core.DbRepository
                     : new StringBuilder($"({fieldName} is null OR {fieldName} = '')");
             }
 
-            throw new NotSupportedException($"不支持的 Expression 类型：{methodCallExpression.Object?.GetType()}");
+            throw new NotSupportedException($"Unsupported expression type: {methodCallExpression.Object?.GetType()}");
         }
 
         public static string EnsureParameter(MemberInfo mi, WhereClauseAdhesive adhesive)
@@ -125,7 +125,7 @@ namespace Sean.Core.DbRepository
                 case ExpressionType.LessThanOrEqual:
                     return "<=";
                 default:
-                    throw new NotSupportedException($"不支持的 ExpressionType 类型：{expressionType}");
+                    throw new NotSupportedException($"Unsupported ExpressionType: {expressionType}");
             }
         }
     }

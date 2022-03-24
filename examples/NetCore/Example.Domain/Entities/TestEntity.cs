@@ -27,6 +27,10 @@ namespace Example.Domain.Entities
         [Column("UserName")]
         public string UserName { get; set; }
         /// <summary>
+        /// 年龄
+        /// </summary>
+        public int Age { get; set; }
+        /// <summary>
         /// 性别
         /// </summary>
         public SexType Sex { get; set; }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Example.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -43,10 +44,43 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
+        /// 常量
+        /// </summary>
+        [TestMethod]
+        public void ValidateConstant2()
+        {
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Age >= 18;
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { nameof(TestEntity.Age), 18 }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.Age))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Age))}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
         /// 变量
         /// </summary>
         [TestMethod]
         public void ValidateVariable()
+        {
+            var age = 18;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Age >= age;
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { nameof(TestEntity.Age), age }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.Age))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Age))}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// 变量
+        /// </summary>
+        [TestMethod]
+        public void ValidateVariable2()
         {
             Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
@@ -105,8 +139,8 @@ namespace Sean.Core.DbRepository.Test
                 { $"{nameof(TestEntity.CreateTime)}", startTime },
                 { $"{nameof(TestEntity.CreateTime)}1", endTime },
             };
-            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.CreateTime))}) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} < {_sqlAdapter.FormatInputParameter($"{nameof(TestEntity.CreateTime)}1")})", whereClause);
+            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.CreateTime))})" +
+                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} < {_sqlAdapter.FormatInputParameter($"{nameof(TestEntity.CreateTime)}1")})", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -125,8 +159,41 @@ namespace Sean.Core.DbRepository.Test
                 { $"{nameof(TestEntity.CreateTime)}", startTime },
                 { $"{nameof(TestEntity.CreateTime)}1", endTime },
             };
-            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.CreateTime))}) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} < {_sqlAdapter.FormatInputParameter($"{nameof(TestEntity.CreateTime)}1")})", whereClause);
+            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.CreateTime))})" +
+                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} < {_sqlAdapter.FormatInputParameter($"{nameof(TestEntity.CreateTime)}1")})", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Enum
+        /// </summary>
+        [TestMethod]
+        public void ValidateEnum()
+        {
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Sex == SexType.Male;
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { $"{nameof(TestEntity.Sex)}", (int)SexType.Male }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.Sex))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Sex))}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Enum
+        /// </summary>
+        [TestMethod]
+        public void ValidateEnum2()
+        {
+            SexType[] sexTypes = { SexType.Male, SexType.Female };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Sex == sexTypes[1];
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { $"{nameof(TestEntity.Sex)}", (int)SexType.Female }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.Sex))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Sex))}", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -144,8 +211,8 @@ namespace Sean.Core.DbRepository.Test
                 { nameof(TestEntity.UserId), _model.UserId },
                 { nameof(TestEntity.AccountBalance), accountBalance }
             };
-            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))}) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.AccountBalance))} < {_sqlAdapter.FormatInputParameter(nameof(TestEntity.AccountBalance))})", whereClause);
+            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))})" +
+                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.AccountBalance))} < {_sqlAdapter.FormatInputParameter(nameof(TestEntity.AccountBalance))})", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -164,9 +231,9 @@ namespace Sean.Core.DbRepository.Test
                 { nameof(TestEntity.AccountBalance), accountBalance },
                 { nameof(TestEntity.IsBlack), false },
             };
-            Assert.AreEqual($"(({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))}) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.AccountBalance))} < {_sqlAdapter.FormatInputParameter(nameof(TestEntity.AccountBalance))})) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.IsBlack))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.IsBlack))})", whereClause);
+            Assert.AreEqual($"(({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))})" +
+                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.AccountBalance))} < {_sqlAdapter.FormatInputParameter(nameof(TestEntity.AccountBalance))}))" +
+                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.IsBlack))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.IsBlack))})", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -184,8 +251,8 @@ namespace Sean.Core.DbRepository.Test
                 { nameof(TestEntity.UserId), _model.UserId },
                 { nameof(TestEntity.AccountBalance), accountBalance }
             };
-            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))}) " +
-                            $"OR ({_sqlAdapter.FormatFieldName(nameof(TestEntity.AccountBalance))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.AccountBalance))})", whereClause);
+            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))})" +
+                            $" OR ({_sqlAdapter.FormatFieldName(nameof(TestEntity.AccountBalance))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.AccountBalance))})", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -204,9 +271,9 @@ namespace Sean.Core.DbRepository.Test
                 { nameof(TestEntity.AccountBalance), accountBalance },
                 { nameof(TestEntity.IsVip), true },
             };
-            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))}) " +
-                            $"OR (({_sqlAdapter.FormatFieldName(nameof(TestEntity.AccountBalance))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.AccountBalance))}) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.IsVip))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.IsVip))}))", whereClause);
+            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))})" +
+                            $" OR (({_sqlAdapter.FormatFieldName(nameof(TestEntity.AccountBalance))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.AccountBalance))})" +
+                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.IsVip))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.IsVip))}))", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -225,9 +292,9 @@ namespace Sean.Core.DbRepository.Test
                 { nameof(TestEntity.AccountBalance), accountBalance },
                 { nameof(TestEntity.IsVip), true },
             };
-            Assert.AreEqual($"(({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))}) " +
-                            $"OR ({_sqlAdapter.FormatFieldName(nameof(TestEntity.AccountBalance))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.AccountBalance))})) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.IsVip))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.IsVip))})", whereClause);
+            Assert.AreEqual($"(({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))})" +
+                            $" OR ({_sqlAdapter.FormatFieldName(nameof(TestEntity.AccountBalance))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.AccountBalance))}))" +
+                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.IsVip))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.IsVip))})", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -237,15 +304,13 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateStartsWith()
         {
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId && entity.Remark.StartsWith("测试");
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Remark.StartsWith("测试");
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
             {
-                { nameof(TestEntity.UserId), _model.UserId },
                 { nameof(TestEntity.Remark), "测试%" }
             };
-            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))}) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.Remark))} LIKE {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Remark))})", whereClause);
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.Remark))} LIKE {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Remark))}", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -256,34 +321,149 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateEndsWith()
         {
             var key = "测试";
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId && entity.Remark.EndsWith(key);
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Remark.EndsWith(key);
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
             {
-                { nameof(TestEntity.UserId), _model.UserId },
                 { nameof(TestEntity.Remark), $"%{key}" }
             };
-            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))}) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.Remark))} LIKE {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Remark))})", whereClause);
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.Remark))} LIKE {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Remark))}", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
         /// <summary>
-        /// Contains
+        /// EndsWith
         /// </summary>
         [TestMethod]
-        public void ValidateContains()
+        public void ValidateEndsWith2()
         {
-            var key = "测试";
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId && entity.Remark.Contains(key);
+            var model = new TestEntity { UserName = "Test" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Remark.EndsWith(model.UserName);
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
             {
-                { nameof(TestEntity.UserId), _model.UserId },
+                { nameof(TestEntity.Remark), $"%{model.UserName}" }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.Remark))} LIKE {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Remark))}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Contains（string）
+        /// </summary>
+        [TestMethod]
+        public void ValidateStringContains()
+        {
+            var key = "测试";
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Remark.Contains(key);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
                 { nameof(TestEntity.Remark), $"%{key}%" }
             };
-            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.UserId))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserId))}) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.Remark))} LIKE {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Remark))})", whereClause);
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.Remark))} LIKE {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Remark))}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Contains（string）
+        /// </summary>
+        [TestMethod]
+        public void ValidateStringContains2()
+        {
+            var model = new TestEntity { UserName = "Test" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Remark.Contains(model.UserName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { nameof(TestEntity.Remark), $"%{model.UserName}%" }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.Remark))} LIKE {_sqlAdapter.FormatInputParameter(nameof(TestEntity.Remark))}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Contains（数组）
+        /// </summary>
+        [TestMethod]
+        public void ValidateArrayContains()
+        {
+            string[] values = { "a", "b" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => values.Contains(entity.UserName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { nameof(TestEntity.UserName), values }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.UserName))} IN {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserName))}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Contains（List）
+        /// </summary>
+        [TestMethod]
+        public void ValidateListContains()
+        {
+            List<string> values = new List<string> { "a", "b" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => values.Contains(entity.UserName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { nameof(TestEntity.UserName), values }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.UserName))} IN {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserName))}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Contains（IList）
+        /// </summary>
+        [TestMethod]
+        public void ValidateIListContains()
+        {
+            IList<string> values = new List<string> { "a", "b" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => values.Contains(entity.UserName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { nameof(TestEntity.UserName), values }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.UserName))} IN {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserName))}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Contains（ICollection）
+        /// </summary>
+        [TestMethod]
+        public void ValidateICollectionContains2()
+        {
+            ICollection<string> values = new List<string> { "a", "b" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => values.Contains(entity.UserName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { nameof(TestEntity.UserName), values }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.UserName))} IN {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserName))}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Contains（IEnumerable）
+        /// </summary>
+        [TestMethod]
+        public void ValidateIEnumerableContains()
+        {
+            IEnumerable<string> values = new List<string> { "a", "b" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => values.Contains(entity.UserName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { nameof(TestEntity.UserName), values }
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.UserName))} IN {_sqlAdapter.FormatInputParameter(nameof(TestEntity.UserName))}", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -375,8 +555,8 @@ namespace Sean.Core.DbRepository.Test
             {
                 {nameof(TestEntity.IsVip),true}
             };
-            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.IsVip))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.IsVip))}) " +
-                            $"AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.NullableTest))} is not null)", whereClause);
+            Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.IsVip))} = {_sqlAdapter.FormatInputParameter(nameof(TestEntity.IsVip))})" +
+                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.NullableTest))} is not null)", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 

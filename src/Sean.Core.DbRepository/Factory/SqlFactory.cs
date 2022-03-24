@@ -177,7 +177,7 @@ namespace Sean.Core.DbRepository
         private readonly Lazy<StringBuilder> _having = new();
         private readonly Lazy<StringBuilder> _orderBy = new();
         private bool _returnLastInsertId;
-        private bool _allowEmptyWhereClause;
+        protected bool _allowEmptyWhereClause;
         private int? _topNumber;
         private int? _pageIndex;
         private int? _pageSize;
@@ -576,13 +576,13 @@ namespace Sean.Core.DbRepository
     {
         #region override properties
         /// <summary>
-        /// SQL：删除数据（如果没有指定WHERE过滤条件，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段）
+        /// SQL：删除数据（如果没有指定WHERE过滤条件，且没有设置 <see cref="AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段）
         /// </summary>
         public override string DeleteSql
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(WhereSql))
+                if (string.IsNullOrWhiteSpace(WhereSql) && !_allowEmptyWhereClause)
                 {
                     typeof(TEntity).GetPrimaryKeys().ForEach(fieldName => WhereField(fieldName, SqlOperation.Equal));
                 }
@@ -592,13 +592,13 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// SQL：更新数据（如果没有指定WHERE过滤条件，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段）
+        /// SQL：更新数据（如果没有指定WHERE过滤条件，且没有设置 <see cref="AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段）
         /// </summary>
         public override string UpdateSql
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(WhereSql))
+                if (string.IsNullOrWhiteSpace(WhereSql) && !_allowEmptyWhereClause)
                 {
                     typeof(TEntity).GetPrimaryKeys().ForEach(fieldName => WhereField(fieldName, SqlOperation.Equal));
                 }

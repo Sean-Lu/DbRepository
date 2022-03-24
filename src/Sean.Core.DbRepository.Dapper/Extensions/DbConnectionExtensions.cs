@@ -28,7 +28,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static bool Add<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            if (entity == null) return false;
 
             IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
                 .ReturnLastInsertId(returnId, out var keyIdentityProperty)
@@ -51,64 +51,6 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             }
         }
         /// <summary>
-        /// 批量新增数据
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="entities"></param>
-        /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static bool Add<TEntity>(this IDbConnection connection, IBaseRepository repository, IList<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            if (entities == null) throw new ArgumentNullException(nameof(entities));
-            if (!entities.Any()) return false;
-
-            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
-                .ReturnLastInsertId(returnId, out var keyIdentityProperty)
-                .SetParameter(entities);
-            if (returnId && keyIdentityProperty != null)
-            {
-                var success = true;
-                if (transaction?.Connection == null)
-                {
-                    success = repository.ExecuteTransaction(connection, trans =>
-                    {
-                        foreach (var entity in entities)
-                        {
-                            success = connection.Add(repository, entity, returnId, trans, commandTimeout);
-                            if (!success) break;
-                        }
-
-                        if (success)
-                        {
-                            trans.Commit();
-                        }
-                        else
-                        {
-                            trans.Rollback();
-                        }
-                        return success;
-                    });
-                }
-                else
-                {
-                    foreach (var entity in entities)
-                    {
-                        success = transaction.Connection.Add(repository, entity, returnId, transaction, commandTimeout);
-                        if (!success) break;
-                    }
-                }
-                return success;
-            }
-            else
-            {
-                return sqlFactory.ExecuteInsertSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
-            }
-        }
-        /// <summary>
         /// 新增数据
         /// </summary>
         /// <param name="connection"></param>
@@ -120,6 +62,62 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         public static bool Add(this IDbConnection connection, IBaseRepository repository, IInsertableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return sqlFactory.ExecuteInsertSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+        }
+
+        /// <summary>
+        /// 批量新增数据
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="entities"></param>
+        /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static bool BulkAdd<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            if (entities == null || !entities.Any()) return false;
+
+            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
+                .ReturnLastInsertId(returnId, out var keyIdentityProperty)
+                .SetParameter(entities);
+            if (returnId && keyIdentityProperty != null)
+            {
+                if (transaction?.Connection == null)
+                {
+                    return repository.ExecuteTransaction(connection, trans =>
+                    {
+                        foreach (var entity in entities)
+                        {
+                            if (!connection.Add(repository, entity, returnId, trans, commandTimeout))
+                            {
+                                trans.Rollback();
+                                return false;
+                            }
+                        }
+
+                        trans.Commit();
+                        return true;
+                    });
+                }
+                else
+                {
+                    foreach (var entity in entities)
+                    {
+                        if (!transaction.Connection.Add(repository, entity, returnId, transaction, commandTimeout))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            else
+            {
+                return sqlFactory.ExecuteInsertSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+            }
         }
 
         /// <summary>
@@ -213,6 +211,60 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         }
 
         /// <summary>
+        /// 批量更新数据
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="entities">实体</param>
+        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
+        /// <para>注：</para>
+        /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
+        /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static bool BulkUpdate<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            if (entities == null || !entities.Any()) return false;
+
+            if (transaction?.Connection == null)
+            {
+                return repository.ExecuteTransaction(connection, trans =>
+                {
+                    foreach (var entity in entities)
+                    {
+                        if (!(connection.Update(repository, entity, fieldExpression, whereExpression, trans, commandTimeout) > 0))
+                        {
+                            trans.Rollback();
+                            return false;
+                        }
+                    }
+
+                    trans.Commit();
+                    return true;
+                });
+            }
+            else
+            {
+                foreach (var entity in entities)
+                {
+                    if (!(transaction.Connection.Update(repository, entity, fieldExpression, whereExpression, transaction, commandTimeout) > 0))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>
         /// 数值字段递增
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
@@ -282,7 +334,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="pageSize">分页参数：页大小</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static IEnumerable<TEntity> Query<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, int? commandTimeout = null)
+        public static IEnumerable<TEntity> Query<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
             IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
@@ -306,7 +358,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="rows">行数</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static IEnumerable<TEntity> QueryOffset<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, int? commandTimeout = null)
+        public static IEnumerable<TEntity> QueryOffset<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
             IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
@@ -425,7 +477,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<bool> AddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            if (entity == null) return false;
 
             IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
                 .ReturnLastInsertId(returnId, out var keyIdentityProperty)
@@ -448,64 +500,6 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             }
         }
         /// <summary>
-        /// 批量新增数据
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <param name="connection"></param>
-        /// <param name="repository"></param>
-        /// <param name="entities"></param>
-        /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="transaction">事务</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
-        public static async Task<bool> AddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IList<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
-        {
-            if (entities == null) throw new ArgumentNullException(nameof(entities));
-            if (!entities.Any()) return false;
-
-            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
-                .ReturnLastInsertId(returnId, out var keyIdentityProperty)
-                .SetParameter(entities);
-            if (returnId && keyIdentityProperty != null)
-            {
-                var success = true;
-                if (transaction?.Connection == null)
-                {
-                    success = await repository.ExecuteTransactionAsync(connection, async trans =>
-                    {
-                        foreach (var entity in entities)
-                        {
-                            success = await connection.AddAsync(repository, entity, returnId, trans, commandTimeout);
-                            if (!success) break;
-                        }
-
-                        if (success)
-                        {
-                            trans.Commit();
-                        }
-                        else
-                        {
-                            trans.Rollback();
-                        }
-                        return success;
-                    });
-                }
-                else
-                {
-                    foreach (var entity in entities)
-                    {
-                        success = await transaction.Connection.AddAsync(repository, entity, returnId, transaction, commandTimeout);
-                        if (!success) break;
-                    }
-                }
-                return success;
-            }
-            else
-            {
-                return await sqlFactory.ExecuteInsertSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
-            }
-        }
-        /// <summary>
         /// 新增数据
         /// </summary>
         /// <param name="connection"></param>
@@ -517,6 +511,62 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         public static async Task<bool> AddAsync(this IDbConnection connection, IBaseRepository repository, IInsertableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await sqlFactory.ExecuteInsertSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+        }
+
+        /// <summary>
+        /// 批量新增数据
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="entities"></param>
+        /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<bool> BulkAddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            if (entities == null || !entities.Any()) return false;
+
+            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
+                .ReturnLastInsertId(returnId, out var keyIdentityProperty)
+                .SetParameter(entities);
+            if (returnId && keyIdentityProperty != null)
+            {
+                if (transaction?.Connection == null)
+                {
+                    return await repository.ExecuteTransactionAsync(connection, async trans =>
+                    {
+                        foreach (var entity in entities)
+                        {
+                            if (!await connection.AddAsync(repository, entity, returnId, trans, commandTimeout))
+                            {
+                                trans.Rollback();
+                                return false;
+                            }
+                        }
+
+                        trans.Commit();
+                        return true;
+                    });
+                }
+                else
+                {
+                    foreach (var entity in entities)
+                    {
+                        if (!await transaction.Connection.AddAsync(repository, entity, returnId, transaction, commandTimeout))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            else
+            {
+                return await sqlFactory.ExecuteInsertSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+            }
         }
 
         /// <summary>
@@ -610,6 +660,60 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         }
 
         /// <summary>
+        /// 批量更新数据
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="entities">实体</param>
+        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
+        /// <para>注：</para>
+        /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
+        /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<bool> BulkUpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            if (entities == null || !entities.Any()) return false;
+
+            if (transaction?.Connection == null)
+            {
+                return await repository.ExecuteTransactionAsync(connection, async trans =>
+                {
+                    foreach (var entity in entities)
+                    {
+                        if (!(await connection.UpdateAsync(repository, entity, fieldExpression, whereExpression, trans, commandTimeout) > 0))
+                        {
+                            trans.Rollback();
+                            return false;
+                        }
+                    }
+
+                    trans.Commit();
+                    return true;
+                });
+            }
+            else
+            {
+                foreach (var entity in entities)
+                {
+                    if (!(await transaction.Connection.UpdateAsync(repository, entity, fieldExpression, whereExpression, transaction, commandTimeout) > 0))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>
         /// 数值字段递增
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
@@ -679,7 +783,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="pageSize">分页参数：页大小</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<IEnumerable<TEntity>> QueryAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, int? commandTimeout = null)
+        public static async Task<IEnumerable<TEntity>> QueryAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
             IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
@@ -703,7 +807,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="rows">行数</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<IEnumerable<TEntity>> QueryOffsetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, int? commandTimeout = null)
+        public static async Task<IEnumerable<TEntity>> QueryOffsetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
             IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)

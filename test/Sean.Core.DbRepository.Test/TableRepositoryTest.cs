@@ -77,11 +77,11 @@ namespace Sean.Core.DbRepository.Test
             _logger.LogInfo("查询数据（分页，只返回指定的部分字段）");
             var orderByCondition = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.UserId);
             orderByCondition.Next = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
-            var queryResult = _testRepository.Query(entity => entity.UserId == testEntity.UserId, entity => new { entity.Id, entity.AccountBalance }, orderByCondition, 1, 10)?.ToList();
+            var queryResult = _testRepository.Query(entity => entity.UserId == testEntity.UserId, orderByCondition, 1, 10, entity => new { entity.Id, entity.AccountBalance })?.ToList();
             Assert.IsTrue(queryResult != null && queryResult.Any() && queryResult.Count(c => c.Id == testEntity.Id) > 0);
 
             _logger.LogInfo("查询数据（返回排序后的全表数据，查全表仅用于数据量较少的情况，否则建议使用分页查询）");
-            var queryAllResult = _testRepository.Query(entity => true, null, orderByCondition)?.ToList();
+            var queryAllResult = _testRepository.Query(entity => true, orderByCondition)?.ToList();
             Assert.IsTrue(queryAllResult != null && queryAllResult.Any() && queryAllResult.Count(c => c.Id == testEntity.Id) > 0);
 
             DeleteTestData(testEntity.UserId);

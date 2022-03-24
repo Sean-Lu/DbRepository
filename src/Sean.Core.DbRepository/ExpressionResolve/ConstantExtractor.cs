@@ -42,7 +42,7 @@ namespace Sean.Core.DbRepository
             }
             else
             {
-                throw new NotSupportedException($"不支持的 Expression 类型：{expression.GetType()}");
+                throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
             }
         }
 
@@ -86,7 +86,7 @@ namespace Sean.Core.DbRepository
                     PropertyInfo propertyInfo = memberDeclaringType.GetProperty(memberName, bindingAttr);
                     return propertyInfo.GetValue(memberDeclaringType, null);
                 default:
-                    throw new NotSupportedException($"不支持的MemberType类型：{memberType}");
+                    throw new NotSupportedException($"Unsupported MemberTypes: {memberType}");
             }
         }
 
@@ -107,7 +107,7 @@ namespace Sean.Core.DbRepository
                     PropertyInfo propertyInfo = type.GetProperty(memberName, bindingAttr);
                     return propertyInfo.GetValue(instance, null);
                 default:
-                    throw new NotSupportedException($"不支持的MemberType类型：{memberType}");
+                    throw new NotSupportedException($"Unsupported MemberTypes: {memberType}");
             }
         }
 

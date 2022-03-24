@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
@@ -55,31 +56,38 @@ namespace Example.Domain.Repositories
 
         public async Task<bool> DeleteAsync(long id)
         {
-            return await DeleteAsync(NewSqlFactory(false)
-                .WhereField(entity => entity.Id, SqlOperation.Equal)
-                .SetParameter(new { Id = id })) > 0;
+            //return await DeleteAsync(NewSqlFactory(false)
+            //    .WhereField(entity => entity.Id, SqlOperation.Equal)
+            //    .SetParameter(new { Id = id })) > 0;
+
+            return await DeleteAsync(entity => entity.Id == id) > 0;
         }
 
         public async Task<bool> UpdateAsync(long id, int checkInType)
         {
-            // 只更新部分字段（CheckInType），需要设置参数autoIncludeFields=false，否则会更新所有字段
-            return await UpdateAsync(NewSqlFactory(false)
-                .IncludeFields(entity => entity.CheckInType)
-                .WhereField(entity => entity.Id, SqlOperation.Equal)
-                .SetParameter(new { Id = id, CheckInType = checkInType })) > 0;
+            //// 只更新部分字段（CheckInType），需要设置参数autoIncludeFields=false，否则会更新所有字段
+            //return await UpdateAsync(NewSqlFactory(false)
+            //    .IncludeFields(entity => entity.CheckInType)
+            //    .WhereField(entity => entity.Id, SqlOperation.Equal)
+            //    .SetParameter(new { Id = id, CheckInType = checkInType })) > 0;
+
+            return await UpdateAsync(new CheckInLogEntity
+            {
+                CheckInType = checkInType
+            }, entity => new { entity.CheckInType }, entity => entity.Id == id) > 0;
         }
 
         public async Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
         {
             #region SqlFactory示例
-            //// SqlFactory示例1：
+            //// SqlFactory 示例1：
             //var sqlFactory = NewSqlFactory(true)
             //    .Page(pageIndex, pageSize)
             //    .Where($"{nameof(CheckInLogEntity.UserId)} = @{nameof(CheckInLogEntity.UserId)} AND {nameof(CheckInLogEntity.CheckInType)} IN @{nameof(CheckInLogEntity.CheckInType)}")
             //    .OrderBy($"{nameof(CheckInLogEntity.UserId)} ASC, {nameof(CheckInLogEntity.CreateTime)} DESC")
             //    .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } });
 
-            //// SqlFactory示例2：
+            //// SqlFactory 示例2：
             //var sqlFactory = NewSqlFactory(true)
             //    .Page(pageIndex, pageSize)
             //    .WhereField(nameof(CheckInLogEntity.UserId), SqlOperation.Equal, WhereSqlKeyword.None)
@@ -88,30 +96,39 @@ namespace Example.Domain.Repositories
             //    .OrderByField(OrderByType.Desc, nameof(CheckInLogEntity.CreateTime))
             //    .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } });
 
-            // SqlFactory示例3：
-            var sqlFactory = NewSqlFactory(true)
-                .Page(pageIndex, pageSize)
-                .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
-                .WhereField(entity => entity.CheckInType, SqlOperation.In, WhereSqlKeyword.And)
-                .WhereField(entity => entity.CreateTime, SqlOperation.GreaterOrEqual, WhereSqlKeyword.And, paramName: "StartTime")
-                .WhereField(entity => entity.CreateTime, SqlOperation.Less, WhereSqlKeyword.And, paramName: "EndTime")
-                .OrderByField(OrderByType.Asc, entity => entity.UserId)
-                .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
-                .SetParameter(new
-                {
-                    UserId = userId,
-                    CheckInType = new[] { 1, 2 },
-                    StartTime = DateTime.Parse("2020-1-1 00:00:00"),
-                    EndTime = DateTime.Now
-                });
+            //// SqlFactory 示例3：
+            //var sqlFactory = NewSqlFactory(true)
+            //    .Page(pageIndex, pageSize)
+            //    .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
+            //    .WhereField(entity => entity.CheckInType, SqlOperation.In, WhereSqlKeyword.And)
+            //    .WhereField(entity => entity.CreateTime, SqlOperation.GreaterOrEqual, WhereSqlKeyword.And, paramName: "StartTime")
+            //    .WhereField(entity => entity.CreateTime, SqlOperation.Less, WhereSqlKeyword.And, paramName: "EndTime")
+            //    .OrderByField(OrderByType.Asc, entity => entity.UserId)
+            //    .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
+            //    .SetParameter(new
+            //    {
+            //        UserId = userId,
+            //        CheckInType = new[] { 1, 2 },
+            //        StartTime = DateTime.Parse("2020-1-1 00:00:00"),
+            //        EndTime = DateTime.Now
+            //    });
             #endregion
 
             #region 返回结果示例
-            //// 返回结果示例1：
+            //// 返回结果示例1：使用 SqlFactory
             //return await ExecuteAsync(async connection => await connection.QueryAsync<CheckInLogEntity>(this, sqlFactory), false);
 
-            // 返回结果示例2：
-            return await QueryAsync(sqlFactory, false);
+            //// 返回结果示例2：使用 SqlFactory
+            //return await QueryAsync(sqlFactory, false);
+
+            // 返回结果示例3：使用 Expression 表达式树（推荐）
+            int[] checkInTypes = { 1, 2 };
+            var orderByCondition = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Asc, entity => entity.UserId);
+            orderByCondition.Next = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
+            return await QueryAsync(entity => entity.UserId == userId
+                                              && checkInTypes.Contains(entity.CheckInType)
+                                              && entity.CreateTime >= DateTime.Parse("2020-1-1 00:00:00")
+                                              && entity.CreateTime < DateTime.Now, orderByCondition, pageIndex, pageSize);
             #endregion
         }
 
