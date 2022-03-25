@@ -11,7 +11,7 @@ using Sean.Core.DbRepository.Extensions;
 using Microsoft.Extensions.Configuration;
 #endif
 
-namespace Sean.Core.DbRepository
+namespace Sean.Core.DbRepository.Dapper
 {
     /// <summary>
     /// Database table base repository

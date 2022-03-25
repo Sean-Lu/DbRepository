@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace Sean.Core.DbRepository
+namespace Sean.Core.DbRepository.Dapper
 {
     /// <summary>
     /// 表信息缓存

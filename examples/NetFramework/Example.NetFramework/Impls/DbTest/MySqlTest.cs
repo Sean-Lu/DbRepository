@@ -4,6 +4,7 @@ using Dapper;
 using Example.NetFramework.Entities;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
+using Sean.Core.DbRepository.Dapper;
 using Sean.Utility.Contracts;
 using Sean.Utility.Impls.Log;
 
@@ -36,12 +37,9 @@ namespace Example.NetFramework.Impls.DbTest
             //_logger.LogInfo($"数据库当前时间：{time.ToLongDateTimeWithTimezone()}");
 
             #region 查询数据
-            var list = Query(NewSqlFactory(true)
-                .Page(1, 3)
-                //.InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
-                .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
-                .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
-                .SetParameter(new { UserId = 100010 }), false);// 从库查询
+            var orderByCondition = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Asc, entity => entity.UserId);
+            orderByCondition.Next = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
+            var list = Query(entity => entity.UserId == 100010, orderByCondition, 1, 3, master: false);// 从库查询
             _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonConvert.SerializeObject(list, Formatting.Indented)}");
             #endregion
 
@@ -79,8 +77,7 @@ namespace Example.NetFramework.Impls.DbTest
         private void DapperQueryTest()
         {
             var sqlFactory = NewSqlFactory(true)
-                .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
-                .SetParameter(new { UserId = 100000 });
+                .Where(entity => entity.UserId == 100000);
             var sql = sqlFactory.QuerySql;
 
             #region Dapper > QueryFirst\QueryFirstOrDefault

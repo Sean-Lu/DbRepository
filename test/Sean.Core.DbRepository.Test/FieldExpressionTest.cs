@@ -186,7 +186,7 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
-        /// List
+        /// IEnumerable
         /// </summary>
         [TestMethod]
         public void ValidateIEnumerable()

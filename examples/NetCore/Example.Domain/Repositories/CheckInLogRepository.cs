@@ -7,6 +7,7 @@ using Example.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
+using Sean.Core.DbRepository.Dapper;
 using Sean.Utility.Contracts;
 
 namespace Example.Domain.Repositories
@@ -134,8 +135,6 @@ namespace Example.Domain.Repositories
 
         public async Task<IEnumerable<CheckInLogEntity>> GetAllAsync()
         {
-            //return await QueryAsync(NewSqlFactory(false), false);
-
             return await QueryAsync(entity => true, master: false);
         }
     }
