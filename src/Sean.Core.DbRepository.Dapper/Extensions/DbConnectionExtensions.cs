@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 using Dapper;
 using Sean.Core.DbRepository.Extensions;
@@ -23,17 +24,23 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static bool Add<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static bool Add<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (entity == null) return false;
 
-            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
-                .ReturnLastInsertId(returnId, out var keyIdentityProperty)
+            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                .ReturnLastInsertId(returnId)
                 .SetParameter(entity);
-            if (returnId && keyIdentityProperty != null)
+            PropertyInfo keyIdentityProperty;
+            if (returnId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
             {
                 var sql = sqlFactory.InsertSql;
                 var id = connection.ExecuteScalar<long>(sql, entity, transaction, commandTimeout);
@@ -72,17 +79,18 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static bool BulkAdd<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static bool BulkAdd<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (entities == null || !entities.Any()) return false;
 
-            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
-                .ReturnLastInsertId(returnId, out var keyIdentityProperty)
-                .SetParameter(entities);
-            if (returnId && keyIdentityProperty != null)
+            if (returnId && typeof(TEntity).GetKeyIdentityProperty() != null)
             {
                 if (transaction?.Connection == null)
                 {
@@ -90,7 +98,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                     {
                         foreach (var entity in entities)
                         {
-                            if (!connection.Add(repository, entity, returnId, trans, commandTimeout))
+                            if (!connection.Add(repository, entity, returnId, fieldExpression, trans, commandTimeout))
                             {
                                 trans.Rollback();
                                 return false;
@@ -105,7 +113,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 {
                     foreach (var entity in entities)
                     {
-                        if (!transaction.Connection.Add(repository, entity, returnId, transaction, commandTimeout))
+                        if (!transaction.Connection.Add(repository, entity, returnId, fieldExpression, transaction, commandTimeout))
                         {
                             return false;
                         }
@@ -116,6 +124,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             }
             else
             {
+                IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                    .IncludeFields(fieldExpression)
+                    .ReturnLastInsertId(returnId)
+                    .SetParameter(entities);
                 return sqlFactory.ExecuteInsertSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
             }
         }
@@ -175,7 +187,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="entity">实体</param>
-        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新。示例：
+        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新（不包含自增字段和忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -217,7 +229,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="entities">实体</param>
-        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新。示例：
+        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新（不包含自增字段和忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -472,17 +484,23 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<bool> AddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<bool> AddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (entity == null) return false;
 
-            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
-                .ReturnLastInsertId(returnId, out var keyIdentityProperty)
+            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                .ReturnLastInsertId(returnId)
                 .SetParameter(entity);
-            if (returnId && keyIdentityProperty != null)
+            PropertyInfo keyIdentityProperty;
+            if (returnId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
             {
                 var sql = sqlFactory.InsertSql;
                 var id = await connection.ExecuteScalarAsync<long>(sql, entity, transaction, commandTimeout);
@@ -521,17 +539,18 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public static async Task<bool> BulkAddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, bool returnId = false, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static async Task<bool> BulkAddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (entities == null || !entities.Any()) return false;
 
-            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true)
-                .ReturnLastInsertId(returnId, out var keyIdentityProperty)
-                .SetParameter(entities);
-            if (returnId && keyIdentityProperty != null)
+            if (returnId && typeof(TEntity).GetKeyIdentityProperty() != null)
             {
                 if (transaction?.Connection == null)
                 {
@@ -539,7 +558,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                     {
                         foreach (var entity in entities)
                         {
-                            if (!await connection.AddAsync(repository, entity, returnId, trans, commandTimeout))
+                            if (!await connection.AddAsync(repository, entity, returnId, fieldExpression, trans, commandTimeout))
                             {
                                 trans.Rollback();
                                 return false;
@@ -554,7 +573,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 {
                     foreach (var entity in entities)
                     {
-                        if (!await transaction.Connection.AddAsync(repository, entity, returnId, transaction, commandTimeout))
+                        if (!await transaction.Connection.AddAsync(repository, entity, returnId, fieldExpression, transaction, commandTimeout))
                         {
                             return false;
                         }
@@ -565,6 +584,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             }
             else
             {
+                IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                    .IncludeFields(fieldExpression)
+                    .ReturnLastInsertId(returnId)
+                    .SetParameter(entities);
                 return await sqlFactory.ExecuteInsertSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
             }
         }
@@ -624,7 +647,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="entity">实体</param>
-        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新。示例：
+        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新（不包含自增字段和忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -666,7 +689,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="entities">实体</param>
-        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新。示例：
+        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新（不包含自增字段和忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>

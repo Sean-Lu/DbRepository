@@ -1040,23 +1040,5 @@ namespace Sean.Core.DbRepository
         {
             return OrderByField(type, fieldExpression.GetMemberNames().ToArray());
         }
-
-        /// <summary>
-        /// 是否返回自增主键id（仅用于 <see cref="SqlFactory.InsertSql"/>）
-        /// </summary>
-        /// <param name="returnLastInsertId"></param>
-        /// <param name="keyIdentityProperty"></param>
-        /// <returns></returns>
-        public virtual SqlFactory<TEntity> ReturnLastInsertId(bool returnLastInsertId, out PropertyInfo keyIdentityProperty)
-        {
-            base.ReturnLastInsertId(returnLastInsertId);
-
-            keyIdentityProperty = null;
-            if (returnLastInsertId)
-            {
-                keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty();
-            }
-            return this;
-        }
     }
 }
