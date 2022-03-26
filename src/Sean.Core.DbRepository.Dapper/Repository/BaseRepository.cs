@@ -401,7 +401,12 @@ namespace Sean.Core.DbRepository.Dapper
                 return true;
             }
 
-            return Execute(connection => connection.IsTableExists(this, tableName), master);
+            var tableExists = Execute(connection => connection.IsTableExists(this, tableName), master);
+            if (tableExists)
+            {
+                TableInfoCache.IsTableExists(tableName, true);
+            }
+            return tableExists;
         }
         #endregion
 
@@ -685,7 +690,12 @@ namespace Sean.Core.DbRepository.Dapper
                 return true;
             }
 
-            return await ExecuteAsync(async connection => await connection.IsTableExistsAsync(this, tableName), master);
+            var tableExists = await ExecuteAsync(async connection => await connection.IsTableExistsAsync(this, tableName), master);
+            if (tableExists)
+            {
+                TableInfoCache.IsTableExists(tableName, true);
+            }
+            return tableExists;
         }
 #endif
         #endregion

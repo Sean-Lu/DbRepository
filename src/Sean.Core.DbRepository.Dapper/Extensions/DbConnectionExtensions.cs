@@ -455,22 +455,12 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 return false;
             }
 
-            if (TableInfoCache.IsTableExists(tableName))
-            {
-                return true;
-            }
-
             var dbType = repository.DbType;
             var dbName = connection.Database;
             var sql = dbType.GetSqlForIsTableExists(dbName, tableName);
             var result = connection.QueryFirstOrDefault<int>(sql);
             repository.OutputExecutedSql(sql, null);
-            var tableExists = result > 0;
-            if (tableExists)
-            {
-                TableInfoCache.IsTableExists(tableName, true);
-            }
-            return tableExists;
+            return result > 0;
         }
         #endregion
 
@@ -915,22 +905,12 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 return false;
             }
 
-            if (TableInfoCache.IsTableExists(tableName))
-            {
-                return true;
-            }
-
             var dbType = repository.DbType;
             var dbName = connection.Database;
             var sql = dbType.GetSqlForIsTableExists(dbName, tableName);
             var result = await connection.QueryFirstOrDefaultAsync<int>(sql);
             repository.OutputExecutedSql(sql, null);
-            var tableExists = result > 0;
-            if (tableExists)
-            {
-                TableInfoCache.IsTableExists(tableName, true);
-            }
-            return tableExists;
+            return result > 0;
         }
 #endif
         #endregion
