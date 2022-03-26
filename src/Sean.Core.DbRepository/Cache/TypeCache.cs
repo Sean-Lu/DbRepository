@@ -57,7 +57,7 @@ namespace Sean.Core.DbRepository
         }
     }
 
-    internal class EntityInfo
+    public class EntityInfo
     {
         /// <summary>
         /// 主表表名
@@ -75,7 +75,7 @@ namespace Sean.Core.DbRepository
         public List<TableFieldInfo> FieldInfos { get; set; } = new();
     }
 
-    internal class TableFieldInfo
+    public class TableFieldInfo
     {
         public PropertyInfo Property { get; set; }
         /// <summary>

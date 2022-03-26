@@ -8,6 +8,16 @@ namespace Sean.Core.DbRepository.Extensions
     public static class TypeExtensions
     {
         /// <summary>
+        /// 获取实体类信息
+        /// </summary>
+        /// <param name="entityClassType"></param>
+        /// <returns></returns>
+        public static EntityInfo GetEntityInfo(this Type entityClassType)
+        {
+            return TypeCache.GetEntityInfo(entityClassType);
+        }
+
+        /// <summary>
         /// 获取主表名称
         /// </summary>
         /// <param name="entityClassType"></param>
