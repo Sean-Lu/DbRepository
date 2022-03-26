@@ -35,7 +35,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) return false;
 
-            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+            IInsertableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .ReturnLastInsertId(returnId)
                 .SetParameter(entity);
@@ -124,7 +124,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             }
             else
             {
-                IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                IInsertableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                     .IncludeFields(fieldExpression)
                     .ReturnLastInsertId(returnId)
                     .SetParameter(entities);
@@ -147,7 +147,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false).SetParameter(entity);
+            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Create(repository, false).SetParameter(entity);
             return connection.Delete(repository, sqlFactory, transaction, commandTimeout) > 0;
         }
         /// <summary>
@@ -162,7 +162,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static int Delete<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Create(repository, false)
                 .Where(whereExpression);
             return sqlFactory.ExecuteDeleteSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
@@ -203,7 +203,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression, entity)
                 .Where(whereExpression);
             return connection.Update(repository, sqlFactory, transaction, commandTimeout);
@@ -291,7 +291,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static bool Incr<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
-            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Create(repository, false)
                 .IncludeFields(fieldExpression)
                 .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}")
                 .Where(whereExpression);
@@ -312,7 +312,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static bool Decr<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
-            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Create(repository, false)
                 .IncludeFields(fieldExpression)
                 .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}")
                 .Where(whereExpression);
@@ -348,7 +348,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static IEnumerable<TEntity> Query<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
-            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression)
                 .OrderBy(orderByCondition)
@@ -372,7 +372,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static IEnumerable<TEntity> QueryOffset<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
-            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression)
                 .OrderBy(orderByCondition)
@@ -408,7 +408,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static TEntity Get<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool singleCheck = false, int? commandTimeout = null)
         {
-            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression);
             return sqlFactory.ExecuteQuerySingleSql<TEntity>(connection, singleCheck, commandTimeout, repository.OutputExecutedSql);
@@ -436,7 +436,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static int Count<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, int? commandTimeout = null)
         {
-            ICountableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+            ICountableSql sqlFactory = SqlFactory<TEntity>.Create(repository, false)
                 .Where(whereExpression);
             return sqlFactory.ExecuteCountSql(connection, commandTimeout, repository.OutputExecutedSql);
         }
@@ -485,7 +485,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) return false;
 
-            IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+            IInsertableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .ReturnLastInsertId(returnId)
                 .SetParameter(entity);
@@ -574,7 +574,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             }
             else
             {
-                IInsertableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+                IInsertableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                     .IncludeFields(fieldExpression)
                     .ReturnLastInsertId(returnId)
                     .SetParameter(entities);
@@ -597,7 +597,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Build(repository, true).SetParameter(entity);
+            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Create(repository, true).SetParameter(entity);
             return await connection.DeleteAsync(repository, sqlFactory, transaction, commandTimeout) > 0;
         }
         /// <summary>
@@ -612,7 +612,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<int> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+            IDeleteableSql sqlFactory = SqlFactory<TEntity>.Create(repository, false)
                 .Where(whereExpression);
             return await sqlFactory.ExecuteDeleteSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
@@ -653,7 +653,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression, entity)
                 .Where(whereExpression);
             return await connection.UpdateAsync(repository, sqlFactory, transaction, commandTimeout);
@@ -741,7 +741,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<bool> IncrAsync<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
-            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Create(repository, false)
                 .IncludeFields(fieldExpression)
                 .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}")
                 .Where(whereExpression);
@@ -762,7 +762,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<bool> DecrAsync<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
-            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+            IUpdateableSql sqlFactory = SqlFactory<TEntity>.Create(repository, false)
                 .IncludeFields(fieldExpression)
                 .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}")
                 .Where(whereExpression);
@@ -798,7 +798,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<IEnumerable<TEntity>> QueryAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
-            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression)
                 .OrderBy(orderByCondition)
@@ -822,7 +822,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<IEnumerable<TEntity>> QueryOffsetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
-            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression)
                 .OrderBy(orderByCondition)
@@ -858,7 +858,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<TEntity> GetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool singleCheck = false, int? commandTimeout = null)
         {
-            IQueryableSql sqlFactory = SqlFactory<TEntity>.Build(repository, fieldExpression == null)
+            IQueryableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression);
             return await sqlFactory.ExecuteQuerySingleSqlAsync<TEntity>(connection, singleCheck, commandTimeout, repository.OutputExecutedSql);
@@ -886,7 +886,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<int> CountAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, int? commandTimeout = null)
         {
-            ICountableSql sqlFactory = SqlFactory<TEntity>.Build(repository, false)
+            ICountableSql sqlFactory = SqlFactory<TEntity>.Create(repository, false)
                 .Where(whereExpression);
             return await sqlFactory.ExecuteCountSqlAsync(connection, commandTimeout, repository.OutputExecutedSql);
         }

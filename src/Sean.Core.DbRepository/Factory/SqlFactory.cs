@@ -196,9 +196,30 @@ namespace Sean.Core.DbRepository
             TableName = tableName;
         }
 
-        public static SqlFactory Build(DatabaseType dbType, string tableName)
+        public static SqlFactory Create(DatabaseType dbType, string tableName)
         {
             return new(dbType, tableName);
+        }
+
+        public virtual IInsertableSql BuildInsertableSql()
+        {
+            return this;
+        }
+        public virtual IDeleteableSql BuildDeleteableSql()
+        {
+            return this;
+        }
+        public virtual IUpdateableSql BuildUpdateableSql()
+        {
+            return this;
+        }
+        public virtual IQueryableSql BuildQueryableSql()
+        {
+            return this;
+        }
+        public virtual ICountableSql BuildCountableSql()
+        {
+            return this;
         }
 
         /// <summary>
@@ -623,7 +644,7 @@ namespace Sean.Core.DbRepository
         /// <para><see cref="SqlFactory.IdentityFields"/></para>
         /// </param>
         /// <returns></returns>
-        public static SqlFactory<TEntity> Build(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+        public static SqlFactory<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
         {
             var sqlFactory = new SqlFactory<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
             if (autoIncludeFields)
@@ -642,9 +663,9 @@ namespace Sean.Core.DbRepository
         /// <para><see cref="SqlFactory.IdentityFields"/></para>
         /// </param>
         /// <returns></returns>
-        public static SqlFactory<TEntity> Build(IBaseRepository repository, bool autoIncludeFields)
+        public static SqlFactory<TEntity> Create(IBaseRepository repository, bool autoIncludeFields)
         {
-            return Build(repository.DbType, autoIncludeFields, repository.TableName());
+            return Create(repository.DbType, autoIncludeFields, repository.TableName());
         }
 
         #region override methods

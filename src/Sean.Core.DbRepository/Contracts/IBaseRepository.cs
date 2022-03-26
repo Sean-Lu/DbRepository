@@ -41,7 +41,7 @@ namespace Sean.Core.DbRepository
         void OutputExecutedSql(string sql, object param);
 
         /// <summary>
-        /// <see cref="SqlFactory{TEntity}.Build(DatabaseType, bool, string)"/>
+        /// <see cref="SqlFactory{TEntity}.Create(DatabaseType,bool,string)"/>
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="autoIncludeFields"></param>
@@ -138,7 +138,7 @@ namespace Sean.Core.DbRepository
         void CreateTableIfNotExist(string tableName, bool master = true);
 
         /// <summary>
-        /// <see cref="SqlFactory{TEntity}.Build(IBaseRepository, bool)"/>
+        /// <see cref="SqlFactory{TEntity}.Create(IBaseRepository,bool)"/>
         /// </summary>
         /// <param name="autoIncludeFields"></param>
         /// <returns></returns>
