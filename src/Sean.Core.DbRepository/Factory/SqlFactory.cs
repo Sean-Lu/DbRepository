@@ -12,127 +12,27 @@ namespace Sean.Core.DbRepository
     public class SqlFactory : IInsertableSql, IDeleteableSql, IUpdateableSql, IQueryableSql, ICountableSql
     {
         #region SQL
+
         /// <summary>
         /// SQL：新增数据
         /// </summary>
-        public virtual string InsertSql
-        {
-            get
-            {
-                var list = _includeFieldsList.Except(_identityFieldsList).ToList();
-                if (!list.Any())
-                    return string.Empty;
-                var fields = list.Select(fieldName => FormatFieldName(fieldName));
-                var parameters = list.Select(fieldName => SqlAdapter.FormatInputParameter(fieldName));
-                //return $"INSERT INTO {SqlAdapter.FormatTableName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});{(_returnLastInsertId ? SqlAdapter.GetSqlForSelectLastInsertId() : string.Empty)}";
-                var sb = new StringBuilder($"INSERT INTO {SqlAdapter.FormatTableName(TableName)}({string.Join(", ", fields)}) VALUES({string.Join(", ", parameters)});");
-                if (_returnLastInsertId)
-                {
-                    switch (SqlAdapter.DbType)
-                    {
-                        case DatabaseType.Oracle:
-                            var sequence = TypeCache.GetEntityInfo(_tableEntityType)?.Sequence;
-                            sb.Append(string.Format(SqlAdapter.GetSqlForSelectLastInsertId(), sequence));
-                            break;
-                        default:
-                            sb.Append(SqlAdapter.GetSqlForSelectLastInsertId());
-                            break;
-                    }
-                }
-                return sb.ToString();
-            }
-        }
+        public virtual string InsertSql { get; private set; }
         /// <summary>
         /// SQL：删除数据（为了防止误删除，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="AllowEmptyWhereClause"/> 设置允许空 WHERE 子句）
         /// </summary>
-        public virtual string DeleteSql
-        {
-            get
-            {
-                if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
-                    throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
-
-                return $"DELETE FROM {SqlAdapter.FormatTableName(TableName)}{WhereSql};";
-            }
-        }
+        public virtual string DeleteSql { get; private set; }
         /// <summary>
         /// SQL：更新数据（为了防止误更新，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="AllowEmptyWhereClause"/> 设置允许空 WHERE 子句）
         /// </summary>
-        public virtual string UpdateSql
-        {
-            get
-            {
-                if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
-                    throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
-
-                var list = _includeFieldsList.Except(_identityFieldsList).ToList();
-                if (!list.Any())
-                    return string.Empty;
-                var sets = _fieldCustomHandler != null
-                    ? list.Select(fieldName => _fieldCustomHandler(fieldName, SqlAdapter))
-                    : list.Select(fieldName => $"{FormatFieldName(fieldName)}={SqlAdapter.FormatInputParameter(fieldName)}");
-                return $"UPDATE {SqlAdapter.FormatTableName(TableName)} SET {string.Join(", ", sets)}{WhereSql};";
-            }
-        }
+        public virtual string UpdateSql { get; private set; }
         /// <summary>
         /// SQL：查询数据
         /// </summary>
-        public virtual string QuerySql
-        {
-            get
-            {
-                var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldName => $"{FormatFieldName(fieldName)}")) : "*";
-                //const string rowNumAlias = "ROW_NUM";
-                if (_topNumber.HasValue)
-                {
-                    // 查询前几行
-                    switch (SqlAdapter.DbType)
-                    {
-                        case DatabaseType.MySql:
-                        case DatabaseType.SQLite:
-                        case DatabaseType.PostgreSql:
-                            return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";
-                        case DatabaseType.SqlServer:
-                        case DatabaseType.SqlServerCe:
-                        case DatabaseType.Access:
-                            return $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
-                        case DatabaseType.Oracle:
-                            var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {_topNumber}" : $"{WhereSql} AND ROWNUM <= {_topNumber}";
-                            return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
-                        default:
-                            //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(TopNumber)}:{TopNumber}]");
-                            return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";// 同MySql
-                    }
-                }
-                else if (_pageIndex.HasValue && _pageSize.HasValue)
-                {
-                    // 分页查询
-                    var offset = (_pageIndex.Value - 1) * _pageSize.Value;// 偏移量
-                    var rows = _pageSize.Value;// 行数
-                    return GetQuerySql(selectFields, offset, rows);
-                }
-                else if (_offset.HasValue && _rows.HasValue)
-                {
-                    // 根据偏移量查询
-                    return GetQuerySql(selectFields, _offset.Value, _rows.Value);
-                }
-                else
-                {
-                    // 普通查询
-                    return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
-                }
-            }
-        }
+        public virtual string QuerySql { get; private set; }
         /// <summary>
         /// SQL：统计数量
         /// </summary>
-        public virtual string CountSql
-        {
-            get
-            {
-                return $"SELECT COUNT(1) FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql};";
-            }
-        }
+        public virtual string CountSql { get; private set; }
         #endregion
 
         public ISqlAdapter SqlAdapter { get; }
@@ -178,6 +78,7 @@ namespace Sean.Core.DbRepository
         private readonly Lazy<StringBuilder> _orderBy = new();
         private bool _returnLastInsertId;
         protected bool _allowEmptyWhereClause;
+        protected int? _bulkInsertEntityCount;
         private int? _topNumber;
         private int? _pageIndex;
         private int? _pageSize;
@@ -201,26 +102,126 @@ namespace Sean.Core.DbRepository
             return new(dbType, tableName);
         }
 
+        #region BuildSql
         public virtual IInsertableSql BuildInsertableSql()
         {
+            var list = _includeFieldsList.Except(_identityFieldsList).ToList();
+            if (!list.Any())
+                return this;
+
+            var fields = list.Select(fieldName => FormatFieldName(fieldName));
+            var sb = new StringBuilder($"INSERT INTO {SqlAdapter.FormatTableName(TableName)}({string.Join(", ", fields)}) VALUES");
+            if (!_bulkInsertEntityCount.HasValue)
+            {
+                var parameters = list.Select(fieldName => SqlAdapter.FormatInputParameter(fieldName));
+                sb.Append($"({string.Join(", ", parameters)});");
+            }
+            else
+            {
+                var bulkInsertEntityCount = _bulkInsertEntityCount.Value;
+                var listFieldInsert = new List<string>();
+                for (int i = 0; i < bulkInsertEntityCount; i++)
+                {
+                    var parameters = list.Select(fieldName => SqlAdapter.FormatInputParameter($"{fieldName}{i + 1}"));
+                    listFieldInsert.Add($"({string.Join(", ", parameters)})");
+                }
+                sb.Append(string.Join(",", listFieldInsert));
+                sb.Append(";");
+            }
+
+            if (_returnLastInsertId)
+            {
+                switch (SqlAdapter.DbType)
+                {
+                    case DatabaseType.Oracle:
+                        var sequence = TypeCache.GetEntityInfo(_tableEntityType)?.Sequence;
+                        sb.Append(string.Format(SqlAdapter.GetSqlForSelectLastInsertId(), sequence));
+                        break;
+                    default:
+                        sb.Append(SqlAdapter.GetSqlForSelectLastInsertId());
+                        break;
+                }
+            }
+            this.InsertSql = sb.ToString();
             return this;
         }
         public virtual IDeleteableSql BuildDeleteableSql()
         {
+            if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
+
+            this.DeleteSql = $"DELETE FROM {SqlAdapter.FormatTableName(TableName)}{WhereSql};";
             return this;
         }
         public virtual IUpdateableSql BuildUpdateableSql()
         {
+            if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
+
+            var list = _includeFieldsList.Except(_identityFieldsList).ToList();
+            if (!list.Any())
+                return this;
+
+            var sets = _fieldCustomHandler != null
+                ? list.Select(fieldName => _fieldCustomHandler(fieldName, SqlAdapter))
+                : list.Select(fieldName => $"{FormatFieldName(fieldName)}={SqlAdapter.FormatInputParameter(fieldName)}");
+            this.UpdateSql = $"UPDATE {SqlAdapter.FormatTableName(TableName)} SET {string.Join(", ", sets)}{WhereSql};";
             return this;
         }
         public virtual IQueryableSql BuildQueryableSql()
         {
+            var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldName => $"{FormatFieldName(fieldName)}")) : "*";
+            //const string rowNumAlias = "ROW_NUM";
+            if (_topNumber.HasValue)
+            {
+                // 查询前几行
+                switch (SqlAdapter.DbType)
+                {
+                    case DatabaseType.MySql:
+                    case DatabaseType.SQLite:
+                    case DatabaseType.PostgreSql:
+                        this.QuerySql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";
+                        break;
+                    case DatabaseType.SqlServer:
+                    case DatabaseType.SqlServerCe:
+                    case DatabaseType.Access:
+                        this.QuerySql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                        break;
+                    case DatabaseType.Oracle:
+                        var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {_topNumber}" : $"{WhereSql} AND ROWNUM <= {_topNumber}";
+                        this.QuerySql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
+                        break;
+                    default:
+                        //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(TopNumber)}:{TopNumber}]");
+                        this.QuerySql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";// 同MySql
+                        break;
+                }
+            }
+            else if (_pageIndex.HasValue && _pageSize.HasValue)
+            {
+                // 分页查询
+                var offset = (_pageIndex.Value - 1) * _pageSize.Value;// 偏移量
+                var rows = _pageSize.Value;// 行数
+                this.QuerySql = GetQuerySql(selectFields, offset, rows);
+            }
+            else if (_offset.HasValue && _rows.HasValue)
+            {
+                // 根据偏移量查询
+                this.QuerySql = GetQuerySql(selectFields, _offset.Value, _rows.Value);
+            }
+            else
+            {
+                // 普通查询
+                this.QuerySql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+            }
             return this;
         }
         public virtual ICountableSql BuildCountableSql()
         {
+            this.CountSql = $"SELECT COUNT(1) FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql};";
             return this;
         }
+        #endregion
 
         /// <summary>
         /// 包含字段
@@ -890,9 +891,9 @@ namespace Sean.Core.DbRepository
             else
             {
                 // 所有字段
-                foreach (var propertyInfo in instance.GetType().GetProperties())
+                foreach (var fieldInfo in typeof(TEntity).GetEntityInfo().FieldInfos)
                 {
-                    paramDic.Add(propertyInfo.Name, propertyInfo.GetValue(instance, null));
+                    paramDic.Add(fieldInfo.FieldName, fieldInfo.Property.GetValue(instance, null));
                 }
             }
             return paramDic;
@@ -1060,6 +1061,28 @@ namespace Sean.Core.DbRepository
         public virtual SqlFactory<TEntity> OrderByField<TProperty>(OrderByType type, Expression<Func<TEntity, TProperty>> fieldExpression)
         {
             return OrderByField(type, fieldExpression.GetMemberNames().ToArray());
+        }
+
+        public virtual SqlFactory<TEntity> BulkInsert(IEnumerable<TEntity> entities)
+        {
+            if (entities != null)
+            {
+                _bulkInsertEntityCount = entities.Count();
+
+                var paramDic = new Dictionary<string, object>();
+                var index = 0;
+                foreach (var entity in entities)
+                {
+                    index++;
+                    foreach (var fieldInfo in typeof(TEntity).GetEntityInfo().FieldInfos)
+                    {
+                        paramDic.Add($"{fieldInfo.FieldName}{index}", fieldInfo.Property.GetValue(entity, null));
+                    }
+                }
+
+                SetParameter(paramDic);
+            }
+            return this;
         }
     }
 }

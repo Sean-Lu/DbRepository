@@ -40,13 +40,13 @@ namespace Example.NetFramework.Impls.DbTest
             #endregion
 
             #region 新增数据
-            var sqlFactory = NewSqlFactory<TestEntity>(true);
+            var sqlFactory = NewSqlFactory<TestEntity>(true).BuildInsertableSql();
             //var insertResult = Factory.ExecuteNonQuery(sqlFactory.InsertSql, new DbParameter[] { new SQLiteParameter(nameof(TestEntity.CreateTime), DateTime.Now) });
             var insertResult2 = Execute(c => c.Execute(sqlFactory.InsertSql, new TestEntity { CreateTime = DateTime.Now }));
             #endregion
 
             #region 查询数据
-            var sqlFactory2 = NewSqlFactory<TestEntity>(true).Page(1, 2);
+            var sqlFactory2 = NewSqlFactory<TestEntity>(true).Page(1, 2).BuildQueryableSql();
             //var queryResult = Factory.GetList<TestEntity>(sqlFactory2.QuerySql);
             var queryResult2 = Execute(c => c.Query<TestEntity>(sqlFactory2.QuerySql, new { }));
             _logger.LogInfo(JsonConvert.SerializeObject(queryResult2, Formatting.Indented));

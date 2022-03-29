@@ -52,7 +52,7 @@ namespace Example.NetFramework.Impls.DbTest
             //    IP = "127.0.0.1"
             //};
             //var addResult = Add(entity, true);
-            //_logger.LogInfo($"新增单条数据结果：{addResult}{Environment.NewLine}{JsonHelper.SerializeFormatIndented(entity)}");
+            //_logger.LogInfo($"新增单条数据结果：{addResult}{Environment.NewLine}{JsonConvert.SerializeObject(entity, Formatting.Indented)}");
             #endregion
 
             #region 新增批量数据
@@ -66,8 +66,8 @@ namespace Example.NetFramework.Impls.DbTest
             //        IP = "127.0.0.1"
             //    }
             //};
-            //var addBatchResult = Add(list, true);
-            //_logger.LogInfo($"新增批量数据结果：{addBatchResult}{Environment.NewLine}{JsonHelper.SerializeFormatIndented(list)}");
+            //var addBatchResult = Add(list);
+            //_logger.LogInfo($"新增批量数据结果：{addBatchResult}{Environment.NewLine}{JsonConvert.SerializeObject(list, Formatting.Indented)}");
             #endregion
 
             //var isTableExists = IsTableExists($"{MainTableName}");
@@ -77,21 +77,21 @@ namespace Example.NetFramework.Impls.DbTest
         private void DapperQueryTest()
         {
             var sqlFactory = NewSqlFactory(true)
-                .Where(entity => entity.UserId == 100000);
-            var sql = sqlFactory.QuerySql;
+                .Where(entity => entity.UserId == 100000)
+                .BuildQueryableSql();
 
             #region Dapper > QueryFirst\QueryFirstOrDefault
             // 没有结果返回时，QueryFirst 方法会报错（System.InvalidOperationException:“序列不包含任何元素”），QueryFirstOrDefault 方法会返回默认值
             // 有多个结果返回时，2个方法都会返回第一个结果
-            //var get1 = Execute(c => c.QueryFirst<CheckInLogEntity>(sql, sqlFactory.Parameter));
-            var get2 = Execute(c => c.QueryFirstOrDefault<CheckInLogEntity>(sql, sqlFactory.Parameter));
+            //var get1 = Execute(c => c.QueryFirst<CheckInLogEntity>(sqlFactory.QuerySql, sqlFactory.Parameter));
+            var get2 = Execute(c => c.QueryFirstOrDefault<CheckInLogEntity>(sqlFactory.QuerySql, sqlFactory.Parameter));
             #endregion
 
             #region Dapper > QuerySingle\QuerySingleOrDefault
             // 没有结果返回时，QuerySingle 方法会报错（System.InvalidOperationException:“序列不包含任何元素”），QuerySingleOrDefault 方法会返回默认值
             // 有多个结果返回时，2个方法都会报错（System.InvalidOperationException:“序列包含一个以上的元素”）
-            //var get3 = Execute(c => c.QuerySingle<CheckInLogEntity>(sql, sqlFactory.Parameter));
-            //var get4 = Execute(c => c.QuerySingleOrDefault<CheckInLogEntity>(sql, sqlFactory.Parameter));
+            //var get3 = Execute(c => c.QuerySingle<CheckInLogEntity>(sqlFactory.QuerySql, sqlFactory.Parameter));
+            //var get4 = Execute(c => c.QuerySingleOrDefault<CheckInLogEntity>(sqlFactory.QuerySql, sqlFactory.Parameter));
             #endregion
         }
 

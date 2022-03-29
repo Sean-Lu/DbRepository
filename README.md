@@ -119,6 +119,19 @@ Get<T>()、GetList<T>() 其中 T ：
 </configuration>
 ```
 
+## 性能对比（Performance Comparison）
+
+> `Dapper`的`Execute`方法执行插入语句的本质是一条一条的插入，当数据量非常大时会很慢，可以把多条数据拼成一条脚本一次性执行。
+
+- 以下测试结果来自单元测试：**`PerformanceComparisonTest.CompareBulkInsertTimeConsumed`**
+- 测试数据库：MySQL 8.0.27
+- 测试表：Test
+
+| Operations       | 50 Entities | 200 Entities | 1,000 Entities | 2,000 Entities | 5,000 Entities |
+| ---------------- | ----------- | ------------ | -------------- | -------------- | -------------- |
+| `Dapper.Execute` | 351 ms      | 1370 ms      | 6639 ms        | 12165 ms       | 31318 ms       |
+| `BulkInsert`     | 15 ms       | 34 ms        | 437 ms         | 1674 ms        | 15062 ms       |
+
 ## 使用示例
 
 > 项目：`examples\Example.NetCore`

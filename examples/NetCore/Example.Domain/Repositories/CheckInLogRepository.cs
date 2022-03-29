@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Dapper;
+using Sean.Core.DbRepository.Dapper.Extensions;
 using Sean.Utility.Contracts;
 
 namespace Example.Domain.Repositories
@@ -59,7 +60,8 @@ namespace Example.Domain.Repositories
         {
             //return await DeleteAsync(NewSqlFactory(false)
             //    .WhereField(entity => entity.Id, SqlOperation.Equal)
-            //    .SetParameter(new { Id = id })) > 0;
+            //    .SetParameter(new { Id = id })
+            //    .BuildDeleteableSql()) > 0;
 
             return await DeleteAsync(entity => entity.Id == id) > 0;
         }
@@ -70,7 +72,8 @@ namespace Example.Domain.Repositories
             //return await UpdateAsync(NewSqlFactory(false)
             //    .IncludeFields(entity => entity.CheckInType)
             //    .WhereField(entity => entity.Id, SqlOperation.Equal)
-            //    .SetParameter(new { Id = id, CheckInType = checkInType })) > 0;
+            //    .SetParameter(new { Id = id, CheckInType = checkInType })
+            //    .BuildUpdateableSql()) > 0;
 
             return await UpdateAsync(new CheckInLogEntity
             {
@@ -86,7 +89,8 @@ namespace Example.Domain.Repositories
             //    .Page(pageIndex, pageSize)
             //    .Where($"{nameof(CheckInLogEntity.UserId)} = @{nameof(CheckInLogEntity.UserId)} AND {nameof(CheckInLogEntity.CheckInType)} IN @{nameof(CheckInLogEntity.CheckInType)}")
             //    .OrderBy($"{nameof(CheckInLogEntity.UserId)} ASC, {nameof(CheckInLogEntity.CreateTime)} DESC")
-            //    .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } });
+            //    .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
+            //    .BuildQueryableSql();
 
             //// SqlFactory 示例2：
             //var sqlFactory = NewSqlFactory(true)
@@ -95,7 +99,8 @@ namespace Example.Domain.Repositories
             //    .WhereField(nameof(CheckInLogEntity.CheckInType), SqlOperation.In, WhereSqlKeyword.And)
             //    .OrderByField(OrderByType.Asc, nameof(CheckInLogEntity.UserId))
             //    .OrderByField(OrderByType.Desc, nameof(CheckInLogEntity.CreateTime))
-            //    .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } });
+            //    .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
+            //    .BuildQueryableSql();
 
             //// SqlFactory 示例3：
             //var sqlFactory = NewSqlFactory(true)
@@ -112,7 +117,8 @@ namespace Example.Domain.Repositories
             //        CheckInType = new[] { 1, 2 },
             //        StartTime = DateTime.Parse("2020-1-1 00:00:00"),
             //        EndTime = DateTime.Now
-            //    });
+            //    })
+            //    .BuildQueryableSql();
             #endregion
 
             #region 返回结果示例
