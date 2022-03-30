@@ -12,17 +12,16 @@ namespace Sean.Core.DbRepository
     public class SqlFactory : IInsertableSql, IDeleteableSql, IUpdateableSql, IQueryableSql, ICountableSql
     {
         #region SQL
-
         /// <summary>
         /// SQL：新增数据
         /// </summary>
         public virtual string InsertSql { get; private set; }
         /// <summary>
-        /// SQL：删除数据（为了防止误删除，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="AllowEmptyWhereClause"/> 设置允许空 WHERE 子句）
+        /// SQL：删除数据
         /// </summary>
         public virtual string DeleteSql { get; private set; }
         /// <summary>
-        /// SQL：更新数据（为了防止误更新，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="AllowEmptyWhereClause"/> 设置允许空 WHERE 子句）
+        /// SQL：更新数据
         /// </summary>
         public virtual string UpdateSql { get; private set; }
         /// <summary>
@@ -103,6 +102,10 @@ namespace Sean.Core.DbRepository
         }
 
         #region BuildSql
+        /// <summary>
+        /// 创建SQL：新增数据
+        /// </summary>
+        /// <returns></returns>
         public virtual IInsertableSql BuildInsertableSql()
         {
             var list = _includeFieldsList.Except(_identityFieldsList).ToList();
@@ -145,6 +148,10 @@ namespace Sean.Core.DbRepository
             this.InsertSql = sb.ToString();
             return this;
         }
+        /// <summary>
+        /// 创建SQL：删除数据（为了防止误删除，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="AllowEmptyWhereClause"/> 设置允许空 WHERE 子句）
+        /// </summary>
+        /// <returns></returns>
         public virtual IDeleteableSql BuildDeleteableSql()
         {
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
@@ -153,6 +160,10 @@ namespace Sean.Core.DbRepository
             this.DeleteSql = $"DELETE FROM {SqlAdapter.FormatTableName(TableName)}{WhereSql};";
             return this;
         }
+        /// <summary>
+        /// 创建SQL：更新数据（为了防止误更新，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="AllowEmptyWhereClause"/> 设置允许空 WHERE 子句）
+        /// </summary>
+        /// <returns></returns>
         public virtual IUpdateableSql BuildUpdateableSql()
         {
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
@@ -168,6 +179,10 @@ namespace Sean.Core.DbRepository
             this.UpdateSql = $"UPDATE {SqlAdapter.FormatTableName(TableName)} SET {string.Join(", ", sets)}{WhereSql};";
             return this;
         }
+        /// <summary>
+        /// 创建SQL：查询数据
+        /// </summary>
+        /// <returns></returns>
         public virtual IQueryableSql BuildQueryableSql()
         {
             var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldName => $"{FormatFieldName(fieldName)}")) : "*";
@@ -216,6 +231,10 @@ namespace Sean.Core.DbRepository
             }
             return this;
         }
+        /// <summary>
+        /// 创建SQL：统计数量
+        /// </summary>
+        /// <returns></returns>
         public virtual ICountableSql BuildCountableSql()
         {
             this.CountSql = $"SELECT COUNT(1) FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql};";
@@ -596,40 +615,6 @@ namespace Sean.Core.DbRepository
 
     public class SqlFactory<TEntity> : SqlFactory
     {
-        #region override properties
-        /// <summary>
-        /// SQL：删除数据（如果没有指定WHERE过滤条件，且没有设置 <see cref="AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段）
-        /// </summary>
-        public override string DeleteSql
-        {
-            get
-            {
-                if (string.IsNullOrWhiteSpace(WhereSql) && !_allowEmptyWhereClause)
-                {
-                    typeof(TEntity).GetPrimaryKeys().ForEach(fieldName => WhereField(fieldName, SqlOperation.Equal));
-                }
-
-                return base.DeleteSql;
-            }
-        }
-
-        /// <summary>
-        /// SQL：更新数据（如果没有指定WHERE过滤条件，且没有设置 <see cref="AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段）
-        /// </summary>
-        public override string UpdateSql
-        {
-            get
-            {
-                if (string.IsNullOrWhiteSpace(WhereSql) && !_allowEmptyWhereClause)
-                {
-                    typeof(TEntity).GetPrimaryKeys().ForEach(fieldName => WhereField(fieldName, SqlOperation.Equal));
-                }
-
-                return base.UpdateSql;
-            }
-        }
-        #endregion
-
         private SqlFactory(DatabaseType dbType, string tableName) : base(dbType, tableName)
         {
             base.Table<TEntity>();
@@ -670,6 +655,33 @@ namespace Sean.Core.DbRepository
         }
 
         #region override methods
+        /// <summary>
+        /// 创建SQL：删除数据（如果没有指定WHERE过滤条件，且没有设置 <see cref="AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段）
+        /// </summary>
+        /// <returns></returns>
+        public override IDeleteableSql BuildDeleteableSql()
+        {
+            if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
+            {
+                typeof(TEntity).GetPrimaryKeys().ForEach(fieldName => WhereField(fieldName, SqlOperation.Equal));
+            }
+
+            return base.BuildDeleteableSql();
+        }
+        /// <summary>
+        /// 创建SQL：更新数据（如果没有指定WHERE过滤条件，且没有设置 <see cref="AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段）
+        /// </summary>
+        /// <returns></returns>
+        public override IUpdateableSql BuildUpdateableSql()
+        {
+            if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
+            {
+                typeof(TEntity).GetPrimaryKeys().ForEach(fieldName => WhereField(fieldName, SqlOperation.Equal));
+            }
+
+            return base.BuildUpdateableSql();
+        }
+
         /// <summary>
         /// 包含字段
         /// </summary>

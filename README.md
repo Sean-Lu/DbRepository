@@ -132,7 +132,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | `Dapper.Execute` | 351 ms      | 1370 ms      | 6639 ms        | 12165 ms       | 31318 ms       |
 | `BulkInsert`     | 15 ms       | 34 ms        | 437 ms         | 1674 ms        | 15062 ms       |
 
-## 使用示例
+## 使用示例（Example）
 
 > 项目：`examples\Example.NetCore`
 > 
