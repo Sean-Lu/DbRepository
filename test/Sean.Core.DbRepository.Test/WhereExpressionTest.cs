@@ -137,10 +137,10 @@ namespace Sean.Core.DbRepository.Test
             var expectedParameters = new Dictionary<string, object>
             {
                 { $"{nameof(TestEntity.CreateTime)}", startTime },
-                { $"{nameof(TestEntity.CreateTime)}1", endTime },
+                { $"{nameof(TestEntity.CreateTime)}_2", endTime },
             };
             Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.CreateTime))})" +
-                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} < {_sqlAdapter.FormatInputParameter($"{nameof(TestEntity.CreateTime)}1")})", whereClause);
+                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} < {_sqlAdapter.FormatInputParameter($"{nameof(TestEntity.CreateTime)}_2")})", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -157,10 +157,10 @@ namespace Sean.Core.DbRepository.Test
             var expectedParameters = new Dictionary<string, object>
             {
                 { $"{nameof(TestEntity.CreateTime)}", startTime },
-                { $"{nameof(TestEntity.CreateTime)}1", endTime },
+                { $"{nameof(TestEntity.CreateTime)}_2", endTime },
             };
             Assert.AreEqual($"({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.CreateTime))})" +
-                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} < {_sqlAdapter.FormatInputParameter($"{nameof(TestEntity.CreateTime)}1")})", whereClause);
+                            $" AND ({_sqlAdapter.FormatFieldName(nameof(TestEntity.CreateTime))} < {_sqlAdapter.FormatInputParameter($"{nameof(TestEntity.CreateTime)}_2")})", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 

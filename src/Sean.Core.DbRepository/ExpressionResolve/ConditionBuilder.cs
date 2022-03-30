@@ -24,7 +24,7 @@ namespace Sean.Core.DbRepository
                 }
             }
 
-            string parameterName = EnsureParameter(memberInfo, adhesive);
+            string parameterName = UniqueParameter(memberInfo, adhesive);
             adhesive.Parameters.Add($"{parameterName}", value);
             return new StringBuilder($"{fieldName} {comparison.ToComparisonSymbol()} {adhesive.SqlAdapter.FormatInputParameter(parameterName)}");
         }
@@ -59,7 +59,7 @@ namespace Sean.Core.DbRepository
             {
                 var memberInfo = memberExpression.Member;
                 string fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.Name);
-                string parameterName = EnsureParameter(memberInfo, adhesive);
+                string parameterName = UniqueParameter(memberInfo, adhesive);
                 object value = ConstantExtractor.ParseConstant(methodCallExpression.Arguments[0]);
                 adhesive.Parameters.Add($"{parameterName}", string.Format(valueSymbol, value));
                 return new StringBuilder(string.Format($"{fieldName} {symbol}", $"{adhesive.SqlAdapter.FormatInputParameter(parameterName)}"));
@@ -72,7 +72,7 @@ namespace Sean.Core.DbRepository
         {
             var memberInfo = memberExpression.Member;
             string fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.Name);
-            string parameterName = EnsureParameter(memberInfo, adhesive);
+            string parameterName = UniqueParameter(memberInfo, adhesive);
             object value = ConstantExtractor.ParseConstant(valueExpression);
             adhesive.Parameters.Add($"{parameterName}", value);
             return new StringBuilder($"{fieldName} IN {adhesive.SqlAdapter.FormatInputParameter(parameterName)}");
@@ -92,20 +92,25 @@ namespace Sean.Core.DbRepository
             throw new NotSupportedException($"Unsupported expression type: {methodCallExpression.Object?.GetType()}");
         }
 
-        public static string EnsureParameter(MemberInfo mi, WhereClauseAdhesive adhesive)
+        public static string UniqueParameter(MemberInfo mi, WhereClauseAdhesive adhesive)
         {
-            return EnsureParameter(mi.Name, adhesive.Parameters);
+            return UniqueParameter(mi.Name, adhesive.Parameters);
         }
 
-        public static string EnsureParameter(string paramName, Dictionary<string, object> parameterDic)
+        public static string UniqueParameter(string paramName, Dictionary<string, object> parameterDic)
         {
-            int seed = 1;
-            string tempKey = paramName;
-            while (parameterDic.ContainsKey(tempKey))
+            if (!parameterDic.ContainsKey(paramName))
             {
-                tempKey = $"{paramName}{seed++}";
+                return paramName;
             }
-            return tempKey;
+
+            int seed = 2;
+            string tempParam;
+            do
+            {
+                tempParam = $"{paramName}_{seed++}";
+            } while (parameterDic.ContainsKey(tempParam));
+            return tempParam;
         }
 
         private static string ToComparisonSymbol(this ExpressionType expressionType)

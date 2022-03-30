@@ -49,15 +49,15 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 包含字段
         /// </summary>
-        private readonly List<string> _includeFieldsList = new();
+        protected readonly List<string> _includeFieldsList = new();
         /// <summary>
         /// 忽略字段
         /// </summary>
-        private readonly List<string> _ignoreFieldsList = new();
+        protected readonly List<string> _ignoreFieldsList = new();
         /// <summary>
         /// 自增字段
         /// </summary>
-        private readonly List<string> _identityFieldsList = new();
+        protected readonly List<string> _identityFieldsList = new();
 
         protected string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
         protected string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
@@ -78,6 +78,7 @@ namespace Sean.Core.DbRepository
         private bool _returnLastInsertId;
         protected bool _allowEmptyWhereClause;
         protected int? _bulkInsertEntityCount;
+        protected string _bulkInsertValuesString;
         private int? _topNumber;
         private int? _pageIndex;
         private int? _pageSize;
@@ -121,15 +122,7 @@ namespace Sean.Core.DbRepository
             }
             else
             {
-                var bulkInsertEntityCount = _bulkInsertEntityCount.Value;
-                var listFieldInsert = new List<string>();
-                for (int i = 0; i < bulkInsertEntityCount; i++)
-                {
-                    var parameters = list.Select(fieldName => SqlAdapter.FormatInputParameter($"{fieldName}{i + 1}"));
-                    listFieldInsert.Add($"({string.Join(", ", parameters)})");
-                }
-                sb.Append(string.Join(",", listFieldInsert));
-                sb.Append(";");
+                sb.Append($"{_bulkInsertValuesString};");
             }
 
             if (_returnLastInsertId)
@@ -894,7 +887,7 @@ namespace Sean.Core.DbRepository
                     var propertyInfo = instance.GetType().GetProperty(field);
                     if (propertyInfo == null)
                     {
-                        throw new InvalidOperationException($"在[{typeof(TEntity).FullName}]中未找到公共属性：{field}");
+                        throw new InvalidOperationException($"Public property [{field}] not found in [{typeof(TEntity).FullName}].");
                     }
 
                     paramDic.Add(propertyInfo.Name, propertyInfo.GetValue(instance, null));
@@ -934,7 +927,7 @@ namespace Sean.Core.DbRepository
 
             if (entity != null)
             {
-                var paramDic = ConvertToParameter(entity, null); //ConvertToParameter(entity, fields);
+                var paramDic = ConvertToParameter(entity); //ConvertToParameter(entity, fields);
                 if (paramDic != null && paramDic.Any())
                 {
                     SetParameter(paramDic);
@@ -1077,21 +1070,33 @@ namespace Sean.Core.DbRepository
 
         public virtual SqlFactory<TEntity> BulkInsert(IEnumerable<TEntity> entities)
         {
-            if (entities != null)
+            if (entities != null && entities.Any())
             {
                 _bulkInsertEntityCount = entities.Count();
 
                 var paramDic = new Dictionary<string, object>();
                 var index = 0;
+                var insertValueParams = new List<string>();
+                var parameterNames = new List<string>();
                 foreach (var entity in entities)
                 {
                     index++;
+                    parameterNames.Clear();
                     foreach (var fieldInfo in typeof(TEntity).GetEntityInfo().FieldInfos)
                     {
-                        paramDic.Add($"{fieldInfo.FieldName}{index}", fieldInfo.Property.GetValue(entity, null));
+                        if (!_includeFieldsList.Contains(fieldInfo.FieldName))// 过滤不包含的字段
+                        {
+                            continue;
+                        }
+
+                        var parameterName = ConditionBuilder.UniqueParameter($"{fieldInfo.FieldName}_{index}", paramDic);
+                        parameterNames.Add(SqlAdapter.FormatInputParameter(parameterName));
+                        paramDic.Add(parameterName, fieldInfo.Property.GetValue(entity, null));
                     }
+                    insertValueParams.Add($"({string.Join(", ", parameterNames)})");
                 }
 
+                _bulkInsertValuesString = string.Join(",", insertValueParams);
                 SetParameter(paramDic);
             }
             return this;

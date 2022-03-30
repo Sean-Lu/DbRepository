@@ -13,6 +13,9 @@ using Sean.Utility.Contracts;
 
 namespace Sean.Core.DbRepository.Test
 {
+    /// <summary>
+    /// XXXRepository 测试
+    /// </summary>
     [TestClass]
     public class TableRepositoryTest : TestBase
     {

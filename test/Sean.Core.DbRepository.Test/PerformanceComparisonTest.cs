@@ -12,6 +12,9 @@ using Sean.Utility.Contracts;
 
 namespace Sean.Core.DbRepository.Test
 {
+    /// <summary>
+    /// 性能对比测试
+    /// </summary>
     [TestClass]
     public class PerformanceComparisonTest : TestBase
     {
