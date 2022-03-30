@@ -40,6 +40,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 .ReturnLastInsertId(returnId)
                 .SetParameter(entity)
                 .BuildInsertableSql();
+
             PropertyInfo keyIdentityProperty;
             if (returnId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
             {
@@ -53,10 +54,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 }
                 return false;
             }
-            else
-            {
-                return sqlFactory.ExecuteInsertSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
-            }
+
+            return sqlFactory.ExecuteInsertSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
         /// <summary>
         /// 新增数据
@@ -127,8 +126,9 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             {
                 IInsertableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                     .IncludeFields(fieldExpression)
-                    .ReturnLastInsertId(returnId)
-                    .SetParameter(entities)
+                    //.ReturnLastInsertId(returnId)
+                    //.SetParameter(entities)
+                    .BulkInsert(entities)
                     .BuildInsertableSql();
                 return sqlFactory.ExecuteInsertSql(connection, transaction, commandTimeout, repository.OutputExecutedSql);
             }
@@ -502,6 +502,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 .ReturnLastInsertId(returnId)
                 .SetParameter(entity)
                 .BuildInsertableSql();
+
             PropertyInfo keyIdentityProperty;
             if (returnId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
             {
@@ -515,10 +516,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 }
                 return false;
             }
-            else
-            {
-                return await sqlFactory.ExecuteInsertSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
-            }
+
+            return await sqlFactory.ExecuteInsertSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
         /// <summary>
         /// 新增数据
@@ -589,8 +588,9 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             {
                 IInsertableSql sqlFactory = SqlFactory<TEntity>.Create(repository, fieldExpression == null)
                     .IncludeFields(fieldExpression)
-                    .ReturnLastInsertId(returnId)
-                    .SetParameter(entities)
+                    //.ReturnLastInsertId(returnId)
+                    //.SetParameter(entities)
+                    .BulkInsert(entities)
                     .BuildInsertableSql();
                 return await sqlFactory.ExecuteInsertSqlAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
             }

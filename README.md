@@ -129,8 +129,8 @@ Get<T>()、GetList<T>() 其中 T ：
 
 | Operations       | 50 Entities | 200 Entities | 1,000 Entities | 2,000 Entities | 5,000 Entities |
 | ---------------- | ----------- | ------------ | -------------- | -------------- | -------------- |
-| `Dapper.Execute` | 351 ms      | 1370 ms      | 6639 ms        | 12165 ms       | 31318 ms       |
-| `BulkInsert`     | 15 ms       | 34 ms        | 437 ms         | 1674 ms        | 15062 ms       |
+| `Dapper.Execute` | 446 ms      | 1370 ms      | 6639 ms        | 12165 ms       | 31318 ms       |
+| `BulkInsert`     | 10 ms       | 34 ms        | 437 ms         | 1674 ms        | 15062 ms       |
 
 ## 使用示例（Example）
 
