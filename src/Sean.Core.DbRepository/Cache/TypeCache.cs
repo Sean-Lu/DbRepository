@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository
 {
@@ -22,16 +23,32 @@ namespace Sean.Core.DbRepository
                 return null;
             }
 
-            if (_entityInfoDic.TryGetValue(entityClassType, out var entityInfo) && entityInfo != null)
+            if (_entityInfoDic.TryGetValue(entityClassType, out var entityInfo) && entityInfo != null)// 先从缓存中读取
             {
                 return entityInfo;
             }
 
             entityInfo = new EntityInfo
             {
-                MainTableName = entityClassType.GetCustomAttributesExt<TableAttribute>(true).FirstOrDefault()?.Name ?? entityClassType.Name,
-                Sequence = entityClassType.GetCustomAttributesExt<SequenceAttribute>(true).FirstOrDefault()?.Name
+                FieldInfos = new List<TableFieldInfo>()
             };
+
+            if (entityClassType.IsAnonymousType())
+            {
+                // 匿名类型特殊处理，不走缓存
+                foreach (var propertyInfo in entityClassType.GetProperties())
+                {
+                    entityInfo.FieldInfos.Add(new TableFieldInfo
+                    {
+                        Property = propertyInfo,
+                        FieldName = propertyInfo.Name
+                    });
+                }
+                return entityInfo;
+            }
+
+            entityInfo.MainTableName = entityClassType.GetCustomAttributesExt<TableAttribute>(true).FirstOrDefault()?.Name ?? entityClassType.Name;
+            entityInfo.Sequence = entityClassType.GetCustomAttributesExt<SequenceAttribute>(true).FirstOrDefault()?.Name;
 
             var propertyInfos = entityClassType.GetProperties();
             foreach (var propertyInfo in propertyInfos)
@@ -52,7 +69,7 @@ namespace Sean.Core.DbRepository
                 entityInfo.FieldInfos.Add(fieldInfo);
             }
 
-            _entityInfoDic.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);
+            _entityInfoDic.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);// 更新缓存
             return entityInfo;
         }
     }
@@ -72,7 +89,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 所有字段信息
         /// </summary>
-        public List<TableFieldInfo> FieldInfos { get; set; } = new();
+        public List<TableFieldInfo> FieldInfos { get; set; }
     }
 
     public class TableFieldInfo

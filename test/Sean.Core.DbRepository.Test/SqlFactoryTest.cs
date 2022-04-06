@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Sean.Core.DbRepository.Test
 {
     /// <summary>
-    /// <see cref="SqlFactory"/> 测试
+    /// <see cref="SqlFactory"/> Test
     /// </summary>
     [TestClass]
     public class SqlFactoryTest : TestBase

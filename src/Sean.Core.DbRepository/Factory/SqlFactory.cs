@@ -113,16 +113,16 @@ namespace Sean.Core.DbRepository
             if (!list.Any())
                 return this;
 
+            var sb = new StringBuilder();
             var fields = list.Select(fieldName => FormatFieldName(fieldName));
-            var sb = new StringBuilder($"INSERT INTO {SqlAdapter.FormatTableName(TableName)}({string.Join(", ", fields)}) VALUES");
             if (!_bulkInsertEntityCount.HasValue)
             {
                 var parameters = list.Select(fieldName => SqlAdapter.FormatInputParameter(fieldName));
-                sb.Append($"({string.Join(", ", parameters)});");
+                sb.Append(string.Format(InsertableSqlBuilder.SqlTemplate, SqlAdapter.FormatTableName(TableName), string.Join(", ", fields), $"({string.Join(", ", parameters)})"));
             }
             else
             {
-                sb.Append($"{_bulkInsertValuesString};");
+                sb.Append(string.Format(InsertableSqlBuilder.SqlTemplate, SqlAdapter.FormatTableName(TableName), string.Join(", ", fields), _bulkInsertValuesString));
             }
 
             if (_returnLastInsertId)
@@ -138,6 +138,7 @@ namespace Sean.Core.DbRepository
                         break;
                 }
             }
+
             this.InsertSql = sb.ToString();
             return this;
         }
@@ -882,15 +883,17 @@ namespace Sean.Core.DbRepository
             if (fields != null && fields.Any())
             {
                 // 指定字段
+                var type = instance.GetType();
+                var tableFieldInfos = type.GetEntityInfo().FieldInfos;
                 foreach (var field in fields)
                 {
-                    var propertyInfo = instance.GetType().GetProperty(field);
-                    if (propertyInfo == null)
+                    var fieldInfo = tableFieldInfos.Find(c => c.FieldName == field);
+                    if (fieldInfo == null)
                     {
-                        throw new InvalidOperationException($"Public property [{field}] not found in [{typeof(TEntity).FullName}].");
+                        throw new InvalidOperationException($"Table field [{field}] not found in [{typeof(TEntity).FullName}].");
                     }
 
-                    paramDic.Add(propertyInfo.Name, propertyInfo.GetValue(instance, null));
+                    paramDic.Add(fieldInfo.FieldName, fieldInfo.Property.GetValue(instance, null));
                 }
             }
             else
@@ -1074,6 +1077,8 @@ namespace Sean.Core.DbRepository
             {
                 _bulkInsertEntityCount = entities.Count();
 
+                var fields = _includeFieldsList.Except(_identityFieldsList).ToList();
+                var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
                 var paramDic = new Dictionary<string, object>();
                 var index = 0;
                 var insertValueParams = new List<string>();
@@ -1082,13 +1087,13 @@ namespace Sean.Core.DbRepository
                 {
                     index++;
                     parameterNames.Clear();
-                    foreach (var fieldInfo in typeof(TEntity).GetEntityInfo().FieldInfos)
+                    foreach (var field in fields)
                     {
-                        if (!_includeFieldsList.Contains(fieldInfo.FieldName))// 过滤不包含的字段
+                        var fieldInfo = tableFieldInfos.Find(c => c.FieldName == field);
+                        if (fieldInfo == null)
                         {
-                            continue;
+                            throw new InvalidOperationException($"Table field [{field}] not found in [{typeof(TEntity).FullName}].");
                         }
-
                         var parameterName = ConditionBuilder.UniqueParameter($"{fieldInfo.FieldName}_{index}", paramDic);
                         parameterNames.Add(SqlAdapter.FormatInputParameter(parameterName));
                         paramDic.Add(parameterName, fieldInfo.Property.GetValue(entity, null));
