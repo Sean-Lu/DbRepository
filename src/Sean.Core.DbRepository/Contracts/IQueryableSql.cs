@@ -2,6 +2,6 @@
 {
     public interface IQueryableSql : ISqlParameter
     {
-        string QuerySql { get; }
+        string QuerySql { get; set; }
     }
 }

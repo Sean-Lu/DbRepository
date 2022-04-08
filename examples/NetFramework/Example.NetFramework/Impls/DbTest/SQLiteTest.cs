@@ -5,6 +5,7 @@ using Dapper;
 using Example.NetFramework.Entities;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
+using Sean.Core.DbRepository.Extensions;
 using Sean.Utility.Contracts;
 using Sean.Utility.Impls.Log;
 
@@ -40,15 +41,18 @@ namespace Example.NetFramework.Impls.DbTest
             #endregion
 
             #region 新增数据
-            var sqlFactory = NewSqlFactory<TestEntity>(true).BuildInsertableSql();
-            //var insertResult = Factory.ExecuteNonQuery(sqlFactory.InsertSql, new DbParameter[] { new SQLiteParameter(nameof(TestEntity.CreateTime), DateTime.Now) });
-            var insertResult2 = Execute(c => c.Execute(sqlFactory.InsertSql, new TestEntity { CreateTime = DateTime.Now }));
+            var insertableSql = this.CreateInsertable<TestEntity>(true)
+                .Build();
+            //var insertResult = Factory.ExecuteNonQuery(queryableSql.InsertSql, new DbParameter[] { new SQLiteParameter(nameof(TestEntity.CreateTime), DateTime.Now) });
+            var insertResult2 = Execute(c => c.Execute(insertableSql.InsertSql, new TestEntity { CreateTime = DateTime.Now }));
             #endregion
 
             #region 查询数据
-            var sqlFactory2 = NewSqlFactory<TestEntity>(true).Page(1, 2).BuildQueryableSql();
-            //var queryResult = Factory.GetList<TestEntity>(sqlFactory2.QuerySql);
-            var queryResult2 = Execute(c => c.Query<TestEntity>(sqlFactory2.QuerySql, new { }));
+            var queryableSql = this.CreateQueryable<TestEntity>(true)
+                .Page(1, 2)
+                .Build();
+            //var queryResult = Factory.GetList<TestEntity>(queryableSql.QuerySql);
+            var queryResult2 = Execute(c => c.Query<TestEntity>(queryableSql.QuerySql, new { }));
             _logger.LogInfo(JsonConvert.SerializeObject(queryResult2, Formatting.Indented));
             #endregion
         }

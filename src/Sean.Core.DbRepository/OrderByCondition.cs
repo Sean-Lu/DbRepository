@@ -45,18 +45,18 @@ namespace Sean.Core.DbRepository
 
     public static class OrderByConditionExtensions
     {
-        public static void Resolve(this OrderByCondition orderByCondition, SqlFactory sqlFactory)
+        public static void Resolve(this OrderByCondition orderByCondition, Action<OrderByType, string[]> orderByField)
         {
             if (orderByCondition?.Fields == null || !orderByCondition.Fields.Any())
             {
                 return;
             }
 
-            sqlFactory.OrderByField(orderByCondition.Type, orderByCondition.Fields);
+            orderByField(orderByCondition.Type, orderByCondition.Fields);
 
             if (orderByCondition.Next != null)
             {
-                orderByCondition.Next.Resolve(sqlFactory);
+                orderByCondition.Next.Resolve(orderByField);
             }
         }
     }

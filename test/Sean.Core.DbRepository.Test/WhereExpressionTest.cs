@@ -19,7 +19,7 @@ namespace Sean.Core.DbRepository.Test
 
         public WhereExpressionTest()
         {
-            _sqlAdapter = new DefaultSqlAdapter(DatabaseType.MySql);
+            _sqlAdapter = new DefaultSqlAdapter(DatabaseType.MySql, null);
             _model = new TestEntity
             {
                 UserId = 10001

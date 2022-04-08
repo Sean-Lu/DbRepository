@@ -19,12 +19,12 @@ namespace Sean.Core.DbRepository.Test
                 list.Add(new TestEntity());
             }
 
-            var sqlFactory = SqlFactory<TestEntity>.Create(DatabaseType.MySql, true)
+            IInsertableSql insertableSql = SqlFactory<TestEntity>.CreateInsertable(DatabaseType.MySql, true)
                 .BulkInsert(list)
-                .BuildInsertableSql();
+                .Build();
 
-            var sql = sqlFactory.InsertSql;
-            var param = sqlFactory.Parameter;
+            var sql = insertableSql.InsertSql;
+            var param = insertableSql.Parameter;
         }
     }
 }

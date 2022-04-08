@@ -2,6 +2,6 @@
 {
     public interface IDeleteableSql : ISqlParameter
     {
-        string DeleteSql { get; }
+        string DeleteSql { get; set; }
     }
 }

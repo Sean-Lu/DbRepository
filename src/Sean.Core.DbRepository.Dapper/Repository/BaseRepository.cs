@@ -112,16 +112,6 @@ namespace Sean.Core.DbRepository.Dapper
             Execute(connection => connection.Execute(sql), master);
         }
 
-        /// <summary>
-        /// <see cref="SqlFactory{TEntity}.Create(IBaseRepository,bool)"/>
-        /// </summary>
-        /// <param name="autoIncludeFields"></param>
-        /// <returns></returns>
-        public virtual SqlFactory<TEntity> NewSqlFactory(bool autoIncludeFields)
-        {
-            return SqlFactory<TEntity>.Create(this, autoIncludeFields);
-        }
-
         #region Synchronous method
         /// <summary>
         /// 新增数据

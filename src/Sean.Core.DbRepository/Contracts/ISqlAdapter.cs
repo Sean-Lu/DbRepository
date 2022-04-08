@@ -5,10 +5,20 @@
         /// <summary>
         /// 数据库类型
         /// </summary>
-        DatabaseType DbType { get; }
+        DatabaseType DbType { get; set; }
+        /// <summary>
+        /// 表名
+        /// </summary>
+        string TableName { get; set; }
+        /// <summary>
+        /// 是否多表
+        /// </summary>
+        bool MultiTable { get; set; }
 
+        string FormatTableName();
         string FormatTableName(string tableName);
-        string FormatFieldName(string fieldName);
+        string FormatFieldName(string fieldName, bool multiTable = false);
+        string FormatFieldName(string fieldName, string tableName);
         string FormatInputParameter(string parameter);
 
         /// <summary>

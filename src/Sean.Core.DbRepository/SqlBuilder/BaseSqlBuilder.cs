@@ -1,11 +1,20 @@
-﻿namespace Sean.Core.DbRepository
+﻿using System;
+
+namespace Sean.Core.DbRepository
 {
     public abstract class BaseSqlBuilder
     {
-        public ISqlAdapter SqlAdapter { get; set; }
         /// <summary>
-        /// 表名
+        /// SQL适配器
         /// </summary>
-        public string TableName { get; set; }
+        public ISqlAdapter SqlAdapter { get; }
+
+        protected BaseSqlBuilder(DatabaseType dbType, string tableName)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
+
+            SqlAdapter = new DefaultSqlAdapter(dbType, tableName);
+        }
     }
 }

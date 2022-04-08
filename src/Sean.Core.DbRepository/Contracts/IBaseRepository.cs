@@ -41,14 +41,6 @@ namespace Sean.Core.DbRepository
         void OutputExecutedSql(string sql, object param);
 
         /// <summary>
-        /// <see cref="SqlFactory{TEntity}.Create(DatabaseType,bool,string)"/>
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="autoIncludeFields"></param>
-        /// <returns></returns>
-        SqlFactory<TEntity> NewSqlFactory<TEntity>(bool autoIncludeFields, string tableName = null);
-
-        /// <summary>
         /// 执行
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -136,13 +128,6 @@ namespace Sean.Core.DbRepository
         /// <param name="tableName"></param>
         /// <param name="master">true: 主库, false: 从库</param>
         void CreateTableIfNotExist(string tableName, bool master = true);
-
-        /// <summary>
-        /// <see cref="SqlFactory{TEntity}.Create(IBaseRepository,bool)"/>
-        /// </summary>
-        /// <param name="autoIncludeFields"></param>
-        /// <returns></returns>
-        SqlFactory<TEntity> NewSqlFactory(bool autoIncludeFields);
 
         /// <summary>
         /// 新增数据

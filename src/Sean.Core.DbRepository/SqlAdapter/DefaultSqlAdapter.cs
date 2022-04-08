@@ -5,21 +5,43 @@ namespace Sean.Core.DbRepository
 {
     public class DefaultSqlAdapter : ISqlAdapter
     {
-        public DatabaseType DbType { get; }
+        public DatabaseType DbType { get; set; }
+        public string TableName { get; set; }
+        public bool MultiTable { get; set; }
 
-        public DefaultSqlAdapter(DatabaseType dbType)
+        public DefaultSqlAdapter(DatabaseType dbType, string tableName)
         {
             DbType = dbType;
+            TableName = tableName;
         }
 
+        public virtual string FormatTableName()
+        {
+            return FormatTableName(TableName);
+        }
         public virtual string FormatTableName(string tableName)
         {
             return DbType.MarkAsTableOrFieldName(tableName);
         }
 
-        public virtual string FormatFieldName(string fieldName)
+        public virtual string FormatFieldName(string fieldName, bool multiTable = false)
         {
+            if (multiTable || MultiTable)
+            {
+                return FormatFieldName(fieldName, TableName);
+            }
+
             return DbType.MarkAsTableOrFieldName(fieldName);
+        }
+
+        public virtual string FormatFieldName(string fieldName, string tableName)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                return FormatFieldName(fieldName);
+            }
+
+            return $"{FormatTableName(tableName)}.{FormatFieldName(fieldName)}";
         }
 
         public virtual string FormatInputParameter(string parameter)

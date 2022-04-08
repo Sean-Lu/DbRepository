@@ -109,17 +109,6 @@ namespace Sean.Core.DbRepository
 
         }
 
-        /// <summary>
-        /// <see cref="SqlFactory{TEntity}.Create(DatabaseType,bool,string)"/>
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="autoIncludeFields"></param>
-        /// <returns></returns>
-        public virtual SqlFactory<TEntity> NewSqlFactory<TEntity>(bool autoIncludeFields, string tableName = null)
-        {
-            return SqlFactory<TEntity>.Create(DbType, autoIncludeFields, tableName ?? TableName() ?? typeof(TEntity).GetMainTableName());
-        }
-
         #region Synchronous method
         /// <summary>
         /// 执行

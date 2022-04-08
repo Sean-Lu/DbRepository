@@ -90,6 +90,43 @@ namespace Sean.Core.DbRepository.Test
         #endregion
 
         #region 不通过 TEntity 返回字段
+        [TestMethod]
+        public void ValidateConstant()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = entity => "Status";
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        [TestMethod]
+        public void ValidateVariable()
+        {
+            var field = "Status";
+            Expression<Func<TestEntity, object>> fieldExpression = entity => field;
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        [TestMethod]
+        public void ValidateNameof()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = entity => nameof(TestEntity.Status);
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
         /// <summary>
         /// List
         /// </summary>

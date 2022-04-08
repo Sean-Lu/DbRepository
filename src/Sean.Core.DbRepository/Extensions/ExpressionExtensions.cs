@@ -26,51 +26,6 @@ namespace Sean.Core.DbRepository.Extensions
 
         #region whereExpression
         /// <summary>
-        /// 解析WHERE过滤条件
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <param name="whereExpression"></param>
-        /// <param name="sqlFactory"></param>
-        /// <returns></returns>
-        public static SqlFactory<TEntity> ResolveWhereExpression<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, SqlFactory<TEntity> sqlFactory)
-        {
-            Dictionary<string, object> parameters;
-            if (sqlFactory.Parameter != null)
-            {
-                if (sqlFactory.Parameter is Dictionary<string, object> oldParameter)
-                {
-                    parameters = oldParameter;
-                }
-                else
-                {
-                    var paramDic = sqlFactory.ConvertToParameter(sqlFactory.Parameter);
-                    if (paramDic != null)
-                    {
-                        parameters = paramDic;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"SQL input parameter type not supported by expression: {sqlFactory.Parameter.GetType().FullName}");
-                    }
-                }
-            }
-            else
-            {
-                parameters = new Dictionary<string, object>();
-            }
-
-            var whereClause = whereExpression.GetParameterizedWhereClause(sqlFactory.SqlAdapter, parameters);
-            if (!string.IsNullOrWhiteSpace(whereClause))
-            {
-                sqlFactory.Where(whereClause);
-            }
-            if (parameters.Any())
-            {
-                sqlFactory.SetParameter(parameters);
-            }
-            return sqlFactory;
-        }
-        /// <summary>
         /// 获取参数化WHERE子句
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
@@ -152,7 +107,11 @@ namespace Sean.Core.DbRepository.Extensions
                     if (fieldInfo != null)
                     {
                         var actualValue = fieldInfo.GetValue(value);
-                        if (actualValue is IEnumerable<string> fields)
+                        if (actualValue is string strValue)
+                        {
+                            result.Add(strValue);
+                        }
+                        else if (actualValue is IEnumerable<string> fields)
                         {
                             foreach (var field in fields)
                             {

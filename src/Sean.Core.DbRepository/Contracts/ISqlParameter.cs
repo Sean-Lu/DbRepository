@@ -2,6 +2,6 @@
 {
     public interface ISqlParameter
     {
-        object Parameter { get; }
+        object Parameter { get; set; }
     }
 }

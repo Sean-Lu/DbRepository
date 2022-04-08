@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Dapper;
 using Sean.Core.DbRepository.Dapper.Extensions;
+using Sean.Core.DbRepository.Extensions;
 using Sean.Utility.Contracts;
 
 namespace Example.Domain.Repositories
@@ -58,10 +59,10 @@ namespace Example.Domain.Repositories
 
         public async Task<bool> DeleteAsync(long id)
         {
-            //return await DeleteAsync(NewSqlFactory(false)
+            //return await DeleteAsync(this.CreateDeleteable()
             //    .WhereField(entity => entity.Id, SqlOperation.Equal)
             //    .SetParameter(new { Id = id })
-            //    .BuildDeleteableSql()) > 0;
+            //    .Build()) > 0;
 
             return await DeleteAsync(entity => entity.Id == id) > 0;
         }
@@ -69,11 +70,11 @@ namespace Example.Domain.Repositories
         public async Task<bool> UpdateAsync(long id, int checkInType)
         {
             //// 只更新部分字段（CheckInType），需要设置参数autoIncludeFields=false，否则会更新所有字段
-            //return await UpdateAsync(NewSqlFactory(false)
+            //return await UpdateAsync(this.CreateUpdateable(false)
             //    .IncludeFields(entity => entity.CheckInType)
             //    .WhereField(entity => entity.Id, SqlOperation.Equal)
             //    .SetParameter(new { Id = id, CheckInType = checkInType })
-            //    .BuildUpdateableSql()) > 0;
+            //    .Build()) > 0;
 
             return await UpdateAsync(new CheckInLogEntity
             {
@@ -83,32 +84,32 @@ namespace Example.Domain.Repositories
 
         public async Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
         {
-            #region SqlFactory示例
-            //// SqlFactory 示例1：
-            //var sqlFactory = NewSqlFactory(true)
+            #region SqlBuilder 示例
+            //// SqlBuilder 示例1：
+            //var queryableSql = this.CreateQueryable(true)
             //    .Page(pageIndex, pageSize)
             //    .Where($"{nameof(CheckInLogEntity.UserId)} = @{nameof(CheckInLogEntity.UserId)} AND {nameof(CheckInLogEntity.CheckInType)} IN @{nameof(CheckInLogEntity.CheckInType)}")
             //    .OrderBy($"{nameof(CheckInLogEntity.UserId)} ASC, {nameof(CheckInLogEntity.CreateTime)} DESC")
             //    .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
-            //    .BuildQueryableSql();
+            //    .Build();
 
-            //// SqlFactory 示例2：
-            //var sqlFactory = NewSqlFactory(true)
+            //// SqlBuilder 示例2：
+            //var queryableSql = this.CreateQueryable(true)
             //    .Page(pageIndex, pageSize)
-            //    .WhereField(nameof(CheckInLogEntity.UserId), SqlOperation.Equal, WhereSqlKeyword.None)
-            //    .WhereField(nameof(CheckInLogEntity.CheckInType), SqlOperation.In, WhereSqlKeyword.And)
+            //    .WhereField(entity => entity.UserId, SqlOperation.Equal)
+            //    .WhereField(entity => nameof(CheckInLogEntity.CheckInType), SqlOperation.In)
             //    .OrderByField(OrderByType.Asc, nameof(CheckInLogEntity.UserId))
             //    .OrderByField(OrderByType.Desc, nameof(CheckInLogEntity.CreateTime))
             //    .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
-            //    .BuildQueryableSql();
+            //    .Build();
 
-            //// SqlFactory 示例3：
-            //var sqlFactory = NewSqlFactory(true)
+            //// SqlBuilder 示例3：
+            //var queryableSql = this.CreateQueryable(true)
             //    .Page(pageIndex, pageSize)
-            //    .WhereField(entity => entity.UserId, SqlOperation.Equal, WhereSqlKeyword.None)
-            //    .WhereField(entity => entity.CheckInType, SqlOperation.In, WhereSqlKeyword.And)
-            //    .WhereField(entity => entity.CreateTime, SqlOperation.GreaterOrEqual, WhereSqlKeyword.And, paramName: "StartTime")
-            //    .WhereField(entity => entity.CreateTime, SqlOperation.Less, WhereSqlKeyword.And, paramName: "EndTime")
+            //    .WhereField(entity => entity.UserId, SqlOperation.Equal)
+            //    .WhereField(entity => entity.CheckInType, SqlOperation.In)
+            //    .WhereField(entity => entity.CreateTime, SqlOperation.GreaterOrEqual, paramName: "StartTime")
+            //    .WhereField(entity => entity.CreateTime, SqlOperation.Less, paramName: "EndTime")
             //    .OrderByField(OrderByType.Asc, entity => entity.UserId)
             //    .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
             //    .SetParameter(new
@@ -118,15 +119,15 @@ namespace Example.Domain.Repositories
             //        StartTime = DateTime.Parse("2020-1-1 00:00:00"),
             //        EndTime = DateTime.Now
             //    })
-            //    .BuildQueryableSql();
+            //    .Build();
             #endregion
 
             #region 返回结果示例
-            //// 返回结果示例1：使用 SqlFactory
-            //return await ExecuteAsync(async connection => await connection.QueryAsync<CheckInLogEntity>(this, sqlFactory), false);
+            //// 返回结果示例1：使用 SqlBuilder
+            //return await ExecuteAsync(async connection => await connection.QueryAsync<CheckInLogEntity>(this, queryableSql), false);
 
-            //// 返回结果示例2：使用 SqlFactory
-            //return await QueryAsync(sqlFactory, false);
+            //// 返回结果示例2：使用 SqlBuilder
+            //return await QueryAsync(queryableSql, false);
 
             // 返回结果示例3：使用 Expression 表达式树（推荐）
             int[] checkInTypes = { 1, 2 };
@@ -135,13 +136,13 @@ namespace Example.Domain.Repositories
             return await QueryAsync(entity => entity.UserId == userId
                                               && checkInTypes.Contains(entity.CheckInType)
                                               && entity.CreateTime >= DateTime.Parse("2020-1-1 00:00:00")
-                                              && entity.CreateTime < DateTime.Now, orderByCondition, pageIndex, pageSize);
+                                              && entity.CreateTime < DateTime.Now, orderByCondition, pageIndex, pageSize, master: false);
             #endregion
         }
 
         public async Task<IEnumerable<CheckInLogEntity>> GetAllAsync()
         {
-            return await QueryAsync(entity => true, master: false);
+            return await QueryAsync(entity => true, master: false);// 从库查询表所有数据
         }
     }
 }

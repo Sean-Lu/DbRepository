@@ -2,6 +2,6 @@
 {
     public interface IUpdateableSql : ISqlParameter
     {
-        string UpdateSql { get; }
+        string UpdateSql { get; set; }
     }
 }

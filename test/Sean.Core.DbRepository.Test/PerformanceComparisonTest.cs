@@ -7,6 +7,7 @@ using Example.Domain.Contracts;
 using Example.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sean.Core.DbRepository.Extensions;
 using Sean.Core.Ioc;
 using Sean.Utility.Contracts;
 
@@ -77,14 +78,14 @@ namespace Sean.Core.DbRepository.Test
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Restart();
-                var sqlFactory = _testRepository.NewSqlFactory(true)
+                var insertableSql = _testRepository.CreateInsertable(true)
                     .SetParameter(list)
-                    .BuildInsertableSql();
+                    .Build();
                 stopwatch.Stop();
                 var buildSqlElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
 
                 stopwatch.Restart();
-                var result = c.Execute(sqlFactory.InsertSql, sqlFactory.Parameter);// 批量新增数据
+                var result = c.Execute(insertableSql.InsertSql, insertableSql.Parameter);// 批量新增数据
                 stopwatch.Stop();
                 Assert.IsTrue(result == list.Count);
                 var executeElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
@@ -100,14 +101,14 @@ namespace Sean.Core.DbRepository.Test
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Restart();
-                var sqlFactory = _testRepository.NewSqlFactory(true)
+                var insertableSql = _testRepository.CreateInsertable(true)
                     .BulkInsert(list)
-                    .BuildInsertableSql();
+                    .Build();
                 stopwatch.Stop();
                 var buildSqlElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
 
                 stopwatch.Restart();
-                var result = c.Execute(sqlFactory.InsertSql, sqlFactory.Parameter);// 批量新增数据
+                var result = c.Execute(insertableSql.InsertSql, insertableSql.Parameter);// 批量新增数据
                 stopwatch.Stop();
                 Assert.IsTrue(result == list.Count);
                 var executeElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
