@@ -207,6 +207,8 @@ namespace Sean.Core.DbRepository
 
     public interface ICountable
     {
+        ISqlAdapter SqlAdapter { get; }
+
         /// <summary>
         /// 创建SQL：统计数量
         /// </summary>

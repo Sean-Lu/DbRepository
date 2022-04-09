@@ -206,6 +206,8 @@ namespace Sean.Core.DbRepository
 
     public interface IInsertable
     {
+        ISqlAdapter SqlAdapter { get; }
+
         /// <summary>
         /// 创建SQL：新增数据
         /// </summary>

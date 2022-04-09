@@ -492,6 +492,8 @@ namespace Sean.Core.DbRepository
 
     public interface IQueryable
     {
+        ISqlAdapter SqlAdapter { get; }
+
         /// <summary>
         /// 创建SQL：查询数据
         /// </summary>

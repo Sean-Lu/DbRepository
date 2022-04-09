@@ -351,6 +351,8 @@ namespace Sean.Core.DbRepository
 
     public interface IUpdateable
     {
+        ISqlAdapter SqlAdapter { get; }
+
         /// <summary>
         /// 创建SQL：更新数据
         /// <para>1. 为了防止误更新，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="IUpdateable{TEntity}.AllowEmptyWhereClause"/> 设置允许空 WHERE 子句</para>
