@@ -93,30 +93,11 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual IQueryable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, TEntity entity = default)
+        public virtual IQueryable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
         {
-            if (fieldExpression == null)
-            {
-                if (entity != null)
-                {
-                    SetParameter(entity);
-                }
-                return this;
-            }
-
+            if (fieldExpression == null) return this;
             var fields = fieldExpression.GetMemberNames().ToArray();
-            IncludeFields(fields);
-
-            if (entity != null)
-            {
-                var paramDic = SqlParameterUtil.ConvertToDicParameter(entity);
-                if (paramDic != null && paramDic.Any())
-                {
-                    SetParameter(paramDic);
-                }
-            }
-
-            return this;
+            return IncludeFields(fields);
         }
         public virtual IQueryable<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
         {
@@ -524,7 +505,7 @@ namespace Sean.Core.DbRepository
         /// <param name="fieldExpression"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        IQueryable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, TEntity entity = default);
+        IQueryable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
         /// <summary>
         /// 忽略字段
         /// </summary>
