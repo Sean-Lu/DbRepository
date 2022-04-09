@@ -316,8 +316,8 @@ namespace Sean.Core.DbRepository
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
-            var list = _includeFieldsList.Except(_primaryKeyFieldsList).ToList();
-            if (!list.Any())
+            var fields = _primaryKeyFieldsList.Any() ? _includeFieldsList.Except(_primaryKeyFieldsList).ToList() : _includeFieldsList;
+            if (!fields.Any())
             {
                 throw new InvalidOperationException("No fields to update.");
             }
@@ -329,8 +329,8 @@ namespace Sean.Core.DbRepository
 
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             var sets = _fieldCustomHandler != null
-                ? list.Select(fieldName => _fieldCustomHandler(fieldName, SqlAdapter))
-                : list.Select(fieldName =>
+                ? fields.Select(fieldName => _fieldCustomHandler(fieldName, SqlAdapter))
+                : fields.Select(fieldName =>
                 {
                     var fieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
                     var parameterName = fieldInfo?.Property.Name ?? fieldName;

@@ -192,7 +192,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="entity">实体</param>
-        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -235,7 +235,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="entities">实体</param>
-        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -654,7 +654,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="entity">实体</param>
-        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -697,7 +697,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection"></param>
         /// <param name="repository"></param>
         /// <param name="entities">实体</param>
-        /// <param name="fieldExpression">指定需要更新的字段。如果值为null，实体所有字段都会更新（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
