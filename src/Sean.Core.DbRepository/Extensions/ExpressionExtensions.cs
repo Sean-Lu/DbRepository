@@ -87,10 +87,18 @@ namespace Sean.Core.DbRepository.Extensions
             }
             else if (fieldExpression is NewExpression newExpression)// 匿名类型
             {
-                foreach (var memberInfo in newExpression.Members)
+                //foreach (var memberInfo in newExpression.Members)
+                //{
+                //    var memberName = memberInfo.GetFieldName();
+                //    if (!result.Contains(memberName))
+                //    {
+                //        result.Add(memberName);
+                //    }
+                //}
+                foreach (var argument in newExpression.Arguments)
                 {
-                    var memberName = memberInfo.Name;
-                    if (!result.Contains(memberName))
+                    var memberName = argument.GetMemberName();
+                    if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                     {
                         result.Add(memberName);
                     }
@@ -163,7 +171,7 @@ namespace Sean.Core.DbRepository.Extensions
             {
                 if (unaryExpression.Operand is MemberExpression memberExpression)
                 {
-                    return memberExpression.Member.Name;
+                    return memberExpression.Member.GetFieldName();
                 }
             }
             else if (expression is ConstantExpression constantExpression)
@@ -172,7 +180,7 @@ namespace Sean.Core.DbRepository.Extensions
             }
             else if (expression is MemberExpression memberExpression)
             {
-                return memberExpression.Member.Name;
+                return memberExpression.Member.GetFieldName();
             }
 
             throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");

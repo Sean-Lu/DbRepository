@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository
 {
@@ -10,7 +11,7 @@ namespace Sean.Core.DbRepository
     {
         public static StringBuilder BuildCondition(MemberInfo memberInfo, WhereClauseAdhesive adhesive, ExpressionType comparison, object value)
         {
-            string fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.Name);
+            string fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName());
 
             if (value == null)
             {
@@ -58,7 +59,7 @@ namespace Sean.Core.DbRepository
             if (methodCallExpression.Object is MemberExpression memberExpression)
             {
                 var memberInfo = memberExpression.Member;
-                string fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.Name);
+                string fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName());
                 string parameterName = UniqueParameter(memberInfo, adhesive);
                 object value = ConstantExtractor.ParseConstant(methodCallExpression.Arguments[0]);
                 adhesive.Parameters.Add($"{parameterName}", string.Format(valueSymbol, value));
@@ -71,7 +72,7 @@ namespace Sean.Core.DbRepository
         public static StringBuilder BuildInCondition(MemberExpression memberExpression, Expression valueExpression, WhereClauseAdhesive adhesive)
         {
             var memberInfo = memberExpression.Member;
-            string fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.Name);
+            string fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName());
             string parameterName = UniqueParameter(memberInfo, adhesive);
             object value = ConstantExtractor.ParseConstant(valueExpression);
             adhesive.Parameters.Add($"{parameterName}", value);
@@ -83,7 +84,7 @@ namespace Sean.Core.DbRepository
             if (methodCallExpression.Arguments[0] is MemberExpression memberExpression)
             {
                 var memberInfo = memberExpression.Member;
-                string fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.Name);
+                string fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName());
                 return reverse
                     ? new StringBuilder($"{fieldName} is not null AND {fieldName} <> ''")
                     : new StringBuilder($"({fieldName} is null OR {fieldName} = '')");

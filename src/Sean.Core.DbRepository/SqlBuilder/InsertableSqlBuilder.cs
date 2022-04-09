@@ -138,10 +138,10 @@ namespace Sean.Core.DbRepository
 
             var sb = new StringBuilder();
             var formatFields = fields.Select(fieldName => SqlAdapter.FormatFieldName(fieldName));
+            var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             if (_bulkInsert && _parameter is IEnumerable<TEntity> entities)
             {
                 #region 解析批量新增的参数
-                var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
                 var paramDic = new Dictionary<string, object>();
                 var index = 0;
                 var insertValueParams = new List<string>();
@@ -157,7 +157,7 @@ namespace Sean.Core.DbRepository
                         {
                             throw new InvalidOperationException($"Table field [{field}] not found in [{typeof(TEntity).FullName}].");
                         }
-                        var parameterName = ConditionBuilder.UniqueParameter($"{fieldInfo.FieldName}_{index}", paramDic);
+                        var parameterName = ConditionBuilder.UniqueParameter($"{fieldInfo.Property.Name}_{index}", paramDic);
                         formatParameterNames.Add(SqlAdapter.FormatInputParameter(parameterName));
                         paramDic.Add(parameterName, fieldInfo.Property.GetValue(entity, null));
                     }
@@ -172,7 +172,12 @@ namespace Sean.Core.DbRepository
             }
             else
             {
-                var formatParameters = fields.Select(fieldName => SqlAdapter.FormatInputParameter(fieldName));
+                var formatParameters = fields.Select(fieldName =>
+                {
+                    var fieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
+                    var parameterName = fieldInfo?.Property.Name ?? fieldName;
+                    return SqlAdapter.FormatInputParameter(parameterName);
+                });
                 sb.Append(string.Format(SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
             }
 

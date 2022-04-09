@@ -327,9 +327,15 @@ namespace Sean.Core.DbRepository
                 SqlAdapter.MultiTable = true;
             }
 
+            var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             var sets = _fieldCustomHandler != null
                 ? list.Select(fieldName => _fieldCustomHandler(fieldName, SqlAdapter))
-                : list.Select(fieldName => $"{SqlAdapter.FormatFieldName(fieldName)}={SqlAdapter.FormatInputParameter(fieldName)}");
+                : list.Select(fieldName =>
+                {
+                    var fieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
+                    var parameterName = fieldInfo?.Property.Name ?? fieldName;
+                    return $"{SqlAdapter.FormatFieldName(fieldName)}={SqlAdapter.FormatInputParameter(parameterName)}";
+                });
 
             var sb = new StringBuilder();
             sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", string.Join(", ", sets), WhereSql));

@@ -392,7 +392,17 @@ namespace Sean.Core.DbRepository
             }
 
             var deleteableSql = new DefaultQueryableSql();
-            var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldName => $"{SqlAdapter.FormatFieldName(fieldName)}")) : "*";
+            var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
+            var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldName =>
+            {
+                var fieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
+                if (fieldInfo != null && fieldInfo.Property.Name != fieldName)
+                {
+                    return $"{SqlAdapter.FormatFieldName(fieldName)} AS {fieldInfo.Property.Name}";// SELECT column_name AS alias_name
+                }
+
+                return $"{SqlAdapter.FormatFieldName(fieldName)}";
+            })) : "*";
             //const string rowNumAlias = "ROW_NUM";
             if (_topNumber.HasValue)
             {
