@@ -148,13 +148,13 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 新增数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="insertableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual bool Add(IInsertableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual bool Add(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Add(this, sqlFactory, transaction, commandTimeout), true, transaction);
+            return Execute(connection => connection.Add(this, insertableSql, transaction, commandTimeout), true, transaction);
         }
 
         /// <summary>
@@ -183,13 +183,13 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="deleteableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual int Delete(IDeleteableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual int Delete(IDeleteableSql deleteableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Delete(this, sqlFactory, transaction, commandTimeout), true, transaction);
+            return Execute(connection => connection.Delete(this, deleteableSql, transaction, commandTimeout), true, transaction);
         }
 
         /// <summary>
@@ -235,13 +235,13 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 更新数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="updateableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual int Update(IUpdateableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual int Update(IUpdateableSql updateableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Update(this, sqlFactory, transaction, commandTimeout), true, transaction);
+            return Execute(connection => connection.Update(this, updateableSql, transaction, commandTimeout), true, transaction);
         }
 
         /// <summary>
@@ -276,13 +276,13 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 查询数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="queryableSql"></param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual IEnumerable<TEntity> Query(IQueryableSql sqlFactory, bool master = true, int? commandTimeout = null)
+        public virtual IEnumerable<TEntity> Query(IQueryableSql queryableSql, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Query<TEntity>(this, sqlFactory, commandTimeout), master);
+            return Execute(connection => connection.Query<TEntity>(this, queryableSql, commandTimeout), master);
         }
         /// <summary>
         /// 查询数据
@@ -324,14 +324,14 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 查询单个数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="queryableSql"></param>
         /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual TEntity Get(IQueryableSql sqlFactory, bool singleCheck = false, bool master = true, int? commandTimeout = null)
+        public virtual TEntity Get(IQueryableSql queryableSql, bool singleCheck = false, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Get<TEntity>(this, sqlFactory, singleCheck, commandTimeout), master);
+            return Execute(connection => connection.Get<TEntity>(this, queryableSql, singleCheck, commandTimeout), master);
         }
         /// <summary>
         /// 查询单个数据
@@ -353,13 +353,13 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 统计数量
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="countableSql"></param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual int Count(ICountableSql sqlFactory, bool master = true, int? commandTimeout = null)
+        public virtual int Count(ICountableSql countableSql, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Count(this, sqlFactory, commandTimeout), master);
+            return Execute(connection => connection.Count(this, countableSql, commandTimeout), master);
         }
         /// <summary>
         /// 统计数量
@@ -437,13 +437,13 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 新增数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="insertableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<bool> AddAsync(IInsertableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual async Task<bool> AddAsync(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.AddAsync(this, sqlFactory, transaction, commandTimeout), true, transaction);
+            return await ExecuteAsync(async connection => await connection.AddAsync(this, insertableSql, transaction, commandTimeout), true, transaction);
         }
 
         /// <summary>
@@ -472,13 +472,13 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="deleteableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<int> DeleteAsync(IDeleteableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual async Task<int> DeleteAsync(IDeleteableSql deleteableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.DeleteAsync(this, sqlFactory, transaction, commandTimeout), true, transaction);
+            return await ExecuteAsync(async connection => await connection.DeleteAsync(this, deleteableSql, transaction, commandTimeout), true, transaction);
         }
 
         /// <summary>
@@ -524,13 +524,13 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 更新数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="updateableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<int> UpdateAsync(IUpdateableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual async Task<int> UpdateAsync(IUpdateableSql updateableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.UpdateAsync(this, sqlFactory, transaction, commandTimeout), true, transaction);
+            return await ExecuteAsync(async connection => await connection.UpdateAsync(this, updateableSql, transaction, commandTimeout), true, transaction);
         }
 
         /// <summary>
@@ -565,13 +565,13 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 查询数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="queryableSql"></param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<IEnumerable<TEntity>> QueryAsync(IQueryableSql sqlFactory, bool master = true, int? commandTimeout = null)
+        public virtual async Task<IEnumerable<TEntity>> QueryAsync(IQueryableSql queryableSql, bool master = true, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.QueryAsync<TEntity>(this, sqlFactory, commandTimeout), master);
+            return await ExecuteAsync(async connection => await connection.QueryAsync<TEntity>(this, queryableSql, commandTimeout), master);
         }
         /// <summary>
         /// 查询数据
@@ -613,14 +613,14 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 查询单个数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="queryableSql"></param>
         /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<TEntity> GetAsync(IQueryableSql sqlFactory, bool singleCheck = false, bool master = true, int? commandTimeout = null)
+        public virtual async Task<TEntity> GetAsync(IQueryableSql queryableSql, bool singleCheck = false, bool master = true, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.GetAsync<TEntity>(this, sqlFactory, singleCheck, commandTimeout), master);
+            return await ExecuteAsync(async connection => await connection.GetAsync<TEntity>(this, queryableSql, singleCheck, commandTimeout), master);
         }
         /// <summary>
         /// 查询单个数据
@@ -642,13 +642,13 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 统计数量
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="countableSql"></param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        public virtual async Task<int> CountAsync(ICountableSql sqlFactory, bool master = true, int? commandTimeout = null)
+        public virtual async Task<int> CountAsync(ICountableSql countableSql, bool master = true, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.CountAsync(this, sqlFactory, commandTimeout), master);
+            return await ExecuteAsync(async connection => await connection.CountAsync(this, countableSql, commandTimeout), master);
         }
         /// <summary>
         /// 统计数量

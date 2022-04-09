@@ -158,11 +158,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 新增数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="insertableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        bool Add(IInsertableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
+        bool Add(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 删除数据
@@ -184,11 +184,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="deleteableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        int Delete(IDeleteableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
+        int Delete(IDeleteableSql deleteableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 更新数据
@@ -227,11 +227,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 更新数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="updateableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        int Update(IUpdateableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
+        int Update(IUpdateableSql updateableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 数值字段递增
@@ -259,11 +259,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 查询数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="queryableSql"></param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        IEnumerable<TEntity> Query(IQueryableSql sqlFactory, bool master = true, int? commandTimeout = null);
+        IEnumerable<TEntity> Query(IQueryableSql queryableSql, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询数据
         /// </summary>
@@ -298,12 +298,12 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 查询单个数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="queryableSql"></param>
         /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        TEntity Get(IQueryableSql sqlFactory, bool singleCheck = false, bool master = true, int? commandTimeout = null);
+        TEntity Get(IQueryableSql queryableSql, bool singleCheck = false, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询单个数据
         /// </summary>
@@ -321,11 +321,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 统计数量
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="countableSql"></param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        int Count(ICountableSql sqlFactory, bool master = true, int? commandTimeout = null);
+        int Count(ICountableSql countableSql, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 统计数量
         /// </summary>
@@ -373,11 +373,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 新增数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="insertableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<bool> AddAsync(IInsertableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
+        Task<bool> AddAsync(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 删除数据
@@ -399,11 +399,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="deleteableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<int> DeleteAsync(IDeleteableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
+        Task<int> DeleteAsync(IDeleteableSql deleteableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 更新数据
@@ -442,11 +442,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 更新数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="updateableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<int> UpdateAsync(IUpdateableSql sqlFactory, IDbTransaction transaction = null, int? commandTimeout = null);
+        Task<int> UpdateAsync(IUpdateableSql updateableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 数值字段递增
@@ -474,11 +474,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 查询数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="queryableSql"></param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<IEnumerable<TEntity>> QueryAsync(IQueryableSql sqlFactory, bool master = true, int? commandTimeout = null);
+        Task<IEnumerable<TEntity>> QueryAsync(IQueryableSql queryableSql, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询数据
         /// </summary>
@@ -513,12 +513,12 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 查询单个数据
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="queryableSql"></param>
         /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<TEntity> GetAsync(IQueryableSql sqlFactory, bool singleCheck = false, bool master = true, int? commandTimeout = null);
+        Task<TEntity> GetAsync(IQueryableSql queryableSql, bool singleCheck = false, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询单个数据
         /// </summary>
@@ -536,11 +536,11 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 统计数量
         /// </summary>
-        /// <param name="sqlFactory"></param>
+        /// <param name="countableSql"></param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
-        Task<int> CountAsync(ICountableSql sqlFactory, bool master = true, int? commandTimeout = null);
+        Task<int> CountAsync(ICountableSql countableSql, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 统计数量
         /// </summary>
