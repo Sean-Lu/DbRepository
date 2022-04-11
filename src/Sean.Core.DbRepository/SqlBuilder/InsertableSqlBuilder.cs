@@ -18,8 +18,7 @@ namespace Sean.Core.DbRepository
 
     public class InsertableSqlBuilder<TEntity> : InsertableSqlBuilder, IInsertable<TEntity>
     {
-        private readonly List<string> _includeFieldsList = new();
-        private readonly List<string> _identityFieldsList = new();
+        private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
         private bool _returnLastInsertId;
         private bool _bulkInsert;
         private object _parameter;
@@ -54,9 +53,15 @@ namespace Sean.Core.DbRepository
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !_includeFieldsList.Contains(field))
+                    if (string.IsNullOrWhiteSpace(field)) continue;
+
+                    if (!_includeFieldsList.Exists(c => c.TableName == SqlAdapter.TableName && c.FieldName == field))
                     {
-                        _includeFieldsList.Add(field);
+                        _includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                        {
+                            TableName = SqlAdapter.TableName,
+                            FieldName = field
+                        });
                     }
                 }
             }
@@ -66,12 +71,16 @@ namespace Sean.Core.DbRepository
         {
             if (fields != null)
             {
+                if (fields.Any() && !_includeFieldsList.Any())
+                {
+                    IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
+                }
+
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && _includeFieldsList.Contains(field))
-                    {
-                        _includeFieldsList.Remove(field);
-                    }
+                    if (string.IsNullOrWhiteSpace(field)) continue;
+
+                    _includeFieldsList.RemoveAll(c => c.TableName == SqlAdapter.TableName && c.FieldName == field);
                 }
             }
             return this;
@@ -82,9 +91,21 @@ namespace Sean.Core.DbRepository
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !_identityFieldsList.Contains(field))
+                    if (string.IsNullOrWhiteSpace(field)) continue;
+
+                    var fieldInfo = _includeFieldsList.Find(c => c.TableName == SqlAdapter.TableName && c.FieldName == field);
+                    if (fieldInfo != null)
                     {
-                        _identityFieldsList.Add(field);
+                        fieldInfo.Identity = true;
+                    }
+                    else
+                    {
+                        _includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                        {
+                            TableName = SqlAdapter.TableName,
+                            FieldName = field,
+                            Identity = true
+                        });
                     }
                 }
             }
@@ -132,12 +153,12 @@ namespace Sean.Core.DbRepository
 
         public virtual IInsertableSql Build()
         {
-            var fields = _identityFieldsList.Any() ? _includeFieldsList.Except(_identityFieldsList).ToList() : _includeFieldsList;
+            var fields = _includeFieldsList.Where(c => !c.Identity).ToList();
             if (!fields.Any())
                 return default;
 
             var sb = new StringBuilder();
-            var formatFields = fields.Select(fieldName => SqlAdapter.FormatFieldName(fieldName));
+            var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName));
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             if (_bulkInsert && _parameter is IEnumerable<TEntity> entities)
             {
@@ -152,10 +173,10 @@ namespace Sean.Core.DbRepository
                     formatParameterNames.Clear();
                     foreach (var field in fields)
                     {
-                        var fieldInfo = tableFieldInfos.Find(c => c.FieldName == field);
+                        var fieldInfo = tableFieldInfos.Find(c => c.FieldName == field.FieldName);
                         if (fieldInfo == null)
                         {
-                            throw new InvalidOperationException($"Table field [{field}] not found in [{typeof(TEntity).FullName}].");
+                            throw new InvalidOperationException($"Table [{field.TableName}] field [{field.FieldName}] not found in [{typeof(TEntity).FullName}].");
                         }
                         var parameterName = ConditionBuilder.UniqueParameter($"{fieldInfo.Property.Name}_{index}", paramDic);
                         formatParameterNames.Add(SqlAdapter.FormatInputParameter(parameterName));
@@ -172,10 +193,10 @@ namespace Sean.Core.DbRepository
             }
             else
             {
-                var formatParameters = fields.Select(fieldName =>
+                var formatParameters = fields.Select(fieldInfo =>
                 {
-                    var fieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
-                    var parameterName = fieldInfo?.Property.Name ?? fieldName;
+                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
+                    var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
                     return SqlAdapter.FormatInputParameter(parameterName);
                 });
                 sb.Append(string.Format(SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));

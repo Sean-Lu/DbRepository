@@ -100,11 +100,11 @@ namespace Sean.Core.DbRepository
         /// </summary>
         public string FieldName { get; set; }
         /// <summary>
-        /// 是否是主键字段
+        /// 是否是主键字段 <see cref="KeyAttribute"/>
         /// </summary>
         public bool PrimaryKey { get; set; }
         /// <summary>
-        /// 是否是自增字段
+        /// 是否是自增字段 <see cref="DatabaseGeneratedOption.Identity"/>
         /// </summary>
         public bool Identity { get; set; }
     }

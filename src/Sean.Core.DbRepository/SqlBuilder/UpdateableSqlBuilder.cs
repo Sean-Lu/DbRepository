@@ -19,8 +19,7 @@ namespace Sean.Core.DbRepository
 
     public class UpdateableSqlBuilder<TEntity> : UpdateableSqlBuilder, IUpdateable<TEntity>
     {
-        private readonly List<string> _includeFieldsList = new();
-        private readonly List<string> _primaryKeyFieldsList = new();
+        private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
 
         private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
         private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
@@ -64,9 +63,15 @@ namespace Sean.Core.DbRepository
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !_includeFieldsList.Contains(field))
+                    if (string.IsNullOrWhiteSpace(field)) continue;
+
+                    if (!_includeFieldsList.Exists(c => c.TableName == SqlAdapter.TableName && c.FieldName == field))
                     {
-                        _includeFieldsList.Add(field);
+                        _includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                        {
+                            TableName = SqlAdapter.TableName,
+                            FieldName = field
+                        });
                     }
                 }
             }
@@ -76,12 +81,16 @@ namespace Sean.Core.DbRepository
         {
             if (fields != null)
             {
+                if (fields.Any() && !_includeFieldsList.Any())
+                {
+                    IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
+                }
+
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && _includeFieldsList.Contains(field))
-                    {
-                        _includeFieldsList.Remove(field);
-                    }
+                    if (string.IsNullOrWhiteSpace(field)) continue;
+
+                    _includeFieldsList.RemoveAll(c => c.TableName == SqlAdapter.TableName && c.FieldName == field);
                 }
             }
             return this;
@@ -92,9 +101,21 @@ namespace Sean.Core.DbRepository
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !_primaryKeyFieldsList.Contains(field))
+                    if (string.IsNullOrWhiteSpace(field)) continue;
+
+                    var fieldInfo = _includeFieldsList.Find(c => c.TableName == SqlAdapter.TableName && c.FieldName == field);
+                    if (fieldInfo != null)
                     {
-                        _primaryKeyFieldsList.Add(field);
+                        fieldInfo.PrimaryKey = true;
+                    }
+                    else
+                    {
+                        _includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                        {
+                            TableName = SqlAdapter.TableName,
+                            FieldName = field,
+                            PrimaryKey = true
+                        });
                     }
                 }
             }
@@ -303,9 +324,12 @@ namespace Sean.Core.DbRepository
         {
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
             {
-                if (_primaryKeyFieldsList.Any())
+                if (_includeFieldsList.Any(c => c.PrimaryKey))
                 {
-                    _primaryKeyFieldsList.ForEach(fieldName => WhereField(entity => fieldName, SqlOperation.Equal));
+                    foreach (var pks in _includeFieldsList.Where(c => c.PrimaryKey))
+                    {
+                        WhereField(entity => pks.FieldName, SqlOperation.Equal);
+                    }
                 }
                 else
                 {
@@ -316,7 +340,7 @@ namespace Sean.Core.DbRepository
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
-            var fields = _primaryKeyFieldsList.Any() ? _includeFieldsList.Except(_primaryKeyFieldsList).ToList() : _includeFieldsList;
+            var fields = _includeFieldsList.Where(c => !c.PrimaryKey).ToList();
             if (!fields.Any())
             {
                 throw new InvalidOperationException("No fields to update.");
@@ -329,12 +353,12 @@ namespace Sean.Core.DbRepository
 
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             var sets = _fieldCustomHandler != null
-                ? fields.Select(fieldName => _fieldCustomHandler(fieldName, SqlAdapter))
-                : fields.Select(fieldName =>
+                ? fields.Select(fieldInfo => _fieldCustomHandler(fieldInfo.FieldName, SqlAdapter))
+                : fields.Select(fieldInfo =>
                 {
-                    var fieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
-                    var parameterName = fieldInfo?.Property.Name ?? fieldName;
-                    return $"{SqlAdapter.FormatFieldName(fieldName)}={SqlAdapter.FormatInputParameter(parameterName)}";
+                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
+                    var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
+                    return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}={SqlAdapter.FormatInputParameter(parameterName)}";
                 });
 
             var sb = new StringBuilder();

@@ -18,7 +18,7 @@ namespace Sean.Core.DbRepository
 
     public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEntity>
     {
-        private readonly List<string> _includeFieldsList = new();
+        private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
 
         private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
         private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
@@ -70,9 +70,15 @@ namespace Sean.Core.DbRepository
             {
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && !_includeFieldsList.Contains(field))
+                    if (string.IsNullOrWhiteSpace(field)) continue;
+
+                    if (!_includeFieldsList.Exists(c => c.TableName == SqlAdapter.TableName && c.FieldName == field))
                     {
-                        _includeFieldsList.Add(field);
+                        _includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                        {
+                            TableName = SqlAdapter.TableName,
+                            FieldName = field
+                        });
                     }
                 }
             }
@@ -82,12 +88,16 @@ namespace Sean.Core.DbRepository
         {
             if (fields != null)
             {
+                if (fields.Any() && !_includeFieldsList.Any())
+                {
+                    IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
+                }
+
                 foreach (var field in fields)
                 {
-                    if (!string.IsNullOrWhiteSpace(field) && _includeFieldsList.Contains(field))
-                    {
-                        _includeFieldsList.Remove(field);
-                    }
+                    if (string.IsNullOrWhiteSpace(field)) continue;
+
+                    _includeFieldsList.RemoveAll(c => c.TableName == SqlAdapter.TableName && c.FieldName == field);
                 }
             }
             return this;
@@ -374,15 +384,15 @@ namespace Sean.Core.DbRepository
 
             var deleteableSql = new DefaultQueryableSql();
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-            var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldName =>
+            var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldInfo =>
             {
-                var fieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
-                if (fieldInfo != null && fieldInfo.Property.Name != fieldName)
+                var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
+                if (findFieldInfo != null && findFieldInfo.Property.Name != fieldInfo.FieldName)
                 {
-                    return $"{SqlAdapter.FormatFieldName(fieldName)} AS {fieldInfo.Property.Name}";// SELECT column_name AS alias_name
+                    return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)} AS {findFieldInfo.Property.Name}";// SELECT column_name AS alias_name
                 }
 
-                return $"{SqlAdapter.FormatFieldName(fieldName)}";
+                return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}";
             })) : "*";
             //const string rowNumAlias = "ROW_NUM";
             if (_topNumber.HasValue)
