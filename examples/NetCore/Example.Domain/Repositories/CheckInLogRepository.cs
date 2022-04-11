@@ -59,7 +59,7 @@ namespace Example.Domain.Repositories
 
         public async Task<bool> DeleteAsync(long id)
         {
-            //return await DeleteAsync(this.CreateDeleteable()
+            //return await DeleteAsync(this.CreateDeleteableBuilder()
             //    .WhereField(entity => entity.Id, SqlOperation.Equal)
             //    .SetParameter(new { Id = id })
             //    .Build()) > 0;
@@ -70,7 +70,7 @@ namespace Example.Domain.Repositories
         public async Task<bool> UpdateAsync(long id, int checkInType)
         {
             //// 只更新部分字段（CheckInType），需要设置参数autoIncludeFields=false，否则会更新所有字段
-            //return await UpdateAsync(this.CreateUpdateable(false)
+            //return await UpdateAsync(this.CreateUpdateableBuilder(false)
             //    .IncludeFields(entity => entity.CheckInType)
             //    .WhereField(entity => entity.Id, SqlOperation.Equal)
             //    .SetParameter(new { Id = id, CheckInType = checkInType })
@@ -86,7 +86,7 @@ namespace Example.Domain.Repositories
         {
             #region SqlBuilder 示例
             //// SqlBuilder 示例1：
-            //var queryableSql = this.CreateQueryable(true)
+            //var queryableSql = this.CreateQueryableBuilder(true)
             //    .Page(pageIndex, pageSize)
             //    .Where($"{nameof(CheckInLogEntity.UserId)} = @{nameof(CheckInLogEntity.UserId)} AND {nameof(CheckInLogEntity.CheckInType)} IN @{nameof(CheckInLogEntity.CheckInType)}")
             //    .OrderBy($"{nameof(CheckInLogEntity.UserId)} ASC, {nameof(CheckInLogEntity.CreateTime)} DESC")
@@ -94,7 +94,7 @@ namespace Example.Domain.Repositories
             //    .Build();
 
             //// SqlBuilder 示例2：
-            //var queryableSql = this.CreateQueryable(true)
+            //var queryableSql = this.CreateQueryableBuilder(true)
             //    .Page(pageIndex, pageSize)
             //    .WhereField(entity => entity.UserId, SqlOperation.Equal)
             //    .WhereField(entity => nameof(CheckInLogEntity.CheckInType), SqlOperation.In)
@@ -104,7 +104,7 @@ namespace Example.Domain.Repositories
             //    .Build();
 
             //// SqlBuilder 示例3：
-            //var queryableSql = this.CreateQueryable(true)
+            //var queryableSql = this.CreateQueryableBuilder(true)
             //    .Page(pageIndex, pageSize)
             //    .WhereField(entity => entity.UserId, SqlOperation.Equal)
             //    .WhereField(entity => entity.CheckInType, SqlOperation.In)

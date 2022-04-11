@@ -19,7 +19,7 @@ namespace Sean.Core.DbRepository.Test
                 list.Add(new TestEntity());
             }
 
-            IInsertableSql insertableSql = SqlFactory<TestEntity>.CreateInsertable(DatabaseType.MySql, true)
+            IInsertableSql insertableSql = SqlFactory<TestEntity>.CreateInsertableBuilder(DatabaseType.MySql, true)
                 .BulkInsert(list)
                 .Build();
 

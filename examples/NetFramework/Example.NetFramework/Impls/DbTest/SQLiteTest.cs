@@ -41,14 +41,14 @@ namespace Example.NetFramework.Impls.DbTest
             #endregion
 
             #region 新增数据
-            var insertableSql = this.CreateInsertable<TestEntity>(true)
+            var insertableSql = this.CreateInsertableBuilder<TestEntity>(true)
                 .Build();
             //var insertResult = Factory.ExecuteNonQuery(queryableSql.InsertSql, new DbParameter[] { new SQLiteParameter(nameof(TestEntity.CreateTime), DateTime.Now) });
             var insertResult2 = Execute(c => c.Execute(insertableSql.InsertSql, new TestEntity { CreateTime = DateTime.Now }));
             #endregion
 
             #region 查询数据
-            var queryableSql = this.CreateQueryable<TestEntity>(true)
+            var queryableSql = this.CreateQueryableBuilder<TestEntity>(true)
                 .Page(1, 2)
                 .Build();
             //var queryResult = Factory.GetList<TestEntity>(queryableSql.QuerySql);

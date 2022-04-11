@@ -35,7 +35,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) return false;
 
-            IInsertableSql insertableSql = repository.CreateInsertable<TEntity>(fieldExpression == null)
+            IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .ReturnAutoIncrementId(returnId)
                 .SetParameter(entity)
@@ -124,7 +124,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             }
             else
             {
-                IInsertableSql insertableSql = repository.CreateInsertable<TEntity>(fieldExpression == null)
+                IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
                     .IncludeFields(fieldExpression)
                     //.ReturnAutoIncrementId(returnId)
                     //.SetParameter(entities)
@@ -149,7 +149,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            IDeleteableSql deleteableSql = repository.CreateDeleteable<TEntity>()
+            IDeleteableSql deleteableSql = repository.CreateDeleteableBuilder<TEntity>()
                 .SetParameter(entity)
                 .Build();
             return connection.Delete(repository, deleteableSql, transaction, commandTimeout) > 0;
@@ -166,7 +166,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static int Delete<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            IDeleteableSql deleteableSql = repository.CreateDeleteable<TEntity>()
+            IDeleteableSql deleteableSql = repository.CreateDeleteableBuilder<TEntity>()
                 .Where(whereExpression)
                 .Build();
             return deleteableSql.ExecuteCommand(connection, transaction, commandTimeout, repository.OutputExecutedSql);
@@ -208,7 +208,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            IUpdateableSql updateableSql = repository.CreateUpdateable<TEntity>(fieldExpression == null)
+            IUpdateableSql updateableSql = repository.CreateUpdateableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression, entity)
                 .Where(whereExpression)
                 .Build();
@@ -297,7 +297,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static bool Incr<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
-            IUpdateableSql updateableSql = repository.CreateUpdateable<TEntity>(false)
+            IUpdateableSql updateableSql = repository.CreateUpdateableBuilder<TEntity>(false)
                 .IncludeFields(fieldExpression)
                 .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}")
                 .Where(whereExpression)
@@ -319,7 +319,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static bool Decr<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
-            IUpdateableSql updateableSql = repository.CreateUpdateable<TEntity>(false)
+            IUpdateableSql updateableSql = repository.CreateUpdateableBuilder<TEntity>(false)
                 .IncludeFields(fieldExpression)
                 .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}")
                 .Where(whereExpression)
@@ -356,7 +356,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static IEnumerable<TEntity> Query<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
-            IQueryableSql queryableSql = repository.CreateQueryable<TEntity>(fieldExpression == null)
+            IQueryableSql queryableSql = repository.CreateQueryableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression)
                 .OrderBy(orderByCondition)
@@ -381,7 +381,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static IEnumerable<TEntity> QueryOffset<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
-            IQueryableSql queryableSql = repository.CreateQueryable<TEntity>(fieldExpression == null)
+            IQueryableSql queryableSql = repository.CreateQueryableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression)
                 .OrderBy(orderByCondition)
@@ -418,7 +418,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static TEntity Get<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool singleCheck = false, int? commandTimeout = null)
         {
-            IQueryableSql queryableSql = repository.CreateQueryable<TEntity>(fieldExpression == null)
+            IQueryableSql queryableSql = repository.CreateQueryableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression)
                 .Build();
@@ -447,7 +447,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static int Count<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, int? commandTimeout = null)
         {
-            ICountableSql countableSql = repository.CreateCountable<TEntity>()
+            ICountableSql countableSql = repository.CreateCountableBuilder<TEntity>()
                 .Where(whereExpression)
                 .Build();
             return countableSql.ExecuteCommand(connection, commandTimeout, repository.OutputExecutedSql);
@@ -497,7 +497,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) return false;
 
-            IInsertableSql insertableSql = repository.CreateInsertable<TEntity>(fieldExpression == null)
+            IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .ReturnAutoIncrementId(returnId)
                 .SetParameter(entity)
@@ -586,7 +586,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             }
             else
             {
-                IInsertableSql insertableSql = repository.CreateInsertable<TEntity>(fieldExpression == null)
+                IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
                     .IncludeFields(fieldExpression)
                     //.ReturnAutoIncrementId(returnId)
                     //.SetParameter(entities)
@@ -611,7 +611,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            IDeleteableSql deleteableSql = repository.CreateDeleteable<TEntity>()
+            IDeleteableSql deleteableSql = repository.CreateDeleteableBuilder<TEntity>()
                 .SetParameter(entity)
                 .Build();
             return await connection.DeleteAsync(repository, deleteableSql, transaction, commandTimeout) > 0;
@@ -628,7 +628,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<int> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            IDeleteableSql deleteableSql = repository.CreateDeleteable<TEntity>()
+            IDeleteableSql deleteableSql = repository.CreateDeleteableBuilder<TEntity>()
                 .Where(whereExpression)
                 .Build();
             return await deleteableSql.ExecuteCommandAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
@@ -670,7 +670,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            IUpdateableSql updateableSql = repository.CreateUpdateable<TEntity>(fieldExpression == null)
+            IUpdateableSql updateableSql = repository.CreateUpdateableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression, entity)
                 .Where(whereExpression)
                 .Build();
@@ -759,7 +759,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<bool> IncrAsync<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
-            IUpdateableSql updateableSql = repository.CreateUpdateable<TEntity>(false)
+            IUpdateableSql updateableSql = repository.CreateUpdateableBuilder<TEntity>(false)
                 .IncludeFields(fieldExpression)
                 .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}")
                 .Where(whereExpression)
@@ -781,7 +781,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<bool> DecrAsync<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
-            IUpdateableSql updateableSql = repository.CreateUpdateable<TEntity>(false)
+            IUpdateableSql updateableSql = repository.CreateUpdateableBuilder<TEntity>(false)
                 .IncludeFields(fieldExpression)
                 .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}")
                 .Where(whereExpression)
@@ -818,7 +818,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<IEnumerable<TEntity>> QueryAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
-            IQueryableSql queryableSql = repository.CreateQueryable<TEntity>(fieldExpression == null)
+            IQueryableSql queryableSql = repository.CreateQueryableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression)
                 .OrderBy(orderByCondition)
@@ -843,7 +843,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<IEnumerable<TEntity>> QueryOffsetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, int? commandTimeout = null)
         {
-            IQueryableSql queryableSql = repository.CreateQueryable<TEntity>(fieldExpression == null)
+            IQueryableSql queryableSql = repository.CreateQueryableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression)
                 .OrderBy(orderByCondition)
@@ -880,7 +880,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<TEntity> GetAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool singleCheck = false, int? commandTimeout = null)
         {
-            IQueryableSql queryableSql = repository.CreateQueryable<TEntity>(fieldExpression == null)
+            IQueryableSql queryableSql = repository.CreateQueryableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .Where(whereExpression)
                 .Build();
@@ -909,7 +909,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <returns></returns>
         public static async Task<int> CountAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, int? commandTimeout = null)
         {
-            ICountableSql countableSql = repository.CreateCountable<TEntity>()
+            ICountableSql countableSql = repository.CreateCountableBuilder<TEntity>()
                 .Where(whereExpression)
                 .Build();
             return await countableSql.ExecuteCommandAsync(connection, commandTimeout, repository.OutputExecutedSql);

@@ -10,7 +10,7 @@
         /// <param name="autoIncludeFields"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static IInsertable<TEntity> CreateInsertable<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
+        public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
         {
             return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -22,7 +22,7 @@
         /// <param name="autoIncludeFields"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static IInsertable<TEntity> CreateInsertable<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
+        public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
         {
             return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -34,7 +34,7 @@
         /// <param name="repository"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static IDeleteable<TEntity> CreateDeleteable<TEntity>(this IBaseRepository repository, string tableName = null)
+        public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository repository, string tableName = null)
         {
             return DeleteableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -45,7 +45,7 @@
         /// <param name="repository"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static IDeleteable<TEntity> CreateDeleteable<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null)
+        public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null)
         {
             return DeleteableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -58,7 +58,7 @@
         /// <param name="autoIncludeFields"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static IUpdateable<TEntity> CreateUpdateable<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
+        public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
         {
             return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -70,7 +70,7 @@
         /// <param name="autoIncludeFields"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static IUpdateable<TEntity> CreateUpdateable<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
+        public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
         {
             return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -83,7 +83,7 @@
         /// <param name="autoIncludeFields"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static IQueryable<TEntity> CreateQueryable<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
+        public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
         {
             return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -95,7 +95,7 @@
         /// <param name="autoIncludeFields"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static IQueryable<TEntity> CreateQueryable<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
+        public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
         {
             return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -107,7 +107,7 @@
         /// <param name="repository"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static ICountable<TEntity> CreateCountable<TEntity>(this IBaseRepository repository, string tableName = null)
+        public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository repository, string tableName = null)
         {
             return CountableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -118,7 +118,7 @@
         /// <param name="repository"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static ICountable<TEntity> CreateCountable<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null)
+        public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null)
         {
             return CountableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }

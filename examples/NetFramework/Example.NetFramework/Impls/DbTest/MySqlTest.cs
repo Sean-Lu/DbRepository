@@ -77,7 +77,7 @@ namespace Example.NetFramework.Impls.DbTest
 
         private void DapperQueryTest()
         {
-            var queryableSql = this.CreateQueryable(true)
+            var queryableSql = this.CreateQueryableBuilder(true)
                 .Where(entity => entity.UserId == 100000)
                 .Build();
 

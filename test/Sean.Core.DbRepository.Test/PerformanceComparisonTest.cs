@@ -78,7 +78,7 @@ namespace Sean.Core.DbRepository.Test
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Restart();
-                var insertableSql = _testRepository.CreateInsertable(true)
+                var insertableSql = _testRepository.CreateInsertableBuilder(true)
                     .SetParameter(list)
                     .Build();
                 stopwatch.Stop();
@@ -101,7 +101,7 @@ namespace Sean.Core.DbRepository.Test
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Restart();
-                var insertableSql = _testRepository.CreateInsertable(true)
+                var insertableSql = _testRepository.CreateInsertableBuilder(true)
                     .BulkInsert(list)
                     .Build();
                 stopwatch.Stop();
