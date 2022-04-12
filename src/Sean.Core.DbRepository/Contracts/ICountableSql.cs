@@ -2,6 +2,6 @@
 {
     public interface ICountableSql : ISqlParameter
     {
-        string CountSql { get; set; }
+        string Sql { get; set; }
     }
 }

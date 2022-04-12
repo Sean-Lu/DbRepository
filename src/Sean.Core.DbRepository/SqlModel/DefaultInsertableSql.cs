@@ -3,6 +3,6 @@
     public class DefaultInsertableSql : IInsertableSql
     {
         public object Parameter { get; set; }
-        public string InsertSql { get; set; }
+        public string Sql { get; set; }
     }
 }

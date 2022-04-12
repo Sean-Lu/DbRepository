@@ -198,7 +198,7 @@ namespace Sean.Core.DbRepository
 
             var countableSql = new DefaultCountableSql
             {
-                CountSql = sb.ToString(),
+                Sql = sb.ToString(),
                 Parameter = _parameter
             };
             return countableSql;
@@ -210,7 +210,7 @@ namespace Sean.Core.DbRepository
         ISqlAdapter SqlAdapter { get; }
 
         /// <summary>
-        /// 创建SQL：统计数量
+        /// 创建统计数量的SQL：<see cref="CountableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
         ICountableSql Build();

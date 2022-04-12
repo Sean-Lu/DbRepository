@@ -1,6 +1,6 @@
 ﻿namespace Sean.Core.DbRepository
 {
-    public interface IUpdateableSql : ISqlParameter
+    public interface IReplaceableSql : ISqlParameter
     {
         string Sql { get; set; }
     }

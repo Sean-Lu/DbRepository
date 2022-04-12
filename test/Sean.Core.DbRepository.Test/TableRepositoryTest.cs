@@ -122,6 +122,37 @@ namespace Sean.Core.DbRepository.Test
             DeleteTestData(userId);
         }
 
+        [TestMethod]
+        public void ValidateAddOrUpdate()
+        {
+            var userId = 10003L;
+            //var testEntity = AddTestData(userId, true);
+
+            var testEntity = new TestEntity
+            {
+                Id = userId,
+                UserId = userId,
+                UserName = "Test",
+                Country = CountryType.China,
+                CreateTime = DateTime.Now,
+                UpdateTime = DateTime.Now
+            };
+            var addOrUpdateResult = _testRepository.AddOrUpdate(testEntity);// 第1次：记录不存在，新增数据
+            Assert.IsTrue(addOrUpdateResult);
+
+            var getResult = _testRepository.Get(entity => entity.Id == userId);// 验证
+            Assert.IsTrue(getResult != null && getResult.Id > 0 && getResult.UserId == userId && getResult.UserName == "Test" && getResult.Country == CountryType.China);
+
+            testEntity.Country = CountryType.England;
+            var addOrUpdateResult2 = _testRepository.AddOrUpdate(testEntity);// 第2次：记录已存在，更新数据
+            Assert.IsTrue(addOrUpdateResult2);
+
+            var getResult2 = _testRepository.Get(entity => entity.Id == userId);// 验证
+            Assert.IsTrue(getResult2 != null && getResult2.Id > 0 && getResult2.UserId == userId && getResult2.UserName == "Test" && getResult2.Country == CountryType.England);
+
+            DeleteTestData(userId);
+        }
+
         /// <summary>
         /// 添加测试数据
         /// </summary>

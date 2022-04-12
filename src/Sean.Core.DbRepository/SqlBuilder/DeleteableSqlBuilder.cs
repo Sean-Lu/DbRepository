@@ -203,7 +203,15 @@ namespace Sean.Core.DbRepository
         {
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
             {
-                typeof(TEntity).GetPrimaryKeys().ForEach(fieldName => WhereField(entity => fieldName, SqlOperation.Equal));
+                #region 设置默认过滤条件为主键字段
+                var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
+                typeof(TEntity).GetPrimaryKeys().ForEach(fieldName =>
+                {
+                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
+                    var parameterName = findFieldInfo?.Property.Name ?? fieldName;
+                    WhereField(entity => fieldName, SqlOperation.Equal, paramName: parameterName);
+                });
+                #endregion
             }
 
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
@@ -214,7 +222,7 @@ namespace Sean.Core.DbRepository
 
             var deleteableSql = new DefaultDeleteableSql
             {
-                DeleteSql = sb.ToString(),
+                Sql = sb.ToString(),
                 Parameter = _parameter
             };
             return deleteableSql;
@@ -226,7 +234,7 @@ namespace Sean.Core.DbRepository
         ISqlAdapter SqlAdapter { get; }
 
         /// <summary>
-        /// 创建SQL：删除数据
+        /// 创建删除数据的SQL：<see cref="DeleteableSqlBuilder.SqlTemplate"/>
         /// <para>1. 为了防止误删除，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="IDeleteable{TEntity}.AllowEmptyWhereClause"/> 设置允许空 WHERE 子句</para>
         /// <para>2. 如果没有指定WHERE过滤条件，且没有设置 <see cref="IDeleteable{TEntity}.AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段</para>
         /// </summary>

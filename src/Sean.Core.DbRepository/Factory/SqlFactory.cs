@@ -2,6 +2,10 @@
 {
     public class SqlFactory
     {
+        public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+        {
+            return ReplaceableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields, tableName);
+        }
         public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
         {
             return InsertableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields, tableName);
@@ -26,6 +30,10 @@
 
     public class SqlFactory<TEntity>
     {
+        public static IReplaceable<TEntity> CreateReplaceableBuilder(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+        {
+            return ReplaceableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields, tableName);
+        }
         public static IInsertable<TEntity> CreateInsertableBuilder(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
         {
             return InsertableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields, tableName);

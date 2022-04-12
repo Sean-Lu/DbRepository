@@ -134,7 +134,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -147,7 +147,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -163,6 +163,39 @@ namespace Sean.Core.DbRepository
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         bool Add(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null);
+
+        /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 批量新增或更新数据
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        bool AddOrUpdate(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <param name="replaceableSql"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        bool AddOrUpdate(IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 删除数据
@@ -349,7 +382,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -362,7 +395,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -378,6 +411,39 @@ namespace Sean.Core.DbRepository
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns></returns>
         Task<bool> AddAsync(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null);
+
+        /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 批量新增或更新数据
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        Task<bool> AddOrUpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
+        /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <param name="replaceableSql"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        Task<bool> AddOrUpdateAsync(IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 删除数据

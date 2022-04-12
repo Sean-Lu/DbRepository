@@ -103,6 +103,18 @@ namespace Sean.Core.DbRepository.Test
         }
 
         [TestMethod]
+        public void ValidateNameof()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = entity => nameof(TestEntity.Status);
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        [TestMethod]
         public void ValidateVariable()
         {
             var field = "Status";
@@ -116,9 +128,30 @@ namespace Sean.Core.DbRepository.Test
         }
 
         [TestMethod]
-        public void ValidateNameof()
+        public void ValidateVariable2()
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => nameof(TestEntity.Status);
+            var model = new TestEntity
+            {
+                Remark = "Status"
+            };
+            var field = model.Remark;
+            Expression<Func<TestEntity, object>> fieldExpression = entity => field;
+            var fields = fieldExpression.GetMemberNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status)
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        [TestMethod]
+        public void ValidateMemberAccess()
+        {
+            var model = new TestEntity
+            {
+                Remark = "Status"
+            };
+            Expression<Func<TestEntity, object>> fieldExpression = entity => model.Remark;
             var fields = fieldExpression.GetMemberNames();
             var expectedFields = new List<string>
             {

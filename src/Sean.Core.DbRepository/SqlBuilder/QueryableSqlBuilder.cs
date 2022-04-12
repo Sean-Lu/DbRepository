@@ -66,40 +66,12 @@ namespace Sean.Core.DbRepository
         #region [Field]
         public virtual IQueryable<TEntity> IncludeFields(params string[] fields)
         {
-            if (fields != null)
-            {
-                foreach (var field in fields)
-                {
-                    if (string.IsNullOrWhiteSpace(field)) continue;
-
-                    if (!_includeFieldsList.Exists(c => c.TableName == SqlAdapter.TableName && c.FieldName == field))
-                    {
-                        _includeFieldsList.Add(new TableFieldInfoForSqlBuilder
-                        {
-                            TableName = SqlAdapter.TableName,
-                            FieldName = field
-                        });
-                    }
-                }
-            }
+            SqlBuilderUtil.IncludeFields(SqlAdapter, _includeFieldsList, fields);
             return this;
         }
         public virtual IQueryable<TEntity> IgnoreFields(params string[] fields)
         {
-            if (fields != null)
-            {
-                if (fields.Any() && !_includeFieldsList.Any())
-                {
-                    IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
-                }
-
-                foreach (var field in fields)
-                {
-                    if (string.IsNullOrWhiteSpace(field)) continue;
-
-                    _includeFieldsList.RemoveAll(c => c.TableName == SqlAdapter.TableName && c.FieldName == field);
-                }
-            }
+            SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _includeFieldsList, fields);
             return this;
         }
 
@@ -382,7 +354,7 @@ namespace Sean.Core.DbRepository
                 SqlAdapter.MultiTable = true;
             }
 
-            var deleteableSql = new DefaultQueryableSql();
+            var queryableSql = new DefaultQueryableSql();
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldInfo =>
             {
@@ -403,20 +375,19 @@ namespace Sean.Core.DbRepository
                     case DatabaseType.MySql:
                     case DatabaseType.SQLite:
                     case DatabaseType.PostgreSql:
-                        deleteableSql.QuerySql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";
+                        queryableSql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";
                         break;
                     case DatabaseType.SqlServer:
                     case DatabaseType.SqlServerCe:
                     case DatabaseType.Access:
-                        deleteableSql.QuerySql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                        queryableSql.Sql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
                         break;
                     case DatabaseType.Oracle:
                         var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {_topNumber}" : $"{WhereSql} AND ROWNUM <= {_topNumber}";
-                        deleteableSql.QuerySql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
+                        queryableSql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
                         break;
                     default:
-                        //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(TopNumber)}:{TopNumber}]");
-                        deleteableSql.QuerySql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";// 同MySql
+                        queryableSql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";// 同MySql
                         break;
                 }
             }
@@ -425,21 +396,21 @@ namespace Sean.Core.DbRepository
                 // 分页查询
                 var offset = (_pageIndex.Value - 1) * _pageSize.Value;// 偏移量
                 var rows = _pageSize.Value;// 行数
-                deleteableSql.QuerySql = GetQuerySql(selectFields, offset, rows);
+                queryableSql.Sql = GetQuerySql(selectFields, offset, rows);
             }
             else if (_offset.HasValue && _rows.HasValue)
             {
                 // 根据偏移量查询
-                deleteableSql.QuerySql = GetQuerySql(selectFields, _offset.Value, _rows.Value);
+                queryableSql.Sql = GetQuerySql(selectFields, _offset.Value, _rows.Value);
             }
             else
             {
                 // 普通查询
-                deleteableSql.QuerySql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                queryableSql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
             }
 
-            deleteableSql.Parameter = _parameter;
-            return deleteableSql;
+            queryableSql.Parameter = _parameter;
+            return queryableSql;
         }
 
         private string GetQuerySql(string selectFields, int offset, int rows)
@@ -475,7 +446,6 @@ namespace Sean.Core.DbRepository
                         return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {offset + rows};";
                     }
                 default:
-                    //throw new NotSupportedException($"[{nameof(QuerySql)}]-[{_dbType}]-[{nameof(PageIndex)}:{PageIndex},{nameof(PageSize)}:{PageSize}]");
                     return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows};";// 同MySql
             }
         }
@@ -486,7 +456,7 @@ namespace Sean.Core.DbRepository
         ISqlAdapter SqlAdapter { get; }
 
         /// <summary>
-        /// 创建SQL：查询数据
+        /// 创建查询数据的SQL：<see cref="QueryableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
         IQueryableSql Build();

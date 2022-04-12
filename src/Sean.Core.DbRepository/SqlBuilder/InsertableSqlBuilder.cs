@@ -20,7 +20,7 @@ namespace Sean.Core.DbRepository
     {
         private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
         private bool _returnLastInsertId;
-        private bool _bulkInsert;
+        private bool _ignoreIdentityFields;
         private object _parameter;
 
         private InsertableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
@@ -49,66 +49,17 @@ namespace Sean.Core.DbRepository
         #region [Field]
         public virtual IInsertable<TEntity> IncludeFields(params string[] fields)
         {
-            if (fields != null)
-            {
-                foreach (var field in fields)
-                {
-                    if (string.IsNullOrWhiteSpace(field)) continue;
-
-                    if (!_includeFieldsList.Exists(c => c.TableName == SqlAdapter.TableName && c.FieldName == field))
-                    {
-                        _includeFieldsList.Add(new TableFieldInfoForSqlBuilder
-                        {
-                            TableName = SqlAdapter.TableName,
-                            FieldName = field
-                        });
-                    }
-                }
-            }
+            SqlBuilderUtil.IncludeFields(SqlAdapter, _includeFieldsList, fields);
             return this;
         }
         public virtual IInsertable<TEntity> IgnoreFields(params string[] fields)
         {
-            if (fields != null)
-            {
-                if (fields.Any() && !_includeFieldsList.Any())
-                {
-                    IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
-                }
-
-                foreach (var field in fields)
-                {
-                    if (string.IsNullOrWhiteSpace(field)) continue;
-
-                    _includeFieldsList.RemoveAll(c => c.TableName == SqlAdapter.TableName && c.FieldName == field);
-                }
-            }
+            SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _includeFieldsList, fields);
             return this;
         }
         public virtual IInsertable<TEntity> IdentityFields(params string[] fields)
         {
-            if (fields != null)
-            {
-                foreach (var field in fields)
-                {
-                    if (string.IsNullOrWhiteSpace(field)) continue;
-
-                    var fieldInfo = _includeFieldsList.Find(c => c.TableName == SqlAdapter.TableName && c.FieldName == field);
-                    if (fieldInfo != null)
-                    {
-                        fieldInfo.Identity = true;
-                    }
-                    else
-                    {
-                        _includeFieldsList.Add(new TableFieldInfoForSqlBuilder
-                        {
-                            TableName = SqlAdapter.TableName,
-                            FieldName = field,
-                            Identity = true
-                        });
-                    }
-                }
-            }
+            SqlBuilderUtil.IdentityFields(SqlAdapter, _includeFieldsList, fields);
             return this;
         }
 
@@ -138,10 +89,9 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual IInsertable<TEntity> BulkInsert(IEnumerable<TEntity> entities)
+        public virtual IInsertable<TEntity> IgnoreIdentityFields(bool ignoreIdentityFields = true)
         {
-            SetParameter(entities);
-            _bulkInsert = true;
+            _ignoreIdentityFields = ignoreIdentityFields;
             return this;
         }
 
@@ -153,14 +103,14 @@ namespace Sean.Core.DbRepository
 
         public virtual IInsertableSql Build()
         {
-            var fields = _includeFieldsList.Where(c => !c.Identity).ToList();
+            var fields = _ignoreIdentityFields ? _includeFieldsList.Where(c => !c.Identity).ToList() : _includeFieldsList;
             if (!fields.Any())
                 return default;
 
             var sb = new StringBuilder();
             var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName));
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-            if (_bulkInsert && _parameter is IEnumerable<TEntity> entities)
+            if (_parameter is IEnumerable<TEntity> entities && entities.Count() > 1)// BulkInsert
             {
                 #region 解析批量新增的参数
                 var paramDic = new Dictionary<string, object>();
@@ -218,7 +168,7 @@ namespace Sean.Core.DbRepository
 
             var insertableSql = new DefaultInsertableSql
             {
-                InsertSql = sb.ToString(),
+                Sql = sb.ToString(),
                 Parameter = _parameter
             };
             return insertableSql;
@@ -230,7 +180,7 @@ namespace Sean.Core.DbRepository
         ISqlAdapter SqlAdapter { get; }
 
         /// <summary>
-        /// 创建SQL：新增数据
+        /// 创建新增数据的SQL：<see cref="InsertableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
         IInsertableSql Build();
@@ -290,11 +240,11 @@ namespace Sean.Core.DbRepository
         IInsertable<TEntity> ReturnAutoIncrementId(bool returnAutoIncrementId = true);
 
         /// <summary>
-        /// 批量新增
+        /// 忽略自增字段（默认会包含自增字段）
         /// </summary>
-        /// <param name="entities"></param>
+        /// <param name="ignoreIdentityFields"></param>
         /// <returns></returns>
-        IInsertable<TEntity> BulkInsert(IEnumerable<TEntity> entities);
+        IInsertable<TEntity> IgnoreIdentityFields(bool ignoreIdentityFields = true);
 
         /// <summary>
         /// 设置SQL入参

@@ -20,11 +20,28 @@ namespace Sean.Core.DbRepository.Test
             }
 
             IInsertableSql insertableSql = SqlFactory<TestEntity>.CreateInsertableBuilder(DatabaseType.MySql, true)
-                .BulkInsert(list)
+                .SetParameter(list)// BulkInsert
                 .Build();
 
-            var sql = insertableSql.InsertSql;
+            var sql = insertableSql.Sql;
             var param = insertableSql.Parameter;
+        }
+
+        [TestMethod]
+        public void ReplaceTest()
+        {
+            var list = new List<TestEntity>();
+            for (int i = 0; i < 5; i++)
+            {
+                list.Add(new TestEntity());
+            }
+
+            IReplaceableSql replaceableSql = SqlFactory<TestEntity>.CreateReplaceableBuilder(DatabaseType.MySql, true)
+                .SetParameter(list)
+                .Build();
+
+            var sql = replaceableSql.Sql;
+            var param = replaceableSql.Parameter;
         }
     }
 }

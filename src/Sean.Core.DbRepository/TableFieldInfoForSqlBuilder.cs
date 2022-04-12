@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sean.Core.DbRepository
@@ -21,5 +22,7 @@ namespace Sean.Core.DbRepository
         /// 是否是自增字段  <see cref="DatabaseGeneratedOption.Identity"/>
         /// </summary>
         public bool Identity { get; set; }
+
+        public Func<string, ISqlAdapter, string> SetFieldCustomHandler { get; set; }
     }
 }

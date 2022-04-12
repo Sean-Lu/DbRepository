@@ -10,6 +10,139 @@ namespace Sean.Core.DbRepository
 {
     public class SqlBuilderUtil
     {
+        #region [Field]
+        public static void IncludeFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            params string[] fields)
+        {
+            if (fields == null || !fields.Any()) return;
+
+            foreach (var field in fields)
+            {
+                if (string.IsNullOrWhiteSpace(field)) continue;
+
+                if (!includeFieldsList.Exists(c => c.TableName == sqlAdapter.TableName && c.FieldName == field))
+                {
+                    includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                    {
+                        TableName = sqlAdapter.TableName,
+                        FieldName = field
+                    });
+                }
+            }
+        }
+        public static void IgnoreFields<TEntity>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            params string[] fields)
+        {
+            if (fields == null || !fields.Any()) return;
+
+            if (!includeFieldsList.Any())
+            {
+                IncludeFields(sqlAdapter, includeFieldsList, typeof(TEntity).GetAllFieldNames().Except(fields).ToArray());
+                return;
+            }
+
+            includeFieldsList.RemoveAll(c => c.TableName == sqlAdapter.TableName && fields.Contains(c.FieldName));
+        }
+        public static void PrimaryKeyFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            params string[] fields)
+        {
+            if (fields == null || !fields.Any()) return;
+
+            foreach (var field in fields)
+            {
+                if (string.IsNullOrWhiteSpace(field)) continue;
+
+                var fieldInfo = includeFieldsList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
+                if (fieldInfo != null)
+                {
+                    fieldInfo.PrimaryKey = true;
+                }
+                else
+                {
+                    includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                    {
+                        TableName = sqlAdapter.TableName,
+                        FieldName = field,
+                        PrimaryKey = true
+                    });
+                }
+            }
+        }
+        public static void IdentityFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            params string[] fields)
+        {
+            if (fields == null || !fields.Any()) return;
+
+            foreach (var field in fields)
+            {
+                if (string.IsNullOrWhiteSpace(field)) continue;
+
+                var fieldInfo = includeFieldsList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
+                if (fieldInfo != null)
+                {
+                    fieldInfo.Identity = true;
+                }
+                else
+                {
+                    includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                    {
+                        TableName = sqlAdapter.TableName,
+                        FieldName = field,
+                        Identity = true
+                    });
+                }
+            }
+        }
+        public static void IncrFields<TEntity, TValue>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
+        {
+            var fields = fieldExpression.GetMemberNames();
+            foreach (var field in fields)
+            {
+                if (string.IsNullOrWhiteSpace(field)) continue;
+
+                var fieldInfo = includeFieldsList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
+                if (fieldInfo != null)
+                {
+                    fieldInfo.SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}";
+                }
+                else
+                {
+                    includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                    {
+                        TableName = sqlAdapter.TableName,
+                        FieldName = field,
+                        SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}"
+                    });
+                }
+            }
+        }
+        public static void DecrFields<TEntity, TValue>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
+        {
+            var fields = fieldExpression.GetMemberNames();
+            foreach (var field in fields)
+            {
+                if (string.IsNullOrWhiteSpace(field)) continue;
+
+                var fieldInfo = includeFieldsList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
+                if (fieldInfo != null)
+                {
+                    fieldInfo.SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}";
+                }
+                else
+                {
+                    includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                    {
+                        TableName = sqlAdapter.TableName,
+                        FieldName = field,
+                        SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}"
+                    });
+                }
+            }
+        }
+        #endregion
+
         #region [Join] 表关联
         public static string GetJoinFields<TEntity, TEntity2>(ISqlAdapter sqlAdapter, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string joinTableName)
         {
@@ -38,63 +171,68 @@ namespace Sean.Core.DbRepository
         public static void Where(StringBuilder sbWhereClause, WhereSqlKeyword keyword,
             string where)
         {
-            if (!string.IsNullOrWhiteSpace(where))
-            {
-                if (sbWhereClause.Length > 0) sbWhereClause.Append(" ");
-                else if (keyword == WhereSqlKeyword.And) sbWhereClause.Append("1=1 ");
+            if (string.IsNullOrWhiteSpace(@where)) return;
 
-                sbWhereClause.Append(keyword == WhereSqlKeyword.None ? where : $"{keyword.ToSqlString()} {where}");
-            }
+            if (sbWhereClause.Length > 0) sbWhereClause.Append(" ");
+            else if (keyword == WhereSqlKeyword.And) sbWhereClause.Append("1=1 ");
+
+            sbWhereClause.Append(keyword == WhereSqlKeyword.None ? @where : $"{keyword.ToSqlString()} {@where}");
         }
-        public static void Where<TEntity>(ISqlAdapter sqlAdapter, Dictionary<string, object> dicParameters, Action<string> setWhereClause, Action<Dictionary<string, object>> setParameter,
+        public static void Where<TEntity>(ISqlAdapter sqlAdapter, IDictionary<string, object> dicParameters, Action<string> setWhereClause, Action<IDictionary<string, object>> setParameter,
             Expression<Func<TEntity, bool>> whereExpression)
         {
-            if (whereExpression != null)
+            if (whereExpression == null) return;
+
+            var whereClause = whereExpression.GetParameterizedWhereClause(sqlAdapter, dicParameters);
+            if (!string.IsNullOrWhiteSpace(whereClause))
             {
-                var whereClause = whereExpression.GetParameterizedWhereClause(sqlAdapter, dicParameters);
-                if (!string.IsNullOrWhiteSpace(whereClause))
-                {
-                    setWhereClause(whereClause);
-                }
-                if (dicParameters.Any())
-                {
-                    setParameter(dicParameters);
-                }
+                setWhereClause(whereClause);
+            }
+            if (dicParameters.Any())
+            {
+                setParameter(dicParameters);
             }
         }
         public static void WhereField<TEntity>(ISqlAdapter sqlAdapter, StringBuilder sbWhereClause,
             Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
         {
-            if (fieldExpression != null)
+            if (fieldExpression == null) return;
+
+            var fields = fieldExpression.GetMemberNames();
+            if (fields == null || fields.Count != 1)
             {
-                var fields = fieldExpression.GetMemberNames();
-                if (fields == null || fields.Count != 1)
-                {
-                    throw new InvalidOperationException($"[{nameof(WhereField)}]Field must be specified, and the number can only be one.");
-                }
+                throw new InvalidOperationException($"[{nameof(WhereField)}-{nameof(fieldExpression)}]The fields in WHERE clause must be specified, and the number of fields can only be one.");
+            }
 
-                var fieldName = fields.FirstOrDefault();
-                if (!string.IsNullOrWhiteSpace(fieldName))
-                {
-                    if (sbWhereClause.Length > 0) sbWhereClause.Append(" ");
-                    else if (keyword == WhereSqlKeyword.And) sbWhereClause.Append("1=1 ");
+            var fieldName = fields.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(fieldName)) return;
 
-                    var keywordSqlString = keyword.ToSqlString();
-                    if (!string.IsNullOrWhiteSpace(keywordSqlString))
-                    {
-                        sbWhereClause.Append($"{keywordSqlString} ");
-                    }
+            if (sbWhereClause.Length > 0) sbWhereClause.Append(" ");
+            else if (keyword == WhereSqlKeyword.And) sbWhereClause.Append("1=1 ");
 
-                    if (include == Include.Left)
-                    {
-                        sbWhereClause.Append(include.ToSqlString());
-                    }
-                    sbWhereClause.Append($"{sqlAdapter.FormatFieldName(fieldName)} {operation.ToSqlString()} {sqlAdapter.FormatInputParameter(paramName ?? fieldName)}");
-                    if (include == Include.Right)
-                    {
-                        sbWhereClause.Append(include.ToSqlString());
-                    }
-                }
+            var keywordSqlString = keyword.ToSqlString();
+            if (!string.IsNullOrWhiteSpace(keywordSqlString))
+            {
+                sbWhereClause.Append($"{keywordSqlString} ");
+            }
+
+            if (include == Include.Left)
+            {
+                sbWhereClause.Append(include.ToSqlString());
+            }
+
+            var parameterName = paramName;
+            if (parameterName == null)
+            {
+                var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
+                var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
+                parameterName = findFieldInfo?.Property.Name ?? fieldName;
+            }
+            sbWhereClause.Append($"{sqlAdapter.FormatFieldName(fieldName)} {operation.ToSqlString()} {sqlAdapter.FormatInputParameter(parameterName)}");
+
+            if (include == Include.Right)
+            {
+                sbWhereClause.Append(include.ToSqlString());
             }
         }
         #endregion

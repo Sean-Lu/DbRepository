@@ -3,6 +3,6 @@
     public class DefaultUpdateableSql : IUpdateableSql
     {
         public object Parameter { get; set; }
-        public string UpdateSql { get; set; }
+        public string Sql { get; set; }
     }
 }

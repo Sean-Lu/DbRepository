@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Dapper;
 using Example.Domain.Contracts;
@@ -79,13 +80,13 @@ namespace Sean.Core.DbRepository.Test
                 var stopwatch = new Stopwatch();
                 stopwatch.Restart();
                 var insertableSql = _testRepository.CreateInsertableBuilder(true)
-                    .SetParameter(list)
+                    .SetParameter(list.First())
                     .Build();
                 stopwatch.Stop();
                 var buildSqlElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
 
                 stopwatch.Restart();
-                var result = c.Execute(insertableSql.InsertSql, insertableSql.Parameter);// 批量新增数据
+                var result = c.Execute(insertableSql.Sql, list);// 批量新增数据
                 stopwatch.Stop();
                 Assert.IsTrue(result == list.Count);
                 var executeElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
@@ -102,13 +103,13 @@ namespace Sean.Core.DbRepository.Test
                 var stopwatch = new Stopwatch();
                 stopwatch.Restart();
                 var insertableSql = _testRepository.CreateInsertableBuilder(true)
-                    .BulkInsert(list)
+                    .SetParameter(list)// BulkInsert
                     .Build();
                 stopwatch.Stop();
                 var buildSqlElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
 
                 stopwatch.Restart();
-                var result = c.Execute(insertableSql.InsertSql, insertableSql.Parameter);// 批量新增数据
+                var result = c.Execute(insertableSql.Sql, insertableSql.Parameter);// 批量新增数据
                 stopwatch.Stop();
                 Assert.IsTrue(result == list.Count);
                 var executeElapsedMilliseconds = stopwatch.ElapsedMilliseconds;

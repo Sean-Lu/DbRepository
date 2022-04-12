@@ -719,7 +719,7 @@ namespace Sean.Core.DbRepository.Test
         }
         #endregion 不支持的写法
 
-        private void AssertParameters(Dictionary<string, object> expectedParameters, Dictionary<string, object> actualParameters)
+        private void AssertParameters(IDictionary<string, object> expectedParameters, IDictionary<string, object> actualParameters)
         {
             Assert.AreEqual(expectedParameters.Count, actualParameters.Count);
             foreach (var key in expectedParameters.Keys)

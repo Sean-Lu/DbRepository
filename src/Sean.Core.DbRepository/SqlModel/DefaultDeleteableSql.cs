@@ -3,6 +3,6 @@
     public class DefaultDeleteableSql : IDeleteableSql
     {
         public object Parameter { get; set; }
-        public string DeleteSql { get; set; }
+        public string Sql { get; set; }
     }
 }

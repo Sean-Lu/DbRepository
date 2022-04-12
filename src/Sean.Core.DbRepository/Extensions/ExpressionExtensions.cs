@@ -33,7 +33,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <param name="sqlAdapter"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static string GetParameterizedWhereClause<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, ISqlAdapter sqlAdapter, Dictionary<string, object> parameters)
+        public static string GetParameterizedWhereClause<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, ISqlAdapter sqlAdapter, IDictionary<string, object> parameters)
         {
             var adhesive = new WhereClauseAdhesive(sqlAdapter, parameters);
             var whereClause = WhereCaluseParser.Parse(whereExpression.Body, adhesive);
@@ -47,7 +47,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <param name="sqlAdapter"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static string GetParameterizedWhereClause<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, ISqlAdapter sqlAdapter, out Dictionary<string, object> parameters)
+        public static string GetParameterizedWhereClause<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, ISqlAdapter sqlAdapter, out IDictionary<string, object> parameters)
         {
             parameters = new Dictionary<string, object>();
             return whereExpression.GetParameterizedWhereClause(sqlAdapter, parameters);
@@ -104,29 +104,63 @@ namespace Sean.Core.DbRepository.Extensions
                     }
                 }
             }
-            else if (fieldExpression is MemberExpression memberExpression
-                     && memberExpression.Expression is ConstantExpression constantExpression)
+            else if (fieldExpression is MemberExpression memberExpression)
             {
-                var value = constantExpression.Value;
-                if (value != null)
+                if (memberExpression.Expression is ParameterExpression parameterExpression)
                 {
-                    var valueType = value.GetType();
-                    var fieldInfo = valueType.GetField(memberExpression.Member.Name);
-                    if (fieldInfo != null)
+                    var fieldName = memberExpression.Member.GetFieldName();
+                    if (!string.IsNullOrWhiteSpace(fieldName) && !result.Contains(fieldName))
                     {
-                        var actualValue = fieldInfo.GetValue(value);
-                        if (actualValue is string strValue)
+                        result.Add(fieldName);
+                    }
+                }
+                else if (memberExpression.Expression is ConstantExpression constantExpression)
+                {
+                    var value = constantExpression.Value;
+                    if (value != null)
+                    {
+                        var valueType = value.GetType();
+                        var fieldInfo = valueType.GetField(memberExpression.Member.Name);
+                        if (fieldInfo != null)
+                        {
+                            var actualValue = fieldInfo.GetValue(value);
+                            if (actualValue is string strValue)
+                            {
+                                if (!result.Contains(strValue))
+                                {
+                                    result.Add(strValue);
+                                }
+                            }
+                            else if (actualValue is IEnumerable<string> fields)
+                            {
+                                foreach (var field in fields)
+                                {
+                                    if (!string.IsNullOrWhiteSpace(field) && !result.Contains(field))
+                                    {
+                                        result.Add(field);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    var value = ConstantExtractor.ParseConstant(memberExpression);
+                    if (value is string strValue)
+                    {
+                        if (!result.Contains(strValue))
                         {
                             result.Add(strValue);
                         }
-                        else if (actualValue is IEnumerable<string> fields)
+                    }
+                    else if (value is IEnumerable<string> fields)
+                    {
+                        foreach (var field in fields)
                         {
-                            foreach (var field in fields)
+                            if (!string.IsNullOrWhiteSpace(field) && !result.Contains(field))
                             {
-                                if (!string.IsNullOrWhiteSpace(field) && !result.Contains(field))
-                                {
-                                    result.Add(field);
-                                }
+                                result.Add(field);
                             }
                         }
                     }
@@ -148,7 +182,6 @@ namespace Sean.Core.DbRepository.Extensions
             }
             else
             {
-                // 单个字段
                 var memberName = fieldExpression.GetMemberName();
                 if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                 {
@@ -167,23 +200,33 @@ namespace Sean.Core.DbRepository.Extensions
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
+            string result = null;
             if (expression is UnaryExpression unaryExpression)
             {
                 if (unaryExpression.Operand is MemberExpression memberExpression)
                 {
-                    return memberExpression.Member.GetFieldName();
+                    result = memberExpression.Member.GetFieldName();
                 }
             }
             else if (expression is ConstantExpression constantExpression)
             {
-                return constantExpression.Value as string;
+                result = constantExpression.Value as string;
             }
             else if (expression is MemberExpression memberExpression)
             {
-                return memberExpression.Member.GetFieldName();
+                if (memberExpression.Expression is ParameterExpression)
+                {
+                    result = memberExpression.Member.GetFieldName();
+                }
+                else
+                {
+                    var value = ConstantExtractor.ParseConstant(memberExpression);
+                    result = value as string;
+                }
             }
 
-            throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
+            if (result == null) throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
+            return result;
         }
         #endregion
     }

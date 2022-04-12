@@ -2,6 +2,6 @@
 {
     public interface IInsertableSql : ISqlParameter
     {
-        string InsertSql { get; set; }
+        string Sql { get; set; }
     }
 }

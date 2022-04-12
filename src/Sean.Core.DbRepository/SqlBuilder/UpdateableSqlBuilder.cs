@@ -32,8 +32,6 @@ namespace Sean.Core.DbRepository
         private bool _allowEmptyWhereClause;
         private object _parameter;
 
-        private Func<string, ISqlAdapter, string> _fieldCustomHandler;
-
         private UpdateableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
         {
         }
@@ -59,66 +57,17 @@ namespace Sean.Core.DbRepository
         #region [Field]
         public virtual IUpdateable<TEntity> IncludeFields(params string[] fields)
         {
-            if (fields != null)
-            {
-                foreach (var field in fields)
-                {
-                    if (string.IsNullOrWhiteSpace(field)) continue;
-
-                    if (!_includeFieldsList.Exists(c => c.TableName == SqlAdapter.TableName && c.FieldName == field))
-                    {
-                        _includeFieldsList.Add(new TableFieldInfoForSqlBuilder
-                        {
-                            TableName = SqlAdapter.TableName,
-                            FieldName = field
-                        });
-                    }
-                }
-            }
+            SqlBuilderUtil.IncludeFields(SqlAdapter, _includeFieldsList, fields);
             return this;
         }
         public virtual IUpdateable<TEntity> IgnoreFields(params string[] fields)
         {
-            if (fields != null)
-            {
-                if (fields.Any() && !_includeFieldsList.Any())
-                {
-                    IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
-                }
-
-                foreach (var field in fields)
-                {
-                    if (string.IsNullOrWhiteSpace(field)) continue;
-
-                    _includeFieldsList.RemoveAll(c => c.TableName == SqlAdapter.TableName && c.FieldName == field);
-                }
-            }
+            SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _includeFieldsList, fields);
             return this;
         }
         public virtual IUpdateable<TEntity> PrimaryKeyFields(params string[] fields)
         {
-            if (fields != null)
-            {
-                foreach (var field in fields)
-                {
-                    if (string.IsNullOrWhiteSpace(field)) continue;
-
-                    var fieldInfo = _includeFieldsList.Find(c => c.TableName == SqlAdapter.TableName && c.FieldName == field);
-                    if (fieldInfo != null)
-                    {
-                        fieldInfo.PrimaryKey = true;
-                    }
-                    else
-                    {
-                        _includeFieldsList.Add(new TableFieldInfoForSqlBuilder
-                        {
-                            TableName = SqlAdapter.TableName,
-                            FieldName = field,
-                            PrimaryKey = true
-                        });
-                    }
-                }
-            }
+            SqlBuilderUtil.PrimaryKeyFields(SqlAdapter, _includeFieldsList, fields);
             return this;
         }
 
@@ -158,6 +107,17 @@ namespace Sean.Core.DbRepository
             if (fieldExpression == null) return this;
             var fields = fieldExpression.GetMemberNames().ToArray();
             return PrimaryKeyFields(fields);
+        }
+
+        public virtual IUpdateable<TEntity> IncrFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
+        {
+            SqlBuilderUtil.IncrFields(SqlAdapter, _includeFieldsList, fieldExpression, value);
+            return this;
+        }
+        public virtual IUpdateable<TEntity> DecrFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
+        {
+            SqlBuilderUtil.DecrFields(SqlAdapter, _includeFieldsList, fieldExpression, value);
+            return this;
         }
         #endregion
 
@@ -308,12 +268,6 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual IUpdateable<TEntity> SetFieldCustomHandler(Func<string, ISqlAdapter, string> fieldCustomHandler)
-        {
-            _fieldCustomHandler = fieldCustomHandler;
-            return this;
-        }
-
         public virtual IUpdateable<TEntity> SetParameter(object param)
         {
             _parameter = param;
@@ -322,19 +276,29 @@ namespace Sean.Core.DbRepository
 
         public virtual IUpdateableSql Build()
         {
+            var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
             {
+                #region 设置默认过滤条件为主键字段
                 if (_includeFieldsList.Any(c => c.PrimaryKey))
                 {
                     foreach (var pks in _includeFieldsList.Where(c => c.PrimaryKey))
                     {
-                        WhereField(entity => pks.FieldName, SqlOperation.Equal);
+                        var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == pks.FieldName);
+                        var parameterName = findFieldInfo?.Property.Name ?? pks.FieldName;
+                        WhereField(entity => pks.FieldName, SqlOperation.Equal, paramName: parameterName);
                     }
                 }
                 else
                 {
-                    typeof(TEntity).GetPrimaryKeys().ForEach(fieldName => WhereField(entity => fieldName, SqlOperation.Equal));
+                    typeof(TEntity).GetPrimaryKeys().ForEach(fieldName =>
+                    {
+                        var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
+                        var parameterName = findFieldInfo?.Property.Name ?? fieldName;
+                        WhereField(entity => fieldName, SqlOperation.Equal, paramName: parameterName);
+                    });
                 }
+                #endregion
             }
 
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
@@ -351,22 +315,24 @@ namespace Sean.Core.DbRepository
                 SqlAdapter.MultiTable = true;
             }
 
-            var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-            var sets = _fieldCustomHandler != null
-                ? fields.Select(fieldInfo => _fieldCustomHandler(fieldInfo.FieldName, SqlAdapter))
-                : fields.Select(fieldInfo =>
+            var sets = fields.Select(fieldInfo =>
+            {
+                if (fieldInfo.SetFieldCustomHandler != null)
                 {
-                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
-                    var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
-                    return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}={SqlAdapter.FormatInputParameter(parameterName)}";
-                });
+                    return fieldInfo.SetFieldCustomHandler(fieldInfo.FieldName, SqlAdapter);
+                }
+
+                var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
+                var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
+                return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}={SqlAdapter.FormatInputParameter(parameterName)}";
+            });
 
             var sb = new StringBuilder();
             sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", string.Join(", ", sets), WhereSql));
 
             var updateableSql = new DefaultUpdateableSql
             {
-                UpdateSql = sb.ToString(),
+                Sql = sb.ToString(),
                 Parameter = _parameter
             };
             return updateableSql;
@@ -378,7 +344,7 @@ namespace Sean.Core.DbRepository
         ISqlAdapter SqlAdapter { get; }
 
         /// <summary>
-        /// 创建SQL：更新数据
+        /// 创建更新数据的SQL：<see cref="UpdateableSqlBuilder.SqlTemplate"/>
         /// <para>1. 为了防止误更新，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="IUpdateable{TEntity}.AllowEmptyWhereClause"/> 设置允许空 WHERE 子句</para>
         /// <para>2. 如果没有指定WHERE过滤条件，且没有设置 <see cref="IUpdateable{TEntity}.AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段</para>
         /// </summary>
@@ -430,6 +396,23 @@ namespace Sean.Core.DbRepository
         /// <param name="fieldExpression"></param>
         /// <returns></returns>
         IUpdateable<TEntity> PrimaryKeyFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+
+        /// <summary>
+        /// 递增字段
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="fieldExpression"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        IUpdateable<TEntity> IncrFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct;
+        /// <summary>
+        /// 递减字段
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="fieldExpression"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        IUpdateable<TEntity> DecrFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct;
         #endregion
 
         #region [Join] 表关联
@@ -527,8 +510,6 @@ namespace Sean.Core.DbRepository
         /// <param name="allowEmptyWhereClause"></param>
         /// <returns></returns>
         IUpdateable<TEntity> AllowEmptyWhereClause(bool allowEmptyWhereClause = true);
-
-        IUpdateable<TEntity> SetFieldCustomHandler(Func<string, ISqlAdapter, string> fieldCustomHandler);
 
         /// <summary>
         /// 设置SQL入参

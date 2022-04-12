@@ -3,6 +3,31 @@
     public static class RepositoryExtensions
     {
         /// <summary>
+        /// Create an instance of <see cref="IReplaceable{TEntity}"/>.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="repository"></param>
+        /// <param name="autoIncludeFields"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
+        {
+            return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        }
+        /// <summary>
+        /// Create an instance of <see cref="IReplaceable{TEntity}"/>.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="repository"></param>
+        /// <param name="autoIncludeFields"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
+        {
+            return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        }
+
+        /// <summary>
         /// Create an instance of <see cref="IInsertable{TEntity}"/>.
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>

@@ -3,6 +3,6 @@
     public class DefaultCountableSql : ICountableSql
     {
         public object Parameter { get; set; }
-        public string CountSql { get; set; }
+        public string Sql { get; set; }
     }
 }

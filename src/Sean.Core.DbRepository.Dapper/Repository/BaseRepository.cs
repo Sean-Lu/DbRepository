@@ -118,7 +118,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -134,7 +134,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </summary>
         /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -155,6 +155,48 @@ namespace Sean.Core.DbRepository.Dapper
         public virtual bool Add(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.Add(this, insertableSql, transaction, commandTimeout), true, transaction);
+        }
+
+        /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return Execute(connection => connection.AddOrUpdate(this, entity, fieldExpression, transaction, commandTimeout), true, transaction);
+        }
+        /// <summary>
+        /// 批量新增或更新数据
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual bool AddOrUpdate(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return Execute(connection => connection.BulkAddOrUpdate(this, entities, fieldExpression, transaction, commandTimeout), true, transaction);
+        }
+        /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <param name="replaceableSql"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual bool AddOrUpdate(IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return Execute(connection => connection.AddOrUpdate(this, replaceableSql, transaction, commandTimeout), true, transaction);
         }
 
         /// <summary>
@@ -407,7 +449,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -423,7 +465,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </summary>
         /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -444,6 +486,48 @@ namespace Sean.Core.DbRepository.Dapper
         public virtual async Task<bool> AddAsync(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.AddAsync(this, insertableSql, transaction, commandTimeout), true, transaction);
+        }
+
+        /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual async Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return await ExecuteAsync(async connection => await connection.AddOrUpdateAsync(this, entity, fieldExpression, transaction, commandTimeout), true, transaction);
+        }
+        /// <summary>
+        /// 批量新增或更新数据
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual async Task<bool> AddOrUpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return await ExecuteAsync(async connection => await connection.BulkAddOrUpdateAsync(this, entities, fieldExpression, transaction, commandTimeout), true, transaction);
+        }
+        /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <param name="replaceableSql"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public virtual async Task<bool> AddOrUpdateAsync(IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return await ExecuteAsync(async connection => await connection.AddOrUpdateAsync(this, replaceableSql, transaction, commandTimeout), true, transaction);
         }
 
         /// <summary>

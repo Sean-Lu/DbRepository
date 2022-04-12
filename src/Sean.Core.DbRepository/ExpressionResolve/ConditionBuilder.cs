@@ -98,7 +98,7 @@ namespace Sean.Core.DbRepository
             return UniqueParameter(mi.Name, adhesive.Parameters);
         }
 
-        public static string UniqueParameter(string paramName, Dictionary<string, object> parameterDic)
+        public static string UniqueParameter(string paramName, IDictionary<string, object> parameterDic)
         {
             if (!parameterDic.ContainsKey(paramName))
             {

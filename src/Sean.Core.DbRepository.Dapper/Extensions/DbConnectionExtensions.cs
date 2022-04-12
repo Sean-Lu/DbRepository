@@ -24,7 +24,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -44,7 +44,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             PropertyInfo keyIdentityProperty;
             if (returnId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
             {
-                var sql = insertableSql.InsertSql;
+                var sql = insertableSql.Sql;
                 var id = connection.ExecuteScalar<long>(sql, entity, transaction, commandTimeout);
                 repository.OutputExecutedSql(sql, entity);
                 if (id > 0)
@@ -72,6 +72,76 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         }
 
         /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="entity"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static bool AddOrUpdate<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            if (entity == null) return false;
+
+            switch (repository.DbType)
+            {
+                case DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                    IReplaceableSql replaceableSql = repository.CreateReplaceableBuilder<TEntity>(fieldExpression == null)
+                        .IncludeFields(fieldExpression)
+                        .SetParameter(entity)
+                        .Build();
+                    return replaceableSql.ExecuteCommandSuccessful(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+                default:
+                    var pkFields = typeof(TEntity).GetPrimaryKeys();
+                    if (pkFields == null || !pkFields.Any()) throw new InvalidOperationException($"The entity '{typeof(TEntity).Name}' is missing a primary key field.");
+
+                    ICountable<TEntity> countableBuilder = repository.CreateCountableBuilder<TEntity>();
+                    pkFields.ForEach(pkField => countableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
+                    countableBuilder.SetParameter(entity);
+                    ICountableSql countableSql = countableBuilder.Build();
+                    var count = countableSql.ExecuteCommand(connection, commandTimeout, repository.OutputExecutedSql);
+                    if (count < 1)
+                    {
+                        // INSERT
+                        IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
+                            .IncludeFields(fieldExpression)
+                            .SetParameter(entity)
+                            .Build();
+                        return insertableSql.ExecuteCommandSuccessful(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+                    }
+                    else
+                    {
+                        // UPDATE
+                        IUpdateable<TEntity> updateableBuilder = repository.CreateUpdateableBuilder<TEntity>(fieldExpression == null)
+                            .IncludeFields(fieldExpression, entity);
+                        pkFields.ForEach(pkField => countableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
+                        IUpdateableSql updateableSql = updateableBuilder.Build();
+                        return updateableSql.ExecuteCommand(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
+                    }
+            }
+        }
+        /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="replaceableSql"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static bool AddOrUpdate(this IDbConnection connection, IBaseRepository repository, IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return replaceableSql.ExecuteCommandSuccessful(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+        }
+
+        /// <summary>
         /// 批量新增数据
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
@@ -79,7 +149,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -127,10 +197,69 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
                     .IncludeFields(fieldExpression)
                     //.ReturnAutoIncrementId(returnId)
-                    //.SetParameter(entities)
-                    .BulkInsert(entities)
+                    .SetParameter(entities)// BulkInsert
                     .Build();
                 return insertableSql.ExecuteCommandSuccessful(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+            }
+        }
+
+        /// <summary>
+        /// 批量新增或更新数据
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="entities"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static bool BulkAddOrUpdate<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            if (entities == null || !entities.Any()) return false;
+
+            switch (repository.DbType)
+            {
+                case DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                    IReplaceableSql replaceableSql = repository.CreateReplaceableBuilder<TEntity>(fieldExpression == null)
+                        .IncludeFields(fieldExpression)
+                        .SetParameter(entities)
+                        .Build();
+                    return replaceableSql.ExecuteCommandSuccessful(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+                default:
+                    if (transaction?.Connection != null)
+                    {
+                        foreach (var entity in entities)
+                        {
+                            if (!transaction.Connection.AddOrUpdate(repository, entity, fieldExpression, transaction, commandTimeout))
+                            {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+                    else
+                    {
+                        return repository.ExecuteTransaction(connection, trans =>
+                        {
+                            foreach (var entity in entities)
+                            {
+                                if (!connection.AddOrUpdate(repository, entity, fieldExpression, trans, commandTimeout))
+                                {
+                                    trans.Rollback();
+                                    return false;
+                                }
+                            }
+
+                            trans.Commit();
+                            return true;
+                        });
+                    }
             }
         }
 
@@ -298,8 +427,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         public static bool Incr<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
             IUpdateableSql updateableSql = repository.CreateUpdateableBuilder<TEntity>(false)
-                .IncludeFields(fieldExpression)
-                .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}")
+                .IncrFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
             return connection.Update(repository, updateableSql, transaction, commandTimeout) > 0;
@@ -320,8 +448,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         public static bool Decr<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
             IUpdateableSql updateableSql = repository.CreateUpdateableBuilder<TEntity>(false)
-                .IncludeFields(fieldExpression)
-                .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}")
+                .DecrFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
             return connection.Update(repository, updateableSql, transaction, commandTimeout) > 0;
@@ -486,7 +613,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -506,7 +633,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             PropertyInfo keyIdentityProperty;
             if (returnId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
             {
-                var sql = insertableSql.InsertSql;
+                var sql = insertableSql.Sql;
                 var id = await connection.ExecuteScalarAsync<long>(sql, entity, transaction, commandTimeout);
                 repository.OutputExecutedSql(sql, entity);
                 if (id > 0)
@@ -534,6 +661,76 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         }
 
         /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="entity"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<bool> AddOrUpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            if (entity == null) return false;
+
+            switch (repository.DbType)
+            {
+                case DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                    IReplaceableSql replaceableSql = repository.CreateReplaceableBuilder<TEntity>(fieldExpression == null)
+                        .IncludeFields(fieldExpression)
+                        .SetParameter(entity)
+                        .Build();
+                    return await replaceableSql.ExecuteCommandSuccessfulAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+                default:
+                    var pkFields = typeof(TEntity).GetPrimaryKeys();
+                    if (pkFields == null || !pkFields.Any()) throw new InvalidOperationException($"The entity '{typeof(TEntity).Name}' is missing a primary key field.");
+
+                    ICountable<TEntity> countableBuilder = repository.CreateCountableBuilder<TEntity>();
+                    pkFields.ForEach(pkField => countableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
+                    countableBuilder.SetParameter(entity);
+                    ICountableSql countableSql = countableBuilder.Build();
+                    var count = await countableSql.ExecuteCommandAsync(connection, commandTimeout, repository.OutputExecutedSql);
+                    if (count < 1)
+                    {
+                        // INSERT
+                        IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
+                            .IncludeFields(fieldExpression)
+                            .SetParameter(entity)
+                            .Build();
+                        return await insertableSql.ExecuteCommandSuccessfulAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+                    }
+                    else
+                    {
+                        // UPDATE
+                        IUpdateable<TEntity> updateableBuilder = repository.CreateUpdateableBuilder<TEntity>(fieldExpression == null)
+                            .IncludeFields(fieldExpression, entity);
+                        pkFields.ForEach(pkField => countableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
+                        IUpdateableSql updateableSql = updateableBuilder.Build();
+                        return await updateableSql.ExecuteCommandAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
+                    }
+            }
+        }
+        /// <summary>
+        /// 新增或更新数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="replaceableSql"></param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<bool> AddOrUpdateAsync(this IDbConnection connection, IBaseRepository repository, IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            return await replaceableSql.ExecuteCommandSuccessfulAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+        }
+
+        /// <summary>
         /// 批量新增数据
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
@@ -541,7 +738,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含自增字段和忽略字段）。示例：
+        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
         /// <para>单个字段：entity => entity.Status</para>
         /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
@@ -589,10 +786,69 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
                     .IncludeFields(fieldExpression)
                     //.ReturnAutoIncrementId(returnId)
-                    //.SetParameter(entities)
-                    .BulkInsert(entities)
+                    .SetParameter(entities)// BulkInsert
                     .Build();
                 return await insertableSql.ExecuteCommandSuccessfulAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+            }
+        }
+
+        /// <summary>
+        /// 批量新增或更新数据
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="repository"></param>
+        /// <param name="entities"></param>
+        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <para>单个字段：entity => entity.Status</para>
+        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// </param>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns></returns>
+        public static async Task<bool> BulkAddOrUpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            if (entities == null || !entities.Any()) return false;
+
+            switch (repository.DbType)
+            {
+                case DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                    IReplaceableSql replaceableSql = repository.CreateReplaceableBuilder<TEntity>(fieldExpression == null)
+                        .IncludeFields(fieldExpression)
+                        .SetParameter(entities)
+                        .Build();
+                    return await replaceableSql.ExecuteCommandSuccessfulAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+                default:
+                    if (transaction?.Connection != null)
+                    {
+                        foreach (var entity in entities)
+                        {
+                            if (!await transaction.Connection.AddOrUpdateAsync(repository, entity, fieldExpression, transaction, commandTimeout))
+                            {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+                    else
+                    {
+                        return await repository.ExecuteTransactionAsync(connection, async trans =>
+                        {
+                            foreach (var entity in entities)
+                            {
+                                if (!await connection.AddOrUpdateAsync(repository, entity, fieldExpression, trans, commandTimeout))
+                                {
+                                    trans.Rollback();
+                                    return false;
+                                }
+                            }
+
+                            trans.Commit();
+                            return true;
+                        });
+                    }
             }
         }
 
@@ -760,8 +1016,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         public static async Task<bool> IncrAsync<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
             IUpdateableSql updateableSql = repository.CreateUpdateableBuilder<TEntity>(false)
-                .IncludeFields(fieldExpression)
-                .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}")
+                .IncrFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
             return await connection.UpdateAsync(repository, updateableSql, transaction, commandTimeout) > 0;
@@ -782,8 +1037,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         public static async Task<bool> DecrAsync<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
             IUpdateableSql updateableSql = repository.CreateUpdateableBuilder<TEntity>(false)
-                .IncludeFields(fieldExpression)
-                .SetFieldCustomHandler((fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}")
+                .DecrFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
             return await connection.UpdateAsync(repository, updateableSql, transaction, commandTimeout) > 0;
