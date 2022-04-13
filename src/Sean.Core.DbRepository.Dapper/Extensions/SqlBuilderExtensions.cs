@@ -37,6 +37,21 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             outputExecutedSql?.Invoke(insertableSql.Sql, insertableSql.Parameter);
             return result;
         }
+        /// <summary>
+        /// 新增数据
+        /// </summary>
+        /// <param name="insertableSql"></param>
+        /// <param name="connection"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <param name="outputExecutedSql"></param>
+        /// <returns></returns>
+        public static T ExecuteScalar<T>(this IInsertableSql insertableSql, IDbConnection connection, IDbTransaction transaction = null, int? commandTimeout = null, Action<string, object> outputExecutedSql = null)
+        {
+            var result = connection.ExecuteScalar<T>(insertableSql.Sql, insertableSql.Parameter, transaction, commandTimeout);
+            outputExecutedSql?.Invoke(insertableSql.Sql, insertableSql.Parameter);
+            return result;
+        }
 
         /// <summary>
         /// 新增或更新数据
@@ -174,6 +189,21 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         public static async Task<int> ExecuteCommandAsync(this IInsertableSql insertableSql, IDbConnection connection, IDbTransaction transaction = null, int? commandTimeout = null, Action<string, object> outputExecutedSql = null)
         {
             var result = await connection.ExecuteAsync(insertableSql.Sql, insertableSql.Parameter, transaction, commandTimeout);
+            outputExecutedSql?.Invoke(insertableSql.Sql, insertableSql.Parameter);
+            return result;
+        }
+        /// <summary>
+        /// 新增数据
+        /// </summary>
+        /// <param name="insertableSql"></param>
+        /// <param name="connection"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <param name="outputExecutedSql"></param>
+        /// <returns></returns>
+        public static async Task<T> ExecuteScalarAsync<T>(this IInsertableSql insertableSql, IDbConnection connection, IDbTransaction transaction = null, int? commandTimeout = null, Action<string, object> outputExecutedSql = null)
+        {
+            var result = await connection.ExecuteScalarAsync<T>(insertableSql.Sql, insertableSql.Parameter, transaction, commandTimeout);
             outputExecutedSql?.Invoke(insertableSql.Sql, insertableSql.Parameter);
             return result;
         }

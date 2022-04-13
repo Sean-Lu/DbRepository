@@ -35,26 +35,28 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) return false;
 
-            IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
-                .IncludeFields(fieldExpression)
-                .ReturnAutoIncrementId(returnId)
-                .SetParameter(entity)
-                .Build();
+            IInsertableSql insertableSql;
 
             PropertyInfo keyIdentityProperty;
             if (returnId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
             {
-                var sql = insertableSql.Sql;
-                var id = connection.ExecuteScalar<long>(sql, entity, transaction, commandTimeout);
-                repository.OutputExecutedSql(sql, entity);
-                if (id > 0)
-                {
-                    keyIdentityProperty.SetValue(entity, id, null);
-                    return true;
-                }
-                return false;
+                insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
+                    .IncludeFields(fieldExpression)
+                    .ReturnAutoIncrementId(returnId)
+                    .SetParameter(entity)
+                    .Build();
+                var id = insertableSql.ExecuteScalar<long>(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+                if (id < 1) return false;
+
+                keyIdentityProperty.SetValue(entity, id, null);
+                return true;
             }
 
+            insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                //.ReturnAutoIncrementId(returnId)
+                .SetParameter(entity)
+                .Build();
             return insertableSql.ExecuteCommandSuccessful(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
         /// <summary>
@@ -192,15 +194,13 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                     return true;
                 }
             }
-            else
-            {
-                IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
-                    .IncludeFields(fieldExpression)
-                    //.ReturnAutoIncrementId(returnId)
-                    .SetParameter(entities)// BulkInsert
-                    .Build();
-                return insertableSql.ExecuteCommandSuccessful(connection, transaction, commandTimeout, repository.OutputExecutedSql);
-            }
+
+            IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                //.ReturnAutoIncrementId(returnId)
+                .SetParameter(entities)// BulkInsert
+                .Build();
+            return insertableSql.ExecuteCommandSuccessful(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
 
         /// <summary>
@@ -281,7 +281,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             IDeleteableSql deleteableSql = repository.CreateDeleteableBuilder<TEntity>()
                 .SetParameter(entity)
                 .Build();
-            return connection.Delete(repository, deleteableSql, transaction, commandTimeout) > 0;
+            return deleteableSql.ExecuteCommand(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
         }
         /// <summary>
         /// 删除数据
@@ -341,7 +341,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 .IncludeFields(fieldExpression, entity)
                 .Where(whereExpression)
                 .Build();
-            return connection.Update(repository, updateableSql, transaction, commandTimeout);
+            return updateableSql.ExecuteCommand(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
         /// <summary>
         /// 更新数据
@@ -430,7 +430,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 .IncrFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
-            return connection.Update(repository, updateableSql, transaction, commandTimeout) > 0;
+            return updateableSql.ExecuteCommand(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
         }
         /// <summary>
         /// 数值字段递减
@@ -451,7 +451,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 .DecrFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
-            return connection.Update(repository, updateableSql, transaction, commandTimeout) > 0;
+            return updateableSql.ExecuteCommand(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
         }
 
         /// <summary>
@@ -624,26 +624,28 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             if (entity == null) return false;
 
-            IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
-                .IncludeFields(fieldExpression)
-                .ReturnAutoIncrementId(returnId)
-                .SetParameter(entity)
-                .Build();
+            IInsertableSql insertableSql;
 
             PropertyInfo keyIdentityProperty;
             if (returnId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
             {
-                var sql = insertableSql.Sql;
-                var id = await connection.ExecuteScalarAsync<long>(sql, entity, transaction, commandTimeout);
-                repository.OutputExecutedSql(sql, entity);
-                if (id > 0)
-                {
-                    keyIdentityProperty.SetValue(entity, id, null);
-                    return true;
-                }
-                return false;
+                insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
+                    .IncludeFields(fieldExpression)
+                    .ReturnAutoIncrementId(returnId)
+                    .SetParameter(entity)
+                    .Build();
+                var id = await insertableSql.ExecuteScalarAsync<long>(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+                if (id < 1) return false;
+
+                keyIdentityProperty.SetValue(entity, id, null);
+                return true;
             }
 
+            insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                //.ReturnAutoIncrementId(returnId)
+                .SetParameter(entity)
+                .Build();
             return await insertableSql.ExecuteCommandSuccessfulAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
         /// <summary>
@@ -781,15 +783,13 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                     return true;
                 }
             }
-            else
-            {
-                IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
-                    .IncludeFields(fieldExpression)
-                    //.ReturnAutoIncrementId(returnId)
-                    .SetParameter(entities)// BulkInsert
-                    .Build();
-                return await insertableSql.ExecuteCommandSuccessfulAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
-            }
+
+            IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                //.ReturnAutoIncrementId(returnId)
+                .SetParameter(entities)// BulkInsert
+                .Build();
+            return await insertableSql.ExecuteCommandSuccessfulAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
 
         /// <summary>
@@ -870,7 +870,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             IDeleteableSql deleteableSql = repository.CreateDeleteableBuilder<TEntity>()
                 .SetParameter(entity)
                 .Build();
-            return await connection.DeleteAsync(repository, deleteableSql, transaction, commandTimeout) > 0;
+            return await deleteableSql.ExecuteCommandAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
         }
         /// <summary>
         /// 删除数据
@@ -930,7 +930,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 .IncludeFields(fieldExpression, entity)
                 .Where(whereExpression)
                 .Build();
-            return await connection.UpdateAsync(repository, updateableSql, transaction, commandTimeout);
+            return await updateableSql.ExecuteCommandAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
         }
         /// <summary>
         /// 更新数据
@@ -1019,7 +1019,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 .IncrFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
-            return await connection.UpdateAsync(repository, updateableSql, transaction, commandTimeout) > 0;
+            return await updateableSql.ExecuteCommandAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
         }
         /// <summary>
         /// 数值字段递减
@@ -1040,7 +1040,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                 .DecrFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
-            return await connection.UpdateAsync(repository, updateableSql, transaction, commandTimeout) > 0;
+            return await updateableSql.ExecuteCommandAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
         }
 
         /// <summary>
