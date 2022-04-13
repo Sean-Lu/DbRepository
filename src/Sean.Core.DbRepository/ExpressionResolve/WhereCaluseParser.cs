@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository
 {
@@ -14,13 +15,21 @@ namespace Sean.Core.DbRepository
             {
                 if (IsLogicType(binaryExpression.NodeType))
                 {
-                    StringBuilder sqlBuilder = new StringBuilder();
+                    var sqlBuilder = new StringBuilder();
                     var leftClause = Parse(binaryExpression.Left, adhesive);
-                    sqlBuilder.Append($"({leftClause})");
-                    sqlBuilder.Append($" {binaryExpression.NodeType.ToLogicSymbol()} ");
                     var rightClause = Parse(binaryExpression.Right, adhesive);
-                    sqlBuilder.Append($"({rightClause})");
-
+                    //sqlBuilder.Append($"({leftClause}) {binaryExpression.NodeType.ToSqlString()} ({rightClause})");
+                    switch (binaryExpression.NodeType)
+                    {
+                        case ExpressionType.AndAlso:
+                            sqlBuilder.Append($"{leftClause} AND {rightClause}");
+                            break;
+                        case ExpressionType.OrElse:
+                            sqlBuilder.Append($"({leftClause} OR {rightClause})");
+                            break;
+                        default:
+                            throw new NotSupportedException($"[{nameof(BinaryExpression)}]Unsupported expression 'NodeType': {binaryExpression.NodeType}");
+                    }
                     return sqlBuilder;
                 }
                 else if (binaryExpression.Left is UnaryExpression convertExpression
@@ -174,19 +183,6 @@ namespace Sean.Core.DbRepository
                     return true;
                 default:
                     return false;
-            }
-        }
-
-        private static string ToLogicSymbol(this ExpressionType expressionType)
-        {
-            switch (expressionType)
-            {
-                case ExpressionType.AndAlso:
-                    return "AND";
-                case ExpressionType.OrElse:
-                    return "OR";
-                default:
-                    throw new NotSupportedException($"Unknown ExpressionType {expressionType}");
             }
         }
     }
