@@ -141,6 +141,108 @@ namespace Sean.Core.DbRepository
                 }
             }
         }
+        public static void MaxField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            string fieldName, string aliasName = null)
+        {
+            if (string.IsNullOrWhiteSpace(fieldName)) return;
+
+            includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+            {
+                TableName = sqlAdapter.TableName,
+                FieldName = $"MAX({sqlAdapter.FormatFieldName(fieldName)})",
+                AliasName = aliasName,
+                FieldNameFormatted = true
+            });
+        }
+        public static void MinField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            string fieldName, string aliasName = null)
+        {
+            if (string.IsNullOrWhiteSpace(fieldName)) return;
+
+            includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+            {
+                TableName = sqlAdapter.TableName,
+                FieldName = $"MIN({sqlAdapter.FormatFieldName(fieldName)})",
+                AliasName = aliasName,
+                FieldNameFormatted = true
+            });
+        }
+        public static void SumField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            string fieldName, string aliasName = null)
+        {
+            if (string.IsNullOrWhiteSpace(fieldName)) return;
+
+            includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+            {
+                TableName = sqlAdapter.TableName,
+                FieldName = $"SUM({sqlAdapter.FormatFieldName(fieldName)})",
+                AliasName = aliasName,
+                FieldNameFormatted = true
+            });
+        }
+        public static void AvgField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            string fieldName, string aliasName = null)
+        {
+            if (string.IsNullOrWhiteSpace(fieldName)) return;
+
+            includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+            {
+                TableName = sqlAdapter.TableName,
+                FieldName = $"AVG({sqlAdapter.FormatFieldName(fieldName)})",
+                AliasName = aliasName,
+                FieldNameFormatted = true
+            });
+        }
+        public static void CountField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            string fieldName, string aliasName = null)
+        {
+            if (string.IsNullOrWhiteSpace(fieldName)) return;
+
+            includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+            {
+                TableName = sqlAdapter.TableName,
+                FieldName = $"COUNT({sqlAdapter.FormatFieldName(fieldName)})",
+                AliasName = aliasName,
+                FieldNameFormatted = true
+            });
+        }
+        public static void CountDistinctField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            string fieldName, string aliasName = null)
+        {
+            if (string.IsNullOrWhiteSpace(fieldName)) return;
+
+            includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+            {
+                TableName = sqlAdapter.TableName,
+                FieldName = $"COUNT(DISTINCT {sqlAdapter.FormatFieldName(fieldName)})",
+                AliasName = aliasName,
+                FieldNameFormatted = true
+            });
+        }
+        public static void DistinctFields<TEntity>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+            params string[] fields)
+        {
+            if (fields == null || !fields.Any()) return;
+
+            var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
+            var distinctFieldNames = string.Join(",", fields.Select(fieldName =>
+            {
+                var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
+                if (findFieldInfo != null && findFieldInfo.Property.Name != fieldName)
+                {
+                    return $"{sqlAdapter.FormatFieldName(fieldName)} AS {findFieldInfo.Property.Name}"; // SELECT column_name AS alias_name
+                }
+
+                return $"{sqlAdapter.FormatFieldName(fieldName)}";
+            }));
+
+            includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+            {
+                TableName = sqlAdapter.TableName,
+                FieldName = $"DISTINCT {sqlAdapter.FormatFieldName(distinctFieldNames)}",
+                FieldNameFormatted = true
+            });
+        }
         #endregion
 
         #region [Join] 表关联

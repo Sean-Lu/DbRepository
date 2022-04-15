@@ -15,6 +15,11 @@ namespace Sean.Core.DbRepository
         /// </summary>
         public string FieldName { get; set; }
         /// <summary>
+        /// 别名
+        /// </summary>
+        public string AliasName { get; set; }
+
+        /// <summary>
         /// 是否是主键字段 <see cref="KeyAttribute"/>
         /// </summary>
         public bool PrimaryKey { get; set; }
@@ -22,6 +27,10 @@ namespace Sean.Core.DbRepository
         /// 是否是自增字段  <see cref="DatabaseGeneratedOption.Identity"/>
         /// </summary>
         public bool Identity { get; set; }
+        /// <summary>
+        /// <see cref="FieldName"/> 是否已经格式化处理
+        /// </summary>
+        public bool FieldNameFormatted { get; set; }
 
         public Func<string, ISqlAdapter, string> SetFieldCustomHandler { get; set; }
     }
