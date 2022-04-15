@@ -116,7 +116,7 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <param name="master">true: 主库, false: 从库</param>
-        /// <param name="transaction"></param>
+        /// <param name="transaction">事务</param>
         /// <returns></returns>
         public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null)
         {
@@ -152,7 +152,7 @@ namespace Sean.Core.DbRepository
         /// 执行事务
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="connection"></param>
+        /// <param name="connection">Database connection</param>
         /// <param name="func"></param>
         /// <returns></returns>
         public virtual T ExecuteTransaction<T>(IDbConnection connection, Func<IDbTransaction, T> func)
@@ -199,7 +199,7 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <param name="master">true: 主库, false: 从库</param>
-        /// <param name="transaction"></param>
+        /// <param name="transaction">事务</param>
         /// <returns></returns>
         public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null)
         {
@@ -235,7 +235,7 @@ namespace Sean.Core.DbRepository
         /// 异步执行事务
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="connection"></param>
+        /// <param name="connection">Database connection</param>
         /// <param name="func"></param>
         /// <returns></returns>
         public virtual async Task<T> ExecuteTransactionAsync<T>(IDbConnection connection, Func<IDbTransaction, Task<T>> func)

@@ -124,7 +124,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual bool Add(TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.Add(this, entity, returnId, fieldExpression, transaction, commandTimeout), true, transaction);
@@ -140,7 +140,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual bool Add(IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.BulkAdd(this, entities, returnId, fieldExpression, transaction, commandTimeout), true, transaction);
@@ -151,7 +151,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="insertableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual bool Add(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.Add(this, insertableSql, transaction, commandTimeout), true, transaction);
@@ -167,7 +167,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.AddOrUpdate(this, entity, fieldExpression, transaction, commandTimeout), true, transaction);
@@ -182,7 +182,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual bool AddOrUpdate(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.BulkAddOrUpdate(this, entities, fieldExpression, transaction, commandTimeout), true, transaction);
@@ -193,7 +193,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="replaceableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual bool AddOrUpdate(IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.AddOrUpdate(this, replaceableSql, transaction, commandTimeout), true, transaction);
@@ -206,7 +206,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="entity"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual bool Delete(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.Delete(this, entity, transaction, commandTimeout), true, transaction);
@@ -217,7 +217,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         public virtual int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.Delete(this, whereExpression, transaction, commandTimeout), true, transaction);
@@ -228,7 +228,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="deleteableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         public virtual int Delete(IDeleteableSql deleteableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.Delete(this, deleteableSql, transaction, commandTimeout), true, transaction);
@@ -249,7 +249,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         public virtual int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.Update(this, entity, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
@@ -269,7 +269,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.BulkUpdate(this, entities, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
@@ -280,7 +280,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="updateableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         public virtual int Update(IUpdateableSql updateableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return Execute(connection => connection.Update(this, updateableSql, transaction, commandTimeout), true, transaction);
@@ -293,9 +293,9 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
-        /// <returns></returns>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns>是否执行成功</returns>
         public virtual bool Incr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
             return Execute(connection => connection.Incr(this, value, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
@@ -307,9 +307,9 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
-        /// <returns></returns>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns>是否执行成功</returns>
         public virtual bool Decr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
             return Execute(connection => connection.Decr(this, value, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
@@ -455,7 +455,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual async Task<bool> AddAsync(TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.AddAsync(this, entity, returnId, fieldExpression, transaction, commandTimeout), true, transaction);
@@ -471,7 +471,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual async Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.BulkAddAsync(this, entities, returnId, fieldExpression, transaction, commandTimeout), true, transaction);
@@ -482,7 +482,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="insertableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual async Task<bool> AddAsync(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.AddAsync(this, insertableSql, transaction, commandTimeout), true, transaction);
@@ -498,7 +498,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual async Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.AddOrUpdateAsync(this, entity, fieldExpression, transaction, commandTimeout), true, transaction);
@@ -513,7 +513,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual async Task<bool> AddOrUpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.BulkAddOrUpdateAsync(this, entities, fieldExpression, transaction, commandTimeout), true, transaction);
@@ -524,7 +524,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="replaceableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual async Task<bool> AddOrUpdateAsync(IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.AddOrUpdateAsync(this, replaceableSql, transaction, commandTimeout), true, transaction);
@@ -537,7 +537,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="entity"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual async Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.DeleteAsync(this, entity, transaction, commandTimeout), true, transaction);
@@ -548,7 +548,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         public virtual async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.DeleteAsync(this, whereExpression, transaction, commandTimeout), true, transaction);
@@ -559,7 +559,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="deleteableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         public virtual async Task<int> DeleteAsync(IDeleteableSql deleteableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.DeleteAsync(this, deleteableSql, transaction, commandTimeout), true, transaction);
@@ -580,7 +580,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         public virtual async Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.UpdateAsync(this, entity, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
@@ -600,7 +600,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         public virtual async Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.BulkUpdateAsync(this, entities, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
@@ -611,7 +611,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="updateableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         public virtual async Task<int> UpdateAsync(IUpdateableSql updateableSql, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return await ExecuteAsync(async connection => await connection.UpdateAsync(this, updateableSql, transaction, commandTimeout), true, transaction);
@@ -624,9 +624,9 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
-        /// <returns></returns>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns>是否执行成功</returns>
         public virtual async Task<bool> IncrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
             return await ExecuteAsync(async connection => await connection.IncrAsync(this, value, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);
@@ -638,9 +638,9 @@ namespace Sean.Core.DbRepository.Dapper
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
-        /// <returns></returns>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns>是否执行成功</returns>
         public virtual async Task<bool> DecrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
         {
             return await ExecuteAsync(async connection => await connection.DecrAsync(this, value, fieldExpression, whereExpression, transaction, commandTimeout), true, transaction);

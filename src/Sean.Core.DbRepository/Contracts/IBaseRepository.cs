@@ -40,13 +40,14 @@ namespace Sean.Core.DbRepository
         /// <param name="param"></param>
         void OutputExecutedSql(string sql, object param);
 
+        #region Synchronous method
         /// <summary>
         /// 执行
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <param name="master">true: 主库, false: 从库</param>
-        /// <param name="transaction"></param>
+        /// <param name="transaction">事务</param>
         /// <returns></returns>
         T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null);
 
@@ -61,7 +62,7 @@ namespace Sean.Core.DbRepository
         /// 执行事务
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="connection"></param>
+        /// <param name="connection">Database connection</param>
         /// <param name="func"></param>
         /// <returns></returns>
         T ExecuteTransaction<T>(IDbConnection connection, Func<IDbTransaction, T> func);
@@ -74,7 +75,9 @@ namespace Sean.Core.DbRepository
         /// <param name="toDoInTransactionScope"></param>
         /// <returns></returns>
         T ExecuteTransactionScope<T>(Func<TransactionScope, T> toDoInTransactionScope);
+        #endregion
 
+        #region Asynchronous method
 #if NETSTANDARD || NET45_OR_GREATER
         /// <summary>
         /// 异步执行
@@ -82,7 +85,7 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <param name="master">true: 主库, false: 从库</param>
-        /// <param name="transaction"></param>
+        /// <param name="transaction">事务</param>
         /// <returns></returns>
         Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null);
 
@@ -97,7 +100,7 @@ namespace Sean.Core.DbRepository
         /// 异步执行事务
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="connection"></param>
+        /// <param name="connection">Database connection</param>
         /// <param name="func"></param>
         /// <returns></returns>
         Task<T> ExecuteTransactionAsync<T>(IDbConnection connection, Func<IDbTransaction, Task<T>> func);
@@ -113,6 +116,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         Task<T> ExecuteTransactionScopeAsync<T>(Func<TransactionScope, Task<T>> toDoInTransactionScope);
 #endif
+        #endregion
     }
 
     public interface IBaseRepository<TEntity> : IBaseRepository
@@ -129,6 +133,7 @@ namespace Sean.Core.DbRepository
         /// <param name="master">true: 主库, false: 从库</param>
         void CreateTableIfNotExist(string tableName, bool master = true);
 
+        #region Synchronous method
         /// <summary>
         /// 新增数据
         /// </summary>
@@ -140,7 +145,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         bool Add(TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量新增数据
@@ -153,7 +158,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         bool Add(IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 新增数据
@@ -161,7 +166,7 @@ namespace Sean.Core.DbRepository
         /// <param name="insertableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         bool Add(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -174,7 +179,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量新增或更新数据
@@ -186,7 +191,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         bool AddOrUpdate(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 新增或更新数据
@@ -194,7 +199,7 @@ namespace Sean.Core.DbRepository
         /// <param name="replaceableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         bool AddOrUpdate(IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -204,7 +209,7 @@ namespace Sean.Core.DbRepository
         /// <param name="entity"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         bool Delete(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 删除数据
@@ -212,7 +217,7 @@ namespace Sean.Core.DbRepository
         /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 删除数据
@@ -220,7 +225,7 @@ namespace Sean.Core.DbRepository
         /// <param name="deleteableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         int Delete(IDeleteableSql deleteableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -238,7 +243,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量更新数据
@@ -255,7 +260,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 更新数据
@@ -263,7 +268,7 @@ namespace Sean.Core.DbRepository
         /// <param name="updateableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         int Update(IUpdateableSql updateableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -273,9 +278,9 @@ namespace Sean.Core.DbRepository
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
-        /// <returns></returns>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns>是否执行成功</returns>
         bool Incr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
         /// <summary>
         /// 数值字段递减
@@ -284,9 +289,9 @@ namespace Sean.Core.DbRepository
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
-        /// <returns></returns>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns>是否执行成功</returns>
         bool Decr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
 
         /// <summary>
@@ -375,7 +380,9 @@ namespace Sean.Core.DbRepository
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         bool IsTableExists(string tableName, bool master = true);
+        #endregion
 
+        #region Asynchronous method
 #if NETSTANDARD || NET45_OR_GREATER
         /// <summary>
         /// 新增数据
@@ -388,7 +395,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         Task<bool> AddAsync(TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量新增数据
@@ -401,7 +408,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 新增数据
@@ -409,7 +416,7 @@ namespace Sean.Core.DbRepository
         /// <param name="insertableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         Task<bool> AddAsync(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -422,7 +429,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量新增或更新数据
@@ -434,7 +441,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         Task<bool> AddOrUpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 新增或更新数据
@@ -442,7 +449,7 @@ namespace Sean.Core.DbRepository
         /// <param name="replaceableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         Task<bool> AddOrUpdateAsync(IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -452,7 +459,7 @@ namespace Sean.Core.DbRepository
         /// <param name="entity"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 删除数据
@@ -460,7 +467,7 @@ namespace Sean.Core.DbRepository
         /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 删除数据
@@ -468,7 +475,7 @@ namespace Sean.Core.DbRepository
         /// <param name="deleteableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         Task<int> DeleteAsync(IDeleteableSql deleteableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -486,7 +493,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量更新数据
@@ -503,7 +510,7 @@ namespace Sean.Core.DbRepository
         /// </param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>是否执行成功</returns>
         Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 更新数据
@@ -511,7 +518,7 @@ namespace Sean.Core.DbRepository
         /// <param name="updateableSql"></param>
         /// <param name="transaction">事务</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns></returns>
+        /// <returns>返回受影响的行数</returns>
         Task<int> UpdateAsync(IUpdateableSql updateableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -521,9 +528,9 @@ namespace Sean.Core.DbRepository
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
-        /// <returns></returns>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns>是否执行成功</returns>
         Task<bool> IncrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
         /// <summary>
         /// 数值字段递减
@@ -532,9 +539,9 @@ namespace Sean.Core.DbRepository
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
-        /// <returns></returns>
+        /// <param name="transaction">事务</param>
+        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <returns>是否执行成功</returns>
         Task<bool> DecrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
 
         /// <summary>
@@ -624,5 +631,6 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         Task<bool> IsTableExistsAsync(string tableName, bool master = true);
 #endif
+        #endregion
     }
 }
