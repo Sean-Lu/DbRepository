@@ -142,66 +142,66 @@ namespace Sean.Core.DbRepository
             }
         }
         public static void MaxField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
-            string fieldName, string aliasName = null)
+            string fieldName, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (string.IsNullOrWhiteSpace(fieldName)) return;
 
             includeFieldsList.Add(new TableFieldInfoForSqlBuilder
             {
                 TableName = sqlAdapter.TableName,
-                FieldName = $"MAX({sqlAdapter.FormatFieldName(fieldName)})",
+                FieldName = $"MAX({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
                 AliasName = aliasName,
                 FieldNameFormatted = true
             });
         }
         public static void MinField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
-            string fieldName, string aliasName = null)
+            string fieldName, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (string.IsNullOrWhiteSpace(fieldName)) return;
 
             includeFieldsList.Add(new TableFieldInfoForSqlBuilder
             {
                 TableName = sqlAdapter.TableName,
-                FieldName = $"MIN({sqlAdapter.FormatFieldName(fieldName)})",
+                FieldName = $"MIN({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
                 AliasName = aliasName,
                 FieldNameFormatted = true
             });
         }
         public static void SumField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
-            string fieldName, string aliasName = null)
+            string fieldName, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (string.IsNullOrWhiteSpace(fieldName)) return;
 
             includeFieldsList.Add(new TableFieldInfoForSqlBuilder
             {
                 TableName = sqlAdapter.TableName,
-                FieldName = $"SUM({sqlAdapter.FormatFieldName(fieldName)})",
+                FieldName = $"SUM({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
                 AliasName = aliasName,
                 FieldNameFormatted = true
             });
         }
         public static void AvgField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
-            string fieldName, string aliasName = null)
+            string fieldName, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (string.IsNullOrWhiteSpace(fieldName)) return;
 
             includeFieldsList.Add(new TableFieldInfoForSqlBuilder
             {
                 TableName = sqlAdapter.TableName,
-                FieldName = $"AVG({sqlAdapter.FormatFieldName(fieldName)})",
+                FieldName = $"AVG({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
                 AliasName = aliasName,
                 FieldNameFormatted = true
             });
         }
         public static void CountField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
-            string fieldName, string aliasName = null)
+            string fieldName, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (string.IsNullOrWhiteSpace(fieldName)) return;
 
             includeFieldsList.Add(new TableFieldInfoForSqlBuilder
             {
                 TableName = sqlAdapter.TableName,
-                FieldName = $"COUNT({sqlAdapter.FormatFieldName(fieldName)})",
+                FieldName = $"COUNT({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
                 AliasName = aliasName,
                 FieldNameFormatted = true
             });
@@ -239,7 +239,7 @@ namespace Sean.Core.DbRepository
             includeFieldsList.Add(new TableFieldInfoForSqlBuilder
             {
                 TableName = sqlAdapter.TableName,
-                FieldName = $"DISTINCT {sqlAdapter.FormatFieldName(distinctFieldNames)}",
+                FieldName = $"DISTINCT {distinctFieldNames}",
                 FieldNameFormatted = true
             });
         }

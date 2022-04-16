@@ -109,9 +109,9 @@ namespace Sean.Core.DbRepository.Extensions
         /// <summary>
         /// SQL语句：表是否存在
         /// </summary>
-        /// <param name="dbType"></param>
-        /// <param name="dbName"></param>
-        /// <param name="tableName"></param>
+        /// <param name="dbType">数据库类型</param>
+        /// <param name="dbName">数据库名称</param>
+        /// <param name="tableName">表名称</param>
         /// <returns></returns>
         public static string GetSqlForIsTableExists(this DatabaseType dbType, string dbName, string tableName)
         {
@@ -137,10 +137,10 @@ namespace Sean.Core.DbRepository.Extensions
         /// <summary>
         /// SQL语句：表字段是否存在
         /// </summary>
-        /// <param name="dbType"></param>
-        /// <param name="dbName"></param>
-        /// <param name="tableName"></param>
-        /// <param name="fieldName"></param>
+        /// <param name="dbType">数据库类型</param>
+        /// <param name="dbName">数据库名称</param>
+        /// <param name="tableName">表名称</param>
+        /// <param name="fieldName">字段名称</param>
         /// <returns></returns>
         public static string GetSqlForIsFieldExists(this DatabaseType dbType, string dbName, string tableName, string fieldName)
         {

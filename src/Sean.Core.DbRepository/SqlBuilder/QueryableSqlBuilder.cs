@@ -49,9 +49,9 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Create an instance of <see cref="IQueryable{TEntity}"/>.
         /// </summary>
-        /// <param name="dbType"></param>
-        /// <param name="autoIncludeFields"></param>
-        /// <param name="tableName"></param>
+        /// <param name="dbType">数据库类型</param>
+        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="tableName">表名称</param>
         /// <returns></returns>
         public static IQueryable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
         {
@@ -75,29 +75,29 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public IQueryable<TEntity> MaxField(string fieldName, string aliasName = null)
+        public IQueryable<TEntity> MaxField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
         {
-            SqlBuilderUtil.MaxField(SqlAdapter, _includeFieldsList, fieldName, aliasName);
+            SqlBuilderUtil.MaxField(SqlAdapter, _includeFieldsList, fieldName, aliasName, fieldNameFormatted);
             return this;
         }
-        public IQueryable<TEntity> MinField(string fieldName, string aliasName = null)
+        public IQueryable<TEntity> MinField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
         {
-            SqlBuilderUtil.MinField(SqlAdapter, _includeFieldsList, fieldName, aliasName);
+            SqlBuilderUtil.MinField(SqlAdapter, _includeFieldsList, fieldName, aliasName, fieldNameFormatted);
             return this;
         }
-        public IQueryable<TEntity> SumField(string fieldName, string aliasName = null)
+        public IQueryable<TEntity> SumField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
         {
-            SqlBuilderUtil.SumField(SqlAdapter, _includeFieldsList, fieldName, aliasName);
+            SqlBuilderUtil.SumField(SqlAdapter, _includeFieldsList, fieldName, aliasName, fieldNameFormatted);
             return this;
         }
-        public IQueryable<TEntity> AvgField(string fieldName, string aliasName = null)
+        public IQueryable<TEntity> AvgField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
         {
-            SqlBuilderUtil.AvgField(SqlAdapter, _includeFieldsList, fieldName, aliasName);
+            SqlBuilderUtil.AvgField(SqlAdapter, _includeFieldsList, fieldName, aliasName, fieldNameFormatted);
             return this;
         }
-        public IQueryable<TEntity> CountField(string fieldName, string aliasName = null)
+        public IQueryable<TEntity> CountField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
         {
-            SqlBuilderUtil.CountField(SqlAdapter, _includeFieldsList, fieldName, aliasName);
+            SqlBuilderUtil.CountField(SqlAdapter, _includeFieldsList, fieldName, aliasName, fieldNameFormatted);
             return this;
         }
         public IQueryable<TEntity> CountDistinctField(string fieldName, string aliasName = null)
@@ -124,39 +124,39 @@ namespace Sean.Core.DbRepository
             return IgnoreFields(fields);
         }
 
-        public IQueryable<TEntity> MaxField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null)
+        public IQueryable<TEntity> MaxField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (fieldExpression == null) return this;
             var fields = fieldExpression.GetMemberNames();
-            fields.ForEach(fieldName => MaxField(fieldName, aliasName));
+            fields.ForEach(fieldName => MaxField(fieldName, aliasName, fieldNameFormatted));
             return this;
         }
-        public IQueryable<TEntity> MinField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null)
+        public IQueryable<TEntity> MinField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (fieldExpression == null) return this;
             var fields = fieldExpression.GetMemberNames();
-            fields.ForEach(fieldName => MinField(fieldName, aliasName));
+            fields.ForEach(fieldName => MinField(fieldName, aliasName, fieldNameFormatted));
             return this;
         }
-        public IQueryable<TEntity> SumField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null)
+        public IQueryable<TEntity> SumField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (fieldExpression == null) return this;
             var fields = fieldExpression.GetMemberNames();
-            fields.ForEach(fieldName => SumField(fieldName, aliasName));
+            fields.ForEach(fieldName => SumField(fieldName, aliasName, fieldNameFormatted));
             return this;
         }
-        public IQueryable<TEntity> AvgField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null)
+        public IQueryable<TEntity> AvgField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (fieldExpression == null) return this;
             var fields = fieldExpression.GetMemberNames();
-            fields.ForEach(fieldName => AvgField(fieldName, aliasName));
+            fields.ForEach(fieldName => AvgField(fieldName, aliasName, fieldNameFormatted));
             return this;
         }
-        public IQueryable<TEntity> CountField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null)
+        public IQueryable<TEntity> CountField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (fieldExpression == null) return this;
             var fields = fieldExpression.GetMemberNames();
-            fields.ForEach(fieldName => CountField(fieldName, aliasName));
+            fields.ForEach(fieldName => CountField(fieldName, aliasName, fieldNameFormatted));
             return this;
         }
         public IQueryable<TEntity> CountDistinctField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null)
@@ -570,62 +570,67 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 包含字段
         /// </summary>
-        /// <param name="fields"></param>
+        /// <param name="fields">字段名称</param>
         /// <returns></returns>
         IQueryable<TEntity> IncludeFields(params string[] fields);
         /// <summary>
         /// 忽略字段
         /// </summary>
-        /// <param name="fields"></param>
+        /// <param name="fields">字段名称</param>
         /// <returns></returns>
         IQueryable<TEntity> IgnoreFields(params string[] fields);
 
         /// <summary>
         /// MAX() - 返回最大值
         /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="fieldName">字段名称</param>
+        /// <param name="aliasName">别名</param>
+        /// <param name="fieldNameFormatted"><paramref name="fieldName"/> 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> MaxField(string fieldName, string aliasName = null);
+        IQueryable<TEntity> MaxField(string fieldName, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// MIN() - 返回最小值
         /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="fieldName">字段名称</param>
+        /// <param name="aliasName">别名</param>
+        /// <param name="fieldNameFormatted"><paramref name="fieldName"/> 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> MinField(string fieldName, string aliasName = null);
+        IQueryable<TEntity> MinField(string fieldName, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// SUM() - 返回总和
         /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="fieldName">字段名称</param>
+        /// <param name="aliasName">别名</param>
+        /// <param name="fieldNameFormatted"><paramref name="fieldName"/> 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> SumField(string fieldName, string aliasName = null);
+        IQueryable<TEntity> SumField(string fieldName, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// AVG() - 返回平均值
         /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="fieldName">字段名称</param>
+        /// <param name="aliasName">别名</param>
+        /// <param name="fieldNameFormatted"><paramref name="fieldName"/> 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> AvgField(string fieldName, string aliasName = null);
+        IQueryable<TEntity> AvgField(string fieldName, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// COUNT() - 返回行数
         /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="fieldName">字段名称</param>
+        /// <param name="aliasName">别名</param>
+        /// <param name="fieldNameFormatted"><paramref name="fieldName"/> 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> CountField(string fieldName, string aliasName = null);
+        IQueryable<TEntity> CountField(string fieldName, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// SELECT COUNT(DISTINCT field_name) FROM table_name;
         /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="fieldName">字段名称</param>
+        /// <param name="aliasName">别名</param>
         /// <returns></returns>
         IQueryable<TEntity> CountDistinctField(string fieldName, string aliasName = null);
         /// <summary>
         /// SELECT DISTINCT field_name1,field_name2 FROM table_name;
         /// </summary>
-        /// <param name="fields"></param>
+        /// <param name="fields">字段名称</param>
         /// <returns></returns>
         IQueryable<TEntity> DistinctFields(params string[] fields);
 
@@ -650,47 +655,52 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="aliasName">别名</param>
+        /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> MaxField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null);
+        IQueryable<TEntity> MaxField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// MIN() - 返回最小值
         /// </summary>
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="aliasName">别名</param>
+        /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> MinField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null);
+        IQueryable<TEntity> MinField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// SUM() - 返回总和
         /// </summary>
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="aliasName">别名</param>
+        /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> SumField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null);
+        IQueryable<TEntity> SumField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// AVG() - 返回平均值
         /// </summary>
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="aliasName">别名</param>
+        /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> AvgField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null);
+        IQueryable<TEntity> AvgField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// COUNT() - 返回行数
         /// </summary>
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="aliasName">别名</param>
+        /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> CountField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null);
+        IQueryable<TEntity> CountField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// SELECT COUNT(DISTINCT field_name) FROM table_name;
         /// </summary>
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
-        /// <param name="aliasName"></param>
+        /// <param name="aliasName">别名</param>
         /// <returns></returns>
         IQueryable<TEntity> CountDistinctField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null);
         /// <summary>

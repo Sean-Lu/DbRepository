@@ -31,9 +31,9 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Create an instance of <see cref="IInsertable{TEntity}"/>.
         /// </summary>
-        /// <param name="dbType"></param>
-        /// <param name="autoIncludeFields"></param>
-        /// <param name="tableName"></param>
+        /// <param name="dbType">数据库类型</param>
+        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="tableName">表名称</param>
         /// <returns></returns>
         public static IInsertable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
         {
@@ -192,19 +192,19 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 包含字段
         /// </summary>
-        /// <param name="fields"></param>
+        /// <param name="fields">字段名称</param>
         /// <returns></returns>
         IInsertable<TEntity> IncludeFields(params string[] fields);
         /// <summary>
         /// 忽略字段
         /// </summary>
-        /// <param name="fields"></param>
+        /// <param name="fields">字段名称</param>
         /// <returns></returns>
         IInsertable<TEntity> IgnoreFields(params string[] fields);
         /// <summary>
         /// 自增字段
         /// </summary>
-        /// <param name="fields"></param>
+        /// <param name="fields">字段名称</param>
         /// <returns></returns>
         IInsertable<TEntity> IdentityFields(params string[] fields);
 

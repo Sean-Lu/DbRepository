@@ -91,7 +91,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 如果表不存在，则通过 <see cref="BaseRepository.CreateTableSql"/> 方法获取创建表的SQL语句，然后执行来创建新表
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <param name="master">true: 主库, false: 从库</param>
         public virtual void CreateTableIfNotExist(string tableName, bool master = true)
         {
@@ -418,7 +418,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 查询指定的表是否存在
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         public virtual bool IsTableExists(string tableName, bool master = true)
@@ -749,7 +749,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 查询指定的表是否存在
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         public virtual async Task<bool> IsTableExistsAsync(string tableName, bool master = true)

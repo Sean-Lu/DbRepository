@@ -672,7 +672,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="repository"></param>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <returns></returns>
         public static bool IsTableExists(this IDbConnection connection, IBaseRepository repository, string tableName)
         {
@@ -1350,7 +1350,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="repository"></param>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <returns></returns>
         public static async Task<bool> IsTableExistsAsync(this IDbConnection connection, IBaseRepository repository, string tableName)
         {

@@ -59,6 +59,10 @@ namespace Example.Domain.Entities
         /// </summary>
         public decimal AccountBalance { get; set; }
         /// <summary>
+        /// 账户余额
+        /// </summary>
+        public decimal AccountBalance2 { get; set; }
+        /// <summary>
         /// 状态
         /// </summary>
         public int Status { get; set; }

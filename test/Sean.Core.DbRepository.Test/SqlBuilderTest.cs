@@ -55,6 +55,21 @@ namespace Sean.Core.DbRepository.Test
         }
 
         [TestMethod]
+        public void ValidateSumField2()
+        {
+            var sqlBuilder = QueryableSqlBuilder<TestEntity>.Create(DatabaseType.MySql, false)
+                .IncludeFields(entity => entity.UserId)
+                .SumField($"`{nameof(TestEntity.AccountBalance)}`-`{nameof(TestEntity.AccountBalance2)}`", "SumValue", true)
+                //.SumField(entity => $"`{nameof(entity.AccountBalance)}`-`{nameof(entity.AccountBalance2)}`", "SumValue", true)
+                .Where(entity => entity.Status == 1)
+                .GroupByField(entity => entity.UserId)
+                .Build();
+            var sql = sqlBuilder.Sql;
+            var expectedSql = "SELECT `UserId`, SUM(`AccountBalance`-`AccountBalance2`) AS SumValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`;";
+            Assert.IsTrue(expectedSql == sql);
+        }
+
+        [TestMethod]
         public void ValidateAvgField()
         {
             var sqlBuilder = QueryableSqlBuilder<TestEntity>.Create(DatabaseType.MySql, false)

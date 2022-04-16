@@ -29,7 +29,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 返回创建表的SQL语句
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <returns></returns>
         string CreateTableSql(string tableName);
 
@@ -129,7 +129,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 如果表不存在，则通过 <see cref="IBaseRepository.CreateTableSql"/> 方法获取创建表的SQL语句，然后执行来创建新表
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <param name="master">true: 主库, false: 从库</param>
         void CreateTableIfNotExist(string tableName, bool master = true);
 
@@ -376,7 +376,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 查询指定的表是否存在
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         bool IsTableExists(string tableName, bool master = true);
@@ -626,7 +626,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 查询指定的表是否存在
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         Task<bool> IsTableExistsAsync(string tableName, bool master = true);

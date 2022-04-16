@@ -92,7 +92,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 返回创建表的SQL语句
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <returns></returns>
         public virtual string CreateTableSql(string tableName)
         {

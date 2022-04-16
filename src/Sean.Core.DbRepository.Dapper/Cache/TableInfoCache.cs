@@ -13,7 +13,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 查询指定的表是否存在
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <returns></returns>
         public static bool IsTableExists(string tableName)
         {
@@ -28,7 +28,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// <summary>
         /// 设置指定的表是否存在
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">表名称</param>
         /// <param name="exist"></param>
         public static void IsTableExists(string tableName, bool exist)
         {

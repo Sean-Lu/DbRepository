@@ -35,8 +35,8 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Create an instance of <see cref="ICountable{TEntity}"/>.
         /// </summary>
-        /// <param name="dbType"></param>
-        /// <param name="tableName"></param>
+        /// <param name="dbType">数据库类型</param>
+        /// <param name="tableName">表名称</param>
         /// <returns></returns>
         public static ICountable<TEntity> Create(DatabaseType dbType, string tableName = null)
         {

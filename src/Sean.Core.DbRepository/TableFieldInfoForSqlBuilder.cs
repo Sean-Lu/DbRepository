@@ -28,7 +28,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         public bool Identity { get; set; }
         /// <summary>
-        /// <see cref="FieldName"/> 是否已经格式化处理
+        /// <see cref="FieldName"/> 是否已经被格式化处理
         /// </summary>
         public bool FieldNameFormatted { get; set; }
 

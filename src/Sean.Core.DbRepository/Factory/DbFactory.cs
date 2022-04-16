@@ -18,6 +18,15 @@ namespace Sean.Core.DbRepository
     public class DbFactory
     {
         /// <summary>
+        /// 默认的执行超时时间（单位：秒）
+        /// </summary>
+        public static int? DefaultCommandTimeout { get; set; }
+        /// <summary>
+        /// 表字段映射匹配实体属性是否大小写敏感。默认值：false。
+        /// </summary>
+        public static bool CaseSensitiveWhenMatchField { get; set; } = false;
+
+        /// <summary>
         /// <see cref="DbProviderFactory"/>
         /// </summary>
         public DbProviderFactory ProviderFactory
@@ -41,14 +50,6 @@ namespace Sean.Core.DbRepository
             get => _connectionSettings;
             set => OnConnectionStringChanged(value);
         }
-        /// <summary>
-        /// 默认的执行超时时间（单位：秒），默认值：30秒
-        /// </summary>
-        public int? DefaultCommandTimeout { get; set; }
-        /// <summary>
-        /// 表字段匹配属性名称时，是否大小写敏感。默认值：false，仅在泛型查询方法中有效（Get&lt;T&gt;()、GetList&lt;T&gt;()）
-        /// </summary>
-        public bool CaseSensitiveWhenMatchField { get; set; } = false;
 
         private DbProviderFactory _providerFactory;
         private DatabaseType _dbType;
