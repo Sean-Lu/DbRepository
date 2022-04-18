@@ -37,7 +37,7 @@ namespace Sean.Core.DbRepository
 
                 factory = map.ProviderFactory;
             }
-            return factory ?? throw new Exception($"请先在配置文件或代码中配置 [{type}] 数据库驱动映射关系。{Environment.NewLine}代码配置示例：DatabaseType.{type}.SetDbProviderMap(new DbProviderMap(\"{type}\", xxxFactory.Instance));");
+            return factory ?? throw new Exception($"[{type}]请先在配置文件或代码中配置数据库驱动映射关系。{Environment.NewLine}代码配置示例：DatabaseType.{type}.SetDbProviderMap(new DbProviderMap(\"{type}\", xxxFactory.Instance));");
         }
         /// <summary>
         /// Get the <see cref="DbProviderFactory"/> by specified database provider name

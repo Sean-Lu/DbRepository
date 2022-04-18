@@ -332,7 +332,7 @@ namespace Sean.Core.DbRepository
         }
         public virtual IQueryable<TEntity> GroupByField(params string[] fieldNames)
         {
-            if (fieldNames != null)
+            if (fieldNames != null && fieldNames.Any())
             {
                 if (MultiTable)
                 {
