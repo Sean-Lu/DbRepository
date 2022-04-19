@@ -3,7 +3,7 @@
 > `ORM`，支持所有**关系型数据库**（实现`DbProviderFactory`），如：`MySQL`、`SQL Server`、`Oracle`、`SQLite`、`Access`、`Firebird`、`PostgreSql`、`DB2`、`Informix`等
 
 - 支持主从库分离（主库：增\删\改，从库：查）
-- 支持分表
+- 支持分表（自定义表名规则）
 - 支持`Expression`表达式树（自动转换为参数化SQL语句）
 
 ```
@@ -132,11 +132,88 @@ Get<T>()、GetList<T>() 其中 T ：
 | `Dapper.Execute` | 446 ms      | 1370 ms      | 6639 ms        | 12165 ms       | 31318 ms       |
 | `BulkInsert`     | 10 ms       | 34 ms        | 437 ms         | 1674 ms        | 15062 ms       |
 
+## 常用实体类注解（`TableEntity`）
+
+| Attribute                    | AttributeUsage | Namespace                                      | Description                          |
+| ---------------------------- | -------------- | ---------------------------------------------- | ------------------------------------ |
+| `TableAttribute`             | Class          | `System.ComponentModel.DataAnnotations.Schema` | 自定义表名                                |
+| `KeyAttribute`               | Property       | `System.ComponentModel.DataAnnotations`        | 标记为主键字段                              |
+| `DatabaseGeneratedAttribute` | Property       | `System.ComponentModel.DataAnnotations.Schema` | 设置数据库生成字段值的方式（通常和`KeyAttribute`一起使用） |
+| `ColumnAttribute`            | Property       | `System.ComponentModel.DataAnnotations.Schema` | 自定义字段名                               |
+| `NotMappedAttribute`         | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为为忽略字段                             |
+| ~~`IgnoreAttribute`~~        | Property       | `Sean.Core.DbRepository`                       | 标记为为忽略字段                             |
+| ~~`ForeignKeyAttribute`~~    | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为外键字段（***暂不支持***）                  |
+| `SequenceAttribute`          | Class          | `Sean.Core.DbRepository`                       | Oracle: Sequence（生成自增Id）             |
+
 ## 使用示例（Example）
 
 > 项目：`examples\Example.NetCore`
 > 
 > 项目：`examples\Example.NetFramework`
+
+- 增删改查（CRUD）：`IBaseRepository<TEntity>`
+
+```
+// 新增数据：
+_testRepository.Add(entity);
+
+// 批量新增数据：
+_testRepository.Add(entities);
+
+// 新增或更新数据：
+_testRepository.AddOrUpdate(entity);
+
+// 批量新增或更新数据：
+_testRepository.AddOrUpdate(entities);
+
+// 删除数据：过滤条件默认为实体的主键字段
+_testRepository.Delete(entity);
+
+// 删除数据：自定义过滤条件
+_testRepository.Delete(entity => entity.UserId == 10001 && entity.Status != 0);
+
+// 删除全部数据：
+_testRepository.Delete(entity => true);
+
+// 更新数据：更新全部字段，过滤条件默认为实体的主键字段
+_testRepository.Update(entity);
+
+// 更新数据：更新部分字段，过滤条件默认为实体的主键字段
+_testRepository.Update(entity, fieldExpression: entity => new { entity.Status, entity.UpdateTime });
+
+// 更新数据：更新全部字段，自定义过滤条件
+_testRepository.Update(entity, whereExpression: entity => entity.UserId == 10001 && entity.Status != 0);
+
+// 更新数据：更新部分字段，自定义过滤条件
+_testRepository.Update(entity, fieldExpression: entity => new { entity.Status, entity.UpdateTime }, whereExpression: entity => entity.UserId == 10001 && entity.Status != 0);
+
+// 批量更新数据：更新全部字段，过滤条件默认为实体的主键字段
+_testRepository.Update(entities);
+
+// 批量更新数据：更新部分字段，过滤条件默认为实体的主键字段
+_testRepository.Update(entities, fieldExpression: entity => new { entity.Status, entity.UpdateTime });
+
+// 数值字段递增：
+_testRepository.Incr(10.0M, fieldExpression: entity => entity.AccountBalance, whereExpression: entity => entity.Id == 10001);
+
+// 数值字段递减：
+_testRepository.Decr(10.0M, fieldExpression: entity => entity.AccountBalance, whereExpression: entity => entity.Id == 10001);
+
+// 查询数据：分页 + 排序
+int pageIndex = 1;// 当前页号（最小值为1）
+int pageSize = 10;// 页大小
+OrderByCondition orderByCondition = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.UserId);
+orderByCondition.Next = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
+List<TestEntity> queryResult = _testRepository.Query(entity => entity.UserId == 10001, orderByCondition, pageIndex, pageSize)?.ToList();
+
+// 查询单个数据：
+TestEntity getResult = _testRepository.Get(entity => entity.Id == 2);
+
+// 统计数量：
+int countResult = _testRepository.Count(entity => entity.UserId == 10001);
+
+// 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.TableRepositoryTest
+```
 
 - 表达式树：**`Expression<Func<TEntity, object>> fieldExpression`**
 
@@ -176,19 +253,6 @@ entity => entity.UserId == _model.UserId && entity.Remark.StartsWith("测试")
 
 // 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.WhereExpressionTest
 ```
-
-- 常用`TableEntity`实体类注解：
-
-| Attribute                    | AttributeUsage | Namespace                                      | Description                          |
-| ---------------------------- | -------------- | ---------------------------------------------- | ------------------------------------ |
-| `TableAttribute`             | Class          | `System.ComponentModel.DataAnnotations.Schema` | 自定义表名                                |
-| `KeyAttribute`               | Property       | `System.ComponentModel.DataAnnotations`        | 标记为主键字段                              |
-| `DatabaseGeneratedAttribute` | Property       | `System.ComponentModel.DataAnnotations.Schema` | 设置数据库生成字段值的方式（通常和`KeyAttribute`一起使用） |
-| `ColumnAttribute`            | Property       | `System.ComponentModel.DataAnnotations.Schema` | 自定义字段名                               |
-| `NotMappedAttribute`         | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为为忽略字段                             |
-| ~~`IgnoreAttribute`~~        | Property       | `Sean.Core.DbRepository`                       | 标记为为忽略字段                             |
-| ~~`ForeignKeyAttribute`~~    | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为外键字段（***暂不支持***）                  |
-| `SequenceAttribute`          | Class          | `Sean.Core.DbRepository`                       | Oracle: Sequence（生成自增Id）             |
 
 ## 常见问题
 
