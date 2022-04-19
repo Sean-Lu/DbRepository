@@ -137,13 +137,13 @@ Get<T>()、GetList<T>() 其中 T ：
 | Attribute                    | AttributeUsage | Namespace                                      | Description                          |
 | ---------------------------- | -------------- | ---------------------------------------------- | ------------------------------------ |
 | `TableAttribute`             | Class          | `System.ComponentModel.DataAnnotations.Schema` | 自定义表名                                |
+| `SequenceAttribute`          | Class          | `Sean.Core.DbRepository`                       | Oracle: Sequence（生成自增Id）             |
 | `KeyAttribute`               | Property       | `System.ComponentModel.DataAnnotations`        | 标记为主键字段                              |
 | `DatabaseGeneratedAttribute` | Property       | `System.ComponentModel.DataAnnotations.Schema` | 设置数据库生成字段值的方式（通常和`KeyAttribute`一起使用） |
 | `ColumnAttribute`            | Property       | `System.ComponentModel.DataAnnotations.Schema` | 自定义字段名                               |
 | `NotMappedAttribute`         | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为为忽略字段                             |
 | ~~`IgnoreAttribute`~~        | Property       | `Sean.Core.DbRepository`                       | 标记为为忽略字段                             |
 | ~~`ForeignKeyAttribute`~~    | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为外键字段（***暂不支持***）                  |
-| `SequenceAttribute`          | Class          | `Sean.Core.DbRepository`                       | Oracle: Sequence（生成自增Id）             |
 
 ## 使用示例（Example）
 
