@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository
 {
@@ -26,24 +27,27 @@ namespace Sean.Core.DbRepository
             {
                 return ParseConditionalExpression(conditionalExpression);
             }
-            else if (expression is BinaryExpression methodBinaryExpression && expression.GetType().Name == "MethodBinaryExpression")
+            else if (expression is BinaryExpression binaryExpression)
             {
-                return ParseMethodBinaryExpression(methodBinaryExpression);
+                var expressionName = expression.GetType().Name;
+                if (expressionName == "MethodBinaryExpression")
+                {
+                    return ParseMethodBinaryExpression(binaryExpression);
+                }
+                else if (expressionName == "SimpleBinaryExpression")
+                {
+                    return ParseSimpleBinaryExpression(binaryExpression);
+                }
             }
-            else if (expression is BinaryExpression simpleBinaryExpression
-                && simpleBinaryExpression.GetType().Name == "SimpleBinaryExpression")
+            else if (expression is UnaryExpression unaryExpression)
             {
-                return ParseSimpleBinaryExpression(simpleBinaryExpression);
+                if (expression.NodeType == ExpressionType.Convert)
+                {
+                    return ParseConvertExpression(unaryExpression);
+                }
             }
-            else if (expression is UnaryExpression convertExpression
-                && expression.NodeType == ExpressionType.Convert)
-            {
-                return ParseConvertExpression(convertExpression);
-            }
-            else
-            {
-                throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
-            }
+
+            throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
         }
 
         private static object ParseConstantExpression(ConstantExpression constantExpression)
@@ -163,7 +167,7 @@ namespace Sean.Core.DbRepository
             {
                 var array = ParseConstant(simpleBinaryExpression.Left) as Array;
                 var index = (int)ParseConstant(simpleBinaryExpression.Right);
-                return array.GetValue(index);
+                return array?.GetValue(index);
             }
 
             return new NotSupportedException();
@@ -171,8 +175,8 @@ namespace Sean.Core.DbRepository
 
         private static object ParseConvertExpression(UnaryExpression convertExpression)
         {
-            object value = ParseConstant(convertExpression.Operand);
-            return Convert.ChangeType(value, convertExpression.Type);
+            var value = ParseConstant(convertExpression.Operand);
+            return ObjectConvert.ChangeType(value, convertExpression.Type);
         }
     }
 }
