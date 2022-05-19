@@ -16,6 +16,8 @@ namespace Sean.Core.DbRepository
         /// <para>注意：除非表有一个 PRIMARY KEY 或 UNIQUE 索引，否则使用一个 REPLACE 语句没有意义。</para>
         /// </summary>
         public const string SqlTemplate = "REPLACE INTO {0}({1}) VALUES{2};";
+        public const string SqlIndentedTemplate = @"REPLACE INTO {0}({1}) 
+VALUES{2};";
 
         protected ReplaceableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
         {
@@ -94,7 +96,7 @@ namespace Sean.Core.DbRepository
             {
                 case DatabaseType.MySql:
                 case DatabaseType.SQLite:
-                    if (_parameter is IEnumerable<TEntity> entities && entities.Count() > 1)// BulkInsertOrUpdate
+                    if (_parameter is IEnumerable<TEntity> entities)// BulkInsertOrUpdate
                     {
                         #region 解析批量新增的参数
                         var paramDic = new Dictionary<string, object>();
@@ -107,33 +109,64 @@ namespace Sean.Core.DbRepository
                             formatParameterNames.Clear();
                             foreach (var field in fields)
                             {
-                                var fieldInfo = tableFieldInfos.Find(c => c.FieldName == field.FieldName);
-                                if (fieldInfo == null)
+                                var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == field.FieldName);
+                                if (findFieldInfo == null)
                                 {
                                     throw new InvalidOperationException($"Table [{field.TableName}] field [{field.FieldName}] not found in [{typeof(TEntity).FullName}].");
                                 }
-                                var parameterName = ConditionBuilder.UniqueParameter($"{fieldInfo.Property.Name}_{index}", paramDic);
+
+                                if (!BaseSqlBuilder.SqlParameterized)
+                                {
+                                    var property = findFieldInfo.Property;
+                                    if (property != null)
+                                    {
+                                        var value = property.GetValue(entity);
+                                        var convertResult = SqlBuilderUtil.ConvertToSqlString(value, property.PropertyType, out var convertable);
+                                        if (convertable)
+                                        {
+                                            formatParameterNames.Add(convertResult);
+                                            continue;
+                                        }
+                                    }
+                                }
+
+                                var parameterName = ConditionBuilder.UniqueParameter($"{findFieldInfo.Property.Name}_{index}", paramDic);
                                 formatParameterNames.Add(SqlAdapter.FormatInputParameter(parameterName));
-                                paramDic.Add(parameterName, fieldInfo.Property.GetValue(entity, null));
+                                paramDic.Add(parameterName, findFieldInfo.Property.GetValue(entity, null));
                             }
                             insertValueParams.Add($"({string.Join(", ", formatParameterNames)})");
                         }
 
-                        var bulkInsertValuesString = string.Join(",", insertValueParams);
+                        var bulkInsertValuesString = string.Join($", {(BaseSqlBuilder.SqlIndented ? Environment.NewLine : string.Empty)}", insertValueParams);
                         SetParameter(paramDic);
                         #endregion
 
-                        sb.Append(string.Format(SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
+                        sb.Append(string.Format(BaseSqlBuilder.SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
                     }
                     else
                     {
                         var formatParameters = fields.Select(fieldInfo =>
                         {
                             var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
+
+                            if (!BaseSqlBuilder.SqlParameterized)
+                            {
+                                var property = findFieldInfo?.Property;
+                                if (property != null)
+                                {
+                                    var value = property.GetValue(_parameter);
+                                    var convertResult = SqlBuilderUtil.ConvertToSqlString(value, property.PropertyType, out var convertable);
+                                    if (convertable)
+                                    {
+                                        return convertResult;
+                                    }
+                                }
+                            }
+
                             var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
                             return SqlAdapter.FormatInputParameter(parameterName);
                         });
-                        sb.Append(string.Format(SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
+                        sb.Append(string.Format(BaseSqlBuilder.SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
                     }
                     break;
                 default:

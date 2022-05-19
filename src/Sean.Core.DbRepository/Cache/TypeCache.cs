@@ -23,7 +23,7 @@ namespace Sean.Core.DbRepository
                 return null;
             }
 
-            if (_entityInfoDic.TryGetValue(entityClassType, out var entityInfo) && entityInfo != null)// 先从缓存中读取
+            if (_entityInfoDic.TryGetValue(entityClassType, out var entityInfo) && entityInfo != null)// Try to get data from cache.
             {
                 return entityInfo;
             }
@@ -69,7 +69,7 @@ namespace Sean.Core.DbRepository
                 entityInfo.FieldInfos.Add(fieldInfo);
             }
 
-            _entityInfoDic.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);// 更新缓存
+            _entityInfoDic.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);// Update cache.
             return entityInfo;
         }
     }

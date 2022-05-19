@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Example.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,27 +15,54 @@ namespace Sean.Core.DbRepository.Test
         public void BulkInsertTest()
         {
             var list = new List<TestEntity>();
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < 10; i++)
             {
-                list.Add(new TestEntity());
+                list.Add(new TestEntity
+                {
+                    Id = i + 1,
+                    UserId = 10000 + i,
+                    UserName = "TestName",
+                    Country = CountryType.China,
+                    IsVip = true,
+                    AccountBalance = 99.92M,
+                    Remark = "Test12'3",
+                    CreateTime = DateTime.Now
+                });
             }
 
+            //BaseSqlBuilder.SqlIndented = true;
+            //BaseSqlBuilder.SqlParameterized = false;
+
             IInsertableSql insertableSql = SqlFactory<TestEntity>.CreateInsertableBuilder(DatabaseType.MySql, true)
-                .SetParameter(list)// BulkInsert
+                .SetParameter(list)
                 .Build();
 
             var sql = insertableSql.Sql;
             var param = insertableSql.Parameter;
+            Console.WriteLine(sql);
         }
 
         [TestMethod]
-        public void ReplaceTest()
+        public void BulkInsertOrUpdateTest()
         {
             var list = new List<TestEntity>();
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 10; i++)
             {
-                list.Add(new TestEntity());
+                list.Add(new TestEntity
+                {
+                    Id = i + 1,
+                    UserId = 10000 + i,
+                    UserName = "TestName",
+                    Country = CountryType.China,
+                    IsVip = true,
+                    AccountBalance = 99.92M,
+                    Remark = "Test12'3",
+                    CreateTime = DateTime.Now
+                });
             }
+
+            //BaseSqlBuilder.SqlIndented = true;
+            //BaseSqlBuilder.SqlParameterized = false;
 
             IReplaceableSql replaceableSql = SqlFactory<TestEntity>.CreateReplaceableBuilder(DatabaseType.MySql, true)
                 .SetParameter(list)
@@ -42,6 +70,7 @@ namespace Sean.Core.DbRepository.Test
 
             var sql = replaceableSql.Sql;
             var param = replaceableSql.Parameter;
+            Console.WriteLine(sql);
         }
     }
 }

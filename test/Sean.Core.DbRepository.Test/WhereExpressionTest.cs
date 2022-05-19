@@ -167,6 +167,29 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
+        /// DateTime?
+        /// </summary>
+        [TestMethod]
+        public void ValidateDateTimeNullable()
+        {
+            var startTime = DateTime.Today;
+            var endTime = DateTime.Today.AddDays(1);
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.NullableDateTimeTest.HasValue
+                                                                           && entity.NullableDateTimeTest >= startTime
+                                                                           && entity.NullableDateTimeTest < endTime;
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { $"{nameof(TestEntity.NullableDateTimeTest)}", startTime },
+                { $"{nameof(TestEntity.NullableDateTimeTest)}_2", endTime },
+            };
+            Assert.AreEqual($"{_sqlAdapter.FormatFieldName(nameof(TestEntity.NullableDateTimeTest))} is not null " +
+                            $"AND {_sqlAdapter.FormatFieldName(nameof(TestEntity.NullableDateTimeTest))} >= {_sqlAdapter.FormatInputParameter(nameof(TestEntity.NullableDateTimeTest))}" +
+                            $" AND {_sqlAdapter.FormatFieldName(nameof(TestEntity.NullableDateTimeTest))} < {_sqlAdapter.FormatInputParameter($"{nameof(TestEntity.NullableDateTimeTest)}_2")}", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
         /// Enum
         /// </summary>
         [TestMethod]

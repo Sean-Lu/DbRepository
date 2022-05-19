@@ -10,6 +10,8 @@ namespace Sean.Core.DbRepository
     public abstract class InsertableSqlBuilder : BaseSqlBuilder
     {
         public const string SqlTemplate = "INSERT INTO {0}({1}) VALUES{2};";
+        public const string SqlIndentedTemplate = @"INSERT INTO {0}({1}) 
+VALUES{2};";
 
         protected InsertableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
         {
@@ -20,7 +22,7 @@ namespace Sean.Core.DbRepository
     {
         private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
         private bool _returnLastInsertId;
-        private bool _ignoreIdentityFields;
+        private bool _includeIdentityFields;
         private object _parameter;
 
         private InsertableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
@@ -89,9 +91,9 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual IInsertable<TEntity> IgnoreIdentityFields(bool ignoreIdentityFields = true)
+        public virtual IInsertable<TEntity> IncludeIdentityFields(bool includeIdentityFields = true)
         {
-            _ignoreIdentityFields = ignoreIdentityFields;
+            _includeIdentityFields = includeIdentityFields;
             return this;
         }
 
@@ -103,14 +105,16 @@ namespace Sean.Core.DbRepository
 
         public virtual IInsertableSql Build()
         {
-            var fields = _ignoreIdentityFields ? _includeFieldsList.Where(c => !c.Identity).ToList() : _includeFieldsList;
+            CheckIncludeIdentityFields();
+
+            var fields = !_includeIdentityFields ? _includeFieldsList.Where(c => !c.Identity).ToList() : _includeFieldsList;
             if (!fields.Any())
                 return default;
 
             var sb = new StringBuilder();
             var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName));
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-            if (_parameter is IEnumerable<TEntity> entities && entities.Count() > 1)// BulkInsert
+            if (_parameter is IEnumerable<TEntity> entities)// BulkInsert
             {
                 #region 解析批量新增的参数
                 var paramDic = new Dictionary<string, object>();
@@ -123,33 +127,64 @@ namespace Sean.Core.DbRepository
                     formatParameterNames.Clear();
                     foreach (var field in fields)
                     {
-                        var fieldInfo = tableFieldInfos.Find(c => c.FieldName == field.FieldName);
-                        if (fieldInfo == null)
+                        var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == field.FieldName);
+                        if (findFieldInfo == null)
                         {
                             throw new InvalidOperationException($"Table [{field.TableName}] field [{field.FieldName}] not found in [{typeof(TEntity).FullName}].");
                         }
-                        var parameterName = ConditionBuilder.UniqueParameter($"{fieldInfo.Property.Name}_{index}", paramDic);
+
+                        if (!BaseSqlBuilder.SqlParameterized)
+                        {
+                            var property = findFieldInfo.Property;
+                            if (property != null)
+                            {
+                                var value = property.GetValue(entity);
+                                var convertResult = SqlBuilderUtil.ConvertToSqlString(value, property.PropertyType, out var convertable);
+                                if (convertable)
+                                {
+                                    formatParameterNames.Add(convertResult);
+                                    continue;
+                                }
+                            }
+                        }
+
+                        var parameterName = ConditionBuilder.UniqueParameter($"{findFieldInfo.Property.Name}_{index}", paramDic);
                         formatParameterNames.Add(SqlAdapter.FormatInputParameter(parameterName));
-                        paramDic.Add(parameterName, fieldInfo.Property.GetValue(entity, null));
+                        paramDic.Add(parameterName, findFieldInfo.Property.GetValue(entity, null));
                     }
                     insertValueParams.Add($"({string.Join(", ", formatParameterNames)})");
                 }
 
-                var bulkInsertValuesString = string.Join(",", insertValueParams);
+                var bulkInsertValuesString = string.Join($", {(BaseSqlBuilder.SqlIndented ? Environment.NewLine : string.Empty)}", insertValueParams);
                 SetParameter(paramDic);
                 #endregion
 
-                sb.Append(string.Format(SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
+                sb.Append(string.Format(BaseSqlBuilder.SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
             }
             else
             {
                 var formatParameters = fields.Select(fieldInfo =>
                 {
                     var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
+
+                    if (!BaseSqlBuilder.SqlParameterized)
+                    {
+                        var property = findFieldInfo?.Property;
+                        if (property != null)
+                        {
+                            var value = property.GetValue(_parameter);
+                            var convertResult = SqlBuilderUtil.ConvertToSqlString(value, property.PropertyType, out var convertable);
+                            if (convertable)
+                            {
+                                return convertResult;
+                            }
+                        }
+                    }
+
                     var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
                     return SqlAdapter.FormatInputParameter(parameterName);
                 });
-                sb.Append(string.Format(SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
+                sb.Append(string.Format(BaseSqlBuilder.SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
             }
 
             if (_returnLastInsertId)
@@ -172,6 +207,58 @@ namespace Sean.Core.DbRepository
                 Parameter = _parameter
             };
             return insertableSql;
+        }
+
+        private void CheckIncludeIdentityFields()
+        {
+            if (!_includeIdentityFields && _parameter != null && _includeFieldsList.Any(c => c.Identity))
+            {
+                var identityFieldInfos = _includeFieldsList.Where(c => c.Identity);
+                var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
+                if (_parameter is IEnumerable<TEntity> entities)
+                {
+                    foreach (var identityFieldInfo in identityFieldInfos)
+                    {
+                        var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == identityFieldInfo.FieldName);
+                        var property = findFieldInfo?.Property;
+                        if (property != null)
+                        {
+                            var type = property.PropertyType;
+                            if (type == typeof(long))
+                            {
+                                if (entities.Any(entity =>
+                                {
+                                    var longValue = (long)property.GetValue(entity);
+                                    return longValue > 0;
+                                }))
+                                {
+                                    identityFieldInfo.Identity = false;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var identityFieldInfo in identityFieldInfos)
+                    {
+                        var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == identityFieldInfo.FieldName);
+                        var property = findFieldInfo?.Property;
+                        if (property != null)
+                        {
+                            var type = property.PropertyType;
+                            if (type == typeof(long))
+                            {
+                                var longValue = (long)property.GetValue(_parameter);
+                                if (longValue > 0)
+                                {
+                                    identityFieldInfo.Identity = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -240,11 +327,11 @@ namespace Sean.Core.DbRepository
         IInsertable<TEntity> ReturnAutoIncrementId(bool returnAutoIncrementId = true);
 
         /// <summary>
-        /// 忽略自增字段（默认会包含自增字段）
+        /// 是否包含自增字段（默认会忽略自增字段）
         /// </summary>
-        /// <param name="ignoreIdentityFields"></param>
+        /// <param name="includeIdentityFields"></param>
         /// <returns></returns>
-        IInsertable<TEntity> IgnoreIdentityFields(bool ignoreIdentityFields = true);
+        IInsertable<TEntity> IncludeIdentityFields(bool includeIdentityFields = true);
 
         /// <summary>
         /// 设置SQL入参

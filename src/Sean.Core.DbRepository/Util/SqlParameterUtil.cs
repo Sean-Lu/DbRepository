@@ -5,7 +5,7 @@ using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository
 {
-    public class SqlParameterUtil
+    internal class SqlParameterUtil
     {
         public static Dictionary<string, object> ConvertToDicParameter(object instance, string[] fields = null)
         {

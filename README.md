@@ -23,7 +23,7 @@
 
 ```
 Get<T>()、GetList<T>() 其中 T ：
-1. 支持自定义的Model实体模型（表字段映射匹配实体属性是否大小写敏感： DbFactory.CaseSensitiveWhenMatchField ）
+1. 支持自定义的Model实体模型（表字段映射匹配实体属性是否大小写敏感： DbFactory.CaseSensitive ）
 2. 支持dynamic（动态类型）
 2. 支持以下类型（默认只取查询结果的第一列数据）：
     - 值类型，如：int、long、double、decimal、DateTime、bool等

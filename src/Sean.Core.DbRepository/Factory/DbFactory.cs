@@ -24,7 +24,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 表字段映射匹配实体属性是否大小写敏感。默认值：false。
         /// </summary>
-        public static bool CaseSensitiveWhenMatchField { get; set; } = false;
+        public static bool CaseSensitive { get; set; } = false;
 
         /// <summary>
         /// <see cref="DbProviderFactory"/>
@@ -621,11 +621,11 @@ namespace Sean.Core.DbRepository
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
             //var table = ExecuteDataTable(connection, commandText, parameters, commandType);
-            //return table?.ToList<T>(CaseSensitiveWhenMatchField);
+            //return table?.ToList<T>(CaseSensitive);
 
             using (var dataReader = ExecuteReader(connection, commandText, parameters, commandType))
             {
-                return dataReader.GetList<T>(CaseSensitiveWhenMatchField);
+                return dataReader.GetList<T>(CaseSensitive);
             }
         }
         /// <summary>
@@ -637,11 +637,11 @@ namespace Sean.Core.DbRepository
         public List<T> GetList<T>(DbCommandInfo commandInfo)
         {
             //var table = ExecuteDataTable(commandInfo);
-            //return table?.ToList<T>(CaseSensitiveWhenMatchField);
+            //return table?.ToList<T>(CaseSensitive);
 
             using (var dataReader = ExecuteReader(commandInfo))
             {
-                return dataReader.GetList<T>(CaseSensitiveWhenMatchField);
+                return dataReader.GetList<T>(CaseSensitive);
             }
         }
 #if !NET40
@@ -654,11 +654,11 @@ namespace Sean.Core.DbRepository
         public async Task<List<T>> GetListAsync<T>(DbCommandInfo commandInfo)
         {
             //var table = await ExecuteDataTableAsync(commandInfo);
-            //return table?.ToList<T>(CaseSensitiveWhenMatchField);
+            //return table?.ToList<T>(CaseSensitive);
 
             using (var dataReader = await ExecuteReaderAsync(commandInfo))
             {
-                return dataReader.GetList<T>(CaseSensitiveWhenMatchField);
+                return dataReader.GetList<T>(CaseSensitive);
             }
         }
 #endif
@@ -696,7 +696,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = ExecuteReader(connection, commandText, parameters, commandType))
             {
-                return dataReader.Get<T>(CaseSensitiveWhenMatchField);
+                return dataReader.Get<T>(CaseSensitive);
             }
         }
         /// <summary>
@@ -709,7 +709,7 @@ namespace Sean.Core.DbRepository
         {
             using (var dataReader = ExecuteReader(commandInfo))
             {
-                return dataReader.Get<T>(CaseSensitiveWhenMatchField);
+                return dataReader.Get<T>(CaseSensitive);
             }
         }
 #if !NET40
@@ -723,7 +723,7 @@ namespace Sean.Core.DbRepository
         {
             using (var dataReader = await ExecuteReaderAsync(commandInfo))
             {
-                return dataReader.Get<T>(CaseSensitiveWhenMatchField);
+                return dataReader.Get<T>(CaseSensitive);
             }
         }
 #endif

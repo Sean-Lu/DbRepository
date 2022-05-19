@@ -1,15 +1,16 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Sean.Core.DbRepository;
+using AutoMapper;
+using Example.Domain.Entities;
 
-namespace Example.Domain.Entities
+namespace Example.Application.Dtos
 {
     /// <summary>
     /// 测试表（仅供测试使用）
     /// </summary>
-    [Table("Test", Schema = "public")]
-    public class TestEntity
+    [AutoMap(typeof(TestEntity), ReverseMap = true)]
+    public class TestDto
     {
         /// <summary>
         /// 自增主键
@@ -78,31 +79,5 @@ namespace Example.Domain.Entities
         /// 更新时间
         /// </summary>
         public DateTime UpdateTime { get; set; }
-
-        #region 忽略字段
-        //[Ignore]
-        [NotMapped]
-        public int? NullableTest { get; set; }
-        [NotMapped]
-        public DateTime? NullableDateTimeTest { get; set; }
-        #endregion
-    }
-
-    public enum SexType
-    {
-        Unknown = 0,
-        Male = 1,
-        Female = 2
-    }
-
-    public enum CountryType
-    {
-        Unknown = 0,
-        China,
-        America,
-        England,
-        Russia,
-        Italy,
-        Japan
     }
 }

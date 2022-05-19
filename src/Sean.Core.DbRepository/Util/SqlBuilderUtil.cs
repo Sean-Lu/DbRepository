@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository
 {
-    public class SqlBuilderUtil
+    internal class SqlBuilderUtil
     {
         #region [Field]
         public static void IncludeFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
@@ -338,5 +338,62 @@ namespace Sean.Core.DbRepository
             }
         }
         #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        /// <param name="convertable">如果返回false，则必须参数化处理</param>
+        /// <returns></returns>
+        public static string ConvertToSqlString(object value, Type type, out bool convertable)
+        {
+            convertable = true;
+            if (value == null)
+            {
+                return "null";
+            }
+
+            //var valueType = Nullable.GetUnderlyingType(value.GetType()) ?? value.GetType();
+            var valueType = Nullable.GetUnderlyingType(type) ?? type;
+            if (valueType == typeof(string))
+            {
+                return $"'{value.ToString().Replace("'", "\\'")}'";
+            }
+            if (valueType == typeof(bool))
+            {
+                return (bool)value ? "1" : "0";
+            }
+            if (valueType == typeof(byte)
+                || valueType == typeof(sbyte)
+                || valueType == typeof(short)
+                || valueType == typeof(ushort)
+                || valueType == typeof(int)
+                || valueType == typeof(uint)
+                || valueType == typeof(long)
+                || valueType == typeof(ulong)
+                || valueType == typeof(float)
+                || valueType == typeof(double)
+                || valueType == typeof(decimal)
+            )
+            {
+                return $"{value}";
+            }
+            if (valueType == typeof(DateTime))
+            {
+                return $"'{value:yyyy-MM-dd HH:mm:ss}'";
+            }
+            if (valueType.IsEnum)
+            {
+                return $"{(int)value}";
+            }
+            if (valueType.IsArray)
+            {
+                convertable = false;
+                return null;
+            }
+
+            return $"'{value.ToString().Replace("'", "\\'")}'";
+        }
     }
 }
