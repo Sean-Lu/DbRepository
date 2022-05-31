@@ -13,7 +13,8 @@ namespace Sean.Core.DbRepository
         /// 支持该语法的数据库：
         /// <para>- <see cref="DatabaseType.MySql"/></para>
         /// <para>- <see cref="DatabaseType.SQLite"/></para>
-        /// <para>注意：除非表有一个 PRIMARY KEY 或 UNIQUE 索引，否则使用一个 REPLACE 语句没有意义。</para>
+        /// <para>注意：除非表有一个 PRIMARY KEY 或 UNIQUE 索引，否则使用一个 REPLACE 语句没有意义（会导致表中出现重复的数据）。</para>
+        /// <para>原理：REPLACE INTO 首先尝试插入数据到表中，如果发现表中已经有此行数据（根据主键或者唯一索引判断）则先删除此行数据，然后插入新的数据。</para>
         /// </summary>
         public const string SqlTemplate = "REPLACE INTO {0}({1}) VALUES{2};";
         public const string SqlIndentedTemplate = @"REPLACE INTO {0}({1}) 
