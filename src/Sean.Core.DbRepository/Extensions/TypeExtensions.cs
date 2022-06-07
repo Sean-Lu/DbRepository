@@ -8,7 +8,7 @@ namespace Sean.Core.DbRepository.Extensions
     public static class TypeExtensions
     {
         /// <summary>
-        /// 获取实体类信息
+        /// 获取数据库表的实体类信息
         /// </summary>
         /// <param name="entityClassType"></param>
         /// <returns></returns>
@@ -18,7 +18,7 @@ namespace Sean.Core.DbRepository.Extensions
         }
 
         /// <summary>
-        /// 获取主表名称
+        /// 获取数据库表的主表名称
         /// </summary>
         /// <param name="entityClassType"></param>
         /// <returns></returns>
@@ -28,7 +28,7 @@ namespace Sean.Core.DbRepository.Extensions
         }
 
         /// <summary>
-        /// 获取所有数据库表字段
+        /// 获取数据库表的所有字段
         /// </summary>
         /// <param name="entityClassType"></param>
         /// <returns></returns>
@@ -38,7 +38,7 @@ namespace Sean.Core.DbRepository.Extensions
         }
 
         /// <summary>
-        /// 获取主键字段
+        /// 获取数据库表的主键字段
         /// </summary>
         /// <param name="entityClassType"></param>
         /// <returns></returns>
@@ -48,7 +48,7 @@ namespace Sean.Core.DbRepository.Extensions
         }
 
         /// <summary>
-        /// 获取自增字段
+        /// 获取数据库表的自增字段
         /// </summary>
         /// <param name="entityClassType"></param>
         /// <returns></returns>
@@ -58,7 +58,7 @@ namespace Sean.Core.DbRepository.Extensions
         }
 
         /// <summary>
-        /// 获取自增主键字段
+        /// 获取数据库表的自增主键字段
         /// </summary>
         /// <param name="entityClassType"></param>
         /// <returns></returns>
