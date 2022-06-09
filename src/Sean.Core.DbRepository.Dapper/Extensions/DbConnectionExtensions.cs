@@ -259,20 +259,51 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                     if (count < 1)
                     {
                         // INSERT
-                        IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
-                            .IncludeFields(fieldExpression)
-                            .SetParameter(entity)
-                            .Build();
-                        return insertableSql.ExecuteCommandSuccessful(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+                        return connection.Add(repository, entity, false, fieldExpression, transaction, commandTimeout);
                     }
                     else
                     {
-                        // UPDATE
-                        IUpdateable<TEntity> updateableBuilder = repository.CreateUpdateableBuilder<TEntity>(fieldExpression == null)
-                            .IncludeFields(fieldExpression, entity);
-                        pkFields.ForEach(pkField => countableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
-                        IUpdateableSql updateableSql = updateableBuilder.Build();
-                        return updateableSql.ExecuteCommand(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
+                        //// UPDATE
+                        //IUpdateable<TEntity> updateableBuilder = repository.CreateUpdateableBuilder<TEntity>(fieldExpression == null)
+                        //    .IncludeFields(fieldExpression, entity);
+                        //pkFields.ForEach(pkField => updateableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
+                        //IUpdateableSql updateableSql = updateableBuilder.Build();
+                        //return updateableSql.ExecuteCommand(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
+
+
+                        if (transaction?.Connection != null)
+                        {
+                            // DELETE
+                            if (!transaction.Connection.Delete(repository, entity, transaction, commandTimeout))
+                            {
+                                return false;
+                            }
+
+                            // INSERT
+                            return transaction.Connection.Add(repository, entity, false, fieldExpression, transaction, commandTimeout);
+                        }
+                        else
+                        {
+                            return repository.ExecuteTransaction(connection, trans =>
+                            {
+                                // DELETE
+                                if (!connection.Delete(repository, entity, trans, commandTimeout))
+                                {
+                                    trans.Rollback();
+                                    return false;
+                                }
+
+                                // INSERT
+                                if (!connection.Add(repository, entity, false, fieldExpression, trans, commandTimeout))
+                                {
+                                    trans.Rollback();
+                                    return false;
+                                }
+
+                                trans.Commit();
+                                return true;
+                            });
+                        }
                     }
             }
         }
@@ -937,20 +968,51 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
                     if (count < 1)
                     {
                         // INSERT
-                        IInsertableSql insertableSql = repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
-                            .IncludeFields(fieldExpression)
-                            .SetParameter(entity)
-                            .Build();
-                        return await insertableSql.ExecuteCommandSuccessfulAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql);
+                        return await connection.AddAsync(repository, entity, false, fieldExpression, transaction, commandTimeout);
                     }
                     else
                     {
-                        // UPDATE
-                        IUpdateable<TEntity> updateableBuilder = repository.CreateUpdateableBuilder<TEntity>(fieldExpression == null)
-                            .IncludeFields(fieldExpression, entity);
-                        pkFields.ForEach(pkField => countableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
-                        IUpdateableSql updateableSql = updateableBuilder.Build();
-                        return await updateableSql.ExecuteCommandAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
+                        //// UPDATE
+                        //IUpdateable<TEntity> updateableBuilder = repository.CreateUpdateableBuilder<TEntity>(fieldExpression == null)
+                        //    .IncludeFields(fieldExpression, entity);
+                        //pkFields.ForEach(pkField => updateableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
+                        //IUpdateableSql updateableSql = updateableBuilder.Build();
+                        //return await updateableSql.ExecuteCommandAsync(connection, transaction, commandTimeout, repository.OutputExecutedSql) > 0;
+
+
+                        if (transaction?.Connection != null)
+                        {
+                            // DELETE
+                            if (!await transaction.Connection.DeleteAsync(repository, entity, transaction, commandTimeout))
+                            {
+                                return false;
+                            }
+
+                            // INSERT
+                            return await transaction.Connection.AddAsync(repository, entity, false, fieldExpression, transaction, commandTimeout);
+                        }
+                        else
+                        {
+                            return await repository.ExecuteTransactionAsync(connection, async trans =>
+                            {
+                                // DELETE
+                                if (!await connection.DeleteAsync(repository, entity, trans, commandTimeout))
+                                {
+                                    trans.Rollback();
+                                    return false;
+                                }
+
+                                // INSERT
+                                if (!await connection.AddAsync(repository, entity, false, fieldExpression, trans, commandTimeout))
+                                {
+                                    trans.Rollback();
+                                    return false;
+                                }
+
+                                trans.Commit();
+                                return true;
+                            });
+                        }
                     }
             }
         }
