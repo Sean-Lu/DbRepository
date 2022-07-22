@@ -147,5 +147,28 @@
         {
             return CountableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
+
+        /// <summary>
+        /// Create an instance of <see cref="SqlWhereClauseBuilder{TEntity}"/>.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="repository"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public static SqlWhereClauseBuilder<TEntity> CreateSqlWhereClauseBuilder<TEntity>(this IBaseRepository repository, TEntity entity = default)
+        {
+            return SqlWhereClauseBuilder<TEntity>.Create(repository.DbType, entity);
+        }
+        /// <summary>
+        /// Create an instance of <see cref="SqlWhereClauseBuilder{TEntity}"/>.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="repository"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public static SqlWhereClauseBuilder<TEntity> CreateSqlWhereClauseBuilder<TEntity>(this IBaseRepository<TEntity> repository, TEntity entity = default)
+        {
+            return SqlWhereClauseBuilder<TEntity>.Create(repository.DbType, entity);
+        }
     }
 }

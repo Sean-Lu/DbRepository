@@ -75,4 +75,15 @@ namespace Sean.Core.DbRepository
             }
         }
     }
+
+    public class DefaultSqlAdapter<TEntity> : DefaultSqlAdapter
+    {
+        public DefaultSqlAdapter(DatabaseType dbType, string tableName = null) : base(dbType, tableName)
+        {
+            if (string.IsNullOrEmpty(TableName))
+            {
+                TableName = typeof(TEntity).GetMainTableName();
+            }
+        }
+    }
 }

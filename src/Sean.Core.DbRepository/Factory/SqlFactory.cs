@@ -26,6 +26,10 @@
         {
             return CountableSqlBuilder<TEntity>.Create(dbType, tableName);
         }
+        public static SqlWhereClauseBuilder<TEntity> CreateSqlWhereClauseBuilder<TEntity>(DatabaseType dbType, TEntity entity = default)
+        {
+            return SqlWhereClauseBuilder<TEntity>.Create(dbType, entity);
+        }
     }
 
     public class SqlFactory<TEntity>
@@ -53,6 +57,10 @@
         public static ICountable<TEntity> CreateCountableBuilder(DatabaseType dbType, string tableName = null)
         {
             return CountableSqlBuilder<TEntity>.Create(dbType, tableName);
+        }
+        public static SqlWhereClauseBuilder<TEntity> CreateSqlWhereClauseBuilder(DatabaseType dbType, TEntity entity = default)
+        {
+            return SqlWhereClauseBuilder<TEntity>.Create(dbType, entity);
         }
     }
 }

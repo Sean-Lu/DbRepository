@@ -198,7 +198,7 @@ namespace Sean.Core.DbRepository
         }
         public virtual IUpdateable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression)
         {
-            var aqlAdapter = new DefaultSqlAdapter(SqlAdapter.DbType, typeof(TEntity2).GetMainTableName())
+            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
             {
                 MultiTable = true
             };
@@ -221,7 +221,7 @@ namespace Sean.Core.DbRepository
         }
         public virtual IUpdateable<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
         {
-            var aqlAdapter = new DefaultSqlAdapter(SqlAdapter.DbType, typeof(TEntity2).GetMainTableName())
+            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
             {
                 MultiTable = true
             };
@@ -249,7 +249,7 @@ namespace Sean.Core.DbRepository
         }
         public virtual IUpdateable<TEntity> AndWhere<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression)
         {
-            var aqlAdapter = new DefaultSqlAdapter(SqlAdapter.DbType, typeof(TEntity2).GetMainTableName())
+            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
             {
                 MultiTable = true
             };

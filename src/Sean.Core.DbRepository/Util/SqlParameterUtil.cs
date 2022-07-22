@@ -1,13 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository
 {
-    internal class SqlParameterUtil
+    public class SqlParameterUtil
     {
-        public static Dictionary<string, object> ConvertToDicParameter(object instance, string[] fields = null)
+        public static Dictionary<string, object> ConvertToDicParameter<TEntity>(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null)
+        {
+            var fields = fieldExpression?.GetMemberNames();
+            return ConvertToDicParameter(entity, fields);
+        }
+
+        internal static Dictionary<string, object> ConvertToDicParameter(object instance, IEnumerable<string> fields = null)
         {
             if (instance == null)
             {
