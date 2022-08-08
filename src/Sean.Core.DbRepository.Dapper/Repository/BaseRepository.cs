@@ -17,7 +17,7 @@ namespace Sean.Core.DbRepository.Dapper
     /// Database table base repository
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<TEntity>
+    public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<TEntity> where TEntity : class
     {
         /// <summary>
         /// 主表表名
