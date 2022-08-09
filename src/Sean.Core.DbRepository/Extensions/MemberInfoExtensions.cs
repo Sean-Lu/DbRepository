@@ -15,7 +15,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static string GetFieldName(this MemberInfo memberInfo)
         {
-            var fieldAttribute = memberInfo.GetCustomAttributesExt<ColumnAttribute>(false).FirstOrDefault();
+            var fieldAttribute = memberInfo.GetCustomAttributesExt<ColumnAttribute>(false)?.FirstOrDefault();
             if (fieldAttribute != null)
             {
                 return fieldAttribute.Name;

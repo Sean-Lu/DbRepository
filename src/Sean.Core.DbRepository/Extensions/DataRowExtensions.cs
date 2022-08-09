@@ -50,9 +50,7 @@ namespace Sean.Core.DbRepository.Extensions
                 foreach (DataColumn column in dr.Table.Columns)
                 {
                     var fieldName = column.ColumnName;
-                    var propertyInfo = !caseSensitive
-                        ? properties.FirstOrDefault(c => c.Name.ToLower() == fieldName.ToLower())
-                        : type.GetProperty(fieldName);
+                    var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName().ToLower() == fieldName.ToLower() : c.GetFieldName() == fieldName);
                     var value = dr[fieldName];
                     if (propertyInfo != null && propertyInfo.CanWrite && value != DBNull.Value)
                     {
