@@ -24,9 +24,9 @@ namespace Example.NetFramework.Impls.DbTest
             _logger = new SimpleLocalLogger<MySqlTest>();
         }
 
-        public override void OutputExecutedSql(string sql, object param)
+        public override void OnSqlExecuted(SqlExecutedContext context)
         {
-            _logger.LogInfo($"执行了SQL: {sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(param, Formatting.Indented)}");
+            _logger.LogInfo($"执行了SQL: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
         }
 
         public void Execute()

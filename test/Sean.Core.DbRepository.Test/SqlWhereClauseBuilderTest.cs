@@ -27,8 +27,8 @@ namespace Sean.Core.DbRepository.Test
 
             //};
             //var sqlWhereClauseBuilder = SqlWhereClauseBuilder<TestEntity>.Create(_sqlAdapter, model);
-            var sqlWhereClauseBuilder = SqlWhereClauseBuilder<TestEntity>.Create(_sqlAdapter);
-            sqlWhereClauseBuilder.Where(entity => entity.UserId == 10010 && !string.IsNullOrEmpty(entity.PhoneNumber) && entity.IsVip);
+            var sqlWhereClauseBuilder = SqlWhereClauseBuilder<TestEntity>.Create(_sqlAdapter)
+                .Where(entity => entity.UserId == 10010 && !string.IsNullOrEmpty(entity.PhoneNumber) && entity.IsVip);
             var whereClause = sqlWhereClauseBuilder.GetParameterizedWhereClause();
             var parameters = sqlWhereClauseBuilder.Parameter;
             var expectedParameters = new Dictionary<string, object>
@@ -43,9 +43,9 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateMultiExpression()
         {
-            var sqlWhereClauseBuilder = SqlWhereClauseBuilder<TestEntity>.Create(_sqlAdapter);
-            sqlWhereClauseBuilder.Where(entity => entity.UserId == 10010 || entity.IsVip);
-            sqlWhereClauseBuilder.Where(entity => !string.IsNullOrEmpty(entity.PhoneNumber));
+            var sqlWhereClauseBuilder = SqlWhereClauseBuilder<TestEntity>.Create(_sqlAdapter)
+                .Where(entity => entity.UserId == 10010 || entity.IsVip)
+                .Where(entity => !string.IsNullOrEmpty(entity.PhoneNumber));
             var whereClause = sqlWhereClauseBuilder.GetParameterizedWhereClause();
             var parameters = sqlWhereClauseBuilder.Parameter;
             var expectedParameters = new Dictionary<string, object>

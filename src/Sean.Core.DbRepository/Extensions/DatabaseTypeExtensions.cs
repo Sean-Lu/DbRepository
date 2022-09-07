@@ -113,7 +113,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <param name="dbName">数据库名称</param>
         /// <param name="tableName">表名称</param>
         /// <returns></returns>
-        public static string GetSqlForIsTableExists(this DatabaseType dbType, string dbName, string tableName)
+        public static string GetSqlForCountTable(this DatabaseType dbType, string dbName, string tableName)
         {
             switch (dbType)
             {
@@ -130,7 +130,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.PostgreSql:
                     return $"SELECT COUNT(1) FROM pg_class WHERE relname = '{tableName}';";
                 default:
-                    throw new NotSupportedException($"[{nameof(GetSqlForIsTableExists)}]-[{dbType}]");
+                    throw new NotSupportedException($"Unsupported database type: {dbType}");
             }
         }
 
@@ -142,7 +142,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <param name="tableName">表名称</param>
         /// <param name="fieldName">字段名称</param>
         /// <returns></returns>
-        public static string GetSqlForIsFieldExists(this DatabaseType dbType, string dbName, string tableName, string fieldName)
+        public static string GetSqlForCountTableField(this DatabaseType dbType, string dbName, string tableName, string fieldName)
         {
             switch (dbType)
             {
@@ -153,11 +153,12 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.Oracle:
                     return $"SELECT COUNT(1) FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}';";
                 case DatabaseType.SQLite:
-                    return $"PRAGMA table_info('{tableName}');";
+                    //return $"PRAGMA table_info('{tableName}');";
+                    return $"SELECT COUNT(1) FROM pragma_table_info('{tableName}') WHERE name='{fieldName}';";
                 case DatabaseType.PostgreSql:
-                    return $"SELECT COUNT(1) FROM information_schema.columns WHERE table_schema = '{dbName}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
+                    return $"SELECT COUNT(1) FROM information_schema.columns WHERE table_schema = '{dbName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
                 default:
-                    throw new NotSupportedException($"[{nameof(GetSqlForIsFieldExists)}]-[{dbType}]");
+                    throw new NotSupportedException($"Unsupported database type: {dbType}");
             }
         }
     }

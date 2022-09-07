@@ -25,5 +25,17 @@ namespace Sean.Core.DbRepository
         {
             return typeof(TEntity).GetMainTableName();
         }
+
+        public static string SqlWhereClause(DatabaseType databaseType, Expression<Func<TEntity, bool>> whereExpression)
+        {
+            var sqlAdapter = new DefaultSqlAdapter<TEntity>(databaseType);
+            return SqlWhereClause(sqlAdapter, whereExpression);
+        }
+        public static string SqlWhereClause(ISqlAdapter sqlAdapter, Expression<Func<TEntity, bool>> whereExpression)
+        {
+            var sqlWhereClauseBuilder = SqlWhereClauseBuilder<TEntity>.Create(sqlAdapter)
+                .Where(whereExpression);
+            return sqlWhereClauseBuilder.GetParameterizedWhereClause();
+        }
     }
 }

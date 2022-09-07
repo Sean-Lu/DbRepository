@@ -22,7 +22,7 @@
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
         /// <param name="tableName">表名称</param>
         /// <returns></returns>
-        public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
+        public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
         {
             return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -47,7 +47,7 @@
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
         /// <param name="tableName">表名称</param>
         /// <returns></returns>
-        public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
+        public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
         {
             return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -70,7 +70,7 @@
         /// <param name="repository"></param>
         /// <param name="tableName">表名称</param>
         /// <returns></returns>
-        public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null)
+        public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null) where TEntity : class
         {
             return DeleteableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -95,7 +95,7 @@
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
         /// <param name="tableName">表名称</param>
         /// <returns></returns>
-        public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
+        public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
         {
             return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -120,7 +120,7 @@
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
         /// <param name="tableName">表名称</param>
         /// <returns></returns>
-        public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null)
+        public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
         {
             return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -143,7 +143,7 @@
         /// <param name="repository"></param>
         /// <param name="tableName">表名称</param>
         /// <returns></returns>
-        public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null)
+        public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null) where TEntity : class
         {
             return CountableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
         }
@@ -166,7 +166,7 @@
         /// <param name="repository"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static SqlWhereClauseBuilder<TEntity> CreateSqlWhereClauseBuilder<TEntity>(this IBaseRepository<TEntity> repository, TEntity entity = default)
+        public static SqlWhereClauseBuilder<TEntity> CreateSqlWhereClauseBuilder<TEntity>(this IBaseRepository<TEntity> repository, TEntity entity = default) where TEntity : class
         {
             return SqlWhereClauseBuilder<TEntity>.Create(repository.DbType, entity);
         }

@@ -25,5 +25,12 @@ namespace Sean.Core.DbRepository.Test
             var tableName = Table<TestEntity>.TableName();
             Assert.AreEqual(tableName, "Test");
         }
+
+        [TestMethod]
+        public void ValidateSqlWhereClause()
+        {
+            var sqlWhereClause = Table<TestEntity>.SqlWhereClause(DatabaseType.MySql, entity => entity.IsVip);
+            Assert.AreEqual(sqlWhereClause, "`IsVip` = @IsVip");
+        }
     }
 }

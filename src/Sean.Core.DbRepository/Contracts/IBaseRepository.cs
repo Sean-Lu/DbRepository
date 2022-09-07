@@ -8,7 +8,7 @@ using System.Transactions;
 
 namespace Sean.Core.DbRepository
 {
-    public interface IBaseRepository
+    public interface IBaseRepository: ISqlMonitor
     {
         /// <summary>
         /// Database factory
@@ -32,13 +32,6 @@ namespace Sean.Core.DbRepository
         /// <param name="tableName">表名称</param>
         /// <returns></returns>
         string CreateTableSql(string tableName);
-
-        /// <summary>
-        /// 输出执行的SQL语句
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="param"></param>
-        void OutputExecutedSql(string sql, object param);
 
         #region Synchronous method
         /// <summary>
@@ -119,7 +112,7 @@ namespace Sean.Core.DbRepository
         #endregion
     }
 
-    public interface IBaseRepository<TEntity> : IBaseRepository
+    public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : class
     {
         /// <summary>
         /// 主表表名
@@ -380,6 +373,9 @@ namespace Sean.Core.DbRepository
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         bool IsTableExists(string tableName, bool master = true);
+
+        bool IsTableFieldExists(string tableName, string fieldName, bool master = true);
+        bool IsTableFieldExists(Expression<Func<TEntity, object>> fieldExpression, bool master = true);
         #endregion
 
         #region Asynchronous method
@@ -630,7 +626,11 @@ namespace Sean.Core.DbRepository
         /// <param name="master">true: 主库, false: 从库</param>
         /// <returns></returns>
         Task<bool> IsTableExistsAsync(string tableName, bool master = true);
+
+        Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true);
+        Task<bool> IsTableFieldExistsAsync(Expression<Func<TEntity, object>> fieldExpression, bool master = true);
 #endif
+
         #endregion
     }
 }

@@ -41,16 +41,17 @@ namespace Sean.Core.DbRepository
             return new SqlWhereClauseBuilder<TEntity>(databaseType, entity);
         }
 
-        public virtual void Where(Expression<Func<TEntity, bool>> whereExpression)
+        public virtual SqlWhereClauseBuilder<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression)
         {
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, _parameter);
             if (!string.IsNullOrEmpty(whereClause))
             {
                 _whereClauseList.Add(whereClause);
             }
+            return this;
         }
 
-        public virtual void Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression)
+        public virtual SqlWhereClauseBuilder<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression)
         {
             var aqlAdapter = new DefaultSqlAdapter<TEntity2>(_sqlAdapter.DbType)
             {
@@ -61,6 +62,7 @@ namespace Sean.Core.DbRepository
             {
                 _whereClauseList.Add(whereClause);
             }
+            return this;
         }
 
         public virtual string GetParameterizedWhereClause()
