@@ -48,7 +48,7 @@ namespace Sean.Core.DbRepository
                 }
                 else
                 {
-                    throw new NotSupportedException($"Unknow Left:{binaryExpression.Left.GetType()} Right:{binaryExpression.Right.GetType()} NodeType:{binaryExpression.NodeType}");
+                    throw new NotSupportedException($"NotSupported BinaryExpression. Expression.Left Type:{binaryExpression.Left.GetType()}, Expression.Right Type:{binaryExpression.Right.GetType()}, Expression NodeType:{binaryExpression.NodeType}");
                 }
             }
             else if (expression is MethodCallExpression methodCallExpression)

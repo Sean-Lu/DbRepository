@@ -54,6 +54,27 @@ namespace Sean.Core.DbRepository.Extensions
         }
         #endregion
 
+        #region 动态拼接 Expression 表达式
+        public static Expression<T> Compose<T>(this Expression<T> first, Expression<T> second, Func<Expression, Expression, Expression> merge)
+        {
+            // 构建参数映射（从第二个参数到第一个参数）
+            var map = first.Parameters.Select((f, i) => new { f, s = second.Parameters[i] }).ToDictionary(p => p.s, p => p.f);
+            // 用第一个lambda表达式中的参数替换第二个lambda表达式中的参数
+            var secondBody = ExpressionParameterRebinder.ReplaceParameters(map, second.Body);
+            // 将lambda表达式体的组合应用于来自第一个表达式的参数
+            return Expression.Lambda<T>(merge(first.Body, secondBody), first.Parameters);
+        }
+        public static Expression<Func<T, bool>> AndAlso<T>(this Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
+        {
+            return first.Compose(second, Expression.AndAlso);
+        }
+        public static Expression<Func<T, bool>> OrElse<T>(this Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
+        {
+            return first.Compose(second, Expression.OrElse);
+        }
+
+        #endregion
+
         #region Private method
         private static List<string> GetMemberNames(this Expression fieldExpression)
         {

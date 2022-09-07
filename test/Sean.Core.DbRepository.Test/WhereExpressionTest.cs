@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using Example.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Extensions;
+using static Dapper.SqlMapper;
 
 namespace Sean.Core.DbRepository.Test
 {
@@ -132,7 +133,7 @@ namespace Sean.Core.DbRepository.Test
         {
             var startTime = DateTime.Today;
             var endTime = DateTime.Today.AddDays(1);
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.CreateTime >= startTime 
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.CreateTime >= startTime
                                                                            && entity.CreateTime < startTime.AddDays(1);
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
@@ -153,7 +154,7 @@ namespace Sean.Core.DbRepository.Test
         {
             var startTime = DateTime.Today;
             var endTime = DateTime.Today.AddDays(1);
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.CreateTime >= DateTime.Today 
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.CreateTime >= DateTime.Today
                                                                            && entity.CreateTime < DateTime.Today.AddDays(1);
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
@@ -229,7 +230,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateAnd()
         {
             var accountBalance = 100M;
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId 
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId
                                                                            && entity.AccountBalance < accountBalance;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
@@ -249,8 +250,8 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateAnd2()
         {
             var accountBalance = 100M;
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId 
-                                                                           && entity.AccountBalance < accountBalance 
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId
+                                                                           && entity.AccountBalance < accountBalance
                                                                            && !entity.IsBlack;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
@@ -272,7 +273,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateOr()
         {
             var accountBalance = 100M;
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId 
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId
                                                                            || entity.AccountBalance >= accountBalance;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
@@ -292,7 +293,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateOr2()
         {
             var accountBalance = 100M;
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId 
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserId == _model.UserId
                                                                            || entity.AccountBalance >= accountBalance && entity.IsVip;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
@@ -314,7 +315,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateOr3()
         {
             var accountBalance = 100M;
-            Expression<Func<TestEntity, bool>> whereExpression = entity => (entity.UserId == _model.UserId || entity.AccountBalance >= accountBalance) 
+            Expression<Func<TestEntity, bool>> whereExpression = entity => (entity.UserId == _model.UserId || entity.AccountBalance >= accountBalance)
                                                                            && entity.IsVip;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
@@ -624,7 +625,7 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateHasValue3()
         {
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.IsVip 
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.IsVip
                                                                            && entity.NullableTest.HasValue;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
@@ -737,6 +738,51 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("1=2", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// 动态Lambda表达式
+        /// </summary>
+        [TestMethod]
+        public void ValidateDynamicLambdaExpression()
+        {
+            Expression<Func<TestEntity, bool>> whereExpression = entity => true;
+            whereExpression = whereExpression.AndAlso(entity => entity.Age > 18 && entity.Age < 25);
+            whereExpression = whereExpression.AndAlso(entity => entity.IsVip);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Age", 18 },
+                { "Age_2", 25 },
+                { "IsVip", true }
+            };
+            Assert.AreEqual("1=1 AND `Age` > @Age AND `Age` < @Age_2 AND `IsVip` = @IsVip", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+        /// <summary>
+        /// 动态Lambda表达式
+        /// </summary>
+        [TestMethod]
+        public void ValidateDynamicLambdaExpression2()
+        {
+            Expression<Func<TestEntity, bool>> whereExpression = entity => true;
+            whereExpression = whereExpression.AndAlso(entity => entity.Age > 18 && entity.Age < 25);
+            whereExpression = whereExpression.AndAlso(entity => entity.IsVip);
+            Expression<Func<TestEntity, bool>> whereExpression2 = entity => false;
+            whereExpression2 = whereExpression2.OrElse(entity => entity.Country == CountryType.China);
+            whereExpression2 = whereExpression2.OrElse(entity => entity.AccountBalance > 8888);
+            whereExpression = whereExpression.AndAlso(whereExpression2);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Age", 18 },
+                { "Age_2", 25 },
+                { "IsVip", true },
+                { "Country", 1 },
+                { "AccountBalance", 8888M }
+            };
+            Assert.AreEqual("1=1 AND `Age` > @Age AND `Age` < @Age_2 AND `IsVip` = @IsVip AND ((1=2 OR `Country` = @Country) OR `AccountBalance` > @AccountBalance)", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
         #endregion 支持的写法
