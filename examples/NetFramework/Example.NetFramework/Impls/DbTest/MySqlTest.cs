@@ -24,9 +24,18 @@ namespace Example.NetFramework.Impls.DbTest
             _logger = new SimpleLocalLogger<MySqlTest>();
         }
 
+        public override void OnSqlExecuting(SqlExecutingContext context)
+        {
+            base.OnSqlExecuting(context);
+
+            //_logger.LogInfo($"SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+        }
+
         public override void OnSqlExecuted(SqlExecutedContext context)
         {
-            _logger.LogInfo($"执行了SQL: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+            base.OnSqlExecuted(context);
+
+            _logger.LogInfo($"SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
         }
 
         public void Execute()
