@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace Sean.Core.DbRepository;
 
-public class ExpressionParameterRebinder : ExpressionVisitor
+internal class ExpressionParameterRebinder : ExpressionVisitor
 {
     private readonly Dictionary<ParameterExpression, ParameterExpression> map;
 

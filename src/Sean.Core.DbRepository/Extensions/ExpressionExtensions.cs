@@ -36,7 +36,7 @@ namespace Sean.Core.DbRepository.Extensions
         public static string GetParameterizedWhereClause<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, ISqlAdapter sqlAdapter, IDictionary<string, object> parameters)
         {
             var adhesive = new WhereClauseAdhesive(sqlAdapter, parameters);
-            var whereClause = WhereCaluseParser.Parse(whereExpression.Body, adhesive);
+            var whereClause = WhereClauseParser.Parse(whereExpression, adhesive);
             return whereClause.ToString();
         }
         /// <summary>
