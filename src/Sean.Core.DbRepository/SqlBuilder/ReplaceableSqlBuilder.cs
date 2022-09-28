@@ -64,16 +64,16 @@ VALUES{2};";
             return this;
         }
 
-        public virtual IReplaceable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IReplaceable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             return IncludeFields(fields);
         }
-        public virtual IReplaceable<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IReplaceable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             return IgnoreFields(fields);
         }
         #endregion
@@ -213,18 +213,15 @@ VALUES{2};";
         /// <summary>
         /// 包含字段
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
-        /// <param name="entity"></param>
         /// <returns></returns>
-        IReplaceable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IReplaceable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression);
         /// <summary>
         /// 忽略字段
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <returns></returns>
-        IReplaceable<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IReplaceable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression);
         #endregion
 
         /// <summary>

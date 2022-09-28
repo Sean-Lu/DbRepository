@@ -14,6 +14,7 @@ namespace Example.Application.Extensions
         public static void AddApplicationDI(this IServiceCollection services)
         {
             services.AddDomainDI();
+
             services.AddAutoMapper(expression =>
             {
                 expression.AllowNullCollections = true;
@@ -21,6 +22,7 @@ namespace Example.Application.Extensions
                 expression.Advanced.AllowAdditiveTypeMapCreation = true;
                 expression.AddMaps(typeof(AutoMapperProfile));
             });
+
             services.RegisterServicesByAssemblyInterface(Assembly.GetExecutingAssembly(), "Service", ServiceLifetime.Transient);
         }
     }

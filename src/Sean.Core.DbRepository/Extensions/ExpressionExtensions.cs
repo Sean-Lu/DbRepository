@@ -8,19 +8,59 @@ namespace Sean.Core.DbRepository.Extensions
     public static class ExpressionExtensions
     {
         #region fieldExpression
-        /// <summary>
-        /// 获取表达式树的属性成员名称
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TProperty"></typeparam>
-        /// <param name="fieldExpression">示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
-        /// </param>
-        /// <returns></returns>
-        public static List<string> GetMemberNames<TEntity, TProperty>(this Expression<Func<TEntity, TProperty>> fieldExpression)
+        public static List<string> GetFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression)
         {
-            return fieldExpression.Body.GetMemberNames();
+            return fieldExpression?.Body.GetFieldNames();
+        }
+
+        public static bool IsFieldExists<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, string fieldName)
+        {
+            if (fieldExpression == null || string.IsNullOrEmpty(fieldName))
+            {
+                return false;
+            }
+
+            var fields = fieldExpression.GetFieldNames();
+            return fields != null && fields.Exists(c => c == fieldName);
+        }
+        public static bool IsFieldExists<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, object>> matchFieldExpression)
+        {
+            if (fieldExpression == null || matchFieldExpression == null)
+            {
+                return false;
+            }
+
+            var fields = fieldExpression.GetFieldNames();
+            var matchFields = matchFieldExpression.GetFieldNames();
+            return fields != null && matchFields != null && matchFields.TrueForAll(fieldName => fields.Exists(c => c == fieldName));
+        }
+
+        public static Expression<Func<TEntity, object>> AddFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, params string[] fieldNames)
+        {
+            if (fieldExpression == null || fieldNames == null || !fieldNames.Any())
+            {
+                return fieldExpression;
+            }
+
+            var fields = fieldExpression.GetFieldNames();
+            fields.AddRange(fieldNames);
+            return ExpressionUtil.CreateFieldExpression<TEntity>(fields);
+        }
+        public static Expression<Func<TEntity, object>> AddFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, object>> addFieldExpression)
+        {
+            if (fieldExpression == null || addFieldExpression == null)
+            {
+                return fieldExpression;
+            }
+
+            var fields = fieldExpression.GetFieldNames();
+            var addFields = addFieldExpression.GetFieldNames();
+            if (addFields == null || !addFields.Any())
+            {
+                return fieldExpression;
+            }
+            fields.AddRange(addFields);
+            return ExpressionUtil.CreateFieldExpression<TEntity>(fields);
         }
         #endregion
 
@@ -52,6 +92,15 @@ namespace Sean.Core.DbRepository.Extensions
             parameters = new Dictionary<string, object>();
             return whereExpression.GetParameterizedWhereClause(sqlAdapter, parameters);
         }
+
+        public static Expression<Func<T, bool>> AndAlso<T>(this Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
+        {
+            return first.Compose(second, Expression.AndAlso);
+        }
+        public static Expression<Func<T, bool>> OrElse<T>(this Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
+        {
+            return first.Compose(second, Expression.OrElse);
+        }
         #endregion
 
         #region 动态拼接 Expression 表达式
@@ -64,28 +113,40 @@ namespace Sean.Core.DbRepository.Extensions
             // 将lambda表达式体的组合应用于来自第一个表达式的参数
             return Expression.Lambda<T>(merge(first.Body, secondBody), first.Parameters);
         }
-        public static Expression<Func<T, bool>> AndAlso<T>(this Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
-        {
-            return first.Compose(second, Expression.AndAlso);
-        }
-        public static Expression<Func<T, bool>> OrElse<T>(this Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
-        {
-            return first.Compose(second, Expression.OrElse);
-        }
-
         #endregion
 
         #region Private method
-        private static List<string> GetMemberNames(this Expression fieldExpression)
+        private static List<string> GetFieldNames(this Expression fieldExpression)
         {
             if (fieldExpression == null) throw new ArgumentNullException(nameof(fieldExpression));
 
             var result = new List<string>();
-            if (fieldExpression is NewArrayExpression newArrayExpression)// 数组
+            if (fieldExpression is ConstantExpression constantExpression2)
+            {
+                var value = constantExpression2.Value;
+                if (value is IEnumerable<string> fieldNames)
+                {
+                    foreach (var fieldName in fieldNames)
+                    {
+                        if (!result.Contains(fieldName))
+                        {
+                            result.Add(fieldName);
+                        }
+                    }
+                }
+                else if (value is string fieldName)
+                {
+                    if (!result.Contains(fieldName))
+                    {
+                        result.Add(fieldName);
+                    }
+                }
+            }
+            else if (fieldExpression is NewArrayExpression newArrayExpression)// 数组
             {
                 foreach (var subExpression in newArrayExpression.Expressions)
                 {
-                    var memberName = subExpression.GetMemberName();
+                    var memberName = subExpression.GetFieldName();
                     if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                     {
                         result.Add(memberName);
@@ -98,7 +159,7 @@ namespace Sean.Core.DbRepository.Extensions
                 {
                     foreach (var argument in initializer.Arguments)
                     {
-                        var memberName = argument.GetMemberName();
+                        var memberName = argument.GetFieldName();
                         if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                         {
                             result.Add(memberName);
@@ -118,7 +179,7 @@ namespace Sean.Core.DbRepository.Extensions
                 //}
                 foreach (var argument in newExpression.Arguments)
                 {
-                    var memberName = argument.GetMemberName();
+                    var memberName = argument.GetFieldName();
                     if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                     {
                         result.Add(memberName);
@@ -201,9 +262,10 @@ namespace Sean.Core.DbRepository.Extensions
                     }
                 }
             }
-            else
+
+            if (!result.Any())
             {
-                var memberName = fieldExpression.GetMemberName();
+                var memberName = fieldExpression.GetFieldName();
                 if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                 {
                     result.Add(memberName);
@@ -217,7 +279,7 @@ namespace Sean.Core.DbRepository.Extensions
 
             return result;
         }
-        private static string GetMemberName(this Expression expression)
+        private static string GetFieldName(this Expression expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 

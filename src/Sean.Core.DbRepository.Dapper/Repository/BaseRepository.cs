@@ -98,7 +98,7 @@ namespace Sean.Core.DbRepository.Dapper
             var sql = CreateTableSql(tableName);
             if (string.IsNullOrWhiteSpace(sql))
             {
-                throw new Exception($"Value cannot be null or whitespace: {nameof(CreateTableSql)}.");
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(CreateTableSql));
             }
 
             Execute(connection => connection.Execute(sql), master);
@@ -224,7 +224,7 @@ namespace Sean.Core.DbRepository.Dapper
         public virtual bool IsTableFieldExists(Expression<Func<TEntity, object>> fieldExpression, bool master = true)
         {
             var tableName = TableName();
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             if (fields == null || fields.Count < 1)
             {
                 return false;
@@ -361,7 +361,7 @@ namespace Sean.Core.DbRepository.Dapper
         public virtual async Task<bool> IsTableFieldExistsAsync(Expression<Func<TEntity, object>> fieldExpression, bool master = true)
         {
             var tableName = TableName();
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             if (fields == null || fields.Count < 1)
             {
                 return false;

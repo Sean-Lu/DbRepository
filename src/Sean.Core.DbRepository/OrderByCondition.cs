@@ -15,7 +15,7 @@ namespace Sean.Core.DbRepository
 
     public class OrderByCondition<TEntity> : OrderByCondition
     {
-        public static OrderByCondition CreateNew<TProperty>(OrderByType type, Expression<Func<TEntity, TProperty>> fieldExpression, OrderByCondition next = null)
+        public static OrderByCondition CreateNew(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
         {
             return OrderByConditionBuilder<TEntity>.Build(type, fieldExpression, next);
         }
@@ -23,12 +23,12 @@ namespace Sean.Core.DbRepository
 
     public class OrderByConditionBuilder
     {
-        public static OrderByCondition Build<TEntity, TProperty>(OrderByType type, Expression<Func<TEntity, TProperty>> fieldExpression, OrderByCondition next = null)
+        public static OrderByCondition Build<TEntity>(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
         {
             var orderByCondition = new OrderByCondition
             {
                 Type = type,
-                Fields = fieldExpression.GetMemberNames().ToArray(),
+                Fields = fieldExpression.GetFieldNames().ToArray(),
                 Next = next
             };
             return orderByCondition;
@@ -37,7 +37,7 @@ namespace Sean.Core.DbRepository
 
     public class OrderByConditionBuilder<TEntity>
     {
-        public static OrderByCondition Build<TProperty>(OrderByType type, Expression<Func<TEntity, TProperty>> fieldExpression, OrderByCondition next = null)
+        public static OrderByCondition Build(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
         {
             return OrderByConditionBuilder.Build(type, fieldExpression, next);
         }

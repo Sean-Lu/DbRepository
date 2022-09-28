@@ -71,7 +71,7 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual IUpdateable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, TEntity entity = default)
+        public virtual IUpdateable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression, TEntity entity = default)
         {
             if (fieldExpression == null)
             {
@@ -82,7 +82,7 @@ namespace Sean.Core.DbRepository
                 return this;
             }
 
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             IncludeFields(fields);
 
             if (entity != null)
@@ -96,16 +96,16 @@ namespace Sean.Core.DbRepository
 
             return this;
         }
-        public virtual IUpdateable<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IUpdateable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             return IgnoreFields(fields);
         }
-        public virtual IUpdateable<TEntity> PrimaryKeyFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IUpdateable<TEntity> PrimaryKeyFields(Expression<Func<TEntity, object>> fieldExpression)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             return PrimaryKeyFields(fields);
         }
 
@@ -377,25 +377,22 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 包含字段
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        IUpdateable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, TEntity entity = default);
+        IUpdateable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression, TEntity entity = default);
         /// <summary>
         /// 忽略字段
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <returns></returns>
-        IUpdateable<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IUpdateable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression);
         /// <summary>
         /// 主键字段
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <returns></returns>
-        IUpdateable<TEntity> PrimaryKeyFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IUpdateable<TEntity> PrimaryKeyFields(Expression<Func<TEntity, object>> fieldExpression);
 
         /// <summary>
         /// 递增字段

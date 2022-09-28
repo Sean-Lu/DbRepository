@@ -65,22 +65,22 @@ VALUES{2};";
             return this;
         }
 
-        public virtual IInsertable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IInsertable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             return IncludeFields(fields);
         }
-        public virtual IInsertable<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IInsertable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             return IgnoreFields(fields);
         }
-        public virtual IInsertable<TEntity> IdentityFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IInsertable<TEntity> IdentityFields(Expression<Func<TEntity, object>> fieldExpression)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             return IdentityFields(fields);
         }
         #endregion
@@ -298,25 +298,21 @@ VALUES{2};";
         /// <summary>
         /// 包含字段
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
-        /// <param name="entity"></param>
         /// <returns></returns>
-        IInsertable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IInsertable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression);
         /// <summary>
         /// 忽略字段
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <returns></returns>
-        IInsertable<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IInsertable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression);
         /// <summary>
         /// 自增字段
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <returns></returns>
-        IInsertable<TEntity> IdentityFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IInsertable<TEntity> IdentityFields(Expression<Func<TEntity, object>> fieldExpression);
         #endregion
 
         /// <summary>

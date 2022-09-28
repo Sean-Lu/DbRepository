@@ -25,10 +25,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
         /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static bool Add<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -65,7 +65,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="sqlMonitor"></param>
         /// <param name="insertableSql"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static bool Add(this IDbConnection connection, IInsertableSql insertableSql, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
@@ -82,10 +82,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
         /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static bool BulkAdd<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -141,10 +141,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entity"></param>
         /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static bool AddOrUpdate<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -226,7 +226,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="sqlMonitor"></param>
         /// <param name="replaceableSql"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static bool AddOrUpdate(this IDbConnection connection, IReplaceableSql replaceableSql, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
@@ -242,10 +242,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entities"></param>
         /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static bool BulkAddOrUpdate<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -302,7 +302,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="repository"></param>
         /// <param name="entity"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static bool Delete<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -321,7 +321,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="repository"></param>
         /// <param name="whereExpression">WHERE过滤条件</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>返回受影响的行数</returns>
         public static int Delete<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -337,7 +337,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="sqlMonitor"></param>
         /// <param name="deleteableSql"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>返回受影响的行数</returns>
         public static int Delete(this IDbConnection connection, IDeleteableSql deleteableSql, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
@@ -353,15 +353,15 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entity">实体</param>
         /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
         /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
         /// <para>注：</para>
         /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
         /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>返回受影响的行数</returns>
         public static int Update<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -380,7 +380,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="sqlMonitor"></param>
         /// <param name="updateableSql"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>返回受影响的行数</returns>
         public static int Update(this IDbConnection connection, IUpdateableSql updateableSql, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
@@ -396,15 +396,15 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entities">实体</param>
         /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
         /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
         /// <para>注：</para>
         /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
         /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static bool BulkUpdate<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -452,7 +452,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static bool Incr<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
@@ -473,7 +473,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static bool Decr<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
@@ -504,8 +504,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
         /// <param name="orderByCondition">排序条件</param>
         /// <param name="pageIndex">分页参数：当前页号（最小值为1）</param>
@@ -529,8 +529,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
         /// <param name="orderByCondition">排序条件</param>
         /// <param name="offset">偏移量</param>
@@ -568,8 +568,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
         /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
@@ -664,10 +664,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="entity"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
         /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static async Task<bool> AddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -704,7 +704,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="sqlMonitor"></param>
         /// <param name="insertableSql"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static async Task<bool> AddAsync(this IDbConnection connection, IInsertableSql insertableSql, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
@@ -721,10 +721,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="entities"></param>
         /// <param name="returnId">是否返回自增主键Id</param>
         /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static async Task<bool> BulkAddAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -780,10 +780,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entity"></param>
         /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static async Task<bool> AddOrUpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -865,7 +865,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="sqlMonitor"></param>
         /// <param name="replaceableSql"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static async Task<bool> AddOrUpdateAsync(this IDbConnection connection, IReplaceableSql replaceableSql, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
@@ -881,10 +881,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entities"></param>
         /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static async Task<bool> BulkAddOrUpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -941,7 +941,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="repository"></param>
         /// <param name="entity"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static async Task<bool> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -960,7 +960,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="repository"></param>
         /// <param name="whereExpression">WHERE过滤条件</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>返回受影响的行数</returns>
         public static async Task<int> DeleteAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -976,7 +976,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="sqlMonitor"></param>
         /// <param name="deleteableSql"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>返回受影响的行数</returns>
         public static async Task<int> DeleteAsync(this IDbConnection connection, IDeleteableSql deleteableSql, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
@@ -992,15 +992,15 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entity">实体</param>
         /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
         /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
         /// <para>注：</para>
         /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
         /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>返回受影响的行数</returns>
         public static async Task<int> UpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -1019,7 +1019,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="connection">Database connection</param>
         /// <param name="sqlMonitor"></param>
         /// <param name="updateableSql"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>返回受影响的行数</returns>
         public static async Task<int> UpdateAsync(this IDbConnection connection, IUpdateableSql updateableSql, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
@@ -1035,15 +1035,15 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="entities">实体</param>
         /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
         /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
         /// <para>注：</para>
         /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
         /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
         /// </param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static async Task<bool> BulkUpdateAsync<TEntity>(this IDbConnection connection, IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -1091,7 +1091,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static async Task<bool> IncrAsync<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
@@ -1112,7 +1112,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
         /// <param name="whereExpression"></param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <returns>是否执行成功</returns>
         public static async Task<bool> DecrAsync<TEntity, TValue>(this IDbConnection connection, IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct
@@ -1143,8 +1143,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
         /// <param name="orderByCondition">排序条件</param>
         /// <param name="pageIndex">分页参数：当前页号（最小值为1）</param>
@@ -1168,8 +1168,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
         /// <param name="orderByCondition">排序条件</param>
         /// <param name="offset">偏移量</param>
@@ -1207,8 +1207,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// <param name="repository"></param>
         /// <param name="whereExpression">WHERE过滤条件</param>
         /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
-        /// <para>单个字段：entity => entity.Status</para>
-        /// <para>多个字段（匿名类型）：entity => new { entity.Status, entity.UpdateTime }</para>
+        /// <para>1. Single field: entity => entity.Status</para>
+        /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
         /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>

@@ -191,7 +191,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="commandType">Command type</param>
-        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
         public int ExecuteNonQuery(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
@@ -261,7 +261,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
         public DataTable ExecuteDataTable(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
@@ -316,7 +316,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
         public DataSet ExecuteDataSet(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
@@ -428,7 +428,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
         public IDataReader ExecuteReader(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
@@ -490,7 +490,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
         public object ExecuteScalar(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
@@ -532,7 +532,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
         public T ExecuteScalar<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
@@ -598,7 +598,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns>Entity or special type value list</returns>
         public List<T> GetList<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
@@ -672,7 +672,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns>Entity or special type value</returns>
         public T Get<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
@@ -741,7 +741,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Create a new connection with default connection string
         /// </summary>
-        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
         public IDbConnection CreateConnection(bool master)
         {
@@ -769,16 +769,16 @@ namespace Sean.Core.DbRepository
         /// Create and open a new connection
         /// </summary>
         /// <returns></returns>
-        public IDbConnection OpenConnection()
+        public IDbConnection OpenNewConnection()
         {
-            return OpenConnection(true);
+            return OpenNewConnection(true);
         }
         /// <summary>
         /// Create and open a new connection
         /// </summary>
-        /// <param name="master">true: 主库, false: 从库</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
-        public IDbConnection OpenConnection(bool master)
+        public IDbConnection OpenNewConnection(bool master)
         {
             var connection = CreateConnection(master);
             OpenConnection(connection);
@@ -789,25 +789,29 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="connectionString">Database connection string</param>
         /// <returns></returns>
-        public IDbConnection OpenConnection(string connectionString)
+        public IDbConnection OpenNewConnection(string connectionString)
         {
             var connection = CreateConnection(connectionString);
             OpenConnection(connection);
             return connection;
         }
+
         /// <summary>
         /// Open the connection if the database connection is not open
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <returns></returns>
-        public IDbConnection OpenConnection(IDbConnection connection)
+        public void OpenConnection(IDbConnection connection)
         {
-            if (connection != null && (connection.State & ConnectionState.Open) != ConnectionState.Open)
+            if (connection == null)
+            {
+                return;
+            }
+
+            if ((connection.State & ConnectionState.Open) != ConnectionState.Open)
             {
                 connection.Open();
             }
-
-            return connection;
         }
 
         /// <summary>
@@ -817,14 +821,16 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public void CloseConnection(IDbConnection connection)
         {
-            if (connection != null)
+            if (connection == null)
             {
-                if (connection.State != ConnectionState.Closed)
-                {
-                    connection.Close();
-                }
-                connection.Dispose();
+                return;
             }
+
+            if (connection.State != ConnectionState.Closed)
+            {
+                connection.Close();
+            }
+            connection.Dispose();
         }
         #endregion
 

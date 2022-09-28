@@ -111,65 +111,65 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual IQueryable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IQueryable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             return IncludeFields(fields);
         }
-        public virtual IQueryable<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IQueryable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             return IgnoreFields(fields);
         }
 
-        public IQueryable<TEntity> MaxField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
+        public IQueryable<TEntity> MaxField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             fields.ForEach(fieldName => MaxField(fieldName, aliasName, fieldNameFormatted));
             return this;
         }
-        public IQueryable<TEntity> MinField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
+        public IQueryable<TEntity> MinField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             fields.ForEach(fieldName => MinField(fieldName, aliasName, fieldNameFormatted));
             return this;
         }
-        public IQueryable<TEntity> SumField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
+        public IQueryable<TEntity> SumField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             fields.ForEach(fieldName => SumField(fieldName, aliasName, fieldNameFormatted));
             return this;
         }
-        public IQueryable<TEntity> AvgField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
+        public IQueryable<TEntity> AvgField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             fields.ForEach(fieldName => AvgField(fieldName, aliasName, fieldNameFormatted));
             return this;
         }
-        public IQueryable<TEntity> CountField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
+        public IQueryable<TEntity> CountField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             fields.ForEach(fieldName => CountField(fieldName, aliasName, fieldNameFormatted));
             return this;
         }
-        public IQueryable<TEntity> CountDistinctField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null)
+        public IQueryable<TEntity> CountDistinctField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             fields.ForEach(fieldName => CountDistinctField(fieldName, aliasName));
             return this;
         }
-        public IQueryable<TEntity> DistinctFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public IQueryable<TEntity> DistinctFields(Expression<Func<TEntity, object>> fieldExpression)
         {
             if (fieldExpression == null) return this;
-            var fields = fieldExpression.GetMemberNames().ToArray();
+            var fields = fieldExpression.GetFieldNames().ToArray();
             return DistinctFields(fields);
         }
         #endregion
@@ -342,9 +342,9 @@ namespace Sean.Core.DbRepository
             }
             return this;
         }
-        public virtual IQueryable<TEntity> GroupByField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IQueryable<TEntity> GroupByField(Expression<Func<TEntity, object>> fieldExpression)
         {
-            return GroupByField(fieldExpression.GetMemberNames().ToArray());
+            return GroupByField(fieldExpression.GetFieldNames().ToArray());
         }
         #endregion
 
@@ -402,9 +402,9 @@ namespace Sean.Core.DbRepository
             }
             return this;
         }
-        public virtual IQueryable<TEntity> OrderByField<TProperty>(OrderByType type, Expression<Func<TEntity, TProperty>> fieldExpression)
+        public virtual IQueryable<TEntity> OrderByField(OrderByType type, Expression<Func<TEntity, object>> fieldExpression)
         {
-            return OrderByField(type, fieldExpression.GetMemberNames().ToArray());
+            return OrderByField(type, fieldExpression.GetFieldNames().ToArray());
         }
         #endregion
 
@@ -637,79 +637,69 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 包含字段
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
-        /// <param name="entity"></param>
         /// <returns></returns>
-        IQueryable<TEntity> IncludeFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IQueryable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression);
         /// <summary>
         /// 忽略字段
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <returns></returns>
-        IQueryable<TEntity> IgnoreFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IQueryable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression);
 
         /// <summary>
         /// MAX() - 返回最大值
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <param name="aliasName">别名</param>
         /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> MaxField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
+        IQueryable<TEntity> MaxField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// MIN() - 返回最小值
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <param name="aliasName">别名</param>
         /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> MinField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
+        IQueryable<TEntity> MinField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// SUM() - 返回总和
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <param name="aliasName">别名</param>
         /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> SumField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
+        IQueryable<TEntity> SumField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// AVG() - 返回平均值
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <param name="aliasName">别名</param>
         /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> AvgField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
+        IQueryable<TEntity> AvgField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// COUNT() - 返回行数
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <param name="aliasName">别名</param>
         /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
         /// <returns></returns>
-        IQueryable<TEntity> CountField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
+        IQueryable<TEntity> CountField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
         /// <summary>
         /// SELECT COUNT(DISTINCT field_name) FROM table_name;
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <param name="aliasName">别名</param>
         /// <returns></returns>
-        IQueryable<TEntity> CountDistinctField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression, string aliasName = null);
+        IQueryable<TEntity> CountDistinctField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null);
         /// <summary>
         /// SELECT DISTINCT field_name1,field_name2 FROM table_name;
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
         /// <param name="fieldExpression"></param>
         /// <returns></returns>
-        IQueryable<TEntity> DistinctFields<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IQueryable<TEntity> DistinctFields(Expression<Func<TEntity, object>> fieldExpression);
         #endregion
 
         #region [Join] 表关联
@@ -808,7 +798,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         IQueryable<TEntity> GroupBy(string groupBy);
         IQueryable<TEntity> GroupByField(params string[] fieldNames);
-        IQueryable<TEntity> GroupByField<TProperty>(Expression<Func<TEntity, TProperty>> fieldExpression);
+        IQueryable<TEntity> GroupByField(Expression<Func<TEntity, object>> fieldExpression);
         #endregion
 
         #region [HAVING]
@@ -829,7 +819,7 @@ namespace Sean.Core.DbRepository
         IQueryable<TEntity> OrderBy(string orderBy);
         IQueryable<TEntity> OrderBy(OrderByCondition orderByCondition);
         IQueryable<TEntity> OrderByField(OrderByType type, params string[] fieldNames);
-        IQueryable<TEntity> OrderByField<TProperty>(OrderByType type, Expression<Func<TEntity, TProperty>> fieldExpression);
+        IQueryable<TEntity> OrderByField(OrderByType type, Expression<Func<TEntity, object>> fieldExpression);
         #endregion
 
         /// <summary>

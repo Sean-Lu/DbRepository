@@ -4,7 +4,7 @@ namespace Sean.Core.DbRepository;
 
 public class SqlExecutedContext
 {
-    public SqlExecutedContext(IDbConnection connection, string sql, object sqlParameter)
+    public SqlExecutedContext(IDbConnection connection, string sql, object sqlParameter = null)
     {
         Connection = connection;
         Sql = sql;

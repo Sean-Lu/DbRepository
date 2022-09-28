@@ -32,7 +32,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateSingleField()
         {
             Expression<Func<TestEntity, object>> fieldExpression = entity => entity.Status;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status)
@@ -47,7 +47,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateMultiField()
         {
             Expression<Func<TestEntity, object>> fieldExpression = entity => new { entity.Status, entity.UpdateTime };
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -63,7 +63,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateMultiField2()
         {
             Expression<Func<TestEntity, object>> fieldExpression = entity => new object[] { entity.Status, entity.UpdateTime };// 建议使用匿名类型代替
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -79,7 +79,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateMultiField3()
         {
             Expression<Func<TestEntity, object>> fieldExpression = entity => new List<object> { entity.Status, entity.UpdateTime };// 建议使用匿名类型代替
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -94,7 +94,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateConstant()
         {
             Expression<Func<TestEntity, object>> fieldExpression = entity => "Status";
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status)
@@ -106,7 +106,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateNameof()
         {
             Expression<Func<TestEntity, object>> fieldExpression = entity => nameof(TestEntity.Status);
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status)
@@ -119,7 +119,7 @@ namespace Sean.Core.DbRepository.Test
         {
             var field = "Status";
             Expression<Func<TestEntity, object>> fieldExpression = entity => field;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status)
@@ -136,7 +136,7 @@ namespace Sean.Core.DbRepository.Test
             };
             var field = model.Remark;
             Expression<Func<TestEntity, object>> fieldExpression = entity => field;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status)
@@ -152,7 +152,7 @@ namespace Sean.Core.DbRepository.Test
                 Remark = "Status"
             };
             Expression<Func<TestEntity, object>> fieldExpression = entity => model.Remark;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status)
@@ -172,7 +172,7 @@ namespace Sean.Core.DbRepository.Test
                 nameof(TestEntity.UpdateTime)
             };
             Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -192,7 +192,7 @@ namespace Sean.Core.DbRepository.Test
                 nameof(TestEntity.Status),
                 nameof(TestEntity.UpdateTime)
             };
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -209,7 +209,7 @@ namespace Sean.Core.DbRepository.Test
         {
             List<string> fieldList = GetFieldList();
             Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -225,7 +225,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateListFromMethod2()
         {
             Expression<Func<TestEntity, object>> fieldExpression = entity => GetFieldList();
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -246,7 +246,7 @@ namespace Sean.Core.DbRepository.Test
                 nameof(TestEntity.UpdateTime)
             };
             Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -267,7 +267,7 @@ namespace Sean.Core.DbRepository.Test
                 nameof(TestEntity.UpdateTime)
             };
             Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -288,7 +288,7 @@ namespace Sean.Core.DbRepository.Test
                 nameof(TestEntity.UpdateTime)
             }.ToArray();
             Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -308,7 +308,7 @@ namespace Sean.Core.DbRepository.Test
                 nameof(TestEntity.Status),
                 nameof(TestEntity.UpdateTime)
             };
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
                 nameof(TestEntity.Status),
@@ -317,6 +317,25 @@ namespace Sean.Core.DbRepository.Test
             AssertFields(expectedFields, fields);
         }
         #endregion
+
+        [TestMethod]
+        public void ValidateDynamicAddFields()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = entity => new { entity.Status, entity.UpdateTime };
+            var isFieldExists = fieldExpression.IsFieldExists(entity => entity.Age);
+            Assert.AreEqual(false, isFieldExists);
+            fieldExpression = fieldExpression.AddFieldNames(entity => entity.Age);
+            var isFieldExists2 = fieldExpression.IsFieldExists(entity => entity.Age);
+            Assert.AreEqual(true, isFieldExists2);
+            var fields = fieldExpression.GetFieldNames();
+            var expectedFields = new List<string>
+            {
+                nameof(TestEntity.Status),
+                nameof(TestEntity.UpdateTime),
+                nameof(TestEntity.Age)
+            };
+            AssertFields(expectedFields, fields);
+        }
 
         private void AssertFields(List<string> expectedFields, List<string> actualFields)
         {

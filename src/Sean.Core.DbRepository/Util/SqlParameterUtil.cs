@@ -6,11 +6,11 @@ using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository
 {
-    public class SqlParameterUtil
+    public static class SqlParameterUtil
     {
         public static Dictionary<string, object> ConvertToDicParameter<TEntity>(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null)
         {
-            var fields = fieldExpression?.GetMemberNames();
+            var fields = fieldExpression?.GetFieldNames();
             return ConvertToDicParameter(entity, fields);
         }
 

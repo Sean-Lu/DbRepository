@@ -9,12 +9,12 @@ namespace Sean.Core.DbRepository
     {
         public static string Field(Expression<Func<TEntity, object>> fieldExpression)
         {
-            return fieldExpression.GetMemberNames()?.FirstOrDefault();
+            return fieldExpression.GetFieldNames()?.FirstOrDefault();
         }
 
         public static string[] Fields(Expression<Func<TEntity, object>> fieldExpression)
         {
-            return fieldExpression.GetMemberNames()?.ToArray();
+            return fieldExpression.GetFieldNames()?.ToArray();
         }
 
         /// <summary>

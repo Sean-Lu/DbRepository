@@ -202,9 +202,9 @@ _testRepository.Decr(10.0M, fieldExpression: entity => entity.AccountBalance, wh
 // 查询数据：分页 + 排序
 int pageIndex = 1;// 当前页号（最小值为1）
 int pageSize = 10;// 页大小
-OrderByCondition orderByCondition = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.UserId);
-orderByCondition.Next = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
-List<TestEntity> queryResult = _testRepository.Query(entity => entity.UserId == 10001, orderByCondition, pageIndex, pageSize)?.ToList();
+OrderByCondition orderBy = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.CreateTime);
+orderBy.Next = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.Id);
+List<TestEntity> queryResult = _testRepository.Query(entity => entity.UserId == 10001, orderBy, pageIndex, pageSize)?.ToList();
 
 // 查询单个数据：
 TestEntity getResult = _testRepository.Get(entity => entity.Id == 2);

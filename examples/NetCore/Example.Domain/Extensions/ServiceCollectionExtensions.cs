@@ -1,6 +1,10 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using System.Data.SqlClient;
 using System.Data.SQLite;
+using System.Linq;
 using System.Reflection;
+using Dapper;
+using Example.Domain.Handler;
 using Example.Infrastructure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
@@ -27,6 +31,12 @@ namespace Example.Domain.Extensions
             DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", SqlClientFactory.Instance));
             DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", OracleClientFactory.Instance));
             DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", SQLiteFactory.Instance));
+            #endregion
+
+            #region Dapper配置
+            // 从数据库返回的时间字段指定DateTimeKind
+            Dapper.SqlMapper.AddTypeHandler<DateTime>(new DateTimeTypeHandler());
+            Dapper.SqlMapper.AddTypeHandler<DateTime?>(new DateTimeNullableTypeHandler());
             #endregion
         }
     }

@@ -140,12 +140,12 @@ namespace Example.Domain.Repositories
 
             // 返回结果示例3：使用 Expression 表达式树（推荐）
             int[] checkInTypes = { 1, 2 };
-            var orderByCondition = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Asc, entity => entity.UserId);
-            orderByCondition.Next = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
+            var orderBy = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Asc, entity => entity.UserId);
+            orderBy.Next = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
             return await QueryAsync(entity => entity.UserId == userId
                                               && checkInTypes.Contains(entity.CheckInType)
                                               && entity.CreateTime >= DateTime.Parse("2020-1-1 00:00:00")
-                                              && entity.CreateTime < DateTime.Now, orderByCondition, pageIndex, pageSize, master: false);
+                                              && entity.CreateTime < DateTime.Now, orderBy, pageIndex, pageSize, master: false);
             #endregion
         }
 

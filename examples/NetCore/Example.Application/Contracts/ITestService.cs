@@ -14,5 +14,7 @@ namespace Example.Application.Contracts
         Task<int> DeleteAllAsync();
         Task<bool> UpdateStatusAsync(long id, int status);
         Task<TestDto> GetByIdAsync(long id);
+
+        Task<bool> ExecuteAutoTransactionTest();
     }
 }

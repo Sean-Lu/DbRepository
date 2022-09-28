@@ -8,6 +8,7 @@ using Example.Application.Contracts;
 using Example.Application.Dtos;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
+using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Utility.Contracts;
 
@@ -69,13 +70,47 @@ namespace Example.Application.Services
             {
                 Id = id,
                 Status = status
-            }, entity => new { entity.Status }, entity => entity.Id == id) > 0;
+            }, entity => new { entity.Status }) > 0;
         }
 
         public async Task<TestDto> GetByIdAsync(long id)
         {
             var entity = await _testRepository.GetAsync(entity => entity.Id == id);
             return _mapper.Map<TestDto>(entity);
+        }
+
+        public async Task<bool> ExecuteAutoTransactionTest()
+        {
+            try
+            {
+                return await _testRepository.ExecuteAutoTransactionAsync(async trans =>
+                {
+                    var testEntity = new TestEntity
+                    {
+                        Id = 124,
+                        AccountBalance = 100,
+                        IsVip = true
+                    };
+
+                    if (!await _testRepository.AddAsync(testEntity, transaction: trans))
+                    {
+                        return false;
+                    }
+
+                    testEntity.AccountBalance = 999;
+                    if (await _testRepository.UpdateAsync(testEntity, entity => entity.AccountBalance, transaction: trans) < 1)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("ExecuteAutoTransactionTest 执行异常", ex);
+                return false;
+            }
         }
     }
 }

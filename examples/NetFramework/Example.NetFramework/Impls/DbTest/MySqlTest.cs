@@ -47,9 +47,9 @@ namespace Example.NetFramework.Impls.DbTest
             //_logger.LogInfo($"数据库当前时间：{time.ToLongDateTimeWithTimezone()}");
 
             #region 查询数据
-            var orderByCondition = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Asc, entity => entity.UserId);
-            orderByCondition.Next = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
-            var list = Query(entity => entity.UserId == 100010, orderByCondition, 1, 3, master: false);// 从库查询
+            var orderBy = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Asc, entity => entity.UserId);
+            orderBy.Next = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
+            var list = Query(entity => entity.UserId == 100010, orderBy, 1, 3, master: false);// 从库查询
             _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonConvert.SerializeObject(list, Formatting.Indented)}");
             #endregion
 

@@ -96,6 +96,11 @@ namespace Sean.Core.DbRepository
 
         }
 
+        public virtual IDbConnection OpenNewConnection(bool master)
+        {
+            return Factory.OpenNewConnection(master);
+        }
+
         #region Synchronous method
         public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null)
         {
@@ -103,7 +108,7 @@ namespace Sean.Core.DbRepository
 
             if (transaction == null)
             {
-                using (var connection = Factory.OpenConnection(master))
+                using (var connection = OpenNewConnection(master))
                 {
                     return func(connection);
                 }
@@ -116,7 +121,7 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var connection = Factory.OpenConnection())
+            using (var connection = OpenNewConnection(true))
             {
                 return ExecuteTransaction(connection, func);
             }
@@ -139,13 +144,47 @@ namespace Sean.Core.DbRepository
             }
         }
 
-        public virtual T ExecuteTransactionScope<T>(Func<TransactionScope, T> toDoInTransactionScope)
+        public virtual bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func)
         {
-            if (toDoInTransactionScope == null) throw new ArgumentNullException(nameof(toDoInTransactionScope));
+            if (func == null) throw new ArgumentNullException(nameof(func));
+
+            using (var connection = OpenNewConnection(true))
+            {
+                return ExecuteAutoTransaction(connection, func);
+            }
+        }
+        public virtual bool ExecuteAutoTransaction(IDbConnection connection, Func<IDbTransaction, bool> func)
+        {
+            if (func == null) throw new ArgumentNullException(nameof(func));
+
+            using (var trans = connection.BeginTransaction())
+            {
+                try
+                {
+                    if (!func(trans))
+                    {
+                        trans.Rollback();
+                        return false;
+                    }
+
+                    trans.Commit();
+                    return true;
+                }
+                catch
+                {
+                    trans.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public virtual T ExecuteTransactionScope<T>(Func<TransactionScope, T> tranScope)
+        {
+            if (tranScope == null) throw new ArgumentNullException(nameof(tranScope));
 
             using (var trans = new TransactionScope())
             {
-                return toDoInTransactionScope(trans);
+                return tranScope(trans);
             }
         }
         #endregion
@@ -158,7 +197,7 @@ namespace Sean.Core.DbRepository
 
             if (transaction == null)
             {
-                using (var connection = Factory.OpenConnection(master))
+                using (var connection = OpenNewConnection(master))
                 {
                     return await func(connection);
                 }
@@ -171,7 +210,7 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var connection = Factory.OpenConnection())
+            using (var connection = OpenNewConnection(true))
             {
                 return await ExecuteTransactionAsync(connection, func);
             }
@@ -193,16 +232,50 @@ namespace Sean.Core.DbRepository
                 }
             }
         }
+
+        public virtual async Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func)
+        {
+            if (func == null) throw new ArgumentNullException(nameof(func));
+
+            using (var connection = OpenNewConnection(true))
+            {
+                return await ExecuteAutoTransactionAsync(connection, func);
+            }
+        }
+        public virtual async Task<bool> ExecuteAutoTransactionAsync(IDbConnection connection, Func<IDbTransaction, Task<bool>> func)
+        {
+            if (func == null) throw new ArgumentNullException(nameof(func));
+
+            using (var trans = connection.BeginTransaction())
+            {
+                try
+                {
+                    if (!(await func(trans)))
+                    {
+                        trans.Rollback();
+                        return false;
+                    }
+
+                    trans.Commit();
+                    return true;
+                }
+                catch
+                {
+                    trans.Rollback();
+                    throw;
+                }
+            }
+        }
 #endif
 
 #if NETSTANDARD || NET451_OR_GREATER
-        public virtual async Task<T> ExecuteTransactionScopeAsync<T>(Func<TransactionScope, Task<T>> toDoInTransactionScope)
+        public virtual async Task<T> ExecuteTransactionScopeAsync<T>(Func<TransactionScope, Task<T>> tranScope)
         {
-            if (toDoInTransactionScope == null) throw new ArgumentNullException(nameof(toDoInTransactionScope));
+            if (tranScope == null) throw new ArgumentNullException(nameof(tranScope));
 
             using (var trans = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                return await toDoInTransactionScope(trans);
+                return await tranScope(trans);
             }
         }
 #endif

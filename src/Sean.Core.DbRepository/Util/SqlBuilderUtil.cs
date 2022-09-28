@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository
 {
-    internal class SqlBuilderUtil
+    internal static class SqlBuilderUtil
     {
         #region [Field]
         public static void IncludeFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
@@ -96,7 +96,7 @@ namespace Sean.Core.DbRepository
         public static void IncrFields<TEntity, TValue>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
             Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
         {
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             foreach (var field in fields)
             {
                 if (string.IsNullOrWhiteSpace(field)) continue;
@@ -120,7 +120,7 @@ namespace Sean.Core.DbRepository
         public static void DecrFields<TEntity, TValue>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
             Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
         {
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             foreach (var field in fields)
             {
                 if (string.IsNullOrWhiteSpace(field)) continue;
@@ -248,8 +248,8 @@ namespace Sean.Core.DbRepository
         #region [Join] 表关联
         public static string GetJoinFields<TEntity, TEntity2>(ISqlAdapter sqlAdapter, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string joinTableName)
         {
-            var fields = fieldExpression.GetMemberNames();
-            var fields2 = fieldExpression2.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
+            var fields2 = fieldExpression2.GetFieldNames();
             if (!fields.Any())
             {
                 throw new InvalidOperationException("The specified number of fields must be greater than 0.");
@@ -300,7 +300,7 @@ namespace Sean.Core.DbRepository
         {
             if (fieldExpression == null) return;
 
-            var fields = fieldExpression.GetMemberNames();
+            var fields = fieldExpression.GetFieldNames();
             if (fields == null || fields.Count != 1)
             {
                 throw new InvalidOperationException($"[{nameof(WhereField)}-{nameof(fieldExpression)}]The fields in WHERE clause must be specified, and the number of fields can only be one.");

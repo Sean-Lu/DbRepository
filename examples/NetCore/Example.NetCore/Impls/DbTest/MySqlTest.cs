@@ -45,6 +45,8 @@ namespace Example.NetCore.Impls.DbTest
 
             var list = _checkInLogService.SearchAsync(100000, 1, 3).Result;
             _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonConvert.SerializeObject(list, Formatting.Indented)}");
+
+            var test1 = _testService.ExecuteAutoTransactionTest().Result;
         }
     }
 }

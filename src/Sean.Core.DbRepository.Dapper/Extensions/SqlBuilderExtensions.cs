@@ -13,7 +13,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="insertableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <param name="sqlMonitor">输出执行的SQL语句</param>
         /// <returns>返回受影响的行数</returns>
@@ -29,7 +29,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="insertableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <param name="sqlMonitor">输出执行的SQL语句</param>
         /// <returns></returns>
@@ -46,7 +46,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="replaceableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <param name="sqlMonitor">输出执行的SQL语句</param>
         /// <returns>返回受影响的行数</returns>
@@ -63,7 +63,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="deleteableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <param name="sqlMonitor">输出执行的SQL语句</param>
         /// <returns>返回受影响的行数</returns>
@@ -80,7 +80,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="updateableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <param name="sqlMonitor">输出执行的SQL语句</param>
         /// <returns>返回受影响的行数</returns>
@@ -150,7 +150,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="insertableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <param name="sqlMonitor">输出执行的SQL语句</param>
         /// <returns>返回受影响的行数</returns>
@@ -166,7 +166,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="insertableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <param name="sqlMonitor">输出执行的SQL语句</param>
         /// <returns></returns>
@@ -183,7 +183,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="replaceableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <param name="sqlMonitor">输出执行的SQL语句</param>
         /// <returns>返回受影响的行数</returns>
@@ -200,7 +200,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="deleteableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <param name="sqlMonitor">输出执行的SQL语句</param>
         /// <returns>返回受影响的行数</returns>
@@ -217,7 +217,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="updateableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction">事务</param>
+        /// <param name="transaction"></param>
         /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
         /// <param name="sqlMonitor">输出执行的SQL语句</param>
         /// <returns>返回受影响的行数</returns>
