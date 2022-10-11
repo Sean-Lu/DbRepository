@@ -80,7 +80,7 @@ namespace Sean.Core.DbRepository.Extensions
                     for (var i = 0; i < dataReader.FieldCount; i++)
                     {
                         var fieldName = dataReader.GetName(i);
-                        var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName().ToLower() == fieldName.ToLower() : c.GetFieldName() == fieldName);
+                        var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName()?.ToLower() == fieldName.ToLower() : c.GetFieldName() == fieldName);
                         var value = dataReader[i];
                         if (propertyInfo != null && propertyInfo.CanWrite && value != DBNull.Value)
                         {

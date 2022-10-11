@@ -29,7 +29,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 返回创建表的SQL语句
         /// </summary>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         string CreateTableSql(string tableName);
 
@@ -47,7 +47,7 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="transaction"></param>
+        /// <param name="transaction">The transaction to use for this command.</param>
         /// <returns></returns>
         T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null);
 
@@ -99,7 +99,7 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="transaction"></param>
+        /// <param name="transaction">The transaction to use for this command.</param>
         /// <returns></returns>
         Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null);
 
@@ -157,7 +157,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 如果表不存在，则通过 <see cref="IBaseRepository.CreateTableSql"/> 方法获取创建表的SQL语句，然后执行来创建新表
         /// </summary>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
         void CreateTableIfNotExist(string tableName, bool master = true);
 
@@ -166,68 +166,68 @@ namespace Sean.Core.DbRepository
         /// 新增数据
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
+        /// <param name="returnId">Whether to return the auto-increment primary key Id.</param>
+        /// <param name="fieldExpression">The fields to insert. If the value is null, all fields of the entity are inserted (excluding NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         bool Add(TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量新增数据
         /// </summary>
         /// <param name="entities"></param>
-        /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
+        /// <param name="returnId">Whether to return the auto-increment primary key Id.</param>
+        /// <param name="fieldExpression">The fields to insert. If the value is null, all fields of the entity are inserted (excluding NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         bool Add(IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 新增数据
         /// </summary>
         /// <param name="insertableSql"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         bool Add(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 新增或更新数据
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <param name="fieldExpression">The fields to insert or update. If the value is null, all fields of the entity are inserted or updated (excluding NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量新增或更新数据
         /// </summary>
         /// <param name="entities"></param>
-        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <param name="fieldExpression">The fields to insert or update. If the value is null, all fields of the entity are inserted or updated (excluding NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         bool AddOrUpdate(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 新增或更新数据
         /// </summary>
         /// <param name="replaceableSql"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         bool AddOrUpdate(IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -235,68 +235,66 @@ namespace Sean.Core.DbRepository
         /// <para>Delete by primary key.</para>
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         bool Delete(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <param name="whereExpression">WHERE过滤条件</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>The number of rows affected.</returns>
         int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 删除数据
         /// </summary>
         /// <param name="deleteableSql"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>The number of rows affected.</returns>
         int Delete(IDeleteableSql deleteableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 更新数据
         /// </summary>
-        /// <param name="entity">实体</param>
-        /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
+        /// <param name="entity"></param>
+        /// <param name="fieldExpression">The fields to update. If the value is null, all fields of the entity are updated (excluding primary key fields and NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
-        /// <para>注：</para>
-        /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
-        /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition. If the value is null, the SQL WHERE condition will default to the primary key field of the entity.
+        /// <para>1. If the entity does not contain primary key field and the value is null, an exception will be thrown (to prevent all data in the table from being incorrectly updated).</para>
+        /// <para>2. Code example for update all data in the table: entity => true.</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>The number of rows affected.</returns>
         int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量更新数据
         /// </summary>
-        /// <param name="entities">实体</param>
-        /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
+        /// <param name="entities"></param>
+        /// <param name="fieldExpression">The fields to update. If the value is null, all fields of the entity are updated (excluding primary key fields and NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
-        /// <para>注：</para>
-        /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
-        /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition. If the value is null, the SQL WHERE condition will default to the primary key field of the entity.
+        /// <para>1. If the entity does not contain primary key field and the value is null, an exception will be thrown (to prevent all data in the table from being incorrectly updated).</para>
+        /// <para>2. Code example for update all data in the table: entity => true.</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 更新数据
         /// </summary>
         /// <param name="updateableSql"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>The number of rows affected.</returns>
         int Update(IUpdateableSql updateableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -305,10 +303,10 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="TValue"></typeparam>
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
-        /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         bool Incr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
         /// <summary>
         /// 数值字段递减
@@ -316,10 +314,10 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="TValue"></typeparam>
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
-        /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         bool Decr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
 
         /// <summary>
@@ -327,60 +325,60 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="queryableSql"></param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
         IEnumerable<TEntity> Query(IQueryableSql queryableSql, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询数据
         /// </summary>
-        /// <param name="whereExpression">WHERE过滤条件</param>
-        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="orderByCondition">排序条件</param>
-        /// <param name="pageIndex">分页参数：当前页号（最小值为1）</param>
-        /// <param name="pageSize">分页参数：页大小</param>
+        /// <param name="orderBy">SQL ORDER BY condition.</param>
+        /// <param name="pageIndex">The current page index for paging query, the minimum value is 1.</param>
+        /// <param name="pageSize">The page size for paging query.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
-        IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
+        IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询数据
         /// </summary>
-        /// <param name="whereExpression">WHERE过滤条件</param>
-        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="orderByCondition">排序条件</param>
-        /// <param name="offset">偏移量</param>
-        /// <param name="rows">行数</param>
+        /// <param name="orderBy">SQL ORDER BY condition.</param>
+        /// <param name="offset">Offset to use for this query.</param>
+        /// <param name="rows">The number of rows queried.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
-        IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
+        IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 查询单个数据
         /// </summary>
         /// <param name="queryableSql"></param>
-        /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
+        /// <param name="singleCheck">Whether a single result is checked. If the value is true and multiple results are found, an exception will be thrown, otherwise the first result or the default value is returned.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
         TEntity Get(IQueryableSql queryableSql, bool singleCheck = false, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询单个数据
         /// </summary>
-        /// <param name="whereExpression">WHERE过滤条件</param>
-        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
+        /// <param name="singleCheck">Whether a single result is checked. If the value is true and multiple results are found, an exception will be thrown, otherwise the first result or the default value is returned.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
         TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool singleCheck = false, bool master = true, int? commandTimeout = null);
 
@@ -389,22 +387,22 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="countableSql"></param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
         int Count(ICountableSql countableSql, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 统计数量
         /// </summary>
-        /// <param name="whereExpression">WHERE过滤条件</param>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
         int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true, int? commandTimeout = null);
 
         /// <summary>
-        /// 查询指定的表是否存在
+        /// Whether the specified table exists.
         /// </summary>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
         bool IsTableExists(string tableName, bool master = true);
@@ -419,68 +417,68 @@ namespace Sean.Core.DbRepository
         /// 新增数据
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
+        /// <param name="returnId">Whether to return the auto-increment primary key Id.</param>
+        /// <param name="fieldExpression">The fields to insert. If the value is null, all fields of the entity are inserted (excluding NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         Task<bool> AddAsync(TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量新增数据
         /// </summary>
         /// <param name="entities"></param>
-        /// <param name="returnId">是否返回自增主键Id</param>
-        /// <param name="fieldExpression">指定 INSERT 的字段。如果值为null，实体所有字段都会 INSERT（不包含忽略字段）。示例：
+        /// <param name="returnId">Whether to return the auto-increment primary key Id.</param>
+        /// <param name="fieldExpression">The fields to insert. If the value is null, all fields of the entity are inserted (excluding NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 新增数据
         /// </summary>
         /// <param name="insertableSql"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         Task<bool> AddAsync(IInsertableSql insertableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 新增或更新数据
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <param name="fieldExpression">The fields to insert or update. If the value is null, all fields of the entity are inserted or updated (excluding NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量新增或更新数据
         /// </summary>
         /// <param name="entities"></param>
-        /// <param name="fieldExpression">指定 INSERT OR UPDATE 的字段。如果值为null，实体所有字段都会 INSERT OR UPDATE（不包含忽略字段）。示例：
+        /// <param name="fieldExpression">The fields to insert or update. If the value is null, all fields of the entity are inserted or updated (excluding NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         Task<bool> AddOrUpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 新增或更新数据
         /// </summary>
         /// <param name="replaceableSql"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         Task<bool> AddOrUpdateAsync(IReplaceableSql replaceableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -488,68 +486,66 @@ namespace Sean.Core.DbRepository
         /// <para>Delete by primary key.</para>
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <param name="whereExpression">WHERE过滤条件</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>The number of rows affected.</returns>
         Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 删除数据
         /// </summary>
         /// <param name="deleteableSql"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>The number of rows affected.</returns>
         Task<int> DeleteAsync(IDeleteableSql deleteableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
         /// 更新数据
         /// </summary>
-        /// <param name="entity">实体</param>
-        /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
+        /// <param name="entity"></param>
+        /// <param name="fieldExpression">The fields to update. If the value is null, all fields of the entity are updated (excluding primary key fields and NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
-        /// <para>注：</para>
-        /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
-        /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition. If the value is null, the SQL WHERE condition will default to the primary key field of the entity.
+        /// <para>1. If the entity does not contain primary key field and the value is null, an exception will be thrown (to prevent all data in the table from being incorrectly updated).</para>
+        /// <para>2. Code example for update all data in the table: entity => true.</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>The number of rows affected.</returns>
         Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 批量更新数据
         /// </summary>
-        /// <param name="entities">实体</param>
-        /// <param name="fieldExpression">指定 UPDATE 的字段。如果值为null，实体所有字段都会 UPDATE（不包含主键字段和忽略字段）。示例：
+        /// <param name="entities"></param>
+        /// <param name="fieldExpression">The fields to update. If the value is null, all fields of the entity are updated (excluding primary key fields and NotMapped fields). Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="whereExpression">WHERE过滤条件。如果值为null，默认的过滤条件是实体的主键字段。
-        /// <para>注：</para>
-        /// <para>1. 如果实体没有主键字段，则必须设置过滤条件，否则会抛出异常（防止错误更新全表数据）。</para>
-        /// <para>2. 如果需要更新全表数据，可以设置为：entity => true</para>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition. If the value is null, the SQL WHERE condition will default to the primary key field of the entity.
+        /// <para>1. If the entity does not contain primary key field and the value is null, an exception will be thrown (to prevent all data in the table from being incorrectly updated).</para>
+        /// <para>2. Code example for update all data in the table: entity => true.</para>
         /// </param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null, int? commandTimeout = null);
         /// <summary>
         /// 更新数据
         /// </summary>
         /// <param name="updateableSql"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>The number of rows affected.</returns>
         Task<int> UpdateAsync(IUpdateableSql updateableSql, IDbTransaction transaction = null, int? commandTimeout = null);
 
         /// <summary>
@@ -558,10 +554,10 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="TValue"></typeparam>
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
-        /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         Task<bool> IncrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
         /// <summary>
         /// 数值字段递减
@@ -569,10 +565,10 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="TValue"></typeparam>
         /// <param name="value"></param>
         /// <param name="fieldExpression"></param>
-        /// <param name="whereExpression"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <returns>是否执行成功</returns>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <returns>Whether the command is executed successfully.</returns>
         Task<bool> DecrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null, int? commandTimeout = null) where TValue : struct;
 
         /// <summary>
@@ -580,60 +576,60 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="queryableSql"></param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
         Task<IEnumerable<TEntity>> QueryAsync(IQueryableSql queryableSql, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询数据
         /// </summary>
-        /// <param name="whereExpression">WHERE过滤条件</param>
-        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="orderByCondition">排序条件</param>
-        /// <param name="pageIndex">分页参数：当前页号（最小值为1）</param>
-        /// <param name="pageSize">分页参数：页大小</param>
+        /// <param name="orderBy">SQL ORDER BY condition.</param>
+        /// <param name="pageIndex">The current page index for paging query, the minimum value is 1.</param>
+        /// <param name="pageSize">The page size for paging query.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
-        Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
+        Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询数据
         /// </summary>
-        /// <param name="whereExpression">WHERE过滤条件</param>
-        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="orderByCondition">排序条件</param>
-        /// <param name="offset">偏移量</param>
-        /// <param name="rows">行数</param>
+        /// <param name="orderBy">SQL ORDER BY condition.</param>
+        /// <param name="offset">Offset to use for this query.</param>
+        /// <param name="rows">The number of rows queried.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
-        Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
+        Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null);
 
         /// <summary>
         /// 查询单个数据
         /// </summary>
         /// <param name="queryableSql"></param>
-        /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
+        /// <param name="singleCheck">Whether a single result is checked. If the value is true and multiple results are found, an exception will be thrown, otherwise the first result or the default value is returned.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
         Task<TEntity> GetAsync(IQueryableSql queryableSql, bool singleCheck = false, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 查询单个数据
         /// </summary>
-        /// <param name="whereExpression">WHERE过滤条件</param>
-        /// <param name="fieldExpression">指定需要返回的字段。如果值为null，默认会返回所有实体字段。示例：
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+        /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
         /// <para>1. Single field: entity => entity.Status</para>
         /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
         /// </param>
-        /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
+        /// <param name="singleCheck">Whether a single result is checked. If the value is true and multiple results are found, an exception will be thrown, otherwise the first result or the default value is returned.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
         Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool singleCheck = false, bool master = true, int? commandTimeout = null);
 
@@ -642,22 +638,22 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="countableSql"></param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
         Task<int> CountAsync(ICountableSql countableSql, bool master = true, int? commandTimeout = null);
         /// <summary>
         /// 统计数量
         /// </summary>
-        /// <param name="whereExpression">WHERE过滤条件</param>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
         /// <returns></returns>
         Task<int> CountAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true, int? commandTimeout = null);
 
         /// <summary>
-        /// 查询指定的表是否存在
+        /// Whether the specified table exists.
         /// </summary>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
         Task<bool> IsTableExistsAsync(string tableName, bool master = true);

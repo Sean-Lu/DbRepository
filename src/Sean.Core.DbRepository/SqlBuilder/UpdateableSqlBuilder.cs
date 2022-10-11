@@ -39,9 +39,9 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Create an instance of <see cref="IUpdateable{TEntity}"/>.
         /// </summary>
-        /// <param name="dbType">数据库类型</param>
+        /// <param name="dbType">Database type.</param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IUpdateable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
         {
@@ -478,7 +478,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 解析WHERE过滤条件
         /// </summary>
-        /// <param name="whereExpression"></param>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
         /// <returns></returns>
         IUpdateable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression);
         IUpdateable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);

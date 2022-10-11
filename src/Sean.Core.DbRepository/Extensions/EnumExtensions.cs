@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Sean.Core.DbRepository.Extensions
 {
-    public static class SqlOperationExtensions
+    public static class EnumExtensions
     {
         public static string ToSqlString(this SqlOperation operation)
         {
@@ -61,6 +58,49 @@ namespace Sean.Core.DbRepository.Extensions
                     return "OR";
                 default:
                     throw new NotImplementedException($"未实现的表达式树节点的节点类型：{expressionType}");
+            }
+        }
+
+        public static string ToSqlString(this Include include)
+        {
+            switch (include)
+            {
+                case Include.None:
+                    return string.Empty;
+                case Include.Left:
+                    return "(";
+                case Include.Right:
+                    return ")";
+                default:
+                    throw new NotSupportedException(include.ToString());
+            }
+        }
+
+        public static string ToSqlString(this OrderByType orderByType)
+        {
+            switch (orderByType)
+            {
+                case OrderByType.Asc:
+                    return "ASC";
+                case OrderByType.Desc:
+                    return "DESC";
+                default:
+                    throw new NotSupportedException(orderByType.ToString());
+            }
+        }
+
+        public static string ToSqlString(this WhereSqlKeyword keyword)
+        {
+            switch (keyword)
+            {
+                case WhereSqlKeyword.None:
+                    return string.Empty;
+                case WhereSqlKeyword.And:
+                    return "AND";
+                case WhereSqlKeyword.Or:
+                    return "OR";
+                default:
+                    throw new NotSupportedException(keyword.ToString());
             }
         }
     }

@@ -37,8 +37,8 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Create an instance of <see cref="IDeleteable{TEntity}"/>.
         /// </summary>
-        /// <param name="dbType">数据库类型</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="dbType">Database type.</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IDeleteable<TEntity> Create(DatabaseType dbType, string tableName = null)
         {
@@ -310,7 +310,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 解析WHERE过滤条件
         /// </summary>
-        /// <param name="whereExpression"></param>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
         /// <returns></returns>
         IDeleteable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression);
         IDeleteable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);

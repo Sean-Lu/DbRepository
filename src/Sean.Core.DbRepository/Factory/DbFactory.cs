@@ -43,7 +43,7 @@ namespace Sean.Core.DbRepository
             set => OnDatabaseTypeChanged(value);
         }
         /// <summary>
-        /// 数据库连接配置（支持多数据库：主\从库）
+        /// Database connection configuration.
         /// </summary>
         public MultiConnectionSettings ConnectionSettings
         {

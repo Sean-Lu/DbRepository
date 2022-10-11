@@ -53,8 +53,7 @@ namespace Sean.Core.DbRepository
             var propertyInfos = entityClassType.GetProperties();
             foreach (var propertyInfo in propertyInfos)
             {
-                if (propertyInfo.GetCustomAttributesExt<NotMappedAttribute>(false).Any()
-                    || propertyInfo.GetCustomAttributesExt<IgnoreAttribute>(false).Any())
+                if (propertyInfo.GetCustomAttributesExt<NotMappedAttribute>(false).Any())
                 {
                     continue;
                 }

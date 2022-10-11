@@ -188,16 +188,16 @@ namespace Sean.Core.DbRepository.Test
         {
             var startTime = DateTime.Today;
             var endTime = DateTime.Today.AddDays(1);
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.NullableDateTimeTest.HasValue
-                                                                           && entity.NullableDateTimeTest >= startTime
-                                                                           && entity.NullableDateTimeTest < endTime;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UpdateTime.HasValue
+                                                                           && entity.UpdateTime >= startTime
+                                                                           && entity.UpdateTime < endTime;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
             {
-                { "NullableDateTimeTest", startTime },
-                { "NullableDateTimeTest_2", endTime },
+                { "UpdateTime", startTime },
+                { "UpdateTime_2", endTime },
             };
-            Assert.AreEqual("`NullableDateTimeTest` is not null AND `NullableDateTimeTest` >= @NullableDateTimeTest AND `NullableDateTimeTest` < @NullableDateTimeTest_2", whereClause);
+            Assert.AreEqual("`UpdateTime` is not null AND `UpdateTime` >= @UpdateTime AND `UpdateTime` < @UpdateTime_2", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -618,10 +618,10 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateHasValue()
         {
-            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.NullableTest.HasValue;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UpdateTime.HasValue;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
-            Assert.AreEqual("`NullableTest` is not null", whereClause);
+            Assert.AreEqual("`UpdateTime` is not null", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -631,10 +631,10 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateHasValue2()
         {
-            Expression<Func<TestEntity, bool>> whereExpression = entity => !entity.NullableTest.HasValue;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => !entity.UpdateTime.HasValue;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
-            Assert.AreEqual("`NullableTest` is null", whereClause);
+            Assert.AreEqual("`UpdateTime` is null", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 
@@ -645,13 +645,13 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateHasValue3()
         {
             Expression<Func<TestEntity, bool>> whereExpression = entity => entity.IsVip
-                                                                           && entity.NullableTest.HasValue;
+                                                                           && entity.UpdateTime.HasValue;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
             {
                 {nameof(TestEntity.IsVip),true}
             };
-            Assert.AreEqual("`IsVip` = @IsVip AND `NullableTest` is not null", whereClause);
+            Assert.AreEqual("`IsVip` = @IsVip AND `UpdateTime` is not null", whereClause);
             AssertParameters(expectedParameters, parameters);
         }
 

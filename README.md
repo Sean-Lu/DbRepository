@@ -142,7 +142,6 @@ Get<T>()、GetList<T>() 其中 T ：
 | `DatabaseGeneratedAttribute` | Property       | `System.ComponentModel.DataAnnotations.Schema` | 设置数据库生成字段值的方式（通常和`KeyAttribute`一起使用） |
 | `ColumnAttribute`            | Property       | `System.ComponentModel.DataAnnotations.Schema` | 自定义字段名                               |
 | `NotMappedAttribute`         | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为为忽略字段                             |
-| ~~`IgnoreAttribute`~~        | Property       | `Sean.Core.DbRepository`                       | 标记为为忽略字段                             |
 | ~~`ForeignKeyAttribute`~~    | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为外键字段（***暂不支持***）                  |
 
 ## 使用示例（Example）

@@ -1,63 +1,63 @@
-﻿using System;
-using System.Linq;
+﻿using Sean.Core.DbRepository.Extensions;
+using System;
 using System.Linq.Expressions;
-using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository
 {
     public class OrderByCondition
     {
+        public OrderByCondition()
+        {
+        }
+
+        public OrderByCondition(OrderByType type, string field, OrderByCondition next = null)
+        {
+            Type = type;
+            Fields = new[] { field };
+            Next = next;
+        }
+
+        public OrderByCondition(OrderByType type, string[] fields, OrderByCondition next = null)
+        {
+            Type = type;
+            Fields = fields;
+            Next = next;
+        }
+
         public OrderByType Type { get; set; }
         public string[] Fields { get; set; }
 
         public OrderByCondition Next { get; set; }
-    }
 
-    public class OrderByCondition<TEntity> : OrderByCondition
-    {
-        public static OrderByCondition CreateNew(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
+        public static OrderByCondition New<TEntity>(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
         {
-            return OrderByConditionBuilder<TEntity>.Build(type, fieldExpression, next);
-        }
-    }
-
-    public class OrderByConditionBuilder
-    {
-        public static OrderByCondition Build<TEntity>(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
-        {
-            var orderByCondition = new OrderByCondition
+            var orderBy = new OrderByCondition
             {
                 Type = type,
                 Fields = fieldExpression.GetFieldNames().ToArray(),
                 Next = next
             };
-            return orderByCondition;
+            return orderBy;
         }
     }
 
-    public class OrderByConditionBuilder<TEntity>
+    public class OrderByCondition<TEntity> : OrderByCondition
     {
-        public static OrderByCondition Build(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
+        public OrderByCondition()
         {
-            return OrderByConditionBuilder.Build(type, fieldExpression, next);
         }
-    }
 
-    public static class OrderByConditionExtensions
-    {
-        public static void Resolve(this OrderByCondition orderByCondition, Action<OrderByType, string[]> orderByField)
+        public OrderByCondition(OrderByType type, string field, OrderByCondition next = null) : base(type, field, next)
         {
-            if (orderByCondition?.Fields == null || !orderByCondition.Fields.Any())
-            {
-                return;
-            }
+        }
 
-            orderByField(orderByCondition.Type, orderByCondition.Fields);
+        public OrderByCondition(OrderByType type, string[] fields, OrderByCondition next = null) : base(type, fields, next)
+        {
+        }
 
-            if (orderByCondition.Next != null)
-            {
-                orderByCondition.Next.Resolve(orderByField);
-            }
+        public static OrderByCondition New(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
+        {
+            return OrderByCondition.New(type, fieldExpression, next);
         }
     }
 }

@@ -74,44 +74,44 @@ namespace Sean.Core.DbRepository.Extensions
         /// Mark as table or field name to avoid conflict with keyword.
         /// </summary>
         /// <param name="databaseType"></param>
-        /// <param name="tableOrFieldName"></param>
+        /// <param name="name"></param>
         /// <returns></returns>
-        public static string MarkAsTableOrFieldName(this DatabaseType databaseType, string tableOrFieldName)
+        public static string MarkAsTableOrFieldName(this DatabaseType databaseType, string name)
         {
-            if (string.IsNullOrWhiteSpace(tableOrFieldName))
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableOrFieldName));
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
 
-            if (tableOrFieldName.StartsWith("[")
-                || tableOrFieldName.StartsWith("`")
-                || tableOrFieldName.StartsWith("\"")
-                || tableOrFieldName.Contains(".")// example: SELECT a.FieldName FROM TableName a
-                || tableOrFieldName.Contains(" ")// example: SELECT FieldName AS Alias FROM TableName
-                || tableOrFieldName.Contains("(")// example: SELECT COUNT(FieldName) FROM TableName
+            if (name.StartsWith("[")
+                || name.StartsWith("`")
+                || name.StartsWith("\"")
+                || name.Contains(".")// example: SELECT a.FieldName FROM TableName a
+                || name.Contains(" ")// example: SELECT FieldName AS Alias FROM TableName
+                || name.Contains("(")// example: SELECT COUNT(FieldName) FROM TableName
                 )
             {
-                return tableOrFieldName;
+                return name;
             }
 
             switch (databaseType)
             {
                 case DatabaseType.SqlServer:
-                    return $"[{tableOrFieldName}]";
+                    return $"[{name}]";
                 case DatabaseType.MySql:
                 case DatabaseType.SQLite:
-                    return $"`{tableOrFieldName}`";
+                    return $"`{name}`";
                 case DatabaseType.PostgreSql:
-                    return $"\"{tableOrFieldName}\"";
+                    return $"\"{name}\"";
                 default:
-                    return tableOrFieldName;
+                    return name;
             }
         }
 
         /// <summary>
         /// SQL语句：表是否存在
         /// </summary>
-        /// <param name="dbType">数据库类型</param>
+        /// <param name="dbType">Database type.</param>
         /// <param name="dbName">数据库名称</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static string GetSqlForCountTable(this DatabaseType dbType, string dbName, string tableName)
         {
@@ -137,9 +137,9 @@ namespace Sean.Core.DbRepository.Extensions
         /// <summary>
         /// SQL语句：表字段是否存在
         /// </summary>
-        /// <param name="dbType">数据库类型</param>
+        /// <param name="dbType">Database type.</param>
         /// <param name="dbName">数据库名称</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <param name="fieldName">字段名称</param>
         /// <returns></returns>
         public static string GetSqlForCountTableField(this DatabaseType dbType, string dbName, string tableName, string fieldName)

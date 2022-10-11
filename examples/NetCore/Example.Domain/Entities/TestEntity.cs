@@ -77,14 +77,11 @@ namespace Example.Domain.Entities
         /// <summary>
         /// 更新时间
         /// </summary>
-        public DateTime UpdateTime { get; set; }
+        public DateTime? UpdateTime { get; set; }
 
         #region 忽略字段
-        //[Ignore]
         [NotMapped]
         public int? NullableTest { get; set; }
-        [NotMapped]
-        public DateTime? NullableDateTimeTest { get; set; }
         #endregion
     }
 

@@ -49,9 +49,9 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Create an instance of <see cref="IQueryable{TEntity}"/>.
         /// </summary>
-        /// <param name="dbType">数据库类型</param>
+        /// <param name="dbType">Database type.</param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IQueryable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
         {
@@ -380,12 +380,9 @@ namespace Sean.Core.DbRepository
             }
             return this;
         }
-        public virtual IQueryable<TEntity> OrderBy(OrderByCondition orderByCondition)
+        public virtual IQueryable<TEntity> OrderBy(OrderByCondition orderBy)
         {
-            if (orderByCondition != null)
-            {
-                orderByCondition.Resolve((type, fields) => OrderByField(type, fields));
-            }
+            orderBy?.Resolve((type, fields) => OrderByField(type, fields));
             return this;
         }
         public virtual IQueryable<TEntity> OrderByField(OrderByType type, params string[] fieldNames)
@@ -768,7 +765,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 解析WHERE过滤条件
         /// </summary>
-        /// <param name="whereExpression"></param>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
         /// <returns></returns>
         IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression);
         IQueryable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
@@ -817,7 +814,7 @@ namespace Sean.Core.DbRepository
         /// <param name="orderBy">不包含关键字：ORDER BY</param>
         /// <returns></returns>
         IQueryable<TEntity> OrderBy(string orderBy);
-        IQueryable<TEntity> OrderBy(OrderByCondition orderByCondition);
+        IQueryable<TEntity> OrderBy(OrderByCondition orderBy);
         IQueryable<TEntity> OrderByField(OrderByType type, params string[] fieldNames);
         IQueryable<TEntity> OrderByField(OrderByType type, Expression<Func<TEntity, object>> fieldExpression);
         #endregion
@@ -833,16 +830,16 @@ namespace Sean.Core.DbRepository
         /// 设置分页查询参数
         /// <para>LIMIT {(<paramref name="pageIndex"/> - 1) * <paramref name="pageSize"/>},{<paramref name="pageSize"/>}</para>
         /// </summary>
-        /// <param name="pageIndex">分页参数：当前页号（最小值为1）</param>
-        /// <param name="pageSize">分页参数：页大小</param>
+        /// <param name="pageIndex">The current page index for paging query, the minimum value is 1.</param>
+        /// <param name="pageSize">The page size for paging query.</param>
         /// <returns></returns>
         IQueryable<TEntity> Page(int? pageIndex, int? pageSize);
         /// <summary>
         /// 设置偏移量查询参数
         /// <para>LIMIT {<paramref name="offset"/>},{<paramref name="rows"/>}</para>
         /// </summary>
-        /// <param name="offset">偏移量</param>
-        /// <param name="rows">行数</param>
+        /// <param name="offset">Offset to use for this query.</param>
+        /// <param name="rows">The number of rows queried.</param>
         /// <returns></returns>
         IQueryable<TEntity> Offset(int? offset, int? rows);
 

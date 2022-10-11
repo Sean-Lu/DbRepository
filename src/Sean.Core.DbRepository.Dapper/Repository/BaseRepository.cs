@@ -170,13 +170,13 @@ namespace Sean.Core.DbRepository.Dapper
         {
             return Execute(connection => connection.Query<TEntity>(queryableSql, this, commandTimeout), master);
         }
-        public virtual IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null)
+        public virtual IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.Query<TEntity>(this, whereExpression, orderByCondition, pageIndex, pageSize, fieldExpression, commandTimeout), master);
+            return Execute(connection => connection.Query<TEntity>(this, whereExpression, orderBy, pageIndex, pageSize, fieldExpression, commandTimeout), master);
         }
-        public virtual IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null)
+        public virtual IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null)
         {
-            return Execute(connection => connection.QueryOffset<TEntity>(this, whereExpression, orderByCondition, offset, rows, fieldExpression, commandTimeout), master);
+            return Execute(connection => connection.QueryOffset<TEntity>(this, whereExpression, orderBy, offset, rows, fieldExpression, commandTimeout), master);
         }
 
         public virtual TEntity Get(IQueryableSql queryableSql, bool singleCheck = false, bool master = true, int? commandTimeout = null)
@@ -307,13 +307,13 @@ namespace Sean.Core.DbRepository.Dapper
         {
             return await ExecuteAsync(async connection => await connection.QueryAsync<TEntity>(queryableSql, this, commandTimeout), master);
         }
-        public virtual async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null)
+        public virtual async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.QueryAsync<TEntity>(this, whereExpression, orderByCondition, pageIndex, pageSize, fieldExpression, commandTimeout), master);
+            return await ExecuteAsync(async connection => await connection.QueryAsync<TEntity>(this, whereExpression, orderBy, pageIndex, pageSize, fieldExpression, commandTimeout), master);
         }
-        public virtual async Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderByCondition = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null)
+        public virtual async Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true, int? commandTimeout = null)
         {
-            return await ExecuteAsync(async connection => await connection.QueryOffsetAsync<TEntity>(this, whereExpression, orderByCondition, offset, rows, fieldExpression, commandTimeout), master);
+            return await ExecuteAsync(async connection => await connection.QueryOffsetAsync<TEntity>(this, whereExpression, orderBy, offset, rows, fieldExpression, commandTimeout), master);
         }
 
         public virtual async Task<TEntity> GetAsync(IQueryableSql queryableSql, bool singleCheck = false, bool master = true, int? commandTimeout = null)

@@ -8,7 +8,7 @@
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
         {
@@ -20,7 +20,7 @@
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
         {
@@ -33,7 +33,7 @@
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
         {
@@ -45,7 +45,7 @@
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
         {
@@ -57,7 +57,7 @@
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository repository, string tableName = null)
         {
@@ -68,7 +68,7 @@
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null) where TEntity : class
         {
@@ -81,7 +81,7 @@
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
         {
@@ -93,7 +93,7 @@
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
         {
@@ -106,7 +106,7 @@
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
         {
@@ -118,7 +118,7 @@
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
         {
@@ -130,7 +130,7 @@
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository repository, string tableName = null)
         {
@@ -141,7 +141,7 @@
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null) where TEntity : class
         {

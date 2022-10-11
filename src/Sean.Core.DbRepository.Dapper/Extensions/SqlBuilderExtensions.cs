@@ -13,10 +13,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="insertableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
+        /// <returns>The number of rows affected.</returns>
         public static int ExecuteCommand(this IInsertableSql insertableSql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, insertableSql.Sql, insertableSql.Parameter));
@@ -29,9 +29,9 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="insertableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
         /// <returns></returns>
         public static T ExecuteScalar<T>(this IInsertableSql insertableSql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
@@ -46,10 +46,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="replaceableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
+        /// <returns>The number of rows affected.</returns>
         public static int ExecuteCommand(this IReplaceableSql replaceableSql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, replaceableSql.Sql, replaceableSql.Parameter));
@@ -63,10 +63,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="deleteableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
+        /// <returns>The number of rows affected.</returns>
         public static int ExecuteCommand(this IDeleteableSql deleteableSql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, deleteableSql.Sql, deleteableSql.Parameter));
@@ -80,10 +80,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="updateableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
+        /// <returns>The number of rows affected.</returns>
         public static int ExecuteCommand(this IUpdateableSql updateableSql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, updateableSql.Sql, updateableSql.Parameter));
@@ -97,8 +97,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="queryableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
         /// <returns></returns>
         public static IEnumerable<TEntity> ExecuteCommand<TEntity>(this IQueryableSql queryableSql, IDbConnection connection, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
@@ -112,9 +112,9 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="queryableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
+        /// <param name="singleCheck">Whether a single result is checked. If the value is true and multiple results are found, an exception will be thrown, otherwise the first result or the default value is returned.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
         /// <returns></returns>
         public static TEntity ExecuteCommandSingleResult<TEntity>(this IQueryableSql queryableSql, IDbConnection connection, bool singleCheck = false, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
@@ -131,8 +131,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="countableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
         /// <returns></returns>
         public static int ExecuteCommand(this ICountableSql countableSql, IDbConnection connection, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
@@ -150,10 +150,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="insertableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
+        /// <returns>The number of rows affected.</returns>
         public static async Task<int> ExecuteCommandAsync(this IInsertableSql insertableSql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, insertableSql.Sql, insertableSql.Parameter));
@@ -166,9 +166,9 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="insertableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
         /// <returns></returns>
         public static async Task<T> ExecuteScalarAsync<T>(this IInsertableSql insertableSql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
@@ -183,10 +183,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="replaceableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
+        /// <returns>The number of rows affected.</returns>
         public static async Task<int> ExecuteCommandAsync(this IReplaceableSql replaceableSql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, replaceableSql.Sql, replaceableSql.Parameter));
@@ -200,10 +200,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="deleteableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
+        /// <returns>The number of rows affected.</returns>
         public static async Task<int> ExecuteCommandAsync(this IDeleteableSql deleteableSql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, deleteableSql.Sql, deleteableSql.Parameter));
@@ -217,10 +217,10 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="updateableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
-        /// <returns>返回受影响的行数</returns>
+        /// <param name="transaction">The transaction to use for this command.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
+        /// <returns>The number of rows affected.</returns>
         public static async Task<int> ExecuteCommandAsync(this IUpdateableSql updateableSql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, updateableSql.Sql, updateableSql.Parameter));
@@ -234,8 +234,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="queryableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<TEntity>> ExecuteCommandAsync<TEntity>(this IQueryableSql queryableSql, IDbConnection connection, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
@@ -249,9 +249,9 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="queryableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="singleCheck">是否执行单一结果检查。true：如果查询到多个结果会抛出异常，false：默认取第一个结果或默认值</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
+        /// <param name="singleCheck">Whether a single result is checked. If the value is true and multiple results are found, an exception will be thrown, otherwise the first result or the default value is returned.</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
         /// <returns></returns>
         public static async Task<TEntity> ExecuteCommandSingleResultAsync<TEntity>(this IQueryableSql queryableSql, IDbConnection connection, bool singleCheck = false, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
@@ -268,8 +268,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         /// </summary>
         /// <param name="countableSql"></param>
         /// <param name="connection">Database connection</param>
-        /// <param name="commandTimeout">命令执行超时时间（单位：秒）</param>
-        /// <param name="sqlMonitor">输出执行的SQL语句</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="sqlMonitor"></param>
         /// <returns></returns>
         public static async Task<int> ExecuteCommandAsync(this ICountableSql countableSql, IDbConnection connection, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {

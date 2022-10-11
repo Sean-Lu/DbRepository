@@ -10,7 +10,7 @@ namespace Sean.Core.DbRepository.Extensions
         #region fieldExpression
         public static List<string> GetFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression)
         {
-            return fieldExpression?.Body.GetFieldNames();
+            return fieldExpression?.Body.GetFieldNames()?.Distinct().ToList();
         }
 
         public static bool IsFieldExists<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, string fieldName)
@@ -44,7 +44,7 @@ namespace Sean.Core.DbRepository.Extensions
 
             var fields = fieldExpression.GetFieldNames();
             fields.AddRange(fieldNames);
-            return ExpressionUtil.CreateFieldExpression<TEntity>(fields);
+            return ExpressionUtil.CreateFieldExpression<TEntity>(fields.Distinct());
         }
         public static Expression<Func<TEntity, object>> AddFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, object>> addFieldExpression)
         {
@@ -60,16 +60,16 @@ namespace Sean.Core.DbRepository.Extensions
                 return fieldExpression;
             }
             fields.AddRange(addFields);
-            return ExpressionUtil.CreateFieldExpression<TEntity>(fields);
+            return ExpressionUtil.CreateFieldExpression<TEntity>(fields.Distinct());
         }
         #endregion
 
         #region whereExpression
         /// <summary>
-        /// 获取参数化WHERE子句
+        /// Gets the parameterized WHERE clause.
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
-        /// <param name="whereExpression"></param>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
         /// <param name="sqlAdapter"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
@@ -80,10 +80,10 @@ namespace Sean.Core.DbRepository.Extensions
             return whereClause.ToString();
         }
         /// <summary>
-        /// 获取参数化WHERE子句
+        /// Gets the parameterized WHERE clause.
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
-        /// <param name="whereExpression"></param>
+        /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
         /// <param name="sqlAdapter"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>

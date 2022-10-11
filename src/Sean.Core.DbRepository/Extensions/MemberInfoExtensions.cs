@@ -21,6 +21,12 @@ namespace Sean.Core.DbRepository.Extensions
                 return fieldAttribute.Name;
             }
 
+            var notMappedAttribute = memberInfo.GetCustomAttributesExt<NotMappedAttribute>(false)?.FirstOrDefault();
+            if (notMappedAttribute != null)
+            {
+                return null;
+            }
+
             return memberInfo.Name;
         }
 

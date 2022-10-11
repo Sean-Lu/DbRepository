@@ -38,9 +38,9 @@ VALUES{2};";
         /// <summary>
         /// Create an instance of <see cref="IReplaceable{TEntity}"/>.
         /// </summary>
-        /// <param name="dbType">数据库类型</param>
+        /// <param name="dbType">Database type.</param>
         /// <param name="autoIncludeFields">是否自动解析表字段</param>
-        /// <param name="tableName">表名称</param>
+        /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IReplaceable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
         {
