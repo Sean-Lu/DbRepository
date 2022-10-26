@@ -12,9 +12,9 @@ using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository
 {
-    internal class TypeCache
+    public class TypeCache
     {
-        private static readonly ConcurrentDictionary<Type, EntityInfo> _entityInfoDic = new();
+        private static readonly ConcurrentDictionary<Type, EntityInfo> _entityInfoCache = new();
 
         public static EntityInfo GetEntityInfo(Type entityClassType)
         {
@@ -23,7 +23,7 @@ namespace Sean.Core.DbRepository
                 return null;
             }
 
-            if (_entityInfoDic.TryGetValue(entityClassType, out var entityInfo) && entityInfo != null)// Try to get data from cache.
+            if (_entityInfoCache.TryGetValue(entityClassType, out var entityInfo) && entityInfo != null)// Try to get data from cache.
             {
                 return entityInfo;
             }
@@ -68,7 +68,7 @@ namespace Sean.Core.DbRepository
                 entityInfo.FieldInfos.Add(fieldInfo);
             }
 
-            _entityInfoDic.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);// Update cache.
+            _entityInfoCache.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);// Update cache.
             return entityInfo;
         }
     }

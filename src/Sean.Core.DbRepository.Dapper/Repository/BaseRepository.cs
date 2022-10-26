@@ -204,7 +204,7 @@ namespace Sean.Core.DbRepository.Dapper
                 return false;
             }
 
-            if (TableInfoCache.IsTableExists(tableName))
+            if (TableNameCache.Exists(tableName))
             {
                 return true;
             }
@@ -212,7 +212,7 @@ namespace Sean.Core.DbRepository.Dapper
             var tableExists = Execute(connection => connection.IsTableExists(this, tableName), master);
             if (tableExists)
             {
-                TableInfoCache.IsTableExists(tableName, true);
+                TableNameCache.Add(tableName);
             }
             return tableExists;
         }
@@ -341,7 +341,7 @@ namespace Sean.Core.DbRepository.Dapper
                 return false;
             }
 
-            if (TableInfoCache.IsTableExists(tableName))
+            if (TableNameCache.Exists(tableName))
             {
                 return true;
             }
@@ -349,7 +349,7 @@ namespace Sean.Core.DbRepository.Dapper
             var tableExists = await ExecuteAsync(async connection => await connection.IsTableExistsAsync(this, tableName), master);
             if (tableExists)
             {
-                TableInfoCache.IsTableExists(tableName, true);
+                TableNameCache.Add(tableName);
             }
             return tableExists;
         }
