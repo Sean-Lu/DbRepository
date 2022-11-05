@@ -30,22 +30,33 @@ namespace Example.NetCore.Impls.DbTest
 
         public void Execute()
         {
-            //var testAddResult = _testService.AddAsync(new TestDto
-            //{
-            //    Id = 2,
-            //    UserId = 10000,
-            //    UserName = "TestName",
-            //    Country = CountryType.China,
-            //    IsVip = true,
-            //    AccountBalance = 99.92M,
-            //    Remark = "Test12'3",
-            //    CreateTime = DateTime.Now
-            //}).Result;
-            //var testDto = _testService.GetByIdAsync(2).Result;
+            TestSearch();
+        }
 
+        private void TestAdd()
+        {
+            var testAddResult = _testService.AddAsync(new TestDto
+            {
+                Id = 2,
+                UserId = 10000,
+                UserName = "TestName",
+                Country = CountryType.China,
+                IsVip = true,
+                AccountBalance = 99.92M,
+                Remark = "Test12'3",
+                CreateTime = DateTime.Now
+            }).Result;
+            var testDto = _testService.GetByIdAsync(2).Result;
+        }
+
+        private void TestSearch()
+        {
             var list = _checkInLogService.SearchAsync(100000, 1, 3).Result;
             _logger.LogInfo($"从数据库中查询到数据：{Environment.NewLine}{JsonConvert.SerializeObject(list, Formatting.Indented)}");
+        }
 
+        private void TestAutoTransaction()
+        {
             var test1 = _testService.ExecuteAutoTransactionTest().Result;
         }
     }

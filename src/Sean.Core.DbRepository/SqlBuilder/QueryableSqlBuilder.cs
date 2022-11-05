@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository
 {
@@ -429,14 +430,14 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual IQueryableSql Build()
+        public virtual ISqlWithParameter Build()
         {
             if (MultiTable)
             {
                 SqlAdapter.MultiTable = true;
             }
 
-            var queryableSql = new DefaultQueryableSql();
+            var sql = new DefaultSqlWithParameter();
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldInfo =>
             {
@@ -474,19 +475,19 @@ namespace Sean.Core.DbRepository
                     case DatabaseType.MySql:
                     case DatabaseType.SQLite:
                     case DatabaseType.PostgreSql:
-                        queryableSql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";
+                        sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";
                         break;
                     case DatabaseType.SqlServer:
                     case DatabaseType.SqlServerCe:
                     case DatabaseType.Access:
-                        queryableSql.Sql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                        sql.Sql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
                         break;
                     case DatabaseType.Oracle:
                         var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {_topNumber}" : $"{WhereSql} AND ROWNUM <= {_topNumber}";
-                        queryableSql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
+                        sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
                         break;
                     default:
-                        queryableSql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";// 同MySql
+                        sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";// 同MySql
                         break;
                 }
             }
@@ -495,21 +496,21 @@ namespace Sean.Core.DbRepository
                 // 分页查询
                 var offset = (_pageIndex.Value - 1) * _pageSize.Value;// 偏移量
                 var rows = _pageSize.Value;// 行数
-                queryableSql.Sql = GetQuerySql(selectFields, offset, rows);
+                sql.Sql = GetQuerySql(selectFields, offset, rows);
             }
             else if (_offset.HasValue && _rows.HasValue)
             {
                 // 根据偏移量查询
-                queryableSql.Sql = GetQuerySql(selectFields, _offset.Value, _rows.Value);
+                sql.Sql = GetQuerySql(selectFields, _offset.Value, _rows.Value);
             }
             else
             {
                 // 普通查询
-                queryableSql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
+                sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
             }
 
-            queryableSql.Parameter = _parameter;
-            return queryableSql;
+            sql.Parameter = _parameter;
+            return sql;
         }
 
         private string GetQuerySql(string selectFields, int offset, int rows)
@@ -558,7 +559,7 @@ namespace Sean.Core.DbRepository
         /// 创建查询数据的SQL：<see cref="QueryableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
-        IQueryableSql Build();
+        ISqlWithParameter Build();
     }
 
     public interface IQueryable<TEntity> : IQueryable

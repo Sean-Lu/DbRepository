@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository
 {
@@ -84,7 +85,7 @@ VALUES{2};";
             return this;
         }
 
-        public virtual IReplaceableSql Build()
+        public virtual ISqlWithParameter Build()
         {
             var fields = _includeFieldsList;
             if (!fields.Any())
@@ -174,12 +175,12 @@ VALUES{2};";
                     throw new NotSupportedException($"[{SqlAdapter.DbType}]The database does not support the 'REPLACE INTO' SQL syntax.");
             }
 
-            var replaceableSql = new DefaultReplaceableSql
+            var sql = new DefaultSqlWithParameter
             {
                 Sql = sb.ToString(),
                 Parameter = _parameter
             };
-            return replaceableSql;
+            return sql;
         }
     }
 
@@ -191,7 +192,7 @@ VALUES{2};";
         /// 创建新增或更新数据的SQL：<see cref="ReplaceableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
-        IReplaceableSql Build();
+        ISqlWithParameter Build();
     }
 
     public interface IReplaceable<TEntity> : IReplaceable

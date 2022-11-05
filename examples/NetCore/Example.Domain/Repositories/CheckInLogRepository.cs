@@ -14,7 +14,8 @@ using Sean.Utility.Contracts;
 
 namespace Example.Domain.Repositories
 {
-    public class CheckInLogRepository : BaseRepository<CheckInLogEntity>, ICheckInLogRepository
+    //public class CheckInLogRepository : EntityBaseRepository<CheckInLogEntity>, ICheckInLogRepository// Using ADO.NET
+    public class CheckInLogRepository : BaseRepository<CheckInLogEntity>, ICheckInLogRepository// Using Dapper
     {
         /// <summary>
         /// 用于分表
@@ -49,7 +50,7 @@ namespace Example.Domain.Repositories
             var tableName = SubTableDate != DateTime.MinValue
                 ? $"{MainTableName}_{SubTableDate:yyyyMM}"// 自定义表名规则：按时间分表
                 : base.TableName();
-            CreateTableIfNotExist(tableName, true);// 自动创建表（如果表不存在）
+            AutoCreateTable(tableName);// 自动创建表（如果表不存在）
             return tableName;
         }
 
@@ -94,51 +95,48 @@ namespace Example.Domain.Repositories
         public async Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
         {
             #region SqlBuilder 示例
-            //// SqlBuilder 示例1：
-            //var queryableSql = this.CreateQueryableBuilder(true)
-            //    .Page(pageIndex, pageSize)
-            //    .Where($"{nameof(CheckInLogEntity.UserId)} = @{nameof(CheckInLogEntity.UserId)} AND {nameof(CheckInLogEntity.CheckInType)} IN @{nameof(CheckInLogEntity.CheckInType)}")
-            //    .OrderBy($"{nameof(CheckInLogEntity.UserId)} ASC, {nameof(CheckInLogEntity.CreateTime)} DESC")
-            //    .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
-            //    .Build();
+            // SqlBuilder 示例1：
+            var sql = this.CreateQueryableBuilder(true)
+                .Page(pageIndex, pageSize)
+                .Where($"{nameof(CheckInLogEntity.UserId)} = @{nameof(CheckInLogEntity.UserId)} AND {nameof(CheckInLogEntity.CheckInType)} IN @{nameof(CheckInLogEntity.CheckInType)}")
+                .OrderBy($"{nameof(CheckInLogEntity.UserId)} ASC, {nameof(CheckInLogEntity.CreateTime)} DESC")
+                .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
+                .Build();
 
-            //// SqlBuilder 示例2：
-            //var queryableSql = this.CreateQueryableBuilder(true)
-            //    .Page(pageIndex, pageSize)
-            //    .WhereField(entity => entity.UserId, SqlOperation.Equal)
-            //    .WhereField(entity => nameof(CheckInLogEntity.CheckInType), SqlOperation.In)
-            //    .OrderByField(OrderByType.Asc, nameof(CheckInLogEntity.UserId))
-            //    .OrderByField(OrderByType.Desc, nameof(CheckInLogEntity.CreateTime))
-            //    .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
-            //    .Build();
+            // SqlBuilder 示例2：
+            var sql2 = this.CreateQueryableBuilder(true)
+                .Page(pageIndex, pageSize)
+                .WhereField(entity => entity.UserId, SqlOperation.Equal)
+                .WhereField(entity => nameof(CheckInLogEntity.CheckInType), SqlOperation.In)
+                .OrderByField(OrderByType.Asc, nameof(CheckInLogEntity.UserId))
+                .OrderByField(OrderByType.Desc, nameof(CheckInLogEntity.CreateTime))
+                .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
+                .Build();
 
-            //// SqlBuilder 示例3：
-            //var queryableSql = this.CreateQueryableBuilder(true)
-            //    .Page(pageIndex, pageSize)
-            //    .WhereField(entity => entity.UserId, SqlOperation.Equal)
-            //    .WhereField(entity => entity.CheckInType, SqlOperation.In)
-            //    .WhereField(entity => entity.CreateTime, SqlOperation.GreaterOrEqual, paramName: "StartTime")
-            //    .WhereField(entity => entity.CreateTime, SqlOperation.Less, paramName: "EndTime")
-            //    .OrderByField(OrderByType.Asc, entity => entity.UserId)
-            //    .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
-            //    .SetParameter(new
-            //    {
-            //        UserId = userId,
-            //        CheckInType = new[] { 1, 2 },
-            //        StartTime = DateTime.Parse("2020-1-1 00:00:00"),
-            //        EndTime = DateTime.Now
-            //    })
-            //    .Build();
+            // SqlBuilder 示例3：
+            var sql3 = this.CreateQueryableBuilder(true)
+                .Page(pageIndex, pageSize)
+                .WhereField(entity => entity.UserId, SqlOperation.Equal)
+                .WhereField(entity => entity.CheckInType, SqlOperation.In)
+                .WhereField(entity => entity.CreateTime, SqlOperation.GreaterOrEqual, paramName: "StartTime")
+                .WhereField(entity => entity.CreateTime, SqlOperation.Less, paramName: "EndTime")
+                .OrderByField(OrderByType.Asc, entity => entity.UserId)
+                .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
+                .SetParameter(new
+                {
+                    UserId = userId,
+                    CheckInType = new[] { 1, 2 },
+                    StartTime = DateTime.Parse("2020-1-1 00:00:00"),
+                    EndTime = DateTime.Now
+                })
+                .Build();
             #endregion
 
             #region 返回结果示例
             //// 返回结果示例1：使用 SqlBuilder
-            //return await ExecuteAsync(async connection => await connection.QueryAsync<CheckInLogEntity>(this, queryableSql), false);
+            //return await sql.QueryAsync<CheckInLogEntity>(this, master: false);
 
-            //// 返回结果示例2：使用 SqlBuilder
-            //return await QueryAsync(queryableSql, false);
-
-            // 返回结果示例3：使用 Expression 表达式树（推荐）
+            // 返回结果示例2：使用 Expression 表达式树（推荐）
             int[] checkInTypes = { 1, 2 };
             var orderBy = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Asc, entity => entity.UserId);
             orderBy.Next = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);

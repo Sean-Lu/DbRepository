@@ -61,7 +61,7 @@ namespace Sean.Core.DbRepository.Extensions
             {
                 var datas = list.Skip((pageIndex - 1) * pageSize).Take(pageSize);
                 if (!datas.Any()) break;
-                if (!(await func(pageIndex, datas))) return false;
+                if (!await func(pageIndex, datas)) return false;
 
                 pageIndex++;
             } while (true);

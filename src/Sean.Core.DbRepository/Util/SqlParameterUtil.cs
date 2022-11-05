@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using Sean.Core.DbRepository.Extensions;
 
-namespace Sean.Core.DbRepository
+namespace Sean.Core.DbRepository.Util
 {
     public static class SqlParameterUtil
     {
@@ -12,6 +13,33 @@ namespace Sean.Core.DbRepository
         {
             var fields = fieldExpression?.GetFieldNames();
             return ConvertToDicParameter(entity, fields);
+        }
+
+        public static IEnumerable<DbParameter> ConvertToDbParameters(object obj, Func<DbParameter> dbParameterFactory)
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+
+            if (obj is IEnumerable<DbParameter> listDbParameters)
+            {
+                return listDbParameters;
+            }
+
+            var result = new List<DbParameter>();
+            var dicParameters = ConvertToDicParameter(obj);
+            if (dicParameters != null)
+            {
+                foreach (var keyValuePair in dicParameters)
+                {
+                    var sqlParameter = dbParameterFactory();
+                    sqlParameter.ParameterName = keyValuePair.Key;
+                    sqlParameter.Value = keyValuePair.Value;
+                    result.Add(sqlParameter);
+                }
+            }
+            return result;
         }
 
         internal static Dictionary<string, object> ConvertToDicParameter(object instance, IEnumerable<string> fields = null)

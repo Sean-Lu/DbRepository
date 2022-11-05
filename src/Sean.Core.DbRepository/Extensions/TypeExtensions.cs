@@ -14,7 +14,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static EntityInfo GetEntityInfo(this Type entityClassType)
         {
-            return TypeCache.GetEntityInfo(entityClassType);
+            return EntityTypeCache.GetEntityInfo(entityClassType);
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static string GetMainTableName(this Type entityClassType)
         {
-            return TypeCache.GetEntityInfo(entityClassType).MainTableName;
+            return EntityTypeCache.GetEntityInfo(entityClassType).MainTableName;
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static List<string> GetAllFieldNames(this Type entityClassType)
         {
-            return TypeCache.GetEntityInfo(entityClassType).FieldInfos.Select(c => c.FieldName).ToList();
+            return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.Select(c => c.FieldName).ToList();
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static List<string> GetPrimaryKeys(this Type entityClassType)
         {
-            return TypeCache.GetEntityInfo(entityClassType).FieldInfos.Where(c => c.PrimaryKey).Select(c => c.FieldName).ToList();
+            return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.Where(c => c.PrimaryKey).Select(c => c.FieldName).ToList();
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static List<string> GetIdentityFieldNames(this Type entityClassType)
         {
-            return TypeCache.GetEntityInfo(entityClassType).FieldInfos.Where(c => c.Identity).Select(c => c.FieldName).ToList();
+            return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.Where(c => c.Identity).Select(c => c.FieldName).ToList();
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static PropertyInfo GetKeyIdentityProperty(this Type entityClassType)
         {
-            return TypeCache.GetEntityInfo(entityClassType).FieldInfos.FirstOrDefault(c => c.PrimaryKey && c.Identity)?.Property;
+            return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.FirstOrDefault(c => c.PrimaryKey && c.Identity)?.Property;
         }
     }
 }

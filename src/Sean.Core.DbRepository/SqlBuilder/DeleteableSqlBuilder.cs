@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository
 {
@@ -199,7 +200,7 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual IDeleteableSql Build()
+        public virtual ISqlWithParameter Build()
         {
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
             {
@@ -220,12 +221,12 @@ namespace Sean.Core.DbRepository
             var sb = new StringBuilder();
             sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", WhereSql));
 
-            var deleteableSql = new DefaultDeleteableSql
+            var sql = new DefaultSqlWithParameter
             {
                 Sql = sb.ToString(),
                 Parameter = _parameter
             };
-            return deleteableSql;
+            return sql;
         }
     }
 
@@ -239,7 +240,7 @@ namespace Sean.Core.DbRepository
         /// <para>2. 如果没有指定WHERE过滤条件，且没有设置 <see cref="IDeleteable{TEntity}.AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段</para>
         /// </summary>
         /// <returns></returns>
-        IDeleteableSql Build();
+        ISqlWithParameter Build();
     }
 
     public interface IDeleteable<TEntity> : IDeleteable

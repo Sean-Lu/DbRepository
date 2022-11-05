@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository
 {
@@ -191,17 +192,17 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual ICountableSql Build()
+        public virtual ISqlWithParameter Build()
         {
             var sb = new StringBuilder();
             sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", WhereSql));
 
-            var countableSql = new DefaultCountableSql
+            var sql = new DefaultSqlWithParameter
             {
                 Sql = sb.ToString(),
                 Parameter = _parameter
             };
-            return countableSql;
+            return sql;
         }
     }
 
@@ -213,7 +214,7 @@ namespace Sean.Core.DbRepository
         /// 创建统计数量的SQL：<see cref="CountableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
-        ICountableSql Build();
+        ISqlWithParameter Build();
     }
 
     public interface ICountable<TEntity> : ICountable

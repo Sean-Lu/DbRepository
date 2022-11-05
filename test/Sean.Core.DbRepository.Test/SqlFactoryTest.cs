@@ -33,13 +33,11 @@ namespace Sean.Core.DbRepository.Test
             //BaseSqlBuilder.SqlIndented = true;
             //BaseSqlBuilder.SqlParameterized = false;
 
-            IInsertableSql insertableSql = SqlFactory<TestEntity>.CreateInsertableBuilder(DatabaseType.MySql, true)
+            ISqlWithParameter sql = SqlFactory<TestEntity>.CreateInsertableBuilder(DatabaseType.MySql, true)
                 .SetParameter(list)
                 .Build();
 
-            var sql = insertableSql.Sql;
-            var param = insertableSql.Parameter;
-            Console.WriteLine(sql);
+            Console.WriteLine(sql.Sql);
         }
 
         [TestMethod]
@@ -64,13 +62,11 @@ namespace Sean.Core.DbRepository.Test
             //BaseSqlBuilder.SqlIndented = true;
             //BaseSqlBuilder.SqlParameterized = false;
 
-            IReplaceableSql replaceableSql = SqlFactory<TestEntity>.CreateReplaceableBuilder(DatabaseType.MySql, true)
+            ISqlWithParameter sql = SqlFactory<TestEntity>.CreateReplaceableBuilder(DatabaseType.MySql, true)
                 .SetParameter(list)
                 .Build();
 
-            var sql = replaceableSql.Sql;
-            var param = replaceableSql.Parameter;
-            Console.WriteLine(sql);
+            Console.WriteLine(sql.Sql);
         }
     }
 }

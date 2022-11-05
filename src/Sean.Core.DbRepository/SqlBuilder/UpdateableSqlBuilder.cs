@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository
 {
@@ -274,7 +275,7 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual IUpdateableSql Build()
+        public virtual ISqlWithParameter Build()
         {
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
@@ -330,12 +331,12 @@ namespace Sean.Core.DbRepository
             var sb = new StringBuilder();
             sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", string.Join(", ", sets), WhereSql));
 
-            var updateableSql = new DefaultUpdateableSql
+            var sql = new DefaultSqlWithParameter
             {
                 Sql = sb.ToString(),
                 Parameter = _parameter
             };
-            return updateableSql;
+            return sql;
         }
     }
 
@@ -349,7 +350,7 @@ namespace Sean.Core.DbRepository
         /// <para>2. 如果没有指定WHERE过滤条件，且没有设置 <see cref="IUpdateable{TEntity}.AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段</para>
         /// </summary>
         /// <returns></returns>
-        IUpdateableSql Build();
+        ISqlWithParameter Build();
     }
 
     public interface IUpdateable<TEntity> : IUpdateable

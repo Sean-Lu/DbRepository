@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using Sean.Core.DbRepository.Extensions;
 
-namespace Sean.Core.DbRepository
+namespace Sean.Core.DbRepository.Util
 {
     public static class ExpressionUtil
     {

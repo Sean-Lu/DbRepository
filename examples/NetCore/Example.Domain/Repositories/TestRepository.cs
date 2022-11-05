@@ -9,7 +9,8 @@ using Sean.Utility.Contracts;
 
 namespace Example.Domain.Repositories
 {
-    public class TestRepository : BaseRepository<TestEntity>, ITestRepository
+    //public class TestRepository : EntityBaseRepository<TestEntity>, ITestRepository// Using ADO.NET
+    public class TestRepository : BaseRepository<TestEntity>, ITestRepository// Using Dapper
     {
         private readonly ILogger _logger;
 
@@ -37,7 +38,7 @@ namespace Example.Domain.Repositories
         public override string TableName()
         {
             var tableName = base.TableName();
-            CreateTableIfNotExist(tableName, true);// 自动创建表（如果表不存在）
+            AutoCreateTable(tableName);// 自动创建表（如果表不存在）
             return tableName;
         }
 

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
 #endif
@@ -18,7 +20,7 @@ namespace Sean.Core.DbRepository
     public class DbFactory
     {
         /// <summary>
-        /// 默认的执行超时时间（单位：秒）
+        /// 默认的等待命令执行所需的时间（以秒为单位）。
         /// </summary>
         public static int? DefaultCommandTimeout { get; set; }
         /// <summary>
@@ -50,6 +52,13 @@ namespace Sean.Core.DbRepository
             get => _connectionSettings;
             set => OnConnectionStringChanged(value);
         }
+
+        public ISqlMonitor SqlMonitor { get; set; }
+
+        /// <summary>
+        /// 等待命令执行所需的时间（以秒为单位）。
+        /// </summary>
+        public int? CommandTimeout { get; set; }
 
         private DbProviderFactory _providerFactory;
         private DatabaseType _dbType;
@@ -150,7 +159,7 @@ namespace Sean.Core.DbRepository
                 }
             }
         }
-#if !NET40
+
         public async Task<T> ExecuteCommandInfoAsync<T>(DbCommandInfo commandInfo, Func<DbCommand, Task<T>> func)
         {
             if (commandInfo == null) throw new ArgumentNullException(nameof(commandInfo));
@@ -181,10 +190,9 @@ namespace Sean.Core.DbRepository
                 }
             }
         }
-#endif
         #endregion
 
-        #region ExecuteNonQuery【增\删\改】
+        #region ExecuteNonQuery
         /// <summary>   
         /// 执行 新增\删除\修改 操作，并返回受影响的行数
         /// </summary>   
@@ -195,9 +203,9 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public int ExecuteNonQuery(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
-            using (var conn = CreateConnection(master))
+            using (var connection = CreateConnection(master))
             {
-                return ExecuteNonQuery(conn, commandText, parameters, commandType);
+                return ExecuteNonQuery(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>
@@ -214,24 +222,24 @@ namespace Sean.Core.DbRepository
 
             using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
             {
-                return command.ExecuteNonQuery();
+                return command.ExecuteNonQuery(SqlMonitor);
             }
         }
         /// <summary>   
         /// 执行 新增\删除\修改 操作，并返回受影响的行数
         /// </summary>
-        /// <param name="trans">Database transaction</param>
+        /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public int ExecuteNonQuery(IDbTransaction trans, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public int ExecuteNonQuery(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
-            if (trans == null) throw new ArgumentNullException(nameof(trans));
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
-            using (var command = CreateDbCommand(trans, null, commandType, commandText, parameters))
+            using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
             {
-                return command.ExecuteNonQuery();
+                return command.ExecuteNonQuery(SqlMonitor);
             }
         }
         /// <summary>   
@@ -240,23 +248,71 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public int ExecuteNonQuery(DbCommandInfo commandInfo)
         {
-            return ExecuteCommandInfo(commandInfo, command => command.ExecuteNonQuery());
+            return ExecuteCommandInfo(commandInfo, command => command.ExecuteNonQuery(SqlMonitor));
         }
-#if !NET40
+
+        /// <summary>   
+        /// 执行 新增\删除\修改 操作，并返回受影响的行数
+        /// </summary>   
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <returns></returns>
+        public async Task<int> ExecuteNonQueryAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        {
+            using (var connection = CreateConnection(master))
+            {
+                return await ExecuteNonQueryAsync(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// 执行 新增\删除\修改 操作，并返回受影响的行数
+        /// </summary>
+        /// <param name="connection">Database connection</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<int> ExecuteNonQueryAsync(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                return await command.ExecuteNonQueryAsync(SqlMonitor);
+            }
+        }
+        /// <summary>   
+        /// 执行 新增\删除\修改 操作，并返回受影响的行数
+        /// </summary>
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<int> ExecuteNonQueryAsync(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
+            {
+                return await command.ExecuteNonQueryAsync(SqlMonitor);
+            }
+        }
         /// <summary>   
         /// 执行 新增\删除\修改 操作，并返回受影响的行数
         /// </summary>   
         /// <returns></returns>
         public async Task<int> ExecuteNonQueryAsync(DbCommandInfo commandInfo)
         {
-            return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteNonQueryAsync());
+            return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteNonQueryAsync(SqlMonitor));
         }
-#endif
         #endregion
 
-        #region ExecuteDataTable【数据表】
+        #region ExecuteDataTable
         /// <summary>   
-        /// 执行查询，并返回 <see cref="DataTable"/>
+        /// 执行查询
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -265,13 +321,13 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public DataTable ExecuteDataTable(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
-            using (var conn = CreateConnection(master))
+            using (var connection = CreateConnection(master))
             {
-                return ExecuteDataTable(conn, commandText, parameters, commandType);
+                return ExecuteDataTable(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>   
-        /// 执行查询，并返回 <see cref="DataTable"/>
+        /// 执行查询
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -285,8 +341,23 @@ namespace Sean.Core.DbRepository
             var dataSet = ExecuteDataSet(connection, commandText, parameters, commandType);
             return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public DataTable ExecuteDataTable(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            var dataSet = ExecuteDataSet(transaction, commandText, parameters, commandType);
+            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+        }
         /// <summary>
-        /// 执行查询，并返回 <see cref="DataTable"/>
+        /// 执行查询
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -295,9 +366,54 @@ namespace Sean.Core.DbRepository
             var dataSet = ExecuteDataSet(commandInfo);
             return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
-#if !NET40
+
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <returns></returns>
+        public async Task<DataTable> ExecuteDataTableAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        {
+            using (var connection = CreateConnection(master))
+            {
+                return await ExecuteDataTableAsync(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="connection">Database connection</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<DataTable> ExecuteDataTableAsync(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+
+            var dataSet = await ExecuteDataSetAsync(connection, commandText, parameters, commandType);
+            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<DataTable> ExecuteDataTableAsync(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            var dataSet = await ExecuteDataSetAsync(transaction, commandText, parameters, commandType);
+            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+        }
         /// <summary>
-        /// 执行查询，并返回 <see cref="DataTable"/>
+        /// 执行查询
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -306,12 +422,11 @@ namespace Sean.Core.DbRepository
             var dataSet = await ExecuteDataSetAsync(commandInfo);
             return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
-#endif
         #endregion
 
-        #region ExecuteDataSet【数据集】
+        #region ExecuteDataSet
         /// <summary>   
-        /// 执行查询，并返回 <see cref="DataSet"/>
+        /// 执行查询
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -320,13 +435,13 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public DataSet ExecuteDataSet(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
-            using (var conn = CreateConnection(master))
+            using (var connection = CreateConnection(master))
             {
-                return ExecuteDataSet(conn, commandText, parameters, commandType);
+                return ExecuteDataSet(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>   
-        /// 执行查询，并返回 <see cref="DataSet"/>
+        /// 执行查询
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -341,26 +456,32 @@ namespace Sean.Core.DbRepository
             {
                 using (var adapter = _providerFactory.CreateDataAdapter())
                 {
-                    if (adapter == null)
-                    {
-                        // 如果创建 DbDataAdapter 失败，则尝试通过 DbDataReader 读取器来获取数据
-                        using (var reader = command.ExecuteReader(CommandBehavior.Default))
-                        {
-                            return reader.GetDataSet();
-                        }
-                    }
-                    else
-                    {
-                        adapter.SelectCommand = command;
-                        var result = new DataSet();
-                        adapter.Fill(result);
-                        return result;
-                    }
+                    return command.ExecuteDataSet(SqlMonitor, adapter);
+                }
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>   
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public DataSet ExecuteDataSet(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
+            {
+                using (var adapter = _providerFactory.CreateDataAdapter())
+                {
+                    return command.ExecuteDataSet(SqlMonitor, adapter);
                 }
             }
         }
         /// <summary>
-        /// 执行查询，并返回 <see cref="DataSet"/>
+        /// 执行查询
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -373,24 +494,74 @@ namespace Sean.Core.DbRepository
                     if (adapter == null)
                     {
                         // 如果创建 DbDataAdapter 失败，则尝试通过 DbDataReader 读取器来获取数据
-                        using (var reader = command.ExecuteReader(CommandBehavior.Default))
+                        using (var reader = command.ExecuteReader(CommandBehavior.Default, SqlMonitor))
                         {
                             return reader.GetDataSet();
                         }
                     }
-                    else
-                    {
-                        adapter.SelectCommand = command;
-                        var result = new DataSet();
-                        adapter.Fill(result);
-                        return result;
-                    }
+
+                    return adapter.ExecuteDataSet(command, SqlMonitor);
                 }
             });
         }
-#if !NET40
+
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <returns></returns>
+        public async Task<DataSet> ExecuteDataSetAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        {
+            using (var connection = CreateConnection(master))
+            {
+                return await ExecuteDataSetAsync(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="connection">Database connection</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>   
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<DataSet> ExecuteDataSetAsync(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                using (var adapter = _providerFactory.CreateDataAdapter())
+                {
+                    return await command.ExecuteDataSetAsync(SqlMonitor, adapter);
+                }
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>   
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<DataSet> ExecuteDataSetAsync(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
+            {
+                using (var adapter = _providerFactory.CreateDataAdapter())
+                {
+                    return await command.ExecuteDataSetAsync(SqlMonitor, adapter);
+                }
+            }
+        }
         /// <summary>
-        /// 执行查询，并返回 <see cref="DataSet"/>
+        /// 执行查询
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -403,27 +574,21 @@ namespace Sean.Core.DbRepository
                     if (adapter == null)
                     {
                         // 如果创建 DbDataAdapter 失败，则尝试通过 DbDataReader 读取器来获取数据
-                        using (var reader = await command.ExecuteReaderAsync(CommandBehavior.Default))
+                        using (var reader = await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor))
                         {
                             return reader.GetDataSet();
                         }
                     }
-                    else
-                    {
-                        adapter.SelectCommand = command;
-                        var result = new DataSet();
-                        adapter.Fill(result);
-                        return result;
-                    }
+
+                    return await adapter.ExecuteDataSetAsync(command, SqlMonitor);
                 }
             });
         }
-#endif
         #endregion
 
-        #region ExecuteReader【数据阅读器】
+        #region ExecuteReader
         /// <summary>   
-        /// 执行查询，并返回 <see cref="DbDataReader"/>
+        /// 执行查询
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -432,14 +597,14 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public IDataReader ExecuteReader(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
-            var conn = CreateConnection(master);
-            using (var command = CreateDbCommand(null, conn, commandType, commandText, parameters))
+            var connection = CreateConnection(master);
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
             {
-                return command.ExecuteReader(CommandBehavior.CloseConnection);
+                return command.ExecuteReader(CommandBehavior.CloseConnection, SqlMonitor);
             }
         }
         /// <summary>   
-        /// 执行查询，并返回 <see cref="DbDataReader"/>
+        /// 执行查询
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -452,38 +617,98 @@ namespace Sean.Core.DbRepository
 
             using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
             {
-                return command.ExecuteReader(CommandBehavior.Default);
+                return command.ExecuteReader(CommandBehavior.Default, SqlMonitor);
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public IDataReader ExecuteReader(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
+            {
+                return command.ExecuteReader(CommandBehavior.Default, SqlMonitor);
             }
         }
         /// <summary>
-        /// 执行查询，并返回 <see cref="DbDataReader"/>
+        /// 执行查询
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
         public IDataReader ExecuteReader(DbCommandInfo commandInfo)
         {
-            using (var command = CreateDbCommand(commandInfo))
+            return ExecuteCommandInfo(commandInfo, command => command.ExecuteReader(CommandBehavior.Default, SqlMonitor));
+        }
+
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <returns></returns>
+        public async Task<IDataReader> ExecuteReaderAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        {
+            var connection = CreateConnection(master);
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
             {
-                return command.ExecuteReader(CommandBehavior.Default);
+                return await command.ExecuteReaderAsync(CommandBehavior.CloseConnection, SqlMonitor);
             }
         }
-#if !NET40
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="connection">Database connection</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<IDataReader> ExecuteReaderAsync(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                return await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor);
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<IDataReader> ExecuteReaderAsync(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
+            {
+                return await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor);
+            }
+        }
         /// <summary>
-        /// 执行查询，并返回 <see cref="DbDataReader"/>
+        /// 执行查询
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
         public async Task<IDataReader> ExecuteReaderAsync(DbCommandInfo commandInfo)
         {
-            using (var command = CreateDbCommand(commandInfo))
-            {
-                return await command.ExecuteReaderAsync(CommandBehavior.Default);
-            }
+            return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor));
         }
-#endif
         #endregion
 
-        #region ExecuteScalar【返回结果集中的第一行第一列】
+        #region ExecuteScalar
         /// <summary>
         /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
@@ -494,9 +719,9 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public object ExecuteScalar(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
-            using (var conn = CreateConnection(master))
+            using (var connection = CreateConnection(master))
             {
-                return ExecuteScalar(conn, commandText, parameters, commandType);
+                return ExecuteScalar(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>
@@ -513,7 +738,24 @@ namespace Sean.Core.DbRepository
 
             using (var command = CreateDbCommand(null, connection, commandType, sql, parameters))
             {
-                return command.ExecuteScalar();
+                return command.ExecuteScalar(SqlMonitor);
+            }
+        }
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="sql">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public object ExecuteScalar(IDbTransaction transaction, string sql, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            using (var command = CreateDbCommand(transaction, null, commandType, sql, parameters))
+            {
+                return command.ExecuteScalar(SqlMonitor);
             }
         }
         /// <summary>
@@ -523,7 +765,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public object ExecuteScalar(DbCommandInfo commandInfo)
         {
-            return ExecuteCommandInfo(commandInfo, command => command.ExecuteScalar());
+            return ExecuteCommandInfo(commandInfo, command => command.ExecuteScalar(SqlMonitor));
         }
 
         /// <summary>
@@ -536,9 +778,9 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public T ExecuteScalar<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
-            using (var conn = CreateConnection(master))
+            using (var connection = CreateConnection(master))
             {
-                return ExecuteScalar<T>(conn, commandText, parameters, commandType);
+                return ExecuteScalar<T>(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>
@@ -557,6 +799,19 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public T ExecuteScalar<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            var obj = ExecuteScalar(transaction, commandText, parameters, commandType);
+            return ObjectConvert.ChangeType<T>(obj);
+        }
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -566,7 +821,55 @@ namespace Sean.Core.DbRepository
             return ObjectConvert.ChangeType<T>(obj);
         }
 
-#if !NET40
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <returns></returns>
+        public async Task<object> ExecuteScalarAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        {
+            using (var connection = CreateConnection(master))
+            {
+                return await ExecuteScalarAsync(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="connection">Database connection</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="sql">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<object> ExecuteScalarAsync(IDbConnection connection, string sql, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+
+            using (var command = CreateDbCommand(null, connection, commandType, sql, parameters))
+            {
+                return await command.ExecuteScalarAsync(SqlMonitor);
+            }
+        }
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="sql">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<object> ExecuteScalarAsync(IDbTransaction transaction, string sql, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            using (var command = CreateDbCommand(transaction, null, commandType, sql, parameters))
+            {
+                return await command.ExecuteScalarAsync(SqlMonitor);
+            }
+        }
         /// <summary>
         /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
         /// </summary>
@@ -574,7 +877,49 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public async Task<object> ExecuteScalarAsync(DbCommandInfo commandInfo)
         {
-            return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteScalarAsync());
+            return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteScalarAsync(SqlMonitor));
+        }
+
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <returns></returns>
+        public async Task<T> ExecuteScalarAsync<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        {
+            using (var connection = CreateConnection(master))
+            {
+                return await ExecuteScalarAsync<T>(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="connection">Database connection</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<T> ExecuteScalarAsync<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            var obj = await ExecuteScalarAsync(connection, commandText, parameters, commandType);
+            return ObjectConvert.ChangeType<T>(obj);
+        }
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<T> ExecuteScalarAsync<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            var obj = await ExecuteScalarAsync(transaction, commandText, parameters, commandType);
+            return ObjectConvert.ChangeType<T>(obj);
         }
         /// <summary>
         /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
@@ -587,7 +932,6 @@ namespace Sean.Core.DbRepository
             var obj = await ExecuteScalarAsync(commandInfo);
             return ObjectConvert.ChangeType<T>(obj);
         }
-#endif
         #endregion
 
         #region GetList<T>
@@ -602,9 +946,9 @@ namespace Sean.Core.DbRepository
         /// <returns>Entity or special type value list</returns>
         public List<T> GetList<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
-            using (var conn = CreateConnection(master))
+            using (var connection = CreateConnection(master))
             {
-                return GetList<T>(conn, commandText, parameters, commandType);
+                return GetList<T>(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>
@@ -631,6 +975,27 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Query multiple entity or special type value collections
         /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>   
+        /// <returns>Entity or special type value list</returns>
+        public List<T> GetList<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            //var table = ExecuteDataTable(transaction, commandText, parameters, commandType);
+            //return table?.ToList<T>(CaseSensitive);
+
+            using (var dataReader = ExecuteReader(transaction, commandText, parameters, commandType))
+            {
+                return dataReader.GetList<T>(CaseSensitive);
+            }
+        }
+        /// <summary>
+        /// Query multiple entity or special type value collections
+        /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
         /// <returns>Entity or special type value list</returns>
@@ -644,7 +1009,65 @@ namespace Sean.Core.DbRepository
                 return dataReader.GetList<T>(CaseSensitive);
             }
         }
-#if !NET40
+
+        /// <summary>
+        /// Query multiple entity or special type value collections
+        /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <returns>Entity or special type value list</returns>
+        public async Task<List<T>> GetListAsync<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        {
+            using (var connection = CreateConnection(master))
+            {
+                return await GetListAsync<T>(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// Query multiple entity or special type value collections
+        /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="connection">Database connection</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>   
+        /// <returns>Entity or special type value list</returns>
+        public async Task<List<T>> GetListAsync<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+
+            //var table = ExecuteDataTable(connection, commandText, parameters, commandType);
+            //return table?.ToList<T>(CaseSensitive);
+
+            using (var dataReader = await ExecuteReaderAsync(connection, commandText, parameters, commandType))
+            {
+                return dataReader.GetList<T>(CaseSensitive);
+            }
+        }
+        /// <summary>
+        /// Query multiple entity or special type value collections
+        /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>   
+        /// <returns>Entity or special type value list</returns>
+        public async Task<List<T>> GetListAsync<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            //var table = ExecuteDataTable(transaction, commandText, parameters, commandType);
+            //return table?.ToList<T>(CaseSensitive);
+
+            using (var dataReader = await ExecuteReaderAsync(transaction, commandText, parameters, commandType))
+            {
+                return dataReader.GetList<T>(CaseSensitive);
+            }
+        }
         /// <summary>
         /// Query multiple entity or special type value collections
         /// </summary>
@@ -661,7 +1084,6 @@ namespace Sean.Core.DbRepository
                 return dataReader.GetList<T>(CaseSensitive);
             }
         }
-#endif
         #endregion
 
         #region Get<T>
@@ -676,9 +1098,9 @@ namespace Sean.Core.DbRepository
         /// <returns>Entity or special type value</returns>
         public T Get<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
-            using (var conn = CreateConnection(master))
+            using (var connection = CreateConnection(master))
             {
-                return Get<T>(conn, commandText, parameters, commandType);
+                return Get<T>(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>
@@ -702,6 +1124,24 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Query a single entity or special type value
         /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>   
+        /// <returns>Entity or special type value</returns>
+        public T Get<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            using (var dataReader = ExecuteReader(transaction, commandText, parameters, commandType))
+            {
+                return dataReader.Get<T>(CaseSensitive);
+            }
+        }
+        /// <summary>
+        /// Query a single entity or special type value
+        /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
         /// <returns>Entity or special type value</returns>
@@ -712,7 +1152,59 @@ namespace Sean.Core.DbRepository
                 return dataReader.Get<T>(CaseSensitive);
             }
         }
-#if !NET40
+
+        /// <summary>
+        /// Query a single entity or special type value
+        /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <returns>Entity or special type value</returns>
+        public async Task<T> GetAsync<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        {
+            using (var connection = CreateConnection(master))
+            {
+                return await GetAsync<T>(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// Query a single entity or special type value
+        /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="connection">Database connection</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>   
+        /// <returns>Entity or special type value</returns>
+        public async Task<T> GetAsync<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+
+            using (var dataReader = await ExecuteReaderAsync(connection, commandText, parameters, commandType))
+            {
+                return dataReader.Get<T>(CaseSensitive);
+            }
+        }
+        /// <summary>
+        /// Query a single entity or special type value
+        /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="transaction">Database transaction</param>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>   
+        /// <returns>Entity or special type value</returns>
+        public async Task<T> GetAsync<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+
+            using (var dataReader = await ExecuteReaderAsync(transaction, commandText, parameters, commandType))
+            {
+                return dataReader.Get<T>(CaseSensitive);
+            }
+        }
         /// <summary>
         /// Query a single entity or special type value
         /// </summary>
@@ -726,12 +1218,20 @@ namespace Sean.Core.DbRepository
                 return dataReader.Get<T>(CaseSensitive);
             }
         }
-#endif
         #endregion
 
         #region DbConnection
         /// <summary>
-        /// Create a new connection with default connection string
+        /// Create a new connection without setting the connection string.
+        /// </summary>
+        /// <returns></returns>
+        public IDbConnection CreateEmptyConnection()
+        {
+            return _providerFactory.CreateConnection();
+        }
+
+        /// <summary>
+        /// Create a new connection with default connection string.
         /// </summary>
         /// <returns></returns>
         public IDbConnection CreateConnection()
@@ -739,7 +1239,7 @@ namespace Sean.Core.DbRepository
             return CreateConnection(true);
         }
         /// <summary>
-        /// Create a new connection with default connection string
+        /// Create a new connection with default connection string.
         /// </summary>
         /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
@@ -748,7 +1248,7 @@ namespace Sean.Core.DbRepository
             return CreateConnection(_connectionSettings?.GetConnectionString(master));
         }
         /// <summary>
-        /// Create a new connection with specified connection string
+        /// Create a new connection with specified connection string.
         /// </summary>
         /// <param name="connectionString">Database connection string</param>
         /// <returns></returns>
@@ -766,7 +1266,7 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// Create and open a new connection
+        /// Create and open a new connection.
         /// </summary>
         /// <returns></returns>
         public IDbConnection OpenNewConnection()
@@ -774,7 +1274,7 @@ namespace Sean.Core.DbRepository
             return OpenNewConnection(true);
         }
         /// <summary>
-        /// Create and open a new connection
+        /// Create and open a new connection.
         /// </summary>
         /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
@@ -785,7 +1285,7 @@ namespace Sean.Core.DbRepository
             return connection;
         }
         /// <summary>
-        /// Create and open a new connection
+        /// Create and open a new connection.
         /// </summary>
         /// <param name="connectionString">Database connection string</param>
         /// <returns></returns>
@@ -797,7 +1297,7 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// Open the connection if the database connection is not open
+        /// Open the connection if the database connection is not opened.
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <returns></returns>
@@ -815,7 +1315,7 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// Close the connection if the database connection is not closed
+        /// Close the connection if the database connection is not closed.
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <returns></returns>
@@ -834,22 +1334,26 @@ namespace Sean.Core.DbRepository
         }
         #endregion
 
-        #region DbCommand
-        public DbCommand CreateDbCommand(DbCommandInfo commandInfo)
+        #region Private Methods
+        private DbCommand CreateDbCommand(DbCommandInfo commandInfo)
         {
             return CreateDbCommand(commandInfo.Transaction, commandInfo.Connection, commandInfo.CommandType, commandInfo.CommandText, commandInfo.Parameters, commandInfo.CommandTimeout);
         }
-        public DbCommand CreateDbCommand(IDbTransaction trans, IDbConnection connection, CommandType commandType, string commandText, IEnumerable<DbParameter> parameters, int? commandTimeout = null)
+        private DbCommand CreateDbCommand(IDbTransaction transaction, IDbConnection connection, CommandType commandType, string commandText, IEnumerable<DbParameter> parameters, int? commandTimeout = null)
         {
             IDbCommand command = _providerFactory.CreateCommand() ?? throw new Exception("Failed to create DbCommand.");
-            command.Transaction = trans;
-            command.Connection = connection ?? trans?.Connection;
+            command.Transaction = transaction;
+            command.Connection = connection ?? transaction?.Connection;
             command.CommandType = commandType;
             command.CommandText = commandText;
 
             if (commandTimeout.HasValue)
             {
                 command.CommandTimeout = commandTimeout.Value;
+            }
+            else if (CommandTimeout.HasValue)
+            {
+                command.CommandTimeout = CommandTimeout.Value;
             }
             else if (DefaultCommandTimeout.HasValue)
             {
@@ -868,9 +1372,7 @@ namespace Sean.Core.DbRepository
 
             return (DbCommand)command;
         }
-        #endregion
 
-        #region Private Methods
         private void OnDbProviderFactoryChanged(DbProviderFactory providerFactory)
         {
             if (_providerFactory == providerFactory)

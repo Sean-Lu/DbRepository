@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository
 {
@@ -103,7 +104,7 @@ VALUES{2};";
             return this;
         }
 
-        public virtual IInsertableSql Build()
+        public virtual ISqlWithParameter Build()
         {
             CheckIncludeIdentityFields();
 
@@ -201,12 +202,12 @@ VALUES{2};";
                 }
             }
 
-            var insertableSql = new DefaultInsertableSql
+            var sql = new DefaultSqlWithParameter
             {
                 Sql = sb.ToString(),
                 Parameter = _parameter
             };
-            return insertableSql;
+            return sql;
         }
 
         private void CheckIncludeIdentityFields()
@@ -270,7 +271,7 @@ VALUES{2};";
         /// 创建新增数据的SQL：<see cref="InsertableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
-        IInsertableSql Build();
+        ISqlWithParameter Build();
     }
 
     public interface IInsertable<TEntity> : IInsertable

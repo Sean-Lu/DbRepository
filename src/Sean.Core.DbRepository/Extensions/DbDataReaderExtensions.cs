@@ -23,6 +23,10 @@ namespace Sean.Core.DbRepository.Extensions
         public static T Get<T>(this IDataReader dataReader, bool caseSensitive = false)
         {
             var list = dataReader.GetList<T>(caseSensitive, 1);
+            if (list == null)
+            {
+                return default;
+            }
             return list.FirstOrDefault();
         }
         /// <summary>

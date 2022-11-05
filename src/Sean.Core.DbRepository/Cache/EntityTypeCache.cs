@@ -12,7 +12,10 @@ using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository
 {
-    public class TypeCache
+    /// <summary>
+    /// Table entity class type cache.
+    /// </summary>
+    public static class EntityTypeCache
     {
         private static readonly ConcurrentDictionary<Type, EntityInfo> _entityInfoCache = new();
 

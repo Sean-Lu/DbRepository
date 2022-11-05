@@ -79,6 +79,12 @@ namespace Example.Application.Services
             return _mapper.Map<TestDto>(entity);
         }
 
+        public async Task<List<TestDto>> GetAllAsync()
+        {
+            var entity = await _testRepository.QueryAsync(entity => true);
+            return _mapper.Map<List<TestDto>>(entity);
+        }
+
         public async Task<bool> ExecuteAutoTransactionTest()
         {
             try

@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Threading.Tasks;
 using Sean.Core.DbRepository.Extensions;
 
-namespace Sean.Core.DbRepository
+namespace Sean.Core.DbRepository.Util
 {
     internal static class SqlBuilderUtil
     {
