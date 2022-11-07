@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 #endif
 using Sean.Core.DbRepository.Extensions;
+using Sean.Utility.Contracts;
 using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository
@@ -25,6 +26,8 @@ namespace Sean.Core.DbRepository
         /// 表字段映射匹配实体属性是否大小写敏感。默认值：false。
         /// </summary>
         public static bool CaseSensitive { get; set; } = false;
+
+        public static IJsonSerializer JsonSerializer { get; set; } = JsonHelper.Serializer;
 
         public static event Action<SqlExecutingContext> OnSqlExecuting;
         public static event Action<SqlExecutedContext> OnSqlExecuted;

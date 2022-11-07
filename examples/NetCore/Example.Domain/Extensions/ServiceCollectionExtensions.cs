@@ -10,6 +10,7 @@ using System;
 using System.Data.SqlClient;
 using System.Data.SQLite;
 using System.Reflection;
+using Example.Infrastructure.Impls;
 
 namespace Example.Domain.Extensions
 {
@@ -21,6 +22,8 @@ namespace Example.Domain.Extensions
         /// <param name="services"></param>
         public static void AddDomainDI(this IServiceCollection services)
         {
+            services.AddInfrastructureDI();
+
             services.RegisterServicesByAssemblyInterface(Assembly.GetExecutingAssembly(), "Repository", ServiceLifetime.Transient);
 
             #region 配置数据库驱动映射关系
@@ -40,6 +43,8 @@ namespace Example.Domain.Extensions
 
             DbFactory.OnSqlExecuting += OnSqlExecuting;
             DbFactory.OnSqlExecuted += OnSqlExecuted;
+
+            DbFactory.JsonSerializer = NewJsonSerializer.Instance;
         }
 
         private static void OnSqlExecuting(SqlExecutingContext context)

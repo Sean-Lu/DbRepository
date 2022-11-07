@@ -2,12 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Example.Infrastructure.Impls;
 using Microsoft.Extensions.DependencyInjection;
+using Sean.Utility.Contracts;
+using Sean.Utility.Extensions;
 
 namespace Example.Infrastructure.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// 基础设施层依赖注入
+        /// </summary>
+        /// <param name="services"></param>
+        public static void AddInfrastructureDI(this IServiceCollection services)
+        {
+            services.AddSimpleLocalLogger();
+
+            services.AddTransient<IJsonSerializer, NewJsonSerializer>();
+        }
+
         public static IServiceCollection RegisterServicesByAssemblyInterface(this IServiceCollection services, Assembly assembly, string interfaceSuffix, ServiceLifetime serviceLifetime)
         {
             var types = assembly.GetTypes();

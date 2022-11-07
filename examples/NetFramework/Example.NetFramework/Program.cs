@@ -1,9 +1,9 @@
 ﻿using System;
 using Example.NetFramework.Impls;
 using Example.NetFramework.Impls.DbTest;
+using Sean.Core.DbRepository;
 using Sean.Utility.Contracts;
 using Sean.Utility.Extensions;
-using Sean.Utility.Format;
 using Sean.Utility.Impls.Log;
 
 namespace Example.NetFramework
@@ -29,7 +29,7 @@ namespace Example.NetFramework
             ////DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));
             #endregion
 
-            JsonHelper.Serializer = NewJsonSerializer.Instance;
+            DbFactory.JsonSerializer = NewJsonSerializer.Instance;
 
             ISimpleDo toDo = new MySqlTest();
             //ISimpleDo toDo = new SQLiteTest();

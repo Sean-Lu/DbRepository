@@ -2,13 +2,11 @@
 using System.Linq;
 using System.Reflection;
 using Example.Application.Extensions;
-using Example.Infrastructure.Impls;
 using Example.NetCore.Impls.DbTest;
 using Microsoft.Extensions.DependencyInjection;
 using Sean.Core.Ioc;
 using Sean.Utility.Contracts;
 using Sean.Utility.Extensions;
-using Sean.Utility.Format;
 using Sean.Utility.Impls.Log;
 
 namespace Example.NetCore
@@ -20,11 +18,6 @@ namespace Example.NetCore
             IocContainer.Instance.ConfigureServices(services =>
             {
                 services.AddApplicationDI();
-
-                services.AddSimpleLocalLogger();
-
-                services.AddTransient<IJsonSerializer, NewJsonSerializer>();
-                JsonHelper.Serializer = NewJsonSerializer.Instance;
 
                 var types = Assembly.GetExecutingAssembly().GetTypes().Where(c => c.IsClass && typeof(ISimpleDo).IsAssignableFrom(c)).ToList();
                 types.ForEach(c =>

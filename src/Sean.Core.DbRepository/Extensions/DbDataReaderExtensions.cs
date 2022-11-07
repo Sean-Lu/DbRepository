@@ -74,8 +74,8 @@ namespace Sean.Core.DbRepository.Extensions
                     {
                         dic.Add(dataReader.GetName(i), dataReader[i]);
                     }
-                    var json = JsonHelper.Serialize(dic);
-                    model = JsonHelper.Deserialize<T>(json);
+                    var json = DbFactory.JsonSerializer.Serialize(dic);
+                    model = DbFactory.JsonSerializer.Deserialize<T>(json);
                 }
                 else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)
                 {
