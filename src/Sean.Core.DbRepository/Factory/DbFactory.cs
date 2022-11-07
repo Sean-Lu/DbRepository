@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
 #endif
@@ -27,6 +25,9 @@ namespace Sean.Core.DbRepository
         /// 表字段映射匹配实体属性是否大小写敏感。默认值：false。
         /// </summary>
         public static bool CaseSensitive { get; set; } = false;
+
+        public static event Action<SqlExecutingContext> OnSqlExecuting;
+        public static event Action<SqlExecutedContext> OnSqlExecuted;
 
         /// <summary>
         /// <see cref="DbProviderFactory"/>
@@ -53,16 +54,21 @@ namespace Sean.Core.DbRepository
             set => OnConnectionStringChanged(value);
         }
 
-        public ISqlMonitor SqlMonitor { get; set; }
+        public ISqlMonitor SqlMonitor { get; }
 
         /// <summary>
         /// 等待命令执行所需的时间（以秒为单位）。
         /// </summary>
-        public int? CommandTimeout { get; set; }
+        public int? CommandTimeout
+        {
+            get => _commandTimeout ?? DefaultCommandTimeout;
+            set => _commandTimeout = value;
+        }
 
         private DbProviderFactory _providerFactory;
         private DatabaseType _dbType;
         private MultiConnectionSettings _connectionSettings;
+        private int? _commandTimeout;
 
         #region Constructors
 #if NETSTANDARD
@@ -77,6 +83,8 @@ namespace Sean.Core.DbRepository
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(configName));
 
             ConnectionSettings = new MultiConnectionSettings(configuration, configName);
+
+            SqlMonitor = new DefaultSqlMonitor(OnSqlExecuting, OnSqlExecuted);
         }
 #else
         /// <summary>
@@ -89,6 +97,8 @@ namespace Sean.Core.DbRepository
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(configName));
 
             ConnectionSettings = new MultiConnectionSettings(configName);
+
+            SqlMonitor = new DefaultSqlMonitor(OnSqlExecuting, OnSqlExecuted);
         }
 #endif
         /// <summary>
@@ -98,6 +108,8 @@ namespace Sean.Core.DbRepository
         public DbFactory(MultiConnectionSettings connectionSettings)
         {
             ConnectionSettings = connectionSettings ?? throw new ArgumentNullException(nameof(connectionSettings));
+
+            SqlMonitor = new DefaultSqlMonitor(OnSqlExecuting, OnSqlExecuted);
         }
         /// <summary>
         /// Single database.
@@ -1354,10 +1366,6 @@ namespace Sean.Core.DbRepository
             else if (CommandTimeout.HasValue)
             {
                 command.CommandTimeout = CommandTimeout.Value;
-            }
-            else if (DefaultCommandTimeout.HasValue)
-            {
-                command.CommandTimeout = DefaultCommandTimeout.Value;
             }
 
             if (parameters != null && parameters.Any())

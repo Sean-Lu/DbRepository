@@ -1,16 +1,15 @@
-﻿using System;
-using System.Data.SqlClient;
-using System.Data.SQLite;
-using System.Linq;
-using System.Reflection;
-using Dapper;
-using Example.Domain.Handler;
+﻿using Example.Domain.Handler;
 using Example.Infrastructure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using Oracle.ManagedDataAccess.Client;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Extensions;
+using System;
+using System.Data.SqlClient;
+using System.Data.SQLite;
+using System.Reflection;
 
 namespace Example.Domain.Extensions
 {
@@ -38,6 +37,19 @@ namespace Example.Domain.Extensions
             Dapper.SqlMapper.AddTypeHandler<DateTime>(new DateTimeTypeHandler());
             Dapper.SqlMapper.AddTypeHandler<DateTime?>(new DateTimeNullableTypeHandler());
             #endregion
+
+            DbFactory.OnSqlExecuting += OnSqlExecuting;
+            DbFactory.OnSqlExecuted += OnSqlExecuted;
+        }
+
+        private static void OnSqlExecuting(SqlExecutingContext context)
+        {
+            //Console.WriteLine($"######SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+        }
+
+        private static void OnSqlExecuted(SqlExecutedContext context)
+        {
+            Console.WriteLine($"######SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
         }
     }
 }

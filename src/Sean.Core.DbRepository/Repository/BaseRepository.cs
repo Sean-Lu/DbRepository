@@ -36,10 +36,7 @@ namespace Sean.Core.DbRepository
         /// <param name="configName">Configuration ConnectionStrings name</param>
         protected BaseRepository(IConfiguration configuration = null, string configName = Constants.Master)
         {
-            Factory = new DbFactory(configuration, configName)
-            {
-                SqlMonitor = new DefaultSqlMonitor(OnSqlExecuting, OnSqlExecuted)
-            };
+            Factory = new DbFactory(configuration, configName);
         }
 #else
         /// <summary>
@@ -48,10 +45,7 @@ namespace Sean.Core.DbRepository
         /// <param name="configName">Configuration ConnectionStrings name</param>
         protected BaseRepository(string configName = Constants.Master)
         {
-            Factory = new DbFactory(configName)
-            {
-                SqlMonitor = new DefaultSqlMonitor(OnSqlExecuting, OnSqlExecuted)
-            };
+            Factory = new DbFactory(configName);
         }
 #endif
         /// <summary>
@@ -60,10 +54,7 @@ namespace Sean.Core.DbRepository
         /// <param name="connectionSettings"></param>
         protected BaseRepository(MultiConnectionSettings connectionSettings)
         {
-            Factory = new DbFactory(connectionSettings)
-            {
-                SqlMonitor = new DefaultSqlMonitor(OnSqlExecuting, OnSqlExecuted)
-            };
+            Factory = new DbFactory(connectionSettings);
         }
         /// <summary>
         /// Single database.
@@ -106,12 +97,12 @@ namespace Sean.Core.DbRepository
 
         public virtual void OnSqlExecuting(SqlExecutingContext context)
         {
-
+            Factory.SqlMonitor.OnSqlExecuting(context);
         }
 
         public virtual void OnSqlExecuted(SqlExecutedContext context)
         {
-
+            Factory.SqlMonitor.OnSqlExecuted(context);
         }
 
         public virtual IDbConnection OpenNewConnection(bool master)
