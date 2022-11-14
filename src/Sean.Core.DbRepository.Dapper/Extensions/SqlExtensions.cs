@@ -58,6 +58,18 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             return repository.Execute(connection => sql.ExecuteScalar<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
+
+        public static object ExecuteScalar(this ISqlWithParameter sql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
+        {
+            sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sql.Sql, sql.Parameter));
+            var result = connection.ExecuteScalar(sql.Sql, sql.Parameter, transaction, commandTimeout);
+            sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
+            return result;
+        }
+        public static object ExecuteScalar(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        {
+            return repository.Execute(connection => sql.ExecuteScalar(connection, transaction, repository, repository.CommandTimeout), master, transaction);
+        }
         #endregion
 
         #region Asynchronous method
@@ -111,6 +123,18 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         public static async Task<T> ExecuteScalarAsync<T>(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
         {
             return await repository.ExecuteAsync(async connection => await sql.ExecuteScalarAsync<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
+        }
+
+        public static async Task<object> ExecuteScalarAsync(this ISqlWithParameter sql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
+        {
+            sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sql.Sql, sql.Parameter));
+            var result = await connection.ExecuteScalarAsync(sql.Sql, sql.Parameter, transaction, commandTimeout);
+            sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
+            return result;
+        }
+        public static async Task<object> ExecuteScalarAsync(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        {
+            return await repository.ExecuteAsync(async connection => await sql.ExecuteScalarAsync(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
 #endif
         #endregion

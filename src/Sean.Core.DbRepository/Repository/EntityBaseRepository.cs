@@ -5,9 +5,7 @@ using System.Data.Common;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Core.DbRepository.Util;
 using System.Linq;
-using System.Collections.ObjectModel;
 using System.Reflection;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
@@ -16,7 +14,7 @@ using Microsoft.Extensions.Configuration;
 namespace Sean.Core.DbRepository;
 
 /// <summary>
-/// Database table base repository
+/// Database table entity base repository.
 /// </summary>
 /// <typeparam name="TEntity"></typeparam>
 public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepository<TEntity> where TEntity : class
@@ -24,13 +22,19 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual string MainTableName => typeof(TEntity).GetMainTableName();
 
     #region Constructors
+    /// <summary>
+    /// Single or clustered database.
+    /// </summary>
+    protected EntityBaseRepository() : base()
+    {
+    }
 #if NETSTANDARD
     /// <summary>
     /// Single or clustered database.
     /// </summary>
     /// <param name="configuration"></param>
     /// <param name="configName">Configuration ConnectionStrings name</param>
-    protected EntityBaseRepository(IConfiguration configuration = null, string configName = Constants.Master) : base(configuration, configName)
+    protected EntityBaseRepository(IConfiguration configuration, string configName = Constants.Master) : base(configuration, configName)
     {
     }
 #else
@@ -38,7 +42,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     /// Single or clustered database.
     /// </summary>
     /// <param name="configName">Configuration ConnectionStrings name</param>
-    protected EntityBaseRepository(string configName = Constants.Master) : base(configName)
+    protected EntityBaseRepository(string configName) : base(configName)
     {
     }
 #endif
@@ -54,7 +58,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     /// </summary>
     /// <param name="connString"></param>
     /// <param name="type"></param>
-    protected EntityBaseRepository(string connString, DatabaseType type) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, type)))
+    protected EntityBaseRepository(string connString, DatabaseType type) : base(connString, type)
     {
 
     }
@@ -63,7 +67,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     /// </summary>
     /// <param name="connString"></param>
     /// <param name="factory"></param>
-    protected EntityBaseRepository(string connString, DbProviderFactory factory) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, factory)))
+    protected EntityBaseRepository(string connString, DbProviderFactory factory) : base(connString, factory)
     {
 
     }
@@ -72,38 +76,19 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     /// </summary>
     /// <param name="connString"></param>
     /// <param name="providerName"></param>
-    protected EntityBaseRepository(string connString, string providerName) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, providerName)))
+    protected EntityBaseRepository(string connString, string providerName) : base(connString, providerName)
     {
 
     }
     #endregion
 
     /// <summary>
-    /// 表名：默认返回主表表名 <see cref="MainTableName"/>
+    /// The name of the master table is used by default: <see cref="MainTableName"/>. This method can be overridden for the purpose of custom split tables or automatic table creation.
     /// </summary>
     /// <returns></returns>
     public override string TableName()
     {
         return MainTableName;
-    }
-
-    public virtual void AutoCreateTable(string tableName)
-    {
-        if (string.IsNullOrWhiteSpace(tableName))
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
-
-        if (IsTableExists(tableName))
-        {
-            return;
-        }
-
-        var sql = CreateTableSql(tableName);
-        if (string.IsNullOrWhiteSpace(sql))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(CreateTableSql));
-        }
-
-        Execute(sql);
     }
 
     #region Synchronous method
@@ -127,21 +112,20 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         if (entities == null || !entities.Any()) return false;
 
-        if (transaction?.Connection == null)
-        {
-            return ExecuteAutoTransaction(trans =>
-            {
-                foreach (var entity in entities)
-                {
-                    if (!Add(entity, returnAutoIncrementId, fieldExpression, trans))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
-        }
+        //if (transaction?.Connection == null)
+        //{
+        //    return ExecuteAutoTransaction(trans =>
+        //    {
+        //        foreach (var entity in entities)
+        //        {
+        //            if (!Add(entity, returnAutoIncrementId, fieldExpression, trans))
+        //            {
+        //                return false;
+        //            }
+        //        }
+        //        return true;
+        //    });
+        //}
 
         foreach (var entity in entities)
         {
@@ -173,34 +157,17 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                         return Add(entity, false, fieldExpression, transaction);
                     }
 
-                    if (transaction?.Connection != null)
-                    {
-                        // DELETE
-                        if (!Delete(entity, transaction))
-                        {
-                            return false;
-                        }
+                    //if (transaction?.Connection == null)
+                    //{
+                    //    return ExecuteAutoTransaction(trans =>
+                    //    {
+                    //        // DELETE && INSERT
+                    //        return Delete(entity, trans) && Add(entity, false, fieldExpression, trans);
+                    //    });
+                    //}
 
-                        // INSERT
-                        return Add(entity, false, fieldExpression, transaction);
-                    }
-
-                    return ExecuteAutoTransaction(trans =>
-                    {
-                        // DELETE
-                        if (!Delete(entity, trans))
-                        {
-                            return false;
-                        }
-
-                        // INSERT
-                        if (!Add(entity, false, fieldExpression, trans))
-                        {
-                            return false;
-                        }
-
-                        return true;
-                    });
+                    // DELETE && INSERT
+                    return Delete(entity, transaction) && Add(entity, false, fieldExpression, transaction);
                 }
         }
     }
@@ -208,21 +175,20 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         if (entities == null || !entities.Any()) return false;
 
-        if (transaction?.Connection == null)
-        {
-            return ExecuteAutoTransaction(trans =>
-            {
-                foreach (var entity in entities)
-                {
-                    if (!AddOrUpdate(entity, fieldExpression, trans))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
-        }
+        //if (transaction?.Connection == null)
+        //{
+        //    return ExecuteAutoTransaction(trans =>
+        //    {
+        //        foreach (var entity in entities)
+        //        {
+        //            if (!AddOrUpdate(entity, fieldExpression, trans))
+        //            {
+        //                return false;
+        //            }
+        //        }
+        //        return true;
+        //    });
+        //}
 
         foreach (var entity in entities)
         {
@@ -252,21 +218,20 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         if (entities == null || !entities.Any()) return false;
 
-        if (transaction?.Connection == null)
-        {
-            return ExecuteAutoTransaction(trans =>
-            {
-                foreach (var entity in entities)
-                {
-                    if (!(Update(entity, fieldExpression, null, trans) > 0))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
-        }
+        //if (transaction?.Connection == null)
+        //{
+        //    return ExecuteAutoTransaction(trans =>
+        //    {
+        //        foreach (var entity in entities)
+        //        {
+        //            if (!(Update(entity, fieldExpression, null, trans) > 0))
+        //            {
+        //                return false;
+        //            }
+        //        }
+        //        return true;
+        //    });
+        //}
 
         foreach (var entity in entities)
         {
@@ -307,55 +272,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return this.GetSqlForCount(whereExpression).ExecuteScalar<int>(Factory, null, master);
     }
 
-    public virtual bool IsTableExists(string tableName, bool master = true, bool useCache = true)
-    {
-        if (string.IsNullOrWhiteSpace(tableName))
-        {
-            return false;
-        }
-
-        if (useCache && TableInfoCache.Exists(tableName))
-        {
-            return true;
-        }
-
-        var exists = Execute(connection =>
-        {
-            var sql = SqlUtil.GetSqlForCountTable(DbType, connection.Database, tableName);
-            return Factory.Get<int>(connection, sql) > 0;
-        }, master);
-
-        if (useCache && exists)
-        {
-            TableInfoCache.Add(tableName);
-        }
-        return exists;
-    }
-
-    public virtual bool IsTableFieldExists(string tableName, string fieldName, bool master = true, bool useCache = true)
-    {
-        if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
-        {
-            return false;
-        }
-
-        if (useCache && TableInfoCache.Exists(tableName, fieldName))
-        {
-            return true;
-        }
-
-        var exists = Execute(connection =>
-        {
-            var sql = SqlUtil.GetSqlForCountTableField(DbType, connection.Database, tableName, fieldName);
-            return Factory.Get<int>(connection, sql) > 0;
-        }, master);
-
-        if (useCache && exists)
-        {
-            TableInfoCache.Add(tableName, fieldName);
-        }
-        return exists;
-    }
     public virtual bool IsTableFieldExists(Expression<Func<TEntity, object>> fieldExpression, bool master = true, bool useCache = true)
     {
         var fieldNames = fieldExpression.GetFieldNames();
@@ -398,21 +314,20 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         if (entities == null || !entities.Any()) return false;
 
-        if (transaction?.Connection == null)
-        {
-            return await ExecuteAutoTransactionAsync(async trans =>
-            {
-                foreach (var entity in entities)
-                {
-                    if (!await AddAsync(entity, returnAutoIncrementId, fieldExpression, trans))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
-        }
+        //if (transaction?.Connection == null)
+        //{
+        //    return await ExecuteAutoTransactionAsync(async trans =>
+        //    {
+        //        foreach (var entity in entities)
+        //        {
+        //            if (!await AddAsync(entity, returnAutoIncrementId, fieldExpression, trans))
+        //            {
+        //                return false;
+        //            }
+        //        }
+        //        return true;
+        //    });
+        //}
 
         foreach (var entity in entities)
         {
@@ -444,34 +359,17 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                         return await AddAsync(entity, false, fieldExpression, transaction);
                     }
 
-                    if (transaction?.Connection != null)
-                    {
-                        // DELETE
-                        if (!await DeleteAsync(entity, transaction))
-                        {
-                            return false;
-                        }
+                    //if (transaction?.Connection == null)
+                    //{
+                    //    return await ExecuteAutoTransactionAsync(async trans =>
+                    //    {
+                    //        // DELETE && INSERT
+                    //        return await DeleteAsync(entity, trans) && await AddAsync(entity, false, fieldExpression, trans);
+                    //    });
+                    //}
 
-                        // INSERT
-                        return await AddAsync(entity, false, fieldExpression, transaction);
-                    }
-
-                    return await ExecuteAutoTransactionAsync(async trans =>
-                    {
-                        // DELETE
-                        if (!await DeleteAsync(entity, trans))
-                        {
-                            return false;
-                        }
-
-                        // INSERT
-                        if (!await AddAsync(entity, false, fieldExpression, trans))
-                        {
-                            return false;
-                        }
-
-                        return true;
-                    });
+                    // DELETE && INSERT
+                    return await DeleteAsync(entity, transaction) && await AddAsync(entity, false, fieldExpression, transaction);
                 }
         }
     }
@@ -479,21 +377,20 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         if (entities == null || !entities.Any()) return false;
 
-        if (transaction?.Connection == null)
-        {
-            return await ExecuteAutoTransactionAsync(async trans =>
-            {
-                foreach (var entity in entities)
-                {
-                    if (!await AddOrUpdateAsync(entity, fieldExpression, trans))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
-        }
+        //if (transaction?.Connection == null)
+        //{
+        //    return await ExecuteAutoTransactionAsync(async trans =>
+        //    {
+        //        foreach (var entity in entities)
+        //        {
+        //            if (!await AddOrUpdateAsync(entity, fieldExpression, trans))
+        //            {
+        //                return false;
+        //            }
+        //        }
+        //        return true;
+        //    });
+        //}
 
         foreach (var entity in entities)
         {
@@ -523,21 +420,20 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         if (entities == null || !entities.Any()) return false;
 
-        if (transaction?.Connection == null)
-        {
-            return await ExecuteAutoTransactionAsync(async trans =>
-            {
-                foreach (var entity in entities)
-                {
-                    if (!(await UpdateAsync(entity, fieldExpression, null, trans) > 0))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
-        }
+        //if (transaction?.Connection == null)
+        //{
+        //    return await ExecuteAutoTransactionAsync(async trans =>
+        //    {
+        //        foreach (var entity in entities)
+        //        {
+        //            if (!(await UpdateAsync(entity, fieldExpression, null, trans) > 0))
+        //            {
+        //                return false;
+        //            }
+        //        }
+        //        return true;
+        //    });
+        //}
 
         foreach (var entity in entities)
         {
@@ -578,55 +474,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return await this.GetSqlForCount(whereExpression).ExecuteScalarAsync<int>(Factory, null, master);
     }
 
-    public virtual async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)
-    {
-        if (string.IsNullOrWhiteSpace(tableName))
-        {
-            return false;
-        }
-
-        if (useCache && TableInfoCache.Exists(tableName))
-        {
-            return true;
-        }
-
-        var exists = await ExecuteAsync(async connection =>
-        {
-            var sql = SqlUtil.GetSqlForCountTable(DbType, connection.Database, tableName);
-            return await Factory.GetAsync<int>(connection, sql) > 0;
-        }, master);
-
-        if (useCache && exists)
-        {
-            TableInfoCache.Add(tableName);
-        }
-        return exists;
-    }
-
-    public virtual async Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true)
-    {
-        if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
-        {
-            return false;
-        }
-
-        if (useCache && TableInfoCache.Exists(tableName, fieldName))
-        {
-            return true;
-        }
-
-        var exists = await ExecuteAsync(async connection =>
-        {
-            var sql = SqlUtil.GetSqlForCountTableField(DbType, connection.Database, tableName, fieldName);
-            return await Factory.GetAsync<int>(connection, sql) > 0;
-        }, master);
-
-        if (useCache && exists)
-        {
-            TableInfoCache.Add(tableName, fieldName);
-        }
-        return exists;
-    }
     public virtual async Task<bool> IsTableFieldExistsAsync(Expression<Func<TEntity, object>> fieldExpression, bool master = true, bool useCache = true)
     {
         var fieldNames = fieldExpression.GetFieldNames();

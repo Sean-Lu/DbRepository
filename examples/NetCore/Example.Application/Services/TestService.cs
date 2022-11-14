@@ -85,6 +85,11 @@ namespace Example.Application.Services
             return _mapper.Map<List<TestDto>>(entity);
         }
 
+        public async Task TestCRUDWithTransactionAsync()
+        {
+            await _testRepository.TestCRUDWithTransactionAsync();
+        }
+
         public async Task<bool> ExecuteAutoTransactionTest()
         {
             try

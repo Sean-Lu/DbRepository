@@ -78,9 +78,16 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Single or clustered database.
         /// </summary>
+        public DbFactory() : this(configuration: null)
+        {
+
+        }
+        /// <summary>
+        /// Single or clustered database.
+        /// </summary>
         /// <param name="configuration"></param>
         /// <param name="configName">Configuration ConnectionStrings name</param>
-        public DbFactory(IConfiguration configuration = null, string configName = Constants.Master)
+        public DbFactory(IConfiguration configuration, string configName = Constants.Master)
         {
             if (string.IsNullOrWhiteSpace(configName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(configName));
@@ -93,8 +100,15 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Single or clustered database.
         /// </summary>
+        public DbFactory() : this(Constants.Master)
+        {
+
+        }
+        /// <summary>
+        /// Single or clustered database.
+        /// </summary>
         /// <param name="configName">Configuration ConnectionStrings name</param>
-        public DbFactory(string configName = Constants.Master)
+        public DbFactory(string configName)
         {
             if (string.IsNullOrWhiteSpace(configName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(configName));
@@ -610,7 +624,7 @@ namespace Sean.Core.DbRepository
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
-        public IDataReader ExecuteReader(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public DbDataReader ExecuteReader(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             var connection = CreateConnection(master);
             using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
@@ -626,7 +640,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public IDataReader ExecuteReader(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public DbDataReader ExecuteReader(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -643,7 +657,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public IDataReader ExecuteReader(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public DbDataReader ExecuteReader(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
@@ -657,7 +671,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
-        public IDataReader ExecuteReader(DbCommandInfo commandInfo)
+        public DbDataReader ExecuteReader(DbCommandInfo commandInfo)
         {
             return ExecuteCommandInfo(commandInfo, command => command.ExecuteReader(CommandBehavior.Default, SqlMonitor));
         }
@@ -670,7 +684,7 @@ namespace Sean.Core.DbRepository
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
-        public async Task<IDataReader> ExecuteReaderAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public async Task<DbDataReader> ExecuteReaderAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             var connection = CreateConnection(master);
             using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
@@ -686,7 +700,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public async Task<IDataReader> ExecuteReaderAsync(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public async Task<DbDataReader> ExecuteReaderAsync(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -703,7 +717,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns></returns>
-        public async Task<IDataReader> ExecuteReaderAsync(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public async Task<DbDataReader> ExecuteReaderAsync(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
@@ -717,7 +731,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
-        public async Task<IDataReader> ExecuteReaderAsync(DbCommandInfo commandInfo)
+        public async Task<DbDataReader> ExecuteReaderAsync(DbCommandInfo commandInfo)
         {
             return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor));
         }
@@ -1240,7 +1254,7 @@ namespace Sean.Core.DbRepository
         /// Create a new connection without setting the connection string.
         /// </summary>
         /// <returns></returns>
-        public IDbConnection CreateEmptyConnection()
+        public DbConnection CreateEmptyConnection()
         {
             return _providerFactory.CreateConnection();
         }
@@ -1249,7 +1263,7 @@ namespace Sean.Core.DbRepository
         /// Create a new connection with default connection string.
         /// </summary>
         /// <returns></returns>
-        public IDbConnection CreateConnection()
+        public DbConnection CreateConnection()
         {
             return CreateConnection(true);
         }
@@ -1258,7 +1272,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
-        public IDbConnection CreateConnection(bool master)
+        public DbConnection CreateConnection(bool master)
         {
             return CreateConnection(_connectionSettings?.GetConnectionString(master));
         }
@@ -1267,7 +1281,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="connectionString">Database connection string</param>
         /// <returns></returns>
-        public IDbConnection CreateConnection(string connectionString)
+        public DbConnection CreateConnection(string connectionString)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionString));
@@ -1284,7 +1298,7 @@ namespace Sean.Core.DbRepository
         /// Create and open a new connection.
         /// </summary>
         /// <returns></returns>
-        public IDbConnection OpenNewConnection()
+        public DbConnection OpenNewConnection()
         {
             return OpenNewConnection(true);
         }
@@ -1293,7 +1307,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="master">true: use master database, false: use slave database.</param>
         /// <returns></returns>
-        public IDbConnection OpenNewConnection(bool master)
+        public DbConnection OpenNewConnection(bool master)
         {
             var connection = CreateConnection(master);
             OpenConnection(connection);
@@ -1304,7 +1318,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="connectionString">Database connection string</param>
         /// <returns></returns>
-        public IDbConnection OpenNewConnection(string connectionString)
+        public DbConnection OpenNewConnection(string connectionString)
         {
             var connection = CreateConnection(connectionString);
             OpenConnection(connection);

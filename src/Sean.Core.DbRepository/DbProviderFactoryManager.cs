@@ -58,7 +58,8 @@ namespace Sean.Core.DbRepository
                 {
                     return map.ProviderFactory;
                 }
-                else if (!string.IsNullOrWhiteSpace(map.FactoryTypeAssemblyQualifiedName))
+
+                if (!string.IsNullOrWhiteSpace(map.FactoryTypeAssemblyQualifiedName))
                 {
                     var type = Type.GetType(map.FactoryTypeAssemblyQualifiedName);
                     if (type != null)

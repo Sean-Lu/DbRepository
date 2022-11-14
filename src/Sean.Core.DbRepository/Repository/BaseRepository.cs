@@ -13,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 namespace Sean.Core.DbRepository
 {
     /// <summary>
-    /// Database table base repository
+    /// Database table base repository.
     /// </summary>
     public abstract class BaseRepository : IBaseRepository
     {
@@ -32,9 +32,16 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Single or clustered database.
         /// </summary>
+        protected BaseRepository() : this(configuration: null)
+        {
+
+        }
+        /// <summary>
+        /// Single or clustered database.
+        /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="configName">Configuration ConnectionStrings name</param>
-        protected BaseRepository(IConfiguration configuration = null, string configName = Constants.Master)
+        protected BaseRepository(IConfiguration configuration, string configName = Constants.Master)
         {
             Factory = new DbFactory(configuration, configName);
         }
@@ -42,8 +49,15 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Single or clustered database.
         /// </summary>
+        protected BaseRepository() : this(Constants.Master)
+        {
+
+        }
+        /// <summary>
+        /// Single or clustered database.
+        /// </summary>
         /// <param name="configName">Configuration ConnectionStrings name</param>
-        protected BaseRepository(string configName = Constants.Master)
+        protected BaseRepository(string configName)
         {
             Factory = new DbFactory(configName);
         }
@@ -92,20 +106,43 @@ namespace Sean.Core.DbRepository
 
         public virtual string CreateTableSql(string tableName)
         {
-            return null;
+            throw new NotImplementedException();
+        }
+
+        public virtual void AutoCreateTable(string tableName)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
+
+#if NET45
+            using var tranScope = new TransactionScope(TransactionScopeOption.Suppress);
+#else
+            using var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
+#endif
+
+            if (IsTableExists(tableName))
+            {
+                return;
+            }
+
+            var sql = CreateTableSql(tableName);
+            if (!string.IsNullOrWhiteSpace(sql))
+            {
+                Execute(sql);
+            }
         }
 
         public virtual void OnSqlExecuting(SqlExecutingContext context)
         {
-            Factory.SqlMonitor.OnSqlExecuting(context);
+            Factory.SqlMonitor?.OnSqlExecuting(context);
         }
 
         public virtual void OnSqlExecuted(SqlExecutedContext context)
         {
-            Factory.SqlMonitor.OnSqlExecuted(context);
+            Factory.SqlMonitor?.OnSqlExecuted(context);
         }
 
-        public virtual IDbConnection OpenNewConnection(bool master)
+        public virtual DbConnection OpenNewConnection(bool master)
         {
             return Factory.OpenNewConnection(master);
         }
@@ -160,7 +197,7 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            if (transaction == null)
+            if (transaction?.Connection == null)
             {
                 using (var connection = OpenNewConnection(master))
                 {
@@ -231,28 +268,54 @@ namespace Sean.Core.DbRepository
             }
         }
 
-        public virtual T ExecuteTransactionScope<T>(Func<TransactionScope, T> tranScope)
+        public virtual bool IsTableExists(string tableName, bool master = true, bool useCache = true)
         {
-            if (tranScope == null) throw new ArgumentNullException(nameof(tranScope));
-
-            using (var trans = new TransactionScope())
+            if (string.IsNullOrWhiteSpace(tableName))
             {
-                return tranScope(trans);
+                return false;
             }
+
+            if (useCache && TableInfoCache.Exists(tableName))
+            {
+                return true;
+            }
+
+            var exists = Execute(connection =>
+            {
+                var sql = SqlUtil.GetSqlForCountTable(DbType, connection.Database, tableName);
+                return Factory.Get<int>(connection, sql) > 0;
+            }, master);
+
+            if (useCache && exists)
+            {
+                TableInfoCache.Add(tableName);
+            }
+            return exists;
         }
-        public virtual bool ExecuteAutoTransactionScope(Func<TransactionScope, bool> tranScope)
-        {
-            if (tranScope == null) throw new ArgumentNullException(nameof(tranScope));
 
-            using (var trans = new TransactionScope())
+        public virtual bool IsTableFieldExists(string tableName, string fieldName, bool master = true, bool useCache = true)
+        {
+            if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
             {
-                var success = tranScope(trans);
-                if (success)
-                {
-                    trans.Complete();
-                }
-                return success;
+                return false;
             }
+
+            if (useCache && TableInfoCache.Exists(tableName, fieldName))
+            {
+                return true;
+            }
+
+            var exists = Execute(connection =>
+            {
+                var sql = SqlUtil.GetSqlForCountTableField(DbType, connection.Database, tableName, fieldName);
+                return Factory.Get<int>(connection, sql) > 0;
+            }, master);
+
+            if (useCache && exists)
+            {
+                TableInfoCache.Add(tableName, fieldName);
+            }
+            return exists;
         }
         #endregion
 
@@ -307,7 +370,7 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            if (transaction == null)
+            if (transaction?.Connection == null)
             {
                 using (var connection = OpenNewConnection(master))
                 {
@@ -377,31 +440,55 @@ namespace Sean.Core.DbRepository
                 }
             }
         }
-#endif
 
-#if NETSTANDARD || NET451_OR_GREATER
-        public virtual async Task<T> ExecuteTransactionScopeAsync<T>(Func<TransactionScope, Task<T>> tranScope)
+        public virtual async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)
         {
-            if (tranScope == null) throw new ArgumentNullException(nameof(tranScope));
-
-            using (var trans = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            if (string.IsNullOrWhiteSpace(tableName))
             {
-                return await tranScope(trans);
+                return false;
             }
+
+            if (useCache && TableInfoCache.Exists(tableName))
+            {
+                return true;
+            }
+
+            var exists = await ExecuteAsync(async connection =>
+            {
+                var sql = SqlUtil.GetSqlForCountTable(DbType, connection.Database, tableName);
+                return await Factory.GetAsync<int>(connection, sql) > 0;
+            }, master);
+
+            if (useCache && exists)
+            {
+                TableInfoCache.Add(tableName);
+            }
+            return exists;
         }
-        public virtual async Task<bool> ExecuteAutoTransactionScopeAsync(Func<TransactionScope, Task<bool>> tranScope)
-        {
-            if (tranScope == null) throw new ArgumentNullException(nameof(tranScope));
 
-            using (var trans = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        public virtual async Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true)
+        {
+            if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
             {
-                var success = await tranScope(trans);
-                if (success)
-                {
-                    trans.Complete();
-                }
-                return success;
+                return false;
             }
+
+            if (useCache && TableInfoCache.Exists(tableName, fieldName))
+            {
+                return true;
+            }
+
+            var exists = await ExecuteAsync(async connection =>
+            {
+                var sql = SqlUtil.GetSqlForCountTableField(DbType, connection.Database, tableName, fieldName);
+                return await Factory.GetAsync<int>(connection, sql) > 0;
+            }, master);
+
+            if (useCache && exists)
+            {
+                TableInfoCache.Add(tableName, fieldName);
+            }
+            return exists;
         }
 #endif
         #endregion

@@ -47,6 +47,16 @@ namespace Sean.Core.DbRepository.Extensions
 
             return dbFactory.ExecuteScalar<T>(sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()), master: master);
         }
+
+        public static object ExecuteScalar(this ISqlWithParameter sql, DbFactory dbFactory, IDbTransaction transaction = null, bool master = true)
+        {
+            if (transaction != null)
+            {
+                return dbFactory.ExecuteScalar(transaction, sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()));
+            }
+
+            return dbFactory.ExecuteScalar(sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()), master: master);
+        }
         #endregion
 
         #region Asynchronous method
@@ -88,6 +98,16 @@ namespace Sean.Core.DbRepository.Extensions
             }
 
             return await dbFactory.ExecuteScalarAsync<T>(sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()), master: master);
+        }
+
+        public static async Task<object> ExecuteScalarAsync(this ISqlWithParameter sql, DbFactory dbFactory, IDbTransaction transaction = null, bool master = true)
+        {
+            if (transaction != null)
+            {
+                return await dbFactory.ExecuteScalarAsync(transaction, sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()));
+            }
+
+            return await dbFactory.ExecuteScalarAsync(sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()), master: master);
         }
 #endif
         #endregion

@@ -31,6 +31,7 @@ namespace Example.NetCore
             #endregion
 
             ISimpleDo toDo = IocContainer.Instance.GetService<MySqlTest>();
+            //ISimpleDo toDo = IocContainer.Instance.GetService<SQLiteTest>();
             toDo.Execute();
 
             Console.ReadLine();

@@ -1,4 +1,8 @@
 ﻿using System;
+using Dapper;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Transactions;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
 using Microsoft.Extensions.Configuration;
@@ -16,7 +20,8 @@ namespace Example.Domain.Repositories
 
         public TestRepository(
             IConfiguration configuration,
-            ISimpleLogger<TestRepository> logger) : base(configuration)
+            ISimpleLogger<TestRepository> logger
+            ) : base(configuration)
         {
             _logger = logger;
         }
@@ -60,10 +65,48 @@ namespace Example.Domain.Repositories
   `Status` int NOT NULL DEFAULT '0' COMMENT '状态',
   `Remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '备注',
   `CreateTime` datetime NOT NULL COMMENT '创建时间',
-  `UpdateTime` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `UpdateTime` datetime ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='测试表（仅供测试使用）';";
             return sql;
+        }
+
+        public async Task TestCRUDWithTransactionAsync()
+        {
+            using (var trans = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                if (Transaction.Current != null)
+                {
+                    Transaction.Current.TransactionCompleted += (sender, args) =>
+                    {
+                        _logger.LogDebug("###################环境事务执行结束");
+                    };
+                }
+
+                var list = (await ExecuteAsync(async conn => await conn.QueryAsync<TestEntity>($"select * from {TableName()} limit 3")))?.ToList();
+
+                var entity = new TestEntity
+                {
+                    UserId = 10001,
+                    UserName = "Test01",
+                    Age = 18,
+                    IsVip = true,
+                    AccountBalance = 99.95M,
+                    Remark = "Test",
+                    CreateTime = DateTime.Now,
+                    UpdateTime = DateTime.Now
+                };
+                var addResult = await AddAsync(entity, true);
+                _logger.LogDebug($"######Add result: {addResult}");
+
+                var queryResult = (await QueryAsync(entity => true, null, 1, 3))?.ToList();
+                _logger.LogDebug($"######Query result: {JsonConvert.SerializeObject(queryResult, Formatting.Indented)}");
+
+                var deleteResult = await DeleteAsync(entity);
+                _logger.LogDebug($"######Delete result: {deleteResult}");
+
+                trans.Complete();
+            }
         }
     }
 }

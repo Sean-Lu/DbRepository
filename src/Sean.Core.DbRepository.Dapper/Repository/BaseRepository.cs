@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
-using Dapper;
 using Sean.Core.DbRepository.Dapper.Extensions;
+using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
+using System.Linq;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
 #endif
@@ -13,19 +16,25 @@ using Microsoft.Extensions.Configuration;
 namespace Sean.Core.DbRepository.Dapper
 {
     /// <summary>
-    /// Database table base repository
+    /// Database table entity base repository.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     public abstract class BaseRepository<TEntity> : EntityBaseRepository<TEntity> where TEntity : class
     {
         #region Constructors
+        /// <summary>
+        /// Single or clustered database.
+        /// </summary>
+        protected BaseRepository() : base()
+        {
+        }
 #if NETSTANDARD
         /// <summary>
         /// Single or clustered database.
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="configName">Configuration ConnectionStrings name</param>
-        protected BaseRepository(IConfiguration configuration = null, string configName = Constants.Master) : base(configuration, configName)
+        protected BaseRepository(IConfiguration configuration, string configName = Constants.Master) : base(configuration, configName)
         {
         }
 #else
@@ -33,7 +42,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// Single or clustered database.
         /// </summary>
         /// <param name="configName">Configuration ConnectionStrings name</param>
-        protected BaseRepository(string configName = Constants.Master) : base(configName)
+        protected BaseRepository(string configName) : base(configName)
         {
         }
 #endif
@@ -49,7 +58,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </summary>
         /// <param name="connString"></param>
         /// <param name="type"></param>
-        protected BaseRepository(string connString, DatabaseType type) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, type)))
+        protected BaseRepository(string connString, DatabaseType type) : base(connString, type)
         {
 
         }
@@ -58,7 +67,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </summary>
         /// <param name="connString"></param>
         /// <param name="factory"></param>
-        protected BaseRepository(string connString, DbProviderFactory factory) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, factory)))
+        protected BaseRepository(string connString, DbProviderFactory factory) : base(connString, factory)
         {
 
         }
@@ -67,7 +76,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// </summary>
         /// <param name="connString"></param>
         /// <param name="providerName"></param>
-        protected BaseRepository(string connString, string providerName) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, providerName)))
+        protected BaseRepository(string connString, string providerName) : base(connString, providerName)
         {
 
         }
@@ -121,66 +130,203 @@ namespace Sean.Core.DbRepository.Dapper
 
         public override bool Add(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
-            return Execute(connection => connection.Add(this, entity, returnAutoIncrementId, fieldExpression, transaction), true, transaction);
+            if (entity == null) return false;
+
+            PropertyInfo keyIdentityProperty;
+            if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
+            {
+                var id = this.GetSqlForAdd(entity, true, fieldExpression).ExecuteScalar<long>(this, transaction, true);
+                if (id < 1) return false;
+
+                keyIdentityProperty.SetValue(entity, id, null);
+                return true;
+            }
+
+            return this.GetSqlForAdd(entity, false, fieldExpression).Execute(this, transaction, true) > 0;
         }
         public override bool Add(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
-            return Execute(connection => connection.BulkAdd(this, entities, returnAutoIncrementId, fieldExpression, transaction), true, transaction);
+            if (entities == null || !entities.Any()) return false;
+
+            if (returnAutoIncrementId && typeof(TEntity).GetKeyIdentityProperty() != null)
+            {
+                //if (transaction?.Connection == null)
+                //{
+                //    return ExecuteAutoTransaction(trans =>
+                //    {
+                //        foreach (var entity in entities)
+                //        {
+                //            if (!Add(entity, returnAutoIncrementId, fieldExpression, trans))
+                //            {
+                //                return false;
+                //            }
+                //        }
+                //        return true;
+                //    });
+                //}
+
+                foreach (var entity in entities)
+                {
+                    if (!Add(entity, returnAutoIncrementId, fieldExpression, transaction))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return this.CreateInsertableBuilder(fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                //.ReturnAutoIncrementId(returnAutoIncrementId)
+                .SetParameter(entities)// BulkInsert
+                .Build()
+                .Execute(this, transaction, true) > 0;
         }
 
         public override bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
-            return Execute(connection => connection.AddOrUpdate(this, entity, fieldExpression, transaction), true, transaction);
+            if (entity == null) return false;
+
+            switch (DbType)
+            {
+                case DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                    {
+                        return this.GetSqlForAddOrUpdate(entity, fieldExpression).Execute(this, transaction, true) > 0;
+                    }
+                default:
+                    {
+                        if (this.GetSqlForEntityExists(entity).ExecuteScalar<int>(this, null, true) < 1)
+                        {
+                            // INSERT
+                            return Add(entity, false, fieldExpression, transaction);
+                        }
+
+                        //if (transaction?.Connection == null)
+                        //{
+                        //    return ExecuteAutoTransaction(trans =>
+                        //    {
+                        //        // DELETE && INSERT
+                        //        return Delete(entity, trans) && Add(entity, false, fieldExpression, trans);
+                        //    });
+                        //}
+
+                        // DELETE && INSERT
+                        return Delete(entity, transaction) && Add(entity, false, fieldExpression, transaction);
+                    }
+            }
         }
         public override bool AddOrUpdate(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
-            return Execute(connection => connection.BulkAddOrUpdate(this, entities, fieldExpression, transaction), true, transaction);
+            if (entities == null || !entities.Any()) return false;
+
+            switch (DbType)
+            {
+                case DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                    return this.CreateReplaceableBuilder(fieldExpression == null)
+                        .IncludeFields(fieldExpression)
+                        .SetParameter(entities)
+                        .Build()
+                        .Execute(this, transaction, true) > 0;
+                default:
+                    //if (transaction?.Connection == null)
+                    //{
+                    //    return ExecuteAutoTransaction(trans =>
+                    //    {
+                    //        foreach (var entity in entities)
+                    //        {
+                    //            if (!AddOrUpdate(entity, fieldExpression, trans))
+                    //            {
+                    //                return false;
+                    //            }
+                    //        }
+                    //        return true;
+                    //    });
+                    //}
+
+                    foreach (var entity in entities)
+                    {
+                        if (!AddOrUpdate(entity, fieldExpression, transaction))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+            }
         }
 
         public override bool Delete(TEntity entity, IDbTransaction transaction = null)
         {
-            return Execute(connection => connection.Delete(this, entity, transaction), true, transaction);
+            return this.GetSqlForDelete(entity).Execute(this, transaction, true) > 0;
         }
         public override int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
         {
-            return Execute(connection => connection.Delete(this, whereExpression, transaction), true, transaction);
+            return this.GetSqlForDelete(whereExpression).Execute(this, transaction, true);
         }
 
         public override int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
         {
-            return Execute(connection => connection.Update(this, entity, fieldExpression, whereExpression, transaction), true, transaction);
+            return this.GetSqlForUpdate(entity, fieldExpression, whereExpression).Execute(this, transaction, true);
         }
         public override bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
-            return Execute(connection => connection.BulkUpdate(this, entities, fieldExpression, transaction), true, transaction);
+            if (entities == null || !entities.Any()) return false;
+
+            //if (transaction?.Connection == null)
+            //{
+            //    return ExecuteAutoTransaction(trans =>
+            //    {
+            //        foreach (var entity in entities)
+            //        {
+            //            if (!(Update(entity, fieldExpression, null, trans) > 0))
+            //            {
+            //                return false;
+            //            }
+            //        }
+            //        return true;
+            //    });
+            //}
+
+            foreach (var entity in entities)
+            {
+                if (!(Update(entity, fieldExpression, null, transaction) > 0))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public override bool Incr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
-            return Execute(connection => connection.Incr(this, value, fieldExpression, whereExpression, transaction), true, transaction);
+            return this.GetSqlForIncr(value, fieldExpression, whereExpression).Execute(this, transaction, true) > 0;
         }
         public override bool Decr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
-            return Execute(connection => connection.Decr(this, value, fieldExpression, whereExpression, transaction), true, transaction);
+            return this.GetSqlForDecr(value, fieldExpression, whereExpression).Execute(this, transaction, true) > 0;
         }
 
         public override IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return Execute(connection => connection.Query<TEntity>(this, whereExpression, orderBy, pageIndex, pageSize, fieldExpression), master);
+            return this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression).Query<TEntity>(this, null, master);
         }
         public override IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return Execute(connection => connection.QueryOffset<TEntity>(this, whereExpression, orderBy, offset, rows, fieldExpression), master);
+            return this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression).Query<TEntity>(this, null, master);
         }
 
         public override TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return Execute(connection => connection.Get<TEntity>(this, whereExpression, fieldExpression), master);
+            return this.GetSqlForGet(whereExpression, fieldExpression).QueryFirstOrDefault<TEntity>(this, null, master);
         }
 
         public override int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
         {
-            return Execute(connection => connection.Count(this, whereExpression), master);
+            return this.GetSqlForCount(whereExpression).ExecuteScalar<int>(this, null, master);
         }
 
         public override bool IsTableExists(string tableName, bool master = true, bool useCache = true)
@@ -195,7 +341,21 @@ namespace Sean.Core.DbRepository.Dapper
                 return true;
             }
 
-            return Execute(connection => connection.IsTableExists(this, tableName, useCache), master);
+            var exist = Execute(connection =>
+            {
+                ISqlWithParameter sql = new DefaultSqlWithParameter
+                {
+                    Sql = SqlUtil.GetSqlForCountTable(this.DbType, connection.Database, tableName)
+                };
+                return sql.ExecuteScalar<int>(connection, null, this, this.CommandTimeout) > 0;
+            }, master);
+
+            if (useCache && exist)
+            {
+                TableInfoCache.Add(tableName);
+            }
+            return exist;
+
         }
 
         public override bool IsTableFieldExists(string tableName, string fieldName, bool master = true, bool useCache = true)
@@ -210,7 +370,20 @@ namespace Sean.Core.DbRepository.Dapper
                 return true;
             }
 
-            return Execute(connection => connection.IsTableFieldExists(this, tableName, fieldName, useCache), master);
+            var exist = Execute(connection =>
+            {
+                ISqlWithParameter sql = new DefaultSqlWithParameter
+                {
+                    Sql = SqlUtil.GetSqlForCountTableField(this.DbType, connection.Database, tableName, fieldName)
+                };
+                return sql.ExecuteScalar<int>(connection, null, this, this.CommandTimeout) > 0;
+            }, master);
+
+            if (useCache && exist)
+            {
+                TableInfoCache.Add(tableName, fieldName);
+            }
+            return exist;
         }
         #endregion
 
@@ -261,68 +434,205 @@ namespace Sean.Core.DbRepository.Dapper
             }.ExecuteScalarAsync<T>(this, transaction, master);
         }
 
-        public override async Task<bool> AddAsync(TEntity entity, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
+        public override async Task<bool> AddAsync(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
-            return await ExecuteAsync(async connection => await connection.AddAsync(this, entity, returnId, fieldExpression, transaction), true, transaction);
+            if (entity == null) return false;
+
+            PropertyInfo keyIdentityProperty;
+            if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
+            {
+                var id = await this.GetSqlForAdd(entity, true, fieldExpression).ExecuteScalarAsync<long>(this, transaction, true);
+                if (id < 1) return false;
+
+                keyIdentityProperty.SetValue(entity, id, null);
+                return true;
+            }
+
+            return await this.GetSqlForAdd(entity, false, fieldExpression).ExecuteAsync(this, transaction, true) > 0;
         }
-        public override async Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
+        public override async Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
-            return await ExecuteAsync(async connection => await connection.BulkAddAsync(this, entities, returnId, fieldExpression, transaction), true, transaction);
+            if (entities == null || !entities.Any()) return false;
+
+            if (returnAutoIncrementId && typeof(TEntity).GetKeyIdentityProperty() != null)
+            {
+                //if (transaction?.Connection == null)
+                //{
+                //    return await ExecuteAutoTransactionAsync(async trans =>
+                //    {
+                //        foreach (var entity in entities)
+                //        {
+                //            if (!await AddAsync(entity, returnAutoIncrementId, fieldExpression, trans))
+                //            {
+                //                return false;
+                //            }
+                //        }
+                //        return true;
+                //    });
+                //}
+
+                foreach (var entity in entities)
+                {
+                    if (!await AddAsync(entity, returnAutoIncrementId, fieldExpression, transaction))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return await this.CreateInsertableBuilder(fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                //.ReturnAutoIncrementId(returnAutoIncrementId)
+                .SetParameter(entities)// BulkInsert
+                .Build()
+                .ExecuteAsync(this, transaction, true) > 0;
         }
 
         public override async Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
-            return await ExecuteAsync(async connection => await connection.AddOrUpdateAsync(this, entity, fieldExpression, transaction), true, transaction);
+            if (entity == null) return false;
+
+            switch (DbType)
+            {
+                case DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                    {
+                        return await this.GetSqlForAddOrUpdate(entity, fieldExpression).ExecuteAsync(this, transaction, true) > 0;
+                    }
+                default:
+                    {
+                        if (await this.GetSqlForEntityExists(entity).ExecuteScalarAsync<int>(this, null, true) < 1)
+                        {
+                            // INSERT
+                            return await AddAsync(entity, false, fieldExpression, transaction);
+                        }
+
+                        //if (transaction?.Connection == null)
+                        //{
+                        //    return await ExecuteAutoTransactionAsync(async trans =>
+                        //    {
+                        //        // DELETE && INSERT
+                        //        return await DeleteAsync(entity, trans) && await AddAsync(entity, false, fieldExpression, trans);
+                        //    });
+                        //}
+
+                        // DELETE && INSERT
+                        return await DeleteAsync(entity, transaction) && await AddAsync(entity, false, fieldExpression, transaction);
+                    }
+            }
         }
         public override async Task<bool> AddOrUpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
-            return await ExecuteAsync(async connection => await connection.BulkAddOrUpdateAsync(this, entities, fieldExpression, transaction), true, transaction);
+            if (entities == null || !entities.Any()) return false;
+
+            switch (DbType)
+            {
+                case DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                    return await this.CreateReplaceableBuilder(fieldExpression == null)
+                        .IncludeFields(fieldExpression)
+                        .SetParameter(entities)
+                        .Build()
+                        .ExecuteAsync(this, transaction, true) > 0;
+                default:
+                    //if (transaction?.Connection == null)
+                    //{
+                    //    return await ExecuteAutoTransactionAsync(async trans =>
+                    //    {
+                    //        foreach (var entity in entities)
+                    //        {
+                    //            if (!await AddOrUpdateAsync(entity, fieldExpression, trans))
+                    //            {
+                    //                return false;
+                    //            }
+                    //        }
+                    //        return true;
+                    //    });
+                    //}
+
+                    foreach (var entity in entities)
+                    {
+                        if (!await AddOrUpdateAsync(entity, fieldExpression, transaction))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+            }
         }
 
         public override async Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null)
         {
-            return await ExecuteAsync(async connection => await connection.DeleteAsync(this, entity, transaction), true, transaction);
+            return await this.GetSqlForDelete(entity).ExecuteAsync(this, transaction, true) > 0;
         }
         public override async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
         {
-            return await ExecuteAsync(async connection => await connection.DeleteAsync(this, whereExpression, transaction), true, transaction);
+            return await this.GetSqlForDelete(whereExpression).ExecuteAsync(this, transaction, true);
         }
 
         public override async Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
         {
-            return await ExecuteAsync(async connection => await connection.UpdateAsync(this, entity, fieldExpression, whereExpression, transaction), true, transaction);
+            return await this.GetSqlForUpdate(entity, fieldExpression, whereExpression).ExecuteAsync(this, transaction, true);
         }
         public override async Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
-            return await ExecuteAsync(async connection => await connection.BulkUpdateAsync(this, entities, fieldExpression, transaction), true, transaction);
+            if (entities == null || !entities.Any()) return false;
+
+            //if (transaction?.Connection == null)
+            //{
+            //    return await ExecuteAutoTransactionAsync(async trans =>
+            //    {
+            //        foreach (var entity in entities)
+            //        {
+            //            if (!(await UpdateAsync(entity, fieldExpression, null, trans) > 0))
+            //            {
+            //                return false;
+            //            }
+            //        }
+            //        return true;
+            //    });
+            //}
+
+            foreach (var entity in entities)
+            {
+                if (!(await UpdateAsync(entity, fieldExpression, null, transaction) > 0))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public override async Task<bool> IncrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
-            return await ExecuteAsync(async connection => await connection.IncrAsync(this, value, fieldExpression, whereExpression, transaction), true, transaction);
+            return await this.GetSqlForIncr(value, fieldExpression, whereExpression).ExecuteAsync(this, transaction, true) > 0;
         }
         public override async Task<bool> DecrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
-            return await ExecuteAsync(async connection => await connection.DecrAsync(this, value, fieldExpression, whereExpression, transaction), true, transaction);
+            return await this.GetSqlForDecr(value, fieldExpression, whereExpression).ExecuteAsync(this, transaction, true) > 0;
         }
 
         public override async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return await ExecuteAsync(async connection => await connection.QueryAsync<TEntity>(this, whereExpression, orderBy, pageIndex, pageSize, fieldExpression), master);
+            return await this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression).QueryAsync<TEntity>(this, null, master);
         }
         public override async Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return await ExecuteAsync(async connection => await connection.QueryOffsetAsync<TEntity>(this, whereExpression, orderBy, offset, rows, fieldExpression), master);
+            return await this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression).QueryAsync<TEntity>(this, null, master);
         }
 
         public override async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return await ExecuteAsync(async connection => await connection.GetAsync<TEntity>(this, whereExpression, fieldExpression), master);
+            return await this.GetSqlForGet(whereExpression, fieldExpression).QueryFirstOrDefaultAsync<TEntity>(this, null, master);
         }
 
         public override async Task<int> CountAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
         {
-            return await ExecuteAsync(async connection => await connection.CountAsync(this, whereExpression), master);
+            return await this.GetSqlForCount(whereExpression).ExecuteScalarAsync<int>(this, null, master);
         }
 
         public override async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)
@@ -337,7 +647,20 @@ namespace Sean.Core.DbRepository.Dapper
                 return true;
             }
 
-            return await ExecuteAsync(async connection => await connection.IsTableExistsAsync(this, tableName, useCache), master);
+            var exist = await ExecuteAsync(async connection =>
+            {
+                ISqlWithParameter sql = new DefaultSqlWithParameter
+                {
+                    Sql = SqlUtil.GetSqlForCountTable(this.DbType, connection.Database, tableName)
+                };
+                return await sql.ExecuteScalarAsync<int>(connection, null, this, this.CommandTimeout) > 0;
+            }, master);
+
+            if (useCache && exist)
+            {
+                TableInfoCache.Add(tableName);
+            }
+            return exist;
         }
 
         public override async Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true)
@@ -352,7 +675,20 @@ namespace Sean.Core.DbRepository.Dapper
                 return true;
             }
 
-            return await ExecuteAsync(async connection => await connection.IsTableFieldExistsAsync(this, tableName, fieldName, useCache), master);
+            var exist = await ExecuteAsync(async connection =>
+            {
+                ISqlWithParameter sql = new DefaultSqlWithParameter
+                {
+                    Sql = SqlUtil.GetSqlForCountTableField(this.DbType, connection.Database, tableName, fieldName)
+                };
+                return await sql.ExecuteScalarAsync<int>(connection, null, this, this.CommandTimeout) > 0;
+            }, master);
+
+            if (useCache && exist)
+            {
+                TableInfoCache.Add(tableName, fieldName);
+            }
+            return exist;
         }
 #endif
         #endregion
