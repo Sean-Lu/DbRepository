@@ -15,7 +15,7 @@ namespace Sean.Core.DbRepository
     public class MultiConnectionSettings
     {
         /// <summary>
-        /// 数据库连接字符串，可以配置多个，后缀是以1开始的数字，示例：xxx.master（主库）、xxx.secondary1（从库1）、xxx.secondary2（从库2）
+        /// Database connection strings. The clustered database configuration name suffix is a number starting with 1, example: xxx.master (primary database), xxx.secondary1 (secondary database), xxx.secondary2 (secondary database).
         /// </summary>
         public List<ConnectionStringOptions> ConnectionStrings => _connectionStrings;
 
@@ -108,7 +108,7 @@ namespace Sean.Core.DbRepository
         #endregion
 
         /// <summary>
-        /// 清空所有数据库连接字符串
+        /// Clear all database connection strings.
         /// </summary>
         public void ClearConnectionStrings()
         {
@@ -116,7 +116,7 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// 添加数据库连接字符串
+        /// Adds database connection string.
         /// </summary>
         /// <param name="options"></param>
         public void AddConnectionString(ConnectionStringOptions options)
@@ -133,41 +133,50 @@ namespace Sean.Core.DbRepository
                 options.ProviderName = providerName;
                 if (string.IsNullOrWhiteSpace(options.ProviderName) && options.DbType == DatabaseType.Unknown)
                 {
-                    throw new Exception($"无效的数据库连接配置[{options.ConnectionString}]，请设置[{Constants.ConfigurationProviderName}]或[{Constants.ConfigurationDatabaseType}]的值。");
+                    //throw new Exception($"无效的数据库连接字符串[{options.ConnectionString}]，请设置[{Constants.ProviderName}]或[{Constants.DatabaseType}]的值。");
+                    throw new Exception($"Invalid database connection string [{options.ConnectionString}], please set the value of [{Constants.ProviderName}] or [{Constants.DatabaseType}].");
                 }
             }
 
             _connectionStrings.Add(options);
         }
         /// <summary>
-        /// 获取数据库连接字符串
+        /// Gets the database connection string.
         /// </summary>
-        /// <param name="master">true:主库，false:从库</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         public string GetConnectionString(bool master = true)
         {
-            if (!master && _connectionStrings.Count(c => !c.Master) < 1)
+            #region 单数据库连接配置
+            if (_connectionStrings.Count <= 1)
             {
-                // 如果没有从库配置，则默认取主库配置
+                return _connectionStrings.FirstOrDefault()?.ConnectionString;
+            }
+            #endregion
+
+            #region 多数据库连接配置
+            if (!master && _connectionStrings.Count(c => c.Master == master) < 1)
+            {
+                // 如果没有从库，则默认使用主库
                 master = true;
             }
 
-            // 单连接配置
-            if (_connectionStrings.Count <= 1)
+            if (_connectionStrings.Count(c => c.Master == master) < 2)
             {
-                var options = _connectionStrings.FirstOrDefault();
-                return options != null && options.Master == master ? options.ConnectionString : string.Empty;
+                return _connectionStrings.FirstOrDefault(c => c.Master == master)?.ConnectionString;
             }
 
-            // 多连接配置
             var list = _connectionStrings.Where(c => c.Master == master).ToList();
-            var connString = list.Count < 2 ? list.FirstOrDefault()?.ConnectionString : list[Interlocked.Increment(ref _times) % list.Count]?.ConnectionString;
+            var connString = list[Interlocked.Increment(ref _times) % list.Count]?.ConnectionString;
             return connString;
+            #endregion
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="connectionString">示例："xxx;ProviderName=xxx" 或 "xxx;DatabaseType=xxx"</param>
+        /// <param name="connectionString">
+        /// Example: "xxx;ProviderName=xxx" or "xxx;DatabaseType=xxx"
+        /// </param>
         /// <param name="relConnString"></param>
         /// <param name="databaseType"></param>
         /// <param name="providerName"></param>
@@ -178,22 +187,22 @@ namespace Sean.Core.DbRepository
             databaseType = DatabaseType.Unknown;
             providerName = null;
 
-            if (connectionString.Contains(Constants.ConfigurationProviderName))
+            if (connectionString.Contains(Constants.ProviderName))
             {
                 var dic = GetConnectionDictionary(connectionString);
-                providerName = dic?.FirstOrDefault(c => c.Key == Constants.ConfigurationProviderName).Value;
-                dic?.Remove(Constants.ConfigurationProviderName);
+                providerName = dic?.FirstOrDefault(c => c.Key == Constants.ProviderName).Value;
+                dic?.Remove(Constants.ProviderName);
                 relConnString = GetConnectionString(dic);
             }
-            else if (connectionString.Contains(Constants.ConfigurationDatabaseType))
+            else if (connectionString.Contains(Constants.DatabaseType))
             {
                 var dic = GetConnectionDictionary(connectionString);
-                var value = dic?.FirstOrDefault(c => c.Key == Constants.ConfigurationDatabaseType).Value;
+                var value = dic?.FirstOrDefault(c => c.Key == Constants.DatabaseType).Value;
                 if (Enum.TryParse<DatabaseType>(value, out var dbType))
                 {
                     databaseType = dbType;
                 }
-                dic?.Remove(Constants.ConfigurationDatabaseType);
+                dic?.Remove(Constants.DatabaseType);
                 relConnString = GetConnectionString(dic);
             }
             else

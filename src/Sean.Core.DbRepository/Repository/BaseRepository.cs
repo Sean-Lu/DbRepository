@@ -114,21 +114,20 @@ namespace Sean.Core.DbRepository
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
+            if (!IsTableExists(tableName, master: true, useCache: true))// Using master database.
+            {
+                var sql = CreateTableSql(tableName);
+                if (!string.IsNullOrWhiteSpace(sql))
+                {
 #if NET45
-            using var tranScope = new TransactionScope(TransactionScopeOption.Suppress);
+                    using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
 #else
-            using var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
+                    using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
 #endif
-
-            if (IsTableExists(tableName))
-            {
-                return;
-            }
-
-            var sql = CreateTableSql(tableName);
-            if (!string.IsNullOrWhiteSpace(sql))
-            {
-                Execute(sql);
+                    {
+                        Execute(sql, master: true);
+                    }
+                }
             }
         }
 
@@ -270,52 +269,12 @@ namespace Sean.Core.DbRepository
 
         public virtual bool IsTableExists(string tableName, bool master = true, bool useCache = true)
         {
-            if (string.IsNullOrWhiteSpace(tableName))
-            {
-                return false;
-            }
-
-            if (useCache && TableInfoCache.Exists(tableName))
-            {
-                return true;
-            }
-
-            var exists = Execute(connection =>
-            {
-                var sql = SqlUtil.GetSqlForCountTable(DbType, connection.Database, tableName);
-                return Factory.Get<int>(connection, sql) > 0;
-            }, master);
-
-            if (useCache && exists)
-            {
-                TableInfoCache.Add(tableName);
-            }
-            return exists;
+            return this.IsTableExists(tableName, (sql, connection) => Factory.Get<int>(connection, sql) > 0, master, useCache);
         }
 
         public virtual bool IsTableFieldExists(string tableName, string fieldName, bool master = true, bool useCache = true)
         {
-            if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
-            {
-                return false;
-            }
-
-            if (useCache && TableInfoCache.Exists(tableName, fieldName))
-            {
-                return true;
-            }
-
-            var exists = Execute(connection =>
-            {
-                var sql = SqlUtil.GetSqlForCountTableField(DbType, connection.Database, tableName, fieldName);
-                return Factory.Get<int>(connection, sql) > 0;
-            }, master);
-
-            if (useCache && exists)
-            {
-                TableInfoCache.Add(tableName, fieldName);
-            }
-            return exists;
+            return this.IsTableFieldExists(tableName, fieldName, (sql, connection) => Factory.Get<int>(connection, sql) > 0, master, useCache);
         }
         #endregion
 
@@ -443,52 +402,12 @@ namespace Sean.Core.DbRepository
 
         public virtual async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)
         {
-            if (string.IsNullOrWhiteSpace(tableName))
-            {
-                return false;
-            }
-
-            if (useCache && TableInfoCache.Exists(tableName))
-            {
-                return true;
-            }
-
-            var exists = await ExecuteAsync(async connection =>
-            {
-                var sql = SqlUtil.GetSqlForCountTable(DbType, connection.Database, tableName);
-                return await Factory.GetAsync<int>(connection, sql) > 0;
-            }, master);
-
-            if (useCache && exists)
-            {
-                TableInfoCache.Add(tableName);
-            }
-            return exists;
+            return await this.IsTableExistsAsync(tableName, async (sql, connection) => await Factory.GetAsync<int>(connection, sql) > 0, master, useCache);
         }
 
         public virtual async Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true)
         {
-            if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
-            {
-                return false;
-            }
-
-            if (useCache && TableInfoCache.Exists(tableName, fieldName))
-            {
-                return true;
-            }
-
-            var exists = await ExecuteAsync(async connection =>
-            {
-                var sql = SqlUtil.GetSqlForCountTableField(DbType, connection.Database, tableName, fieldName);
-                return await Factory.GetAsync<int>(connection, sql) > 0;
-            }, master);
-
-            if (useCache && exists)
-            {
-                TableInfoCache.Add(tableName, fieldName);
-            }
-            return exists;
+            return await this.IsTableFieldExistsAsync(tableName, fieldName, async (sql, connection) => await Factory.GetAsync<int>(connection, sql) > 0, master, useCache);
         }
 #endif
         #endregion

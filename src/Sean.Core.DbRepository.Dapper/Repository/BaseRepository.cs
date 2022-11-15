@@ -331,59 +331,12 @@ namespace Sean.Core.DbRepository.Dapper
 
         public override bool IsTableExists(string tableName, bool master = true, bool useCache = true)
         {
-            if (string.IsNullOrWhiteSpace(tableName))
-            {
-                return false;
-            }
-
-            if (useCache && TableInfoCache.Exists(tableName))
-            {
-                return true;
-            }
-
-            var exist = Execute(connection =>
-            {
-                ISqlWithParameter sql = new DefaultSqlWithParameter
-                {
-                    Sql = SqlUtil.GetSqlForCountTable(this.DbType, connection.Database, tableName)
-                };
-                return sql.ExecuteScalar<int>(connection, null, this, this.CommandTimeout) > 0;
-            }, master);
-
-            if (useCache && exist)
-            {
-                TableInfoCache.Add(tableName);
-            }
-            return exist;
-
+            return this.IsTableExists(tableName, (sql, connection) => new DefaultSqlWithParameter { Sql = sql }.ExecuteScalar<int>(connection, null, this, CommandTimeout) > 0, master, useCache);
         }
 
         public override bool IsTableFieldExists(string tableName, string fieldName, bool master = true, bool useCache = true)
         {
-            if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
-            {
-                return false;
-            }
-
-            if (useCache && TableInfoCache.Exists(tableName, fieldName))
-            {
-                return true;
-            }
-
-            var exist = Execute(connection =>
-            {
-                ISqlWithParameter sql = new DefaultSqlWithParameter
-                {
-                    Sql = SqlUtil.GetSqlForCountTableField(this.DbType, connection.Database, tableName, fieldName)
-                };
-                return sql.ExecuteScalar<int>(connection, null, this, this.CommandTimeout) > 0;
-            }, master);
-
-            if (useCache && exist)
-            {
-                TableInfoCache.Add(tableName, fieldName);
-            }
-            return exist;
+            return this.IsTableFieldExists(tableName, fieldName, (sql, connection) => new DefaultSqlWithParameter { Sql = sql }.ExecuteScalar<int>(connection, null, this, CommandTimeout) > 0, master, useCache);
         }
         #endregion
 
@@ -637,58 +590,12 @@ namespace Sean.Core.DbRepository.Dapper
 
         public override async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)
         {
-            if (string.IsNullOrWhiteSpace(tableName))
-            {
-                return false;
-            }
-
-            if (useCache && TableInfoCache.Exists(tableName))
-            {
-                return true;
-            }
-
-            var exist = await ExecuteAsync(async connection =>
-            {
-                ISqlWithParameter sql = new DefaultSqlWithParameter
-                {
-                    Sql = SqlUtil.GetSqlForCountTable(this.DbType, connection.Database, tableName)
-                };
-                return await sql.ExecuteScalarAsync<int>(connection, null, this, this.CommandTimeout) > 0;
-            }, master);
-
-            if (useCache && exist)
-            {
-                TableInfoCache.Add(tableName);
-            }
-            return exist;
+            return await this.IsTableExistsAsync(tableName, async (sql, connection) => await new DefaultSqlWithParameter { Sql = sql }.ExecuteScalarAsync<int>(connection, null, this, CommandTimeout) > 0, master, useCache);
         }
 
         public override async Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true)
         {
-            if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
-            {
-                return false;
-            }
-
-            if (useCache && TableInfoCache.Exists(tableName, fieldName))
-            {
-                return true;
-            }
-
-            var exist = await ExecuteAsync(async connection =>
-            {
-                ISqlWithParameter sql = new DefaultSqlWithParameter
-                {
-                    Sql = SqlUtil.GetSqlForCountTableField(this.DbType, connection.Database, tableName, fieldName)
-                };
-                return await sql.ExecuteScalarAsync<int>(connection, null, this, this.CommandTimeout) > 0;
-            }, master);
-
-            if (useCache && exist)
-            {
-                TableInfoCache.Add(tableName, fieldName);
-            }
-            return exist;
+            return await this.IsTableFieldExistsAsync(tableName, fieldName, async (sql, connection) => await new DefaultSqlWithParameter { Sql = sql }.ExecuteScalarAsync<int>(connection, null, this, CommandTimeout) > 0, master, useCache);
         }
 #endif
         #endregion

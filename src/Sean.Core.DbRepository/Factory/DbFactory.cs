@@ -228,11 +228,25 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="commandType">Command type</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public int ExecuteNonQuery(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return ExecuteNonQuery(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>   
+        /// 执行 新增\删除\修改 操作，并返回受影响的行数
+        /// </summary>   
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <param name="commandType">Command type</param>
+        /// <returns></returns>
+        public int ExecuteNonQuery(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return ExecuteNonQuery(connection, commandText, parameters, commandType);
             }
@@ -286,11 +300,25 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="commandType">Command type</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public async Task<int> ExecuteNonQueryAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return await ExecuteNonQueryAsync(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>   
+        /// 执行 新增\删除\修改 操作，并返回受影响的行数
+        /// </summary>   
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <param name="commandType">Command type</param>
+        /// <returns></returns>
+        public async Task<int> ExecuteNonQueryAsync(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return await ExecuteNonQueryAsync(connection, commandText, parameters, commandType);
             }
@@ -346,11 +374,25 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public DataTable ExecuteDataTable(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return ExecuteDataTable(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public DataTable ExecuteDataTable(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return ExecuteDataTable(connection, commandText, parameters, commandType);
             }
@@ -402,11 +444,25 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public async Task<DataTable> ExecuteDataTableAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return await ExecuteDataTableAsync(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<DataTable> ExecuteDataTableAsync(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return await ExecuteDataTableAsync(connection, commandText, parameters, commandType);
             }
@@ -460,11 +516,25 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public DataSet ExecuteDataSet(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return ExecuteDataSet(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public DataSet ExecuteDataSet(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return ExecuteDataSet(connection, commandText, parameters, commandType);
             }
@@ -540,11 +610,25 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public async Task<DataSet> ExecuteDataSetAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return await ExecuteDataSetAsync(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<DataSet> ExecuteDataSetAsync(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return await ExecuteDataSetAsync(connection, commandText, parameters, commandType);
             }
@@ -622,11 +706,26 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public DbDataReader ExecuteReader(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             var connection = CreateConnection(master);
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                return command.ExecuteReader(CommandBehavior.CloseConnection, SqlMonitor);
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public DbDataReader ExecuteReader(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            var connection = CreateConnection(connectionString);
             using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
             {
                 return command.ExecuteReader(CommandBehavior.CloseConnection, SqlMonitor);
@@ -682,11 +781,26 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public async Task<DbDataReader> ExecuteReaderAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             var connection = CreateConnection(master);
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                return await command.ExecuteReaderAsync(CommandBehavior.CloseConnection, SqlMonitor);
+            }
+        }
+        /// <summary>   
+        /// 执行查询
+        /// </summary>   
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<DbDataReader> ExecuteReaderAsync(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            var connection = CreateConnection(connectionString);
             using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
             {
                 return await command.ExecuteReaderAsync(CommandBehavior.CloseConnection, SqlMonitor);
@@ -744,11 +858,25 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public object ExecuteScalar(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return ExecuteScalar(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public object ExecuteScalar(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return ExecuteScalar(connection, commandText, parameters, commandType);
             }
@@ -803,11 +931,25 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public T ExecuteScalar<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return ExecuteScalar<T>(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public T ExecuteScalar<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return ExecuteScalar<T>(connection, commandText, parameters, commandType);
             }
@@ -856,11 +998,25 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public async Task<object> ExecuteScalarAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return await ExecuteScalarAsync(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<object> ExecuteScalarAsync(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return await ExecuteScalarAsync(connection, commandText, parameters, commandType);
             }
@@ -915,11 +1071,25 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public async Task<T> ExecuteScalarAsync<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return await ExecuteScalarAsync<T>(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// </summary>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns></returns>
+        public async Task<T> ExecuteScalarAsync<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return await ExecuteScalarAsync<T>(connection, commandText, parameters, commandType);
             }
@@ -971,11 +1141,26 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns>Entity or special type value list</returns>
         public List<T> GetList<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return GetList<T>(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// Query multiple entity or special type value collections
+        /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns>Entity or special type value list</returns>
+        public List<T> GetList<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return GetList<T>(connection, commandText, parameters, commandType);
             }
@@ -1046,11 +1231,26 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns>Entity or special type value list</returns>
         public async Task<List<T>> GetListAsync<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return await GetListAsync<T>(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// Query multiple entity or special type value collections
+        /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns>Entity or special type value list</returns>
+        public async Task<List<T>> GetListAsync<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return await GetListAsync<T>(connection, commandText, parameters, commandType);
             }
@@ -1123,11 +1323,26 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns>Entity or special type value</returns>
         public T Get<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return Get<T>(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// Query a single entity or special type value
+        /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns>Entity or special type value</returns>
+        public T Get<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return Get<T>(connection, commandText, parameters, commandType);
             }
@@ -1189,11 +1404,26 @@ namespace Sean.Core.DbRepository
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns>Entity or special type value</returns>
         public async Task<T> GetAsync<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
+            {
+                return await GetAsync<T>(connection, commandText, parameters, commandType);
+            }
+        }
+        /// <summary>
+        /// Query a single entity or special type value
+        /// </summary>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="commandType">Command type</param>
+        /// <param name="commandText">Command text to be executed</param>
+        /// <param name="parameters">Input parameters</param>
+        /// <returns>Entity or special type value</returns>
+        public async Task<T> GetAsync<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        {
+            using (var connection = CreateConnection(connectionString))
             {
                 return await GetAsync<T>(connection, commandText, parameters, commandType);
             }
@@ -1270,7 +1500,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Create a new connection with default connection string.
         /// </summary>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public DbConnection CreateConnection(bool master)
         {
@@ -1305,7 +1535,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Create and open a new connection.
         /// </summary>
-        /// <param name="master">true: use master database, false: use slave database.</param>
+        /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
         public DbConnection OpenNewConnection(bool master)
         {

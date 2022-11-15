@@ -30,9 +30,9 @@ namespace Example.NetCore.Impls.DbTest
 
         public void Execute()
         {
-            //_testService.TestCRUDWithTransactionAsync().Wait();
+            _testService.TestCRUDWithTransactionAsync().Wait();
 
-            TestSearch();
+            //TestSearch();
         }
 
         private void TestAdd()

@@ -49,7 +49,7 @@ public interface IBaseRepository : ISqlMonitor
     /// <summary>
     /// Create and open a new connection
     /// </summary>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
     DbConnection OpenNewConnection(bool master);
 
@@ -64,7 +64,7 @@ public interface IBaseRepository : ISqlMonitor
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="func"></param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns></returns>
     T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null);
@@ -101,18 +101,19 @@ public interface IBaseRepository : ISqlMonitor
     /// <summary>
     /// Whether the specified table exists.
     /// </summary>
-    /// <param name="tableName">The table name.</param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="tableName">Table name.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
+    /// <param name="useCache">Whether to use cache.</param>
     /// <returns></returns>
     bool IsTableExists(string tableName, bool master = true, bool useCache = true);
 
     /// <summary>
     /// Whether the specified table field exists.
     /// </summary>
-    /// <param name="tableName"></param>
-    /// <param name="fieldName"></param>
-    /// <param name="master"></param>
-    /// <param name="useCache"></param>
+    /// <param name="tableName">Table name.</param>
+    /// <param name="fieldName">Table field name.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
+    /// <param name="useCache">Whether to use cache.</param>
     /// <returns></returns>
     bool IsTableFieldExists(string tableName, string fieldName, bool master = true, bool useCache = true);
     #endregion
@@ -129,7 +130,7 @@ public interface IBaseRepository : ISqlMonitor
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="func"></param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns></returns>
     Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null);
@@ -165,18 +166,19 @@ public interface IBaseRepository : ISqlMonitor
     /// <summary>
     /// Whether the specified table exists.
     /// </summary>
-    /// <param name="tableName">The table name.</param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="tableName">Table name.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
+    /// <param name="useCache">Whether to use cache.</param>
     /// <returns></returns>
     Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true);
 
     /// <summary>
     /// Whether the specified table field exists.
     /// </summary>
-    /// <param name="tableName"></param>
-    /// <param name="fieldName"></param>
-    /// <param name="master"></param>
-    /// <param name="useCache"></param>
+    /// <param name="tableName">Table name.</param>
+    /// <param name="fieldName">Table field name.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
+    /// <param name="useCache">Whether to use cache.</param>
     /// <returns></returns>
     Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true);
 #endif
@@ -317,7 +319,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="orderBy">SQL ORDER BY condition.</param>
     /// <param name="pageIndex">The current page index for paging query, the minimum value is 1.</param>
     /// <param name="pageSize">The page size for paging query.</param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
     IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
     /// <summary>
@@ -331,7 +333,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="orderBy">SQL ORDER BY condition.</param>
     /// <param name="offset">Offset to use for this query.</param>
     /// <param name="rows">The number of rows queried.</param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
     IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
 
@@ -343,7 +345,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <para>1. Single field: entity => entity.Status</para>
     /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
     /// </param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
     TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
 
@@ -351,7 +353,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// Gets the number of counts in the database table that satisfy the where expression.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
     int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true);
 
@@ -489,7 +491,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="orderBy">SQL ORDER BY condition.</param>
     /// <param name="pageIndex">The current page index for paging query, the minimum value is 1.</param>
     /// <param name="pageSize">The page size for paging query.</param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
     Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
     /// <summary>
@@ -503,7 +505,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="orderBy">SQL ORDER BY condition.</param>
     /// <param name="offset">Offset to use for this query.</param>
     /// <param name="rows">The number of rows queried.</param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
     Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
 
@@ -515,7 +517,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <para>1. Single field: entity => entity.Status</para>
     /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
     /// </param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
     Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
 
@@ -523,7 +525,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// Gets the number of counts in the database table that satisfy the where expression.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
-    /// <param name="master">true: use master database, false: use slave database.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
     Task<int> CountAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true);
 

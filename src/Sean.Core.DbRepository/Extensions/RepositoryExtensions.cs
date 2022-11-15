@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
+using System.Transactions;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository.Extensions
 {
@@ -285,5 +289,133 @@ namespace Sean.Core.DbRepository.Extensions
             return countSql;
         }
         #endregion
+
+        public static bool IsTableExists(this IBaseRepository repository, string tableName, Func<string, IDbConnection, bool> func, bool master = true, bool useCache = true)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                return false;
+            }
+
+            string connectionString = repository.Factory.ConnectionSettings.GetConnectionString(master);
+            if (useCache && TableInfoCache.IsTableExists(connectionString, master, tableName))
+            {
+                return true;
+            }
+
+            bool exists;
+#if NET45
+            using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
+#else
+            using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+#endif
+            using (var connection = repository.Factory.OpenNewConnection(connectionString))
+            {
+                var sql = SqlUtil.GetSqlForCountTable(repository.DbType, connection.Database, tableName);
+                exists = func(sql, connection);
+            }
+
+            if (useCache && exists)
+            {
+                TableInfoCache.AddTable(connectionString, master, tableName);
+            }
+            return exists;
+        }
+
+        public static bool IsTableFieldExists(this IBaseRepository repository, string tableName, string fieldName, Func<string, IDbConnection, bool> func, bool master = true, bool useCache = true)
+        {
+            if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
+            {
+                return false;
+            }
+
+            string connectionString = repository.Factory.ConnectionSettings.GetConnectionString(master);
+            if (useCache && TableInfoCache.IsTableFieldExists(connectionString, master, tableName, fieldName))
+            {
+                return true;
+            }
+
+            bool exists;
+#if NET45
+            using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
+#else
+            using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+#endif
+            using (var connection = repository.Factory.OpenNewConnection(connectionString))
+            {
+                var sql = SqlUtil.GetSqlForCountTableField(repository.DbType, connection.Database, tableName, fieldName);
+                exists = func(sql, connection);
+            }
+
+            if (useCache && exists)
+            {
+                TableInfoCache.AddTableField(connectionString, master, tableName, fieldName);
+            }
+            return exists;
+        }
+
+        public static async Task<bool> IsTableExistsAsync(this IBaseRepository repository, string tableName, Func<string, IDbConnection, Task<bool>> func, bool master = true, bool useCache = true)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                return false;
+            }
+
+            string connectionString = repository.Factory.ConnectionSettings.GetConnectionString(master);
+            if (useCache && TableInfoCache.IsTableExists(connectionString, master, tableName))
+            {
+                return true;
+            }
+
+            bool exists;
+#if NET45
+            using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
+#else
+            using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+#endif
+            using (var connection = repository.Factory.OpenNewConnection(connectionString))
+            {
+                var sql = SqlUtil.GetSqlForCountTable(repository.DbType, connection.Database, tableName);
+                exists = await func(sql, connection);
+            }
+
+            if (useCache && exists)
+            {
+                TableInfoCache.AddTable(connectionString, master, tableName);
+            }
+            return exists;
+        }
+
+        public static async Task<bool> IsTableFieldExistsAsync(this IBaseRepository repository, string tableName, string fieldName, Func<string, IDbConnection, Task<bool>> func, bool master = true, bool useCache = true)
+        {
+            if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
+            {
+                return false;
+            }
+
+            string connectionString = repository.Factory.ConnectionSettings.GetConnectionString(master);
+            if (useCache && TableInfoCache.IsTableFieldExists(connectionString, master, tableName, fieldName))
+            {
+                return true;
+            }
+
+            bool exists;
+#if NET45
+            using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
+#else
+            using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+#endif
+            using (var connection = repository.Factory.OpenNewConnection(connectionString))
+            {
+                var sql = SqlUtil.GetSqlForCountTableField(repository.DbType, connection.Database, tableName, fieldName);
+                exists = await func(sql, connection);
+            }
+
+            if (useCache && exists)
+            {
+                TableInfoCache.AddTableField(connectionString, master, tableName, fieldName);
+            }
+            return exists;
+        }
     }
 }
