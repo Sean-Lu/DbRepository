@@ -116,6 +116,15 @@ public interface IBaseRepository : ISqlMonitor
     /// <param name="useCache">Whether to use cache.</param>
     /// <returns></returns>
     bool IsTableFieldExists(string tableName, string fieldName, bool master = true, bool useCache = true);
+
+    /// <summary>
+    /// ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType};
+    /// </summary>
+    /// <param name="tableName">Table name.</param>
+    /// <param name="fieldName">Table field name.</param>
+    /// <param name="fieldType">Table field type.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
+    void AddTableField(string tableName, string fieldName, string fieldType, bool master = true);
     #endregion
 
     #region Asynchronous method
@@ -181,7 +190,18 @@ public interface IBaseRepository : ISqlMonitor
     /// <param name="useCache">Whether to use cache.</param>
     /// <returns></returns>
     Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true);
+
+    /// <summary>
+    /// ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType};
+    /// </summary>
+    /// <param name="tableName">Table name.</param>
+    /// <param name="fieldName">Table field name.</param>
+    /// <param name="fieldType">Table field type.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
+    /// <returns></returns>
+    Task AddTableFieldAsync(string tableName, string fieldName, string fieldType, bool master = true);
 #endif
+
     #endregion
 }
 

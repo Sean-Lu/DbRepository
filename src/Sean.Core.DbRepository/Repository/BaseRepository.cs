@@ -5,7 +5,6 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using System.Transactions;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Core.DbRepository.Util;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
 #endif
@@ -276,6 +275,21 @@ namespace Sean.Core.DbRepository
         {
             return this.IsTableFieldExists(tableName, fieldName, (sql, connection) => Factory.Get<int>(connection, sql) > 0, master, useCache);
         }
+
+        public virtual void AddTableField(string tableName, string fieldName, string fieldType, bool master = true)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
+            if (string.IsNullOrWhiteSpace(fieldName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(fieldName));
+
+            if (IsTableFieldExists(tableName, fieldName, master))
+            {
+                return;
+            }
+
+            Execute($"ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType};", master: master);
+        }
         #endregion
 
         #region Asynchronous method
@@ -408,6 +422,21 @@ namespace Sean.Core.DbRepository
         public virtual async Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true)
         {
             return await this.IsTableFieldExistsAsync(tableName, fieldName, async (sql, connection) => await Factory.GetAsync<int>(connection, sql) > 0, master, useCache);
+        }
+
+        public virtual async Task AddTableFieldAsync(string tableName, string fieldName, string fieldType, bool master = true)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
+            if (string.IsNullOrWhiteSpace(fieldName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(fieldName));
+
+            if (await IsTableFieldExistsAsync(tableName, fieldName, master))
+            {
+                return;
+            }
+
+            await ExecuteAsync($"ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType};", master: master);
         }
 #endif
         #endregion

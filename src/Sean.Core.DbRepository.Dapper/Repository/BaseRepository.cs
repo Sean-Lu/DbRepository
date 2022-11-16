@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Sean.Core.DbRepository.Dapper.Extensions;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Core.DbRepository.Util;
 using System.Linq;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
