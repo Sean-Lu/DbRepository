@@ -290,6 +290,14 @@ namespace Sean.Core.DbRepository
 
             Execute($"ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType};", master: master);
         }
+
+        public virtual int DeleteAll(string tableName)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
+
+            return Execute($"DELETE FROM {tableName};");
+        }
         #endregion
 
         #region Asynchronous method
@@ -437,6 +445,14 @@ namespace Sean.Core.DbRepository
             }
 
             await ExecuteAsync($"ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType};", master: master);
+        }
+
+        public virtual async Task<int> DeleteAllAsync(string tableName)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
+
+            return await ExecuteAsync($"DELETE FROM {tableName};");
         }
 #endif
         #endregion

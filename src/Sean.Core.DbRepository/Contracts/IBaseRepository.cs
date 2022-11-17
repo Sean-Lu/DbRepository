@@ -125,6 +125,13 @@ public interface IBaseRepository : ISqlMonitor
     /// <param name="fieldType">Table field type.</param>
     /// <param name="master">true: master database, false: slave database.</param>
     void AddTableField(string tableName, string fieldName, string fieldType, bool master = true);
+
+    /// <summary>
+    /// DELETE FROM {tableName};
+    /// </summary>
+    /// <param name="tableName">Table name.</param>
+    /// <returns></returns>
+    int DeleteAll(string tableName);
     #endregion
 
     #region Asynchronous method
@@ -200,6 +207,13 @@ public interface IBaseRepository : ISqlMonitor
     /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
     Task AddTableFieldAsync(string tableName, string fieldName, string fieldType, bool master = true);
+
+    /// <summary>
+    /// DELETE FROM {tableName};
+    /// </summary>
+    /// <param name="tableName">Table name.</param>
+    /// <returns></returns>
+    Task<int> DeleteAllAsync(string tableName);
 #endif
 
     #endregion
@@ -279,6 +293,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns>The number of rows affected.</returns>
     int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null);
+    int DeleteAll();
 
     /// <summary>
     /// Update entity.
@@ -451,6 +466,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns>The number of rows affected.</returns>
     Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null);
+    Task<int> DeleteAllAsync();
 
     /// <summary>
     /// Update entity.

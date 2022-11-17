@@ -209,6 +209,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         return this.GetSqlForDelete(whereExpression).Execute(Factory, transaction, true);
     }
+    public virtual int DeleteAll()
+    {
+        return DeleteAll(TableName());
+    }
 
     public virtual int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
@@ -410,6 +414,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
     {
         return await this.GetSqlForDelete(whereExpression).ExecuteAsync(Factory, transaction, true);
+    }
+    public virtual async Task<int> DeleteAllAsync()
+    {
+        return await DeleteAllAsync(TableName());
     }
 
     public virtual async Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
