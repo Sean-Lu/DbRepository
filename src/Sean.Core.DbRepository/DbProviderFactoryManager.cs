@@ -17,7 +17,7 @@ namespace Sean.Core.DbRepository
         {
             DbProviderMapDic = new ConcurrentDictionary<DatabaseType, DbProviderMap>();
 
-            LoadConfigFromConfigurationFile();
+            LoadFromConfigurationFile();
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Sean.Core.DbRepository
                 return null;
             }
 
-            var map = DbProviderMapDic.FirstOrDefault(c => c.Value != null && !string.IsNullOrWhiteSpace(c.Value.ProviderInvariantName) && c.Value.ProviderInvariantName == providerName).Value;
+            var map = DbProviderMapDic.FirstOrDefault(c => c.Value?.ProviderInvariantName == providerName).Value;
             if (map != null)
             {
                 if (map.ProviderFactory != null)
@@ -82,64 +82,10 @@ namespace Sean.Core.DbRepository
 #endif
         }
 
-#if NETSTANDARD2_1 || NET5_0
-        /// <summary>
-        /// <see cref="DbProviderFactories.RegisterFactory(string,string)"/>
-        /// </summary>
-        /// <param name="providerInvariantName"></param>
-        /// <param name="factoryTypeAssemblyQualifiedName"></param>
-        public static void RegisterFactory(string providerInvariantName, string factoryTypeAssemblyQualifiedName)
-        {
-            if (!string.IsNullOrWhiteSpace(providerInvariantName) &&
-                !string.IsNullOrWhiteSpace(factoryTypeAssemblyQualifiedName))
-            {
-                DbProviderFactories.UnregisterFactory(providerInvariantName);
-                DbProviderFactories.RegisterFactory(providerInvariantName, factoryTypeAssemblyQualifiedName);
-            }
-        }
-        /// <summary>
-        /// <see cref="DbProviderFactories.RegisterFactory(string,Type)"/>
-        /// </summary>
-        /// <param name="providerInvariantName"></param>
-        /// <param name="providerFactoryClass"></param>
-        public static void RegisterFactory(string providerInvariantName, Type providerFactoryClass)
-        {
-            if (!string.IsNullOrWhiteSpace(providerInvariantName) && providerFactoryClass != null)
-            {
-                DbProviderFactories.UnregisterFactory(providerInvariantName);
-                DbProviderFactories.RegisterFactory(providerInvariantName, providerFactoryClass);
-            }
-        }
-        /// <summary>
-        /// <see cref="DbProviderFactories.RegisterFactory(string,DbProviderFactory)"/>
-        /// </summary>
-        /// <param name="providerInvariantName"></param>
-        /// <param name="factory"></param>
-        public static void RegisterFactory(string providerInvariantName, DbProviderFactory factory)
-        {
-            if (!string.IsNullOrWhiteSpace(providerInvariantName) && factory != null)
-            {
-                DbProviderFactories.UnregisterFactory(providerInvariantName);
-                DbProviderFactories.RegisterFactory(providerInvariantName, factory);// MySqlClientFactory.Instance
-            }
-        }
-        /// <summary>
-        /// <see cref="DbProviderFactories.UnregisterFactory"/>
-        /// </summary>
-        /// <param name="providerInvariantName"></param>
-        public static void UnregisterFactory(string providerInvariantName)
-        {
-            if (!string.IsNullOrWhiteSpace(providerInvariantName))
-            {
-                DbProviderFactories.UnregisterFactory(providerInvariantName);
-            }
-        }
-#endif
-
         /// <summary>
         /// 以XML文件的方式读取配置
         /// </summary>
-        //private static void LoadConfigFromXmlFile()
+        //private static void LoadFromXmlFile()
         //{
         //    if (File.Exists(ConfigBuilder.ConfigFilePath))
         //    {
@@ -163,7 +109,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 以配置文件的方式读取配置
         /// </summary>
-        private static void LoadConfigFromConfigurationFile()
+        private static void LoadFromConfigurationFile()
         {
             var section = ConfigBuilder.GetDbProviderMapSection();
             if (section == null)

@@ -22,20 +22,13 @@ namespace Sean.Core.DbRepository.Extensions
         {
             if (providerMap != null)
             {
-                if (!string.IsNullOrWhiteSpace(providerMap.ProviderInvariantName))
-                {
-                    if (DbProviderFactoryManager.DbProviderMapDic.Any(c => c.Key != type && c.Value != null && c.Value.ProviderInvariantName == providerMap.ProviderInvariantName))
-                    {
-                        throw new Exception($"{nameof(DbProviderMap)}.{nameof(DbProviderMap.ProviderInvariantName)} 的值不能重复：{providerMap.ProviderInvariantName}");
-                    }
-
 #if NETSTANDARD2_1 || NET5_0
-                    if (!string.IsNullOrWhiteSpace(providerMap.FactoryTypeAssemblyQualifiedName))
-                    {
-                        DbProviderFactoryManager.RegisterFactory(providerMap.ProviderInvariantName, providerMap.FactoryTypeAssemblyQualifiedName);
-                    }
-#endif
+                if (!string.IsNullOrWhiteSpace(providerMap.ProviderInvariantName) && !string.IsNullOrWhiteSpace(providerMap.FactoryTypeAssemblyQualifiedName))
+                {
+                    DbProviderFactories.UnregisterFactory(providerMap.ProviderInvariantName);
+                    DbProviderFactories.RegisterFactory(providerMap.ProviderInvariantName, providerMap.FactoryTypeAssemblyQualifiedName);
                 }
+#endif
             }
             DbProviderFactoryManager.DbProviderMapDic.AddOrUpdate(type, providerMap, (_, _) => providerMap);
         }
@@ -106,13 +99,6 @@ namespace Sean.Core.DbRepository.Extensions
             }
         }
 
-        /// <summary>
-        /// SQL语句：表是否存在
-        /// </summary>
-        /// <param name="dbType">Database type.</param>
-        /// <param name="dbName">数据库名称</param>
-        /// <param name="tableName">The table name.</param>
-        /// <returns></returns>
         public static string GetSqlForCountTable(this DatabaseType dbType, string dbName, string tableName)
         {
             switch (dbType)
@@ -134,14 +120,6 @@ namespace Sean.Core.DbRepository.Extensions
             }
         }
 
-        /// <summary>
-        /// SQL语句：表字段是否存在
-        /// </summary>
-        /// <param name="dbType">Database type.</param>
-        /// <param name="dbName">数据库名称</param>
-        /// <param name="tableName">The table name.</param>
-        /// <param name="fieldName">字段名称</param>
-        /// <returns></returns>
         public static string GetSqlForCountTableField(this DatabaseType dbType, string dbName, string tableName, string fieldName)
         {
             switch (dbType)
