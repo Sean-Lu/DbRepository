@@ -95,27 +95,27 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
-        /// <see cref="IBaseRepository{TEntity}.Incr{TValue}"/>
+        /// <see cref="IBaseRepository{TEntity}.Increment{TValue}"/>
         /// </summary>
         [TestMethod]
-        public void ValidateIncr()
+        public void ValidateIncrAndDecr()
         {
             var userId = 10002L;
             var testEntity = AddTestData(userId, true);
 
-            _logger.LogInfo("Incr - 数值递增");
-            var incrResult = _testRepository.Incr(10.0M, entity => entity.AccountBalance, entity => entity.Id == testEntity.Id);
+            _logger.LogInfo("Increment - 数值递增");
+            var incrResult = _testRepository.Increment(10.0M, entity => entity.AccountBalance, entity => entity.Id == testEntity.Id);
             Assert.IsTrue(incrResult);
 
-            _logger.LogInfo("Incr - 验证");
+            _logger.LogInfo("Increment - 验证");
             var getResult = _testRepository.Get(entity => entity.Id == testEntity.Id, entity => new { entity.Id, entity.AccountBalance });
             Assert.IsTrue(getResult != null && getResult.Id > 0 && getResult.AccountBalance == 10.0M);
 
-            _logger.LogInfo("Decr - 数值递减");
-            var incrResult2 = _testRepository.Decr(2.0M, entity => entity.AccountBalance, entity => entity.Id == testEntity.Id);
+            _logger.LogInfo("Decrement - 数值递减");
+            var incrResult2 = _testRepository.Decrement(2.0M, entity => entity.AccountBalance, entity => entity.Id == testEntity.Id);
             Assert.IsTrue(incrResult2);
 
-            _logger.LogInfo("Decr - 验证");
+            _logger.LogInfo("Decrement - 验证");
             var getResult2 = _testRepository.Get(entity => entity.Id == testEntity.Id, entity => new { entity.Id, entity.AccountBalance });
             Assert.IsTrue(getResult2 != null && getResult2.Id > 0 && getResult2.AccountBalance == 8.0M);
 

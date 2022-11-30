@@ -248,11 +248,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return true;
     }
 
-    public virtual bool Incr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
+    public virtual bool Increment<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
         return this.GetSqlForIncr(value, fieldExpression, whereExpression).Execute(Factory, transaction, true) > 0;
     }
-    public virtual bool Decr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
+    public virtual bool Decrement<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
         return this.GetSqlForDecr(value, fieldExpression, whereExpression).Execute(Factory, transaction, true) > 0;
     }
@@ -276,6 +276,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return this.GetSqlForCount(whereExpression).ExecuteScalar<int>(Factory, null, master);
     }
 
+    public virtual bool IsTableExists(bool master = true, bool useCache = true)
+    {
+        return IsTableExists(TableName(), master, useCache);
+    }
+
     public virtual bool IsTableFieldExists(Expression<Func<TEntity, object>> fieldExpression, bool master = true, bool useCache = true)
     {
         var fieldNames = fieldExpression.GetFieldNames();
@@ -293,6 +298,21 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             }
         }
         return true;
+    }
+
+    public virtual void AddTableField(Expression<Func<TEntity, object>> fieldExpression, string fieldType, bool master = true)
+    {
+        var fieldNames = fieldExpression.GetFieldNames();
+        if (fieldNames == null || fieldNames.Count < 1)
+        {
+            return;
+        }
+
+        var tableName = TableName();
+        foreach (var fieldName in fieldNames)
+        {
+            AddTableField(tableName, fieldName, fieldType, master);
+        }
     }
     #endregion
 
@@ -454,11 +474,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return true;
     }
 
-    public virtual async Task<bool> IncrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
+    public virtual async Task<bool> IncrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
         return await this.GetSqlForIncr(value, fieldExpression, whereExpression).ExecuteAsync(Factory, transaction, true) > 0;
     }
-    public virtual async Task<bool> DecrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
+    public virtual async Task<bool> DecrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
         return await this.GetSqlForDecr(value, fieldExpression, whereExpression).ExecuteAsync(Factory, transaction, true) > 0;
     }
@@ -482,6 +502,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return await this.GetSqlForCount(whereExpression).ExecuteScalarAsync<int>(Factory, null, master);
     }
 
+    public virtual async Task<bool> IsTableExistsAsync(bool master = true, bool useCache = true)
+    {
+        return await IsTableExistsAsync(TableName(), master, useCache);
+    }
+
     public virtual async Task<bool> IsTableFieldExistsAsync(Expression<Func<TEntity, object>> fieldExpression, bool master = true, bool useCache = true)
     {
         var fieldNames = fieldExpression.GetFieldNames();
@@ -499,6 +524,21 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             }
         }
         return true;
+    }
+
+    public virtual async Task AddTableFieldAsync(Expression<Func<TEntity, object>> fieldExpression, string fieldType, bool master = true)
+    {
+        var fieldNames = fieldExpression.GetFieldNames();
+        if (fieldNames == null || fieldNames.Count < 1)
+        {
+            return;
+        }
+
+        var tableName = TableName();
+        foreach (var fieldName in fieldNames)
+        {
+            await AddTableFieldAsync(tableName, fieldName, fieldType, master);
+        }
     }
 #endif
     #endregion

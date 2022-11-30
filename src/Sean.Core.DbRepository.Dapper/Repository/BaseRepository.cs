@@ -300,11 +300,11 @@ namespace Sean.Core.DbRepository.Dapper
             return true;
         }
 
-        public override bool Incr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
+        public override bool Increment<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
             return this.GetSqlForIncr(value, fieldExpression, whereExpression).Execute(this, transaction, true) > 0;
         }
-        public override bool Decr<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
+        public override bool Decrement<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
             return this.GetSqlForDecr(value, fieldExpression, whereExpression).Execute(this, transaction, true) > 0;
         }
@@ -559,11 +559,11 @@ namespace Sean.Core.DbRepository.Dapper
             return true;
         }
 
-        public override async Task<bool> IncrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
+        public override async Task<bool> IncrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
             return await this.GetSqlForIncr(value, fieldExpression, whereExpression).ExecuteAsync(this, transaction, true) > 0;
         }
-        public override async Task<bool> DecrAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
+        public override async Task<bool> DecrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
             return await this.GetSqlForDecr(value, fieldExpression, whereExpression).ExecuteAsync(this, transaction, true) > 0;
         }
