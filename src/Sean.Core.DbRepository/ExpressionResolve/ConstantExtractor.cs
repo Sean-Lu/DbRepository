@@ -60,35 +60,35 @@ internal static class ConstantExtractor
         if (memberExpression.Expression == null)
         {
             #region 访问静态成员，如：DateTime.Today
-            var memberDeclaringType = memberExpression.Member.DeclaringType;
-            return GetStaticMemberValue(memberExpression.Member.Name, memberExpression.Member.MemberType, memberDeclaringType);
+            return GetStaticMemberValue(memberExpression);
             #endregion
         }
 
         #region 访问实例成员
         var value = ParseConstant(memberExpression.Expression);
-        return GetInstanceMemberValue(memberExpression.Member.Name, memberExpression.Member.MemberType, value);
+        return value != null ? GetInstanceMemberValue(memberExpression, value) : null;
         #endregion
     }
 
     /// <summary>
     /// 获取静态成员的值
     /// </summary>
-    /// <param name="memberName"></param>
-    /// <param name="memberType"></param>
-    /// <param name="memberDeclaringType"></param>
+    /// <param name="memberExpression"></param>
     /// <returns></returns>
-    private static object GetStaticMemberValue(string memberName, MemberTypes memberType, Type memberDeclaringType)
+    private static object GetStaticMemberValue(MemberExpression memberExpression)
     {
+        string memberName = memberExpression.Member.Name;
+        MemberTypes memberType = memberExpression.Member.MemberType;
+        Type type = memberExpression.Member.DeclaringType;
         var bindingAttr = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
         switch (memberType)
         {
             case MemberTypes.Field:
-                FieldInfo fieldInfo = memberDeclaringType.GetField(memberName, bindingAttr);
-                return fieldInfo.GetValue(memberDeclaringType);
+                FieldInfo fieldInfo = type.GetField(memberName, bindingAttr);
+                return fieldInfo.GetValue(type);
             case MemberTypes.Property:
-                PropertyInfo propertyInfo = memberDeclaringType.GetProperty(memberName, bindingAttr);
-                return propertyInfo.GetValue(memberDeclaringType, null);
+                PropertyInfo propertyInfo = type.GetProperty(memberName, bindingAttr);
+                return propertyInfo.GetValue(type, null);
             default:
                 throw new NotSupportedException($"Unsupported MemberTypes: {memberType}");
         }
@@ -97,10 +97,15 @@ internal static class ConstantExtractor
     /// <summary>
     /// 获取实例成员的值
     /// </summary>
+    /// <param name="memberExpression"></param>
+    /// <param name="instance"></param>
     /// <returns></returns>
-    private static object GetInstanceMemberValue(string memberName, MemberTypes memberType, object instance)
+    /// <exception cref="NotSupportedException"></exception>
+    private static object GetInstanceMemberValue(MemberExpression memberExpression, object instance)
     {
-        var type = instance.GetType();
+        string memberName = memberExpression.Member.Name;
+        MemberTypes memberType = memberExpression.Member.MemberType;
+        Type type = memberExpression.Member.DeclaringType;//instance.GetType();
         var bindingAttr = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
         switch (memberType)
         {

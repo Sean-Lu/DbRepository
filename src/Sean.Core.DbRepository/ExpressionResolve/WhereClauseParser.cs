@@ -17,7 +17,7 @@ public static class WhereClauseParser
     {
         if (expression is BinaryExpression binaryExpression)
         {
-            if (IsLogicType(binaryExpression.NodeType))
+            if (IsLogicalOperation(binaryExpression.NodeType))
             {
                 var sqlBuilder = new StringBuilder();
                 var leftClause = Parse(parameterExpression, binaryExpression.Left, adhesive);
@@ -36,35 +36,32 @@ public static class WhereClauseParser
                 }
                 return sqlBuilder;
             }
-            else if (binaryExpression.Left is UnaryExpression { NodeType: ExpressionType.Convert, Operand: MemberExpression { Expression: ParameterExpression parameterExpression2 } enumMemberExpression } convertExpression
-                     && parameterExpression2.Name == parameterExpression.Name
-                     && convertExpression.Operand.Type.IsEnum
-                     && IsDataComparator(binaryExpression.NodeType))
+            else if (IsComparativeOperation(binaryExpression.NodeType))
             {
-                //Support the enum Property, For example: entity.UserType == UserType.Admin
-                return ConditionBuilder.BuildCondition(parameterExpression, enumMemberExpression, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Right));
-            }
-            else if (binaryExpression.Right is UnaryExpression { NodeType: ExpressionType.Convert, Operand: MemberExpression { Expression: ParameterExpression parameterExpression3 } enumMemberExpression2 } convertExpression2
-                     && parameterExpression3.Name == parameterExpression.Name
-                     && convertExpression2.Operand.Type.IsEnum
-                     && IsDataComparator(binaryExpression.NodeType))
-            {
-                //Support the enum Property, For example: UserType.Admin == entity.UserType
-                return ConditionBuilder.BuildCondition(parameterExpression, enumMemberExpression2, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Left), true);
-            }
-            else if (binaryExpression.Left is MemberExpression { Expression: ParameterExpression parameterExpression4 } memberExpression2
-                     && parameterExpression4.Name == parameterExpression.Name
-                     && IsDataComparator(binaryExpression.NodeType))
-            {
-                //For example: entity.Age > 18
-                return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Right));
-            }
-            else if (binaryExpression.Right is MemberExpression { Expression: ParameterExpression parameterExpression5 } memberExpression3
-                     && parameterExpression5.Name == parameterExpression.Name
-                     && IsDataComparator(binaryExpression.NodeType))
-            {
-                //For example: 18 < entity.Age
-                return ConditionBuilder.BuildCondition(parameterExpression, memberExpression3, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Left), true);
+                if (binaryExpression.Left is UnaryExpression { NodeType: ExpressionType.Convert, Operand: MemberExpression { Expression: ParameterExpression parameterExpression2 } convertMemberExpression }
+                         && parameterExpression2.Name == parameterExpression.Name)
+                {
+                    // Code example: entity.UserType == UserType.Admin
+                    return ConditionBuilder.BuildCondition(parameterExpression, convertMemberExpression, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Right));
+                }
+                else if (binaryExpression.Right is UnaryExpression { NodeType: ExpressionType.Convert, Operand: MemberExpression { Expression: ParameterExpression parameterExpression3 } convertMemberExpression2 }
+                         && parameterExpression3.Name == parameterExpression.Name)
+                {
+                    // Code example: UserType.Admin == entity.UserType
+                    return ConditionBuilder.BuildCondition(parameterExpression, convertMemberExpression2, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Left), true);
+                }
+                else if (binaryExpression.Left is MemberExpression { Expression: ParameterExpression parameterExpression4 } memberExpression2
+                         && parameterExpression4.Name == parameterExpression.Name)
+                {
+                    // Code example: entity.Age > 18
+                    return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Right));
+                }
+                else if (binaryExpression.Right is MemberExpression { Expression: ParameterExpression parameterExpression5 } memberExpression3
+                         && parameterExpression5.Name == parameterExpression.Name)
+                {
+                    // Code example: 18 < entity.Age
+                    return ConditionBuilder.BuildCondition(parameterExpression, memberExpression3, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Left), true);
+                }
             }
 
             throw new NotSupportedException($"Unsupported BinaryExpression: {binaryExpression}");
@@ -77,7 +74,7 @@ public static class WhereClauseParser
                 && methodCallExpression.Object is MemberExpression { Expression: ParameterExpression parameterExpression4 }
                 && parameterExpression4.Name == parameterExpression.Name)
             {
-                //"Like" condition for string property, For example: entity.Name.Contains("A")
+                //"Like" condition for string property, Code example: entity.Name.Contains("A")
                 return ConditionBuilder.BuildLikeOrEqualCondition(parameterExpression, methodCallExpression, adhesive);
             }
             else if (methodCallExpression.Method.DeclaringType == typeof(string)
@@ -85,7 +82,7 @@ public static class WhereClauseParser
                      && methodCallExpression.Arguments[0] is MemberExpression { Expression: ParameterExpression parameterExpression5 }
                      && parameterExpression5.Name == parameterExpression.Name)
             {
-                // example: entity => string.IsNullOrEmpty(entity.Email)
+                // Code example: entity => string.IsNullOrEmpty(entity.Email)
                 return ConditionBuilder.BuildIsNullOrEmptyCondition(parameterExpression, methodCallExpression, adhesive);
             }
             else if (methodCallExpression.Method.Name == "Contains")
@@ -97,7 +94,7 @@ public static class WhereClauseParser
                     && parameterExpression2.Name == parameterExpression.Name)
                 {
                     //"In" Condition, Support the `Contains` Method of IEnumerable<T> type
-                    //For example: string[] values = new string[]{ "foo", "bar"};
+                    // Code example: string[] values = new string[]{ "foo", "bar"};
                     //             values.Contains(entity.Name)
                     return ConditionBuilder.BuildInCondition(parameterExpression, memberExpression2, methodCallExpression.Arguments[0], adhesive);
                 }
@@ -111,7 +108,7 @@ public static class WhereClauseParser
                          && parameterExpression3.Name == parameterExpression.Name)
                 {
                     //"In" condition, Support the `Contains` extension Method of ICollection<TSource> Type
-                    //For example: List<string> values = new List<string> { "foo", "bar"};
+                    // Code example: List<string> values = new List<string> { "foo", "bar"};
                     //             values.Contains(entity.Name)
                     return ConditionBuilder.BuildInCondition(parameterExpression, memberExpression3, methodCallExpression.Object, adhesive);
                 }
@@ -131,14 +128,14 @@ public static class WhereClauseParser
                     && memberExpression.Expression is MemberExpression { Expression: ParameterExpression parameterExpression2 } memberExpression2
                     && parameterExpression2.Name == parameterExpression.Name)
                 {
-                    // example: Nullable<>.HasValue
+                    // Code example: Nullable<>.HasValue
                     return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, ExpressionType.NotEqual, null);
                 }
 
                 if (memberExpression.Expression is ParameterExpression parameterExpression3
                    && parameterExpression3.Name == parameterExpression.Name)
                 {
-                    // Support bool type property, For example: entity.Sex
+                    // Support bool type property, Code example: entity.Sex
                     return ConditionBuilder.BuildCondition(parameterExpression, memberExpression, adhesive, ExpressionType.Equal, true);
                 }
             }
@@ -159,14 +156,14 @@ public static class WhereClauseParser
                         && memberExpression2.Expression is MemberExpression { Expression: ParameterExpression parameterExpression2 } memberExpression3
                         && parameterExpression2.Name == parameterExpression.Name)
                     {
-                        // example: Nullable<>.HasValue
+                        // Code example: Nullable<>.HasValue
                         return ConditionBuilder.BuildCondition(parameterExpression, memberExpression3, adhesive, ExpressionType.Equal, null);
                     }
 
                     if (memberExpression2.Expression is ParameterExpression parameterExpression3
                         && parameterExpression3.Name == parameterExpression.Name)
                     {
-                        // Support bool type property, For example: !entity.Sex
+                        // Support bool type property, Code example: !entity.Sex
                         return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, ExpressionType.Equal, false);
                     }
                 }
@@ -177,14 +174,14 @@ public static class WhereClauseParser
                         && falseMethodCallExpression.Arguments[0] is MemberExpression { Expression: ParameterExpression parameterExpression3 }
                         && parameterExpression3.Name == parameterExpression.Name)
                     {
-                        // example: entity => !string.IsNullOrEmpty(entity.Email)
+                        // Code example: entity => !string.IsNullOrEmpty(entity.Email)
                         return ConditionBuilder.BuildIsNullOrEmptyCondition(parameterExpression, falseMethodCallExpression, adhesive, true);
                     }
                     else if (falseMethodCallExpression.Method.Name == nameof(object.Equals)
                              && falseMethodCallExpression.Object is MemberExpression { Expression: ParameterExpression parameterExpression2 }
                              && parameterExpression2.Name == parameterExpression.Name)
                     {
-                        // example: entity => !entity.UserName.Equals(userName)
+                        // Code example: entity => !entity.UserName.Equals(userName)
                         return ConditionBuilder.BuildLikeOrEqualCondition(parameterExpression, falseMethodCallExpression, adhesive, true);
                     }
                 }
@@ -197,8 +194,9 @@ public static class WhereClauseParser
         {
             if (constantExpression.Type == typeof(bool))
             {
-                // example1: entity => true
-                // example2: entity => false
+                // Code example:
+                // entity => true
+                // entity => false
                 StringBuilder sqlBuilder = new StringBuilder();
                 var value = (bool)constantExpression.Value;
                 sqlBuilder.Append(value ? "1=1" : "1=2");
@@ -211,31 +209,28 @@ public static class WhereClauseParser
         throw new NotSupportedException($"Unsupported Expression: {expression}");
     }
 
-    private static bool IsDataComparator(ExpressionType expressionType)
+    /// <summary>
+    /// 逻辑运算
+    /// </summary>
+    /// <param name="expressionType"></param>
+    /// <returns></returns>
+    private static bool IsLogicalOperation(ExpressionType expressionType)
     {
-        switch (expressionType)
-        {
-            case ExpressionType.Equal:
-            case ExpressionType.NotEqual:
-            case ExpressionType.LessThan:
-            case ExpressionType.LessThanOrEqual:
-            case ExpressionType.GreaterThan:
-            case ExpressionType.GreaterThanOrEqual:
-                return true;
-            default:
-                return false;
-        }
+        return expressionType is ExpressionType.OrElse or ExpressionType.AndAlso;
     }
 
-    private static bool IsLogicType(ExpressionType expressionType)
+    /// <summary>
+    /// 比较运算
+    /// </summary>
+    /// <param name="expressionType"></param>
+    /// <returns></returns>
+    private static bool IsComparativeOperation(ExpressionType expressionType)
     {
-        switch (expressionType)
-        {
-            case ExpressionType.OrElse:
-            case ExpressionType.AndAlso:
-                return true;
-            default:
-                return false;
-        }
+        return expressionType is ExpressionType.Equal
+            or ExpressionType.NotEqual
+            or ExpressionType.LessThan
+            or ExpressionType.LessThanOrEqual
+            or ExpressionType.GreaterThan
+            or ExpressionType.GreaterThanOrEqual;
     }
 }

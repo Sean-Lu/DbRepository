@@ -682,6 +682,68 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
+        /// Nullable value in 'whereExpression'.
+        /// </summary>
+        [TestMethod]
+        public void ValidateNullableValue()
+        {
+            long? excludeId = 10001;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Id != excludeId;
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Id", 10001L }
+            };
+            Assert.AreEqual("`Id` <> @Id", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Nullable value in 'whereExpression'.
+        /// </summary>
+        [TestMethod]
+        public void ValidateNullableValue2()
+        {
+            long? excludeId = null;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Id != excludeId;
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>();
+            Assert.AreEqual("`Id` is not null", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Nullable value in 'whereExpression'.
+        /// </summary>
+        [TestMethod]
+        public void ValidateNullableValue3()
+        {
+            long? excludeId = 10001;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Id != excludeId.Value;
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Id", 10001L }
+            };
+            Assert.AreEqual("`Id` <> @Id", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// Nullable value in 'whereExpression'.
+        /// </summary>
+        [TestMethod]
+        public void ValidateNullableValue4()
+        {
+            long? excludeId = null;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Id != excludeId.Value;
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>();
+            Assert.AreEqual("`Id` is not null", whereClause);
+            AssertParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
         /// null
         /// </summary>
         [TestMethod]
