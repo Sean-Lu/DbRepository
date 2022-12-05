@@ -68,7 +68,7 @@ namespace Sean.Core.DbRepository.Util
                         throw new InvalidOperationException($"Table field [{field}] not found in [{type.FullName}].");
                     }
 
-                    paramDic.Add(fieldInfo.FieldName, fieldInfo.Property.GetValue(instance, null));
+                    paramDic.Add(fieldInfo.Property.Name, fieldInfo.Property.GetValue(instance, null));
                 }
             }
             else
@@ -76,7 +76,7 @@ namespace Sean.Core.DbRepository.Util
                 // 所有字段
                 foreach (var fieldInfo in instance.GetType().GetEntityInfo().FieldInfos)
                 {
-                    paramDic.Add(fieldInfo.FieldName, fieldInfo.Property.GetValue(instance, null));
+                    paramDic.Add(fieldInfo.Property.Name, fieldInfo.Property.GetValue(instance, null));
                 }
             }
             return paramDic;
