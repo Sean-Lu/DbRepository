@@ -10,16 +10,17 @@
 注：非参数化SQL会有SQL注入的风险。
 ```
 
-- 核心类：
+- 常用类：
 
-| Class                                         | 说明                                                    |
-| --------------------------------------------- | ----------------------------------------------------- |
-| `BaseRepository<TEntity>`<br>`BaseRepository` | 抽象类，基于`DbFactory`+`Dapper`扩展，支持的数据库见枚举：`DatabaseType` |
-| `DbFactory`                                   | 数据库工厂，支持所有关系型数据库（实现`DbProviderFactory`）               |
-| `SqlFactory`                                  | `SQL`创建工厂（增\删\改\查\...）                                |
-| `DbProviderFactoryManager`                    | `System.Data.Common.DbProviderFactory`                |
+| Class                           | Namespace                       | Description     |
+| ------------------------------- | ------------------------------- | --------------- |
+| `DbFactory`                     | `Sean.Core.DbRepository`        | 数据库工厂           |
+| `SqlFactory`                    | `Sean.Core.DbRepository`        | `SQL`创建工厂（CRUD） |
+| `BaseRepository`                | `Sean.Core.DbRepository`        | 基于`DbFactory`实现 |
+| `EntityBaseRepository<TEntity>` | `Sean.Core.DbRepository`        | 基于`DbFactory`实现 |
+| `BaseRepository<TEntity>`       | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory`实现 |
 
-- `DbFactory`特别说明：
+- `DbFactory`类：支持所有实现`DbProviderFactory`的数据库
 
 ```
 Get<T>()、GetList<T>() 其中 T ：
@@ -121,23 +122,32 @@ Get<T>()、GetList<T>() 其中 T ：
 
 ## 性能对比（Performance Comparison）
 
-> `Dapper`的`Execute`方法执行插入语句的本质是一条一条的插入，当数据量非常大时会很慢，可以把多条数据拼成一条脚本一次性执行。
+> `Dapper`的`Execute`方法执行插入批量实体数据的本质是一条一条的插入，当数据量非常大时会很慢，可以分批把多条实体数据拼成一条脚本一次性执行（`BulkInsert`）。
 
 - 以下测试结果来自单元测试：**`PerformanceComparisonTest.CompareBulkInsertTimeConsumed`**
 - 测试数据库：MySQL 8.0.27
 - 测试表：Test
 
-| Operations       | 50 Entities | 200 Entities | 1,000 Entities | 2,000 Entities | 5,000 Entities |
+| Operation        | 50 Entities | 200 Entities | 1,000 Entities | 2,000 Entities | 5,000 Entities |
 | ---------------- | ----------- | ------------ | -------------- | -------------- | -------------- |
 | `Dapper.Execute` | 446 ms      | 1370 ms      | 6639 ms        | 12165 ms       | 31318 ms       |
 | `BulkInsert`     | 10 ms       | 34 ms        | 437 ms         | 1674 ms        | 15062 ms       |
+
+- 实践证明：在一次性批量执行大量实体数据时，如果实体数量超过200，建议分批执行，每次执行的实体数量不超过200，这样总的执行消耗时间是最理想的。代码示例：
+
+```csharp
+await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.AddAsync(_mapper.Map<List<TestEntity>>(models)));
+await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.UpdateAsync(_mapper.Map<List<TestEntity>>(models)));
+await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.AddOrUpdateAsync(_mapper.Map<List<TestEntity>>(models)));
+```
+
 
 ## 常用实体类注解（`TableEntity`）
 
 | Attribute                    | AttributeUsage | Namespace                                      | Description                          |
 | ---------------------------- | -------------- | ---------------------------------------------- | ------------------------------------ |
 | `TableAttribute`             | Class          | `System.ComponentModel.DataAnnotations.Schema` | 自定义表名                                |
-| `SequenceAttribute`          | Class          | `Sean.Core.DbRepository`                       | Oracle: Sequence（生成自增Id）             |
+| `SequenceAttribute`          | Class          | `Sean.Core.DbRepository`                       | 指定序列号名称（生成自增Id）                      |
 | `KeyAttribute`               | Property       | `System.ComponentModel.DataAnnotations`        | 标记为主键字段                              |
 | `DatabaseGeneratedAttribute` | Property       | `System.ComponentModel.DataAnnotations.Schema` | 设置数据库生成字段值的方式（通常和`KeyAttribute`一起使用） |
 | `ColumnAttribute`            | Property       | `System.ComponentModel.DataAnnotations.Schema` | 自定义字段名                               |
