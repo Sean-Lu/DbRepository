@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
@@ -19,13 +21,20 @@ namespace Sean.Core.DbRepository
     public class DbFactory
     {
         /// <summary>
-        /// 默认的等待命令执行所需的时间（以秒为单位）。
+        /// The time (in seconds) to wait for the command to execute. The default value is 30 seconds.
+        /// <para>等待命令执行所需的时间（以秒为单位）。 默认值为 30 秒。</para>
         /// </summary>
         public static int? DefaultCommandTimeout { get; set; }
         /// <summary>
-        /// 表字段映射匹配实体属性是否大小写敏感。默认值：false。
+        /// Whether the entity class property names are case-sensitive when mapping database table fields. The default value is false.
+        /// <para>映射数据库表字段时，实体类属性名是否区分大小写。默认值：false。</para>
         /// </summary>
         public static bool CaseSensitive { get; set; } = false;
+        /// <summary>
+        /// <see cref="DbProviderFactory"/> configuration file path.
+        /// <para>数据库提供者工厂的配置文件路径</para>
+        /// </summary>
+        public static string ProviderFactoryConfigurationPath { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"dllconfigs\{Assembly.GetExecutingAssembly().GetName().Name}.dll.config");
 
         public static IJsonSerializer JsonSerializer { get; set; } = JsonHelper.Serializer;
 
@@ -41,7 +50,8 @@ namespace Sean.Core.DbRepository
             set => OnDbProviderFactoryChanged(value);
         }
         /// <summary>
-        /// 获取或设置数据库类型
+        /// Database type
+        /// <para>数据库类型</para>
         /// </summary>
         public DatabaseType DbType
         {
@@ -50,6 +60,7 @@ namespace Sean.Core.DbRepository
         }
         /// <summary>
         /// Database connection configuration.
+        /// <para>数据库连接配置</para>
         /// </summary>
         public MultiConnectionSettings ConnectionSettings
         {
@@ -60,7 +71,8 @@ namespace Sean.Core.DbRepository
         public ISqlMonitor SqlMonitor { get; }
 
         /// <summary>
-        /// 等待命令执行所需的时间（以秒为单位）。
+        /// The time (in seconds) to wait for the command to execute. The default value is 30 seconds.
+        /// <para>等待命令执行所需的时间（以秒为单位）。 默认值为 30 秒。</para>
         /// </summary>
         public int? CommandTimeout
         {
@@ -222,14 +234,15 @@ namespace Sean.Core.DbRepository
         #endregion
 
         #region ExecuteNonQuery
-        /// <summary>   
-        /// 执行 新增\删除\修改 操作，并返回受影响的行数
-        /// </summary>   
+        /// <summary>
+        /// Execute INSERT or DELETE or UPDATE operation.
+        /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
+        /// </summary>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="commandType">Command type</param>
         /// <param name="master">true: master database, false: slave database.</param>
-        /// <returns></returns>
+        /// <returns>Returns the number of affected rows.</returns>
         public int ExecuteNonQuery(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
@@ -237,13 +250,14 @@ namespace Sean.Core.DbRepository
                 return ExecuteNonQuery(connection, commandText, parameters, commandType);
             }
         }
-        /// <summary>   
-        /// 执行 新增\删除\修改 操作，并返回受影响的行数
-        /// </summary>   
+        /// <summary>
+        /// Execute INSERT or DELETE or UPDATE operation.
+        /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
+        /// </summary>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="commandType">Command type</param>
-        /// <returns></returns>
+        /// <returns>Returns the number of affected rows.</returns>
         public int ExecuteNonQuery(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             using (var connection = CreateConnection(connectionString))
@@ -252,13 +266,14 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行 新增\删除\修改 操作，并返回受影响的行数
+        /// Execute INSERT or DELETE or UPDATE operation.
+        /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <returns></returns>
+        /// <returns>Returns the number of affected rows.</returns>
         public int ExecuteNonQuery(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
@@ -268,14 +283,15 @@ namespace Sean.Core.DbRepository
                 return command.ExecuteNonQuery(SqlMonitor);
             }
         }
-        /// <summary>   
-        /// 执行 新增\删除\修改 操作，并返回受影响的行数
+        /// <summary>
+        /// Execute INSERT or DELETE or UPDATE operation.
+        /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
         /// </summary>
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <returns></returns>
+        /// <returns>Returns the number of affected rows.</returns>
         public int ExecuteNonQuery(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
@@ -285,23 +301,25 @@ namespace Sean.Core.DbRepository
                 return command.ExecuteNonQuery(SqlMonitor);
             }
         }
-        /// <summary>   
-        /// 执行 新增\删除\修改 操作，并返回受影响的行数
-        /// </summary>   
-        /// <returns></returns>
+        /// <summary>
+        /// Execute INSERT or DELETE or UPDATE operation.
+        /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
+        /// </summary>
+        /// <returns>Returns the number of affected rows.</returns>
         public int ExecuteNonQuery(DbCommandInfo commandInfo)
         {
             return ExecuteCommandInfo(commandInfo, command => command.ExecuteNonQuery(SqlMonitor));
         }
 
-        /// <summary>   
-        /// 执行 新增\删除\修改 操作，并返回受影响的行数
-        /// </summary>   
+        /// <summary>
+        /// Execute INSERT or DELETE or UPDATE operation.
+        /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
+        /// </summary>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="commandType">Command type</param>
         /// <param name="master">true: master database, false: slave database.</param>
-        /// <returns></returns>
+        /// <returns>Returns the number of affected rows.</returns>
         public async Task<int> ExecuteNonQueryAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
@@ -309,13 +327,14 @@ namespace Sean.Core.DbRepository
                 return await ExecuteNonQueryAsync(connection, commandText, parameters, commandType);
             }
         }
-        /// <summary>   
-        /// 执行 新增\删除\修改 操作，并返回受影响的行数
-        /// </summary>   
+        /// <summary>
+        /// Execute INSERT or DELETE or UPDATE operation.
+        /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
+        /// </summary>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="commandType">Command type</param>
-        /// <returns></returns>
+        /// <returns>Returns the number of affected rows.</returns>
         public async Task<int> ExecuteNonQueryAsync(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             using (var connection = CreateConnection(connectionString))
@@ -324,13 +343,14 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行 新增\删除\修改 操作，并返回受影响的行数
+        /// Execute INSERT or DELETE or UPDATE operation.
+        /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <returns></returns>
+        /// <returns>Returns the number of affected rows.</returns>
         public async Task<int> ExecuteNonQueryAsync(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
@@ -340,14 +360,15 @@ namespace Sean.Core.DbRepository
                 return await command.ExecuteNonQueryAsync(SqlMonitor);
             }
         }
-        /// <summary>   
-        /// 执行 新增\删除\修改 操作，并返回受影响的行数
+        /// <summary>
+        /// Execute INSERT or DELETE or UPDATE operation.
+        /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
         /// </summary>
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <returns></returns>
+        /// <returns>Returns the number of affected rows.</returns>
         public async Task<int> ExecuteNonQueryAsync(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
@@ -357,10 +378,11 @@ namespace Sean.Core.DbRepository
                 return await command.ExecuteNonQueryAsync(SqlMonitor);
             }
         }
-        /// <summary>   
-        /// 执行 新增\删除\修改 操作，并返回受影响的行数
-        /// </summary>   
-        /// <returns></returns>
+        /// <summary>
+        /// Execute INSERT or DELETE or UPDATE operation.
+        /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
+        /// </summary>
+        /// <returns>Returns the number of affected rows.</returns>
         public async Task<int> ExecuteNonQueryAsync(DbCommandInfo commandInfo)
         {
             return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteNonQueryAsync(SqlMonitor));
@@ -369,7 +391,8 @@ namespace Sean.Core.DbRepository
 
         #region ExecuteDataTable
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -384,7 +407,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -398,7 +422,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -413,7 +438,8 @@ namespace Sean.Core.DbRepository
             return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -428,7 +454,8 @@ namespace Sean.Core.DbRepository
             return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
         /// <summary>
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -439,7 +466,8 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -454,7 +482,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -468,7 +497,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -483,7 +513,8 @@ namespace Sean.Core.DbRepository
             return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -498,7 +529,8 @@ namespace Sean.Core.DbRepository
             return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
         /// <summary>
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -511,7 +543,8 @@ namespace Sean.Core.DbRepository
 
         #region ExecuteDataSet
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -526,7 +559,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -540,7 +574,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -560,7 +595,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -580,7 +616,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -605,7 +642,8 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -620,7 +658,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -634,7 +673,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -654,7 +694,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -674,7 +715,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -701,7 +743,8 @@ namespace Sean.Core.DbRepository
 
         #region ExecuteReader
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -717,7 +760,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -732,7 +776,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -749,7 +794,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -766,7 +812,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -776,7 +823,8 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -792,7 +840,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -807,7 +856,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -824,7 +874,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>   
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>   
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -841,7 +892,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询
+        /// Execute the query.
+        /// <para>执行查询</para>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -853,7 +905,8 @@ namespace Sean.Core.DbRepository
 
         #region ExecuteScalar
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -868,7 +921,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -882,7 +936,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -899,7 +954,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -916,7 +972,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -926,7 +983,8 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -941,7 +999,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -955,7 +1014,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -968,7 +1028,8 @@ namespace Sean.Core.DbRepository
             return ObjectConvert.ChangeType<T>(obj);
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -981,7 +1042,8 @@ namespace Sean.Core.DbRepository
             return ObjectConvert.ChangeType<T>(obj);
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
@@ -993,7 +1055,8 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -1008,7 +1071,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -1022,7 +1086,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -1039,7 +1104,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -1056,7 +1122,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="commandInfo"></param>
         /// <returns></returns>
@@ -1066,7 +1133,8 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -1081,7 +1149,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
@@ -1095,7 +1164,8 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
@@ -1108,7 +1178,8 @@ namespace Sean.Core.DbRepository
             return ObjectConvert.ChangeType<T>(obj);
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
@@ -1121,7 +1192,8 @@ namespace Sean.Core.DbRepository
             return ObjectConvert.ChangeType<T>(obj);
         }
         /// <summary>
-        /// 执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。
+        /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
+        /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
@@ -1135,14 +1207,14 @@ namespace Sean.Core.DbRepository
 
         #region GetList<T>
         /// <summary>
-        /// Query multiple entity or special type value collections
+        /// Query entities.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: master database, false: slave database.</param>
-        /// <returns>Entity or special type value list</returns>
+        /// <returns>Returns a collection of entity after query.</returns>
         public List<T> GetList<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
@@ -1151,13 +1223,13 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query multiple entity or special type value collections
+        /// Query entities.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <returns>Entity or special type value list</returns>
+        /// <returns>Returns a collection of entity after query.</returns>
         public List<T> GetList<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             using (var connection = CreateConnection(connectionString))
@@ -1166,14 +1238,14 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query multiple entity or special type value collections
+        /// Query entities.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
-        /// <returns>Entity or special type value list</returns>
+        /// <returns>Returns a collection of entity after query.</returns>
         public List<T> GetList<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
@@ -1187,14 +1259,14 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query multiple entity or special type value collections
+        /// Query entities.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
-        /// <returns>Entity or special type value list</returns>
+        /// <returns>Returns a collection of entity after query.</returns>
         public List<T> GetList<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
@@ -1208,11 +1280,11 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query multiple entity or special type value collections
+        /// Query entities.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
-        /// <returns>Entity or special type value list</returns>
+        /// <returns>Returns a collection of entity after query.</returns>
         public List<T> GetList<T>(DbCommandInfo commandInfo)
         {
             //var table = ExecuteDataTable(commandInfo);
@@ -1225,14 +1297,14 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// Query multiple entity or special type value collections
+        /// Query entities.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: master database, false: slave database.</param>
-        /// <returns>Entity or special type value list</returns>
+        /// <returns>Returns a collection of entity after query.</returns>
         public async Task<List<T>> GetListAsync<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
@@ -1241,13 +1313,13 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query multiple entity or special type value collections
+        /// Query entities.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <returns>Entity or special type value list</returns>
+        /// <returns>Returns a collection of entity after query.</returns>
         public async Task<List<T>> GetListAsync<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             using (var connection = CreateConnection(connectionString))
@@ -1256,14 +1328,14 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query multiple entity or special type value collections
+        /// Query entities.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
-        /// <returns>Entity or special type value list</returns>
+        /// <returns>Returns a collection of entity after query.</returns>
         public async Task<List<T>> GetListAsync<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
@@ -1277,14 +1349,14 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query multiple entity or special type value collections
+        /// Query entities.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
-        /// <returns>Entity or special type value list</returns>
+        /// <returns>Returns a collection of entity after query.</returns>
         public async Task<List<T>> GetListAsync<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
@@ -1298,11 +1370,11 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query multiple entity or special type value collections
+        /// Query entities.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
-        /// <returns>Entity or special type value list</returns>
+        /// <returns>Returns a collection of entity after query.</returns>
         public async Task<List<T>> GetListAsync<T>(DbCommandInfo commandInfo)
         {
             //var table = await ExecuteDataTableAsync(commandInfo);
@@ -1317,14 +1389,14 @@ namespace Sean.Core.DbRepository
 
         #region Get<T>
         /// <summary>
-        /// Query a single entity or special type value
+        /// Query single entity.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: master database, false: slave database.</param>
-        /// <returns>Entity or special type value</returns>
+        /// <returns>Returns a single entity after query.</returns>
         public T Get<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
@@ -1333,13 +1405,13 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query a single entity or special type value
+        /// Query single entity.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <returns>Entity or special type value</returns>
+        /// <returns>Returns a single entity after query.</returns>
         public T Get<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             using (var connection = CreateConnection(connectionString))
@@ -1348,14 +1420,14 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query a single entity or special type value
+        /// Query single entity.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
-        /// <returns>Entity or special type value</returns>
+        /// <returns>Returns a single entity after query.</returns>
         public T Get<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
@@ -1366,14 +1438,14 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query a single entity or special type value
+        /// Query single entity.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
-        /// <returns>Entity or special type value</returns>
+        /// <returns>Returns a single entity after query.</returns>
         public T Get<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
@@ -1384,11 +1456,11 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query a single entity or special type value
+        /// Query single entity.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
-        /// <returns>Entity or special type value</returns>
+        /// <returns>Returns a single entity after query.</returns>
         public T Get<T>(DbCommandInfo commandInfo)
         {
             using (var dataReader = ExecuteReader(commandInfo))
@@ -1398,14 +1470,14 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// Query a single entity or special type value
+        /// Query single entity.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: master database, false: slave database.</param>
-        /// <returns>Entity or special type value</returns>
+        /// <returns>Returns a single entity after query.</returns>
         public async Task<T> GetAsync<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
@@ -1414,13 +1486,13 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query a single entity or special type value
+        /// Query single entity.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
-        /// <returns>Entity or special type value</returns>
+        /// <returns>Returns a single entity after query.</returns>
         public async Task<T> GetAsync<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             using (var connection = CreateConnection(connectionString))
@@ -1429,14 +1501,14 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query a single entity or special type value
+        /// Query single entity.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="connection">Database connection</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
-        /// <returns>Entity or special type value</returns>
+        /// <returns>Returns a single entity after query.</returns>
         public async Task<T> GetAsync<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
@@ -1447,14 +1519,14 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query a single entity or special type value
+        /// Query single entity.
         /// </summary>
         /// <typeparam name="T">Returned entity type</typeparam>
         /// <param name="transaction">Database transaction</param>
         /// <param name="commandType">Command type</param>
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
-        /// <returns>Entity or special type value</returns>
+        /// <returns>Returns a single entity after query.</returns>
         public async Task<T> GetAsync<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
@@ -1465,11 +1537,11 @@ namespace Sean.Core.DbRepository
             }
         }
         /// <summary>
-        /// Query a single entity or special type value
+        /// Query single entity.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
-        /// <returns>Entity or special type value</returns>
+        /// <returns>Returns a single entity after query.</returns>
         public async Task<T> GetAsync<T>(DbCommandInfo commandInfo)
         {
             using (var dataReader = await ExecuteReaderAsync(commandInfo))

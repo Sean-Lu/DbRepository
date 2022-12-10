@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Data.Common;
+using System.IO;
 using System.Linq;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Utility.Config;
 
 namespace Sean.Core.DbRepository
 {
@@ -85,26 +87,26 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 以XML文件的方式读取配置
         /// </summary>
-        //private static void LoadFromXmlFile()
-        //{
-        //    if (File.Exists(ConfigBuilder.ConfigFilePath))
-        //    {
-        //        const string xpathTemplate = "/configuration/dbProviderMap/databases/database[@name='{0}']";
-        //        ((DatabaseType[])Enum.GetValues(typeof(DatabaseType))).ToList().ForEach(dbType =>
-        //        {
-        //            DbProviderMap map = null;
-        //            var xpath = string.Format(xpathTemplate, dbType.ToString());
-        //            var xmlNode = XmlHelper.GetXmlNode(ConfigBuilder.ConfigFilePath, xpath);
-        //            if (xmlNode != null)
-        //            {
-        //                var providerInvariantName = XmlHelper.GetXmlAttributeValue(xmlNode, "providerInvariantName");
-        //                var factoryTypeAssemblyQualifiedName = XmlHelper.GetXmlAttributeValue(xmlNode, "factoryTypeAssemblyQualifiedName");
-        //                map = new DbProviderMap(providerInvariantName, factoryTypeAssemblyQualifiedName);
-        //            }
-        //            dbType.SetDbProviderMap(map);
-        //        });
-        //    }
-        //}
+        private static void LoadFromXmlFile()
+        {
+            if (File.Exists(DbFactory.ProviderFactoryConfigurationPath))
+            {
+                const string xpathTemplate = "/configuration/dbProviderMap/databases/database[@name='{0}']";
+                ((DatabaseType[])Enum.GetValues(typeof(DatabaseType))).ToList().ForEach(dbType =>
+                {
+                    DbProviderMap map = null;
+                    var xpath = string.Format(xpathTemplate, dbType.ToString());
+                    var xmlNode = XmlHelper.GetXmlNode(DbFactory.ProviderFactoryConfigurationPath, xpath);
+                    if (xmlNode != null)
+                    {
+                        var providerInvariantName = XmlHelper.GetXmlAttributeValue(xmlNode, "providerInvariantName");
+                        var factoryTypeAssemblyQualifiedName = XmlHelper.GetXmlAttributeValue(xmlNode, "factoryTypeAssemblyQualifiedName");
+                        map = new DbProviderMap(providerInvariantName, factoryTypeAssemblyQualifiedName);
+                    }
+                    dbType.SetDbProviderMap(map);
+                });
+            }
+        }
 
         /// <summary>
         /// 以配置文件的方式读取配置
@@ -114,7 +116,7 @@ namespace Sean.Core.DbRepository
             var section = ConfigBuilder.GetDbProviderMapSection();
             if (section == null)
             {
-                #region 设置默认的数据库驱动配置（同配置文件：\dllconfigs\Sean.Core.DbRepository.dll.config）
+                #region 设置默认的数据库驱动配置
                 //section = new DbProviderMapSection();
                 //section.Databases.Clear();
                 //section.Databases.Add(new DatabaseElement(DatabaseType.MySql, "MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));

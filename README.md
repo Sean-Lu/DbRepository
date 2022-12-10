@@ -34,7 +34,7 @@ Get<T>()、GetList<T>() 其中 T ：
 注：Dapper不仅支持以上所有类型，兼容性和性能也更好，建议使用：BaseRepository<TEntity> + Dapper
 ```
 
-- Oracle：
+- `Oracle`数据库：
 
 ```
 微软官方已经废弃System.Data.OracleClient（需要安装Oracle客户端），且不再更新。
@@ -52,7 +52,7 @@ Get<T>()、GetList<T>() 其中 T ：
 
 - `.NET Framework`: `App.config`、`Web.config`
 
-```
+```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
     <connectionStrings>
@@ -74,9 +74,9 @@ Get<T>()、GetList<T>() 其中 T ：
 </configuration>
 ```
 
-- `.NET Core`: `appsettings.json`【**通过`ProviderName`或`DatabaseType`（枚举）来配置数据库客户端驱动**】
+- `.NET Core`: `appsettings.json`【**数据库连接字符串中通过`ProviderName`或`DatabaseType`来指定数据库类型**】
 
-```
+```json
 {
   "ConnectionStrings": {
     /*主库：可以配置多个，后缀是以1开始的数字*/
@@ -92,11 +92,47 @@ Get<T>()、GetList<T>() 其中 T ：
 }
 ```
 
-## 默认数据库驱动配置
+## 数据库提供者工厂（DbProviderFactory）
 
-> 配置文件：`dllconfigs\Sean.Core.DbRepository.dll.config`
+> 支持2种方式来配置数据库和数据库提供者工厂之间的映射关系：
 
+- 方式1：通过代码实现
+- 方式2：通过配置文件实现
+
+### 方式1：代码
+
+- 代码示例1：
+
+```csharp
+DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", MySqlClientFactory.Instance));// MySql
+DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", SqlClientFactory.Instance));// Microsoft SQL Server
+DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", OracleClientFactory.Instance));// Oracle
+DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", SQLiteFactory.Instance));// SQLite
 ```
+
+- 代码示例2：
+
+```csharp
+DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));// MySql
+DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", "System.Data.SqlClient.SqlClientFactory,System.Data.SqlClient"));// Microsoft SQL Server
+DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", "Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"));// Oracle
+DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));// SQLite
+```
+
+- 代码示例3：
+
+```csharp
+// 如果直接使用数据库提供者工厂，也可以不配置数据库和数据库提供者工厂之间的映射关系。代码示例：
+var _db = new DbFactory("Database connection string...", MySqlClientFactory.Instance);
+```
+
+### 方式2：配置文件
+
+> 配置文件路径可以通过`DbFactory.ProviderFactoryConfigurationPath`设置
+
+- 配置文件示例：
+
+```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
     <configSections>
@@ -162,7 +198,7 @@ await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepos
 
 - 增删改查（CRUD）：`IBaseRepository<TEntity>`
 
-```
+```csharp
 // 新增数据：
 _testRepository.Add(entity);
 
@@ -265,7 +301,7 @@ entity => entity.UserId == _model.UserId && entity.Remark.StartsWith("测试")
 
 ## 常见问题
 
-> 注：从`.NET Standard` 2.1版本开始（`.NET Core` >= 3.0）才有`System.Data.Common.DbProviderFactories`
+> 注：从`.NET Standard` 2.1版本开始（`.NET Core` >= 3.0）才有`System.Data.Common.DbProviderFactories`类
 
 - 报错：System.ArgumentException:“The specified invariant name 'MySql.Data.MySqlClient' wasn't found in the list of registered .NET Data Providers.”
 
