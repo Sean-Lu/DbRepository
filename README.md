@@ -50,15 +50,19 @@ Get<T>()、GetList<T>() 其中 T ：
 
 ## 数据库连接字符串配置
 
-- `.NET Framework`: `App.config`、`Web.config`
+> `.NET Framework`: `App.config`、`Web.config`
+
+- 配置示例：
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
     <connectionStrings>
-        <!--主库：可以配置多个，后缀是以1开始的数字-->
+		<!-- 主库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。 -->
+		<!-- Master database: If multiple databases are configured, the suffix of the database name is a number starting with 1. -->
         <add name="master" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
-        <!--从库：可以配置多个，后缀是以1开始的数字-->
+		<!-- 从库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。 -->
+		<!-- Slave database: If multiple databases are configured, the suffix of the database name is a number starting with 1. -->
         <add name="secondary1" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
         <add name="secondary2" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
     </connectionStrings>
@@ -74,20 +78,24 @@ Get<T>()、GetList<T>() 其中 T ：
 </configuration>
 ```
 
-- `.NET Core`: `appsettings.json`【**数据库连接字符串中通过`ProviderName`或`DatabaseType`来指定数据库类型**】
+> `.NET Core`: `appsettings.json`
+
+- 配置示例：**通过在数据库连接字符串中设置`ProviderName`或`DatabaseType`的值来指定数据库类型**
 
 ```json
 {
   "ConnectionStrings": {
-    /*主库：可以配置多个，后缀是以1开始的数字*/
+    /* 主库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。 */
+    /* Master database: If multiple databases are configured, the suffix of the database name is a number starting with 1. */
     "master": "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a;ProviderName=MySql.Data.MySqlClient",
-    /*从库：可以配置多个，后缀是以1开始的数字*/
+    /* 从库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。 */
+    /* Slave database: If multiple databases are configured, the suffix of the database name is a number starting with 1. */
     "secondary1": "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a;ProviderName=MySql.Data.MySqlClient",
     "secondary2": "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a;ProviderName=MySql.Data.MySqlClient",
 
     "test_SqlServer": "server=127.0.0.1;database=test;uid=sa;pwd=123456!a;DatabaseType=SqlServer",
     "test_Oracle": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XXX)));User ID=XXX;Password=XXX;Persist Security Info=True;DatabaseType=Oracle",
-    "test_SQLite": "data source=D:\\XXX.db;version=3;DatabaseType=SQLite"
+    "test_SQLite": "data source=.\\test.db;version=3;DatabaseType=SQLite"
   }
 }
 ```
