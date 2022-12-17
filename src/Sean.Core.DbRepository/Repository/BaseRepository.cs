@@ -31,13 +31,6 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Single or clustered database.
         /// </summary>
-        protected BaseRepository() : this(configuration: null)
-        {
-
-        }
-        /// <summary>
-        /// Single or clustered database.
-        /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="configName">Configuration ConnectionStrings name</param>
         protected BaseRepository(IConfiguration configuration, string configName = Constants.Master)
@@ -48,15 +41,8 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Single or clustered database.
         /// </summary>
-        protected BaseRepository() : this(Constants.Master)
-        {
-
-        }
-        /// <summary>
-        /// Single or clustered database.
-        /// </summary>
         /// <param name="configName">Configuration ConnectionStrings name</param>
-        protected BaseRepository(string configName)
+        protected BaseRepository(string configName = Constants.Master)
         {
             Factory = new DbFactory(configName);
         }
@@ -74,7 +60,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="connString"></param>
         /// <param name="type"></param>
-        protected BaseRepository(string connString, DatabaseType type) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, type)))
+        protected BaseRepository(string connString, DatabaseType type) : this(new MultiConnectionSettings(ConnectionStringOptions.Create(connString, type)))
         {
 
         }
@@ -83,7 +69,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="connString"></param>
         /// <param name="factory"></param>
-        protected BaseRepository(string connString, DbProviderFactory factory) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, factory)))
+        protected BaseRepository(string connString, DbProviderFactory factory) : this(new MultiConnectionSettings(ConnectionStringOptions.Create(connString, factory)))
         {
 
         }
@@ -92,7 +78,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="connString"></param>
         /// <param name="providerName"></param>
-        protected BaseRepository(string connString, string providerName) : this(new MultiConnectionSettings(new ConnectionStringOptions(connString, providerName)))
+        protected BaseRepository(string connString, string providerName) : this(new MultiConnectionSettings(ConnectionStringOptions.Create(connString, providerName)))
         {
 
         }

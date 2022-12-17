@@ -22,12 +22,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual string MainTableName => typeof(TEntity).GetMainTableName();
 
     #region Constructors
-    /// <summary>
-    /// Single or clustered database.
-    /// </summary>
-    protected EntityBaseRepository() : base()
-    {
-    }
 #if NETSTANDARD
     /// <summary>
     /// Single or clustered database.
@@ -42,7 +36,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     /// Single or clustered database.
     /// </summary>
     /// <param name="configName">Configuration ConnectionStrings name</param>
-    protected EntityBaseRepository(string configName) : base(configName)
+    protected EntityBaseRepository(string configName = Constants.Master) : base(configName)
     {
     }
 #endif

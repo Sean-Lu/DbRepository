@@ -85,11 +85,11 @@ Get<T>()、GetList<T>() 其中 T ：
 ```json
 {
   "ConnectionStrings": {
-    /* 主库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。 */
-    /* Master database: If multiple databases are configured, the suffix of the database name is a number starting with 1. */
+    // 主库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。
+    // Master database: If multiple databases are configured, the suffix of the database name is a number starting with 1.
     "master": "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a;ProviderName=MySql.Data.MySqlClient",
-    /* 从库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。 */
-    /* Slave database: If multiple databases are configured, the suffix of the database name is a number starting with 1. */
+    // 从库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。
+    // Slave database: If multiple databases are configured, the suffix of the database name is a number starting with 1.
     "secondary1": "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a;ProviderName=MySql.Data.MySqlClient",
     "secondary2": "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a;ProviderName=MySql.Data.MySqlClient",
 

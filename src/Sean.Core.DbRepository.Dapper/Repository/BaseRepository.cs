@@ -21,12 +21,6 @@ namespace Sean.Core.DbRepository.Dapper
     public abstract class BaseRepository<TEntity> : EntityBaseRepository<TEntity> where TEntity : class
     {
         #region Constructors
-        /// <summary>
-        /// Single or clustered database.
-        /// </summary>
-        protected BaseRepository() : base()
-        {
-        }
 #if NETSTANDARD
         /// <summary>
         /// Single or clustered database.
@@ -41,7 +35,7 @@ namespace Sean.Core.DbRepository.Dapper
         /// Single or clustered database.
         /// </summary>
         /// <param name="configName">Configuration ConnectionStrings name</param>
-        protected BaseRepository(string configName) : base(configName)
+        protected BaseRepository(string configName = Constants.Master) : base(configName)
         {
         }
 #endif
