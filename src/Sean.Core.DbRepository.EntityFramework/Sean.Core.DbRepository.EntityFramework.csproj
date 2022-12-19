@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net45;net46;netstandard2.1;net6</TargetFrameworks>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>Sean</Authors>
+		<Copyright>Copyright © 2019-2022 Sean</Copyright>
+		<Description>ORM, Support all relational databases.</Description>
+		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
+		<LangVersion>latest</LangVersion>
+		<Version>2.1.5</Version>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' != 'net6'">
+		<PackageReference Include="EntityFramework" Version="6.4.4" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6'">
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj" />
+	</ItemGroup>
+
+</Project>

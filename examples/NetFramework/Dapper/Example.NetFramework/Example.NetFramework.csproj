@@ -59,11 +59,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj">
+    <ProjectReference Include="..\..\..\..\src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj">
       <Project>{b5fad732-d95c-47c8-9d52-4c971938b850}</Project>
       <Name>Sean.Core.DbRepository.Dapper</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\src\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj">
+    <ProjectReference Include="..\..\..\..\src\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj">
       <Project>{88F3D155-67B9-4F08-B039-E15A4D6027BF}</Project>
       <Name>Sean.Core.DbRepository</Name>
     </ProjectReference>

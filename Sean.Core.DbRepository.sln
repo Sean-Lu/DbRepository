@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30413.136
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository", "src\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj", "{88F3D155-67B9-4F08-B039-E15A4D6027BF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{671A131E-A24E-45E5-AD14-37238EBF44C2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.NetCore", "examples\NetCore\Example.NetCore\Example.NetCore.csproj", "{5FB0C89E-8DD0-40D3-9F63-1D98584CC00C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.NetCore", "examples\NetCore\Dapper\Example.NetCore\Example.NetCore.csproj", "{5FB0C89E-8DD0-40D3-9F63-1D98584CC00C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository.Dapper", "src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj", "{B5FAD732-D95C-47C8-9D52-4C971938B850}"
 EndProject
@@ -15,17 +15,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository.linq
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository.CodeGenerator", "src\Sean.Core.DbRepository.CodeGenerator\Sean.Core.DbRepository.CodeGenerator.csproj", "{706FABC9-D675-49F4-81B9-B65CC1FC81C5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Application", "examples\NetCore\Example.Application\Example.Application.csproj", "{9B41EC71-5BD4-4565-848B-DAF1EEDB0EAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Application", "examples\NetCore\Dapper\Example.Application\Example.Application.csproj", "{9B41EC71-5BD4-4565-848B-DAF1EEDB0EAA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Domain", "examples\NetCore\Example.Domain\Example.Domain.csproj", "{1B582E10-1A19-4299-8212-5D4FAC414C1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Domain", "examples\NetCore\Dapper\Example.Domain\Example.Domain.csproj", "{1B582E10-1A19-4299-8212-5D4FAC414C1C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Infrastructure", "examples\NetCore\Example.Infrastructure\Example.Infrastructure.csproj", "{935A46E6-2787-4071-BFAE-60E4F3FCF47E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Infrastructure", "examples\NetCore\Dapper\Example.Infrastructure\Example.Infrastructure.csproj", "{935A46E6-2787-4071-BFAE-60E4F3FCF47E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetCore", "NetCore", "{83A84003-86B5-4D06-953B-C6C817E33FE1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetFramework", "NetFramework", "{B7350710-D1A0-466C-A521-ED38929B3923}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.NetFramework", "examples\NetFramework\Example.NetFramework\Example.NetFramework.csproj", "{6F71737A-29A3-4D10-A5BF-E275A67A10D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.NetFramework", "examples\NetFramework\Dapper\Example.NetFramework\Example.NetFramework.csproj", "{6F71737A-29A3-4D10-A5BF-E275A67A10D8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ACE9239D-503F-46A9-A1F3-09C26C75E861}"
 	ProjectSection(SolutionItems) = preProject
@@ -34,7 +34,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{E708322C-9400-4359-8D35-AEA5E87CBE3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sean.Core.DbRepository.Test", "test\Sean.Core.DbRepository.Test\Sean.Core.DbRepository.Test.csproj", "{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository.Test", "test\Sean.Core.DbRepository.Test\Sean.Core.DbRepository.Test.csproj", "{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository.EntityFramework", "src\Sean.Core.DbRepository.EntityFramework\Sean.Core.DbRepository.EntityFramework.csproj", "{7E30307D-504E-456C-A714-91A47C035C71}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EntityFramework", "EntityFramework", "{B4729CCE-872C-4E55-864E-327590DFD526}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.EntityFramework", "examples\NetCore\EntityFramework\Example.EntityFramework\Example.EntityFramework.csproj", "{B0CF7E15-8047-4189-ACC5-EFE4DBAA2F8B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dapper", "Dapper", "{92F80805-9117-4AFD-ABAE-474E14D45216}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dapper", "Dapper", "{A17B674A-747C-492B-95AC-40E1AA1972C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -82,19 +92,31 @@ Global
 		{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E30307D-504E-456C-A714-91A47C035C71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E30307D-504E-456C-A714-91A47C035C71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E30307D-504E-456C-A714-91A47C035C71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E30307D-504E-456C-A714-91A47C035C71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0CF7E15-8047-4189-ACC5-EFE4DBAA2F8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0CF7E15-8047-4189-ACC5-EFE4DBAA2F8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0CF7E15-8047-4189-ACC5-EFE4DBAA2F8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0CF7E15-8047-4189-ACC5-EFE4DBAA2F8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{5FB0C89E-8DD0-40D3-9F63-1D98584CC00C} = {83A84003-86B5-4D06-953B-C6C817E33FE1}
-		{9B41EC71-5BD4-4565-848B-DAF1EEDB0EAA} = {83A84003-86B5-4D06-953B-C6C817E33FE1}
-		{1B582E10-1A19-4299-8212-5D4FAC414C1C} = {83A84003-86B5-4D06-953B-C6C817E33FE1}
-		{935A46E6-2787-4071-BFAE-60E4F3FCF47E} = {83A84003-86B5-4D06-953B-C6C817E33FE1}
+		{5FB0C89E-8DD0-40D3-9F63-1D98584CC00C} = {92F80805-9117-4AFD-ABAE-474E14D45216}
+		{9B41EC71-5BD4-4565-848B-DAF1EEDB0EAA} = {92F80805-9117-4AFD-ABAE-474E14D45216}
+		{1B582E10-1A19-4299-8212-5D4FAC414C1C} = {92F80805-9117-4AFD-ABAE-474E14D45216}
+		{935A46E6-2787-4071-BFAE-60E4F3FCF47E} = {92F80805-9117-4AFD-ABAE-474E14D45216}
 		{83A84003-86B5-4D06-953B-C6C817E33FE1} = {671A131E-A24E-45E5-AD14-37238EBF44C2}
 		{B7350710-D1A0-466C-A521-ED38929B3923} = {671A131E-A24E-45E5-AD14-37238EBF44C2}
-		{6F71737A-29A3-4D10-A5BF-E275A67A10D8} = {B7350710-D1A0-466C-A521-ED38929B3923}
+		{6F71737A-29A3-4D10-A5BF-E275A67A10D8} = {A17B674A-747C-492B-95AC-40E1AA1972C8}
 		{3CB07CD0-BDD3-4934-A467-0D4B9DF951CE} = {E708322C-9400-4359-8D35-AEA5E87CBE3F}
+		{B4729CCE-872C-4E55-864E-327590DFD526} = {83A84003-86B5-4D06-953B-C6C817E33FE1}
+		{B0CF7E15-8047-4189-ACC5-EFE4DBAA2F8B} = {B4729CCE-872C-4E55-864E-327590DFD526}
+		{92F80805-9117-4AFD-ABAE-474E14D45216} = {83A84003-86B5-4D06-953B-C6C817E33FE1}
+		{A17B674A-747C-492B-95AC-40E1AA1972C8} = {B7350710-D1A0-466C-A521-ED38929B3923}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {45207871-A31A-4F76-8C92-C46E7ADD1F61}

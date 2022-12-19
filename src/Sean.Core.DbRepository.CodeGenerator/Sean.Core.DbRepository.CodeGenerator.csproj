@@ -5,10 +5,10 @@
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Sean</Authors>
-		<Copyright>Copyright © 2019-2021 Sean</Copyright>
+		<Copyright>Copyright © 2019-2022 Sean</Copyright>
 		<Description>生成数据库表相关的Entity实体类、RPC实体模型、SQL等。</Description>
 		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
-		<Version>2.0.0-beta</Version>
+		<Version>2.0.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
