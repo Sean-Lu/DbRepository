@@ -1,4 +1,5 @@
 ﻿using Example.EntityFramework;
+using Example.EntityFramework.Contracts;
 using Example.EntityFramework.Entities;
 using Example.EntityFramework.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -14,13 +15,41 @@ using (var db = new EFDbContext())
     //var countResult = db.TestEntities.Count();
     //Console.WriteLine($"#################### Count 执行结果：{countResult}");
 
-    var testRepository = new TestRepository(db);
+    ITestRepository testRepository = new TestRepository(db);
 
-    var countResult2 = testRepository.Count();
-    Console.WriteLine($"#################### Count 执行结果：{countResult2}");
+    var newModel = new TestEntity
+    {
+        Id = 6,
+        UserId = 10001,
+        UserName = "Test",
+        Age = 18,
+        Country = CountryType.China,
+        IsVip = true,
+        Sex = SexType.Male,
+        CreateTime = DateTime.Now,
+        AccountBalance = 99.5M
+    };
+    var addResult = testRepository.Add(newModel);
+    Console.WriteLine($"#################### Add 执行结果：{addResult}");
 
-    var queryResult = testRepository.Query(entity => entity.Id == 6);
+    var countResult = testRepository.Count();
+    Console.WriteLine($"#################### Count 执行结果：{countResult}");
+
+    var queryResult = testRepository.QueryWithNoTracking(entity => entity.Id == 6);
     Console.WriteLine($"#################### Query 执行结果：{JsonConvert.SerializeObject(queryResult, Formatting.Indented)}");
+
+    var getResult = testRepository.Get(entity => entity.Id == 6);
+    Console.WriteLine($"#################### Get 执行结果：{JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
+
+    getResult.AccountBalance += 100;
+    var updateResult = testRepository.Update(getResult);
+    Console.WriteLine($"#################### Update 执行结果：{updateResult}");
+
+    getResult = testRepository.Get(entity => entity.Id == 6);
+    Console.WriteLine($"#################### Get 执行结果：{JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
+
+    var deleteResult = testRepository.Delete(getResult);
+    Console.WriteLine($"#################### Delete 执行结果：{deleteResult}");
 }
 
 

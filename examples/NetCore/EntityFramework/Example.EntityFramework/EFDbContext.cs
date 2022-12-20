@@ -32,8 +32,8 @@ namespace Example.EntityFramework
             // 记录日志，包含生成的sql          
             optionsBuilder.LogTo(msg =>
             {
-                Debug.WriteLine(msg);// 调试-窗口消息
-                Console.WriteLine(msg);// 输出-窗口消息
+                Debug.WriteLine(msg);// 输出调试窗口消息
+                Console.WriteLine(msg);// 输出控制台窗口消息
             }, LogLevel.Information);
         }
 

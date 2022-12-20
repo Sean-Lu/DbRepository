@@ -42,9 +42,10 @@ namespace Example.NetFramework.Impls.DbTest
 
             #region 新增数据
             var insertableSql = this.CreateInsertableBuilder<TestEntity>(true)
+                .SetParameter(new TestEntity { CreateTime = DateTime.Now })
                 .Build();
             //var insertResult = Factory.ExecuteNonQuery(insertableSql.Sql, new DbParameter[] { new SQLiteParameter(nameof(TestEntity.CreateTime), DateTime.Now) });
-            var insertResult2 = Execute(c => c.Execute(insertableSql.Sql, new TestEntity { CreateTime = DateTime.Now }));
+            var insertResult2 = Execute(c => c.Execute(insertableSql.Sql, insertableSql.Parameter));
             #endregion
 
             #region 查询数据
@@ -52,7 +53,7 @@ namespace Example.NetFramework.Impls.DbTest
                 .Page(1, 2)
                 .Build();
             //var queryResult = Factory.GetList<TestEntity>(queryableSql.Sql);
-            var queryResult2 = Execute(c => c.Query<TestEntity>(queryableSql.Sql, new { }));
+            var queryResult2 = Execute(c => c.Query<TestEntity>(queryableSql.Sql));
             _logger.LogInfo(JsonConvert.SerializeObject(queryResult2, Formatting.Indented));
             #endregion
         }

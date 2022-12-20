@@ -2,7 +2,7 @@
 
 namespace Sean.Core.DbRepository.Util
 {
-    public static class SqlUtil
+    internal static class SqlUtil
     {
         public static string GetSqlForCountTable(DatabaseType databaseType, string database, string tableName)
         {
