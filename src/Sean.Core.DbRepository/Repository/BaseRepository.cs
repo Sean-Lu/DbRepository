@@ -210,22 +210,23 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            var useInternalTransaction = transaction == null;
-            using (var trans = transaction ?? connection.BeginTransaction())
+            if (transaction == null)// Use internal transaction.
             {
-                try
+                using (var trans = connection.BeginTransaction())
                 {
-                    return func(trans);
-                }
-                catch
-                {
-                    if (useInternalTransaction)
+                    try
+                    {
+                        return func(trans);
+                    }
+                    catch
                     {
                         trans.Rollback();
+                        throw;
                     }
-                    throw;
                 }
             }
+
+            return func(transaction);
         }
         public virtual bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func, IDbTransaction transaction = null)
         {
@@ -245,35 +246,30 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            var useInternalTransaction = transaction == null;
-            using (var trans = transaction ?? connection.BeginTransaction())
+            if (transaction == null)// Use internal transaction.
             {
-                try
+                using (var trans = connection.BeginTransaction())
                 {
-                    if (!func(trans))
+                    try
                     {
-                        if (useInternalTransaction)
+                        if (!func(trans))
                         {
                             trans.Rollback();
+                            return false;
                         }
-                        return false;
-                    }
 
-                    if (useInternalTransaction)
-                    {
                         trans.Commit();
+                        return true;
                     }
-                    return true;
-                }
-                catch
-                {
-                    if (useInternalTransaction)
+                    catch
                     {
                         trans.Rollback();
+                        throw;
                     }
-                    throw;
                 }
             }
+
+            return func(transaction);
         }
 
         public virtual bool IsTableExists(string tableName, bool master = true, bool useCache = true)
@@ -390,22 +386,23 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            var useInternalTransaction = transaction == null;
-            using (var trans = transaction ?? connection.BeginTransaction())
+            if (transaction == null)// Use internal transaction.
             {
-                try
+                using (var trans = connection.BeginTransaction())
                 {
-                    return await func(trans);
-                }
-                catch
-                {
-                    if (useInternalTransaction)
+                    try
+                    {
+                        return await func(trans);
+                    }
+                    catch
                     {
                         trans.Rollback();
+                        throw;
                     }
-                    throw;
                 }
             }
+
+            return await func(transaction);
         }
         public virtual async Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null)
         {
@@ -425,35 +422,30 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            var useInternalTransaction = transaction == null;
-            using (var trans = transaction ?? connection.BeginTransaction())
+            if (transaction == null)// Use internal transaction.
             {
-                try
+                using (var trans = connection.BeginTransaction())
                 {
-                    if (!await func(trans))
+                    try
                     {
-                        if (useInternalTransaction)
+                        if (!await func(trans))
                         {
                             trans.Rollback();
+                            return false;
                         }
-                        return false;
-                    }
 
-                    if (useInternalTransaction)
-                    {
                         trans.Commit();
+                        return true;
                     }
-                    return true;
-                }
-                catch
-                {
-                    if (useInternalTransaction)
+                    catch
                     {
                         trans.Rollback();
+                        throw;
                     }
-                    throw;
                 }
             }
+
+            return await func(transaction);
         }
 
         public virtual async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)
