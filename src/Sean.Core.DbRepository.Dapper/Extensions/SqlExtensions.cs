@@ -15,7 +15,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static int Execute(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        public static int Execute(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
             return repository.Execute(connection => sql.Execute(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
@@ -27,7 +27,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static IEnumerable<T> Query<T>(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        public static IEnumerable<T> Query<T>(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
             return repository.Execute(connection => sql.Query<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
@@ -42,7 +42,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static T QueryFirstOrDefault<T>(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        public static T QueryFirstOrDefault<T>(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
             return repository.Execute(connection => sql.QueryFirstOrDefault<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
@@ -54,7 +54,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static T ExecuteScalar<T>(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        public static T ExecuteScalar<T>(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
             return repository.Execute(connection => sql.ExecuteScalar<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
@@ -66,7 +66,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static object ExecuteScalar(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        public static object ExecuteScalar(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
             return repository.Execute(connection => sql.ExecuteScalar(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
@@ -81,7 +81,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static async Task<int> ExecuteAsync(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        public static async Task<int> ExecuteAsync(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
             return await repository.ExecuteAsync(async connection => await sql.ExecuteAsync(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
@@ -93,7 +93,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static async Task<IEnumerable<T>> QueryAsync<T>(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        public static async Task<IEnumerable<T>> QueryAsync<T>(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
             return await repository.ExecuteAsync(async connection => await sql.QueryAsync<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
@@ -108,7 +108,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static async Task<T> QueryFirstOrDefaultAsync<T>(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        public static async Task<T> QueryFirstOrDefaultAsync<T>(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
             return await repository.ExecuteAsync(async connection => await sql.QueryFirstOrDefaultAsync<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
@@ -120,7 +120,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static async Task<T> ExecuteScalarAsync<T>(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        public static async Task<T> ExecuteScalarAsync<T>(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
             return await repository.ExecuteAsync(async connection => await sql.ExecuteScalarAsync<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
@@ -132,7 +132,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static async Task<object> ExecuteScalarAsync(this ISqlWithParameter sql, IBaseRepository repository, IDbTransaction transaction = null, bool master = true)
+        public static async Task<object> ExecuteScalarAsync(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
             return await repository.ExecuteAsync(async connection => await sql.ExecuteScalarAsync(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }

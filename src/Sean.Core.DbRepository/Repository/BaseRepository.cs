@@ -132,7 +132,7 @@ namespace Sean.Core.DbRepository
         }
 
         #region Synchronous method
-        public virtual int Execute(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public virtual int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -141,9 +141,9 @@ namespace Sean.Core.DbRepository
             {
                 Sql = sql,
                 Parameter = param
-            }.Execute(Factory, transaction, master);
+            }.Execute(Factory, master, transaction);
         }
-        public virtual IEnumerable<T> Query<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public virtual IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -152,9 +152,9 @@ namespace Sean.Core.DbRepository
             {
                 Sql = sql,
                 Parameter = param
-            }.Query<T>(Factory, transaction, master);
+            }.Query<T>(Factory, master, transaction);
         }
-        public virtual T QueryFirstOrDefault<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public virtual T QueryFirstOrDefault<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -163,9 +163,9 @@ namespace Sean.Core.DbRepository
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryFirstOrDefault<T>(Factory, transaction, master);
+            }.QueryFirstOrDefault<T>(Factory, master, transaction);
         }
-        public virtual T ExecuteScalar<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public virtual T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -174,7 +174,7 @@ namespace Sean.Core.DbRepository
             {
                 Sql = sql,
                 Parameter = param
-            }.ExecuteScalar<T>(Factory, transaction, master);
+            }.ExecuteScalar<T>(Factory, master, transaction);
         }
 
         public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null)
@@ -192,20 +192,25 @@ namespace Sean.Core.DbRepository
             return func(transaction.Connection);
         }
 
-        public virtual T ExecuteTransaction<T>(Func<IDbTransaction, T> func)
+        public virtual T ExecuteTransaction<T>(Func<IDbTransaction, T> func, IDbTransaction transaction = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var connection = OpenNewConnection(true))
+            if (transaction?.Connection == null)
             {
-                return ExecuteTransaction(connection, func);
+                using (var connection = OpenNewConnection(true))
+                {
+                    return ExecuteTransaction(connection, func);
+                }
             }
+
+            return ExecuteTransaction(transaction.Connection, func, transaction);
         }
-        public virtual T ExecuteTransaction<T>(IDbConnection connection, Func<IDbTransaction, T> func)
+        public virtual T ExecuteTransaction<T>(IDbConnection connection, Func<IDbTransaction, T> func, IDbTransaction transaction = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var trans = connection.BeginTransaction())
+            using (var trans = transaction ?? connection.BeginTransaction())
             {
                 try
                 {
@@ -218,20 +223,25 @@ namespace Sean.Core.DbRepository
                 }
             }
         }
-        public virtual bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func)
+        public virtual bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func, IDbTransaction transaction = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var connection = OpenNewConnection(true))
+            if (transaction?.Connection == null)
             {
-                return ExecuteAutoTransaction(connection, func);
+                using (var connection = OpenNewConnection(true))
+                {
+                    return ExecuteAutoTransaction(connection, func);
+                }
             }
+
+            return ExecuteAutoTransaction(transaction.Connection, func, transaction);
         }
-        public virtual bool ExecuteAutoTransaction(IDbConnection connection, Func<IDbTransaction, bool> func)
+        public virtual bool ExecuteAutoTransaction(IDbConnection connection, Func<IDbTransaction, bool> func, IDbTransaction transaction = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var trans = connection.BeginTransaction())
+            using (var trans = transaction ?? connection.BeginTransaction())
             {
                 try
                 {
@@ -277,18 +287,18 @@ namespace Sean.Core.DbRepository
             Execute($"ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType};", master: master);
         }
 
-        public virtual int DeleteAll(string tableName)
+        public virtual int DeleteAll(string tableName, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
-            return Execute($"DELETE FROM {tableName};");
+            return Execute($"DELETE FROM {tableName};", transaction: transaction);
         }
         #endregion
 
         #region Asynchronous method
 #if NETSTANDARD || NET45_OR_GREATER
-        public virtual async Task<int> ExecuteAsync(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public virtual async Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -297,9 +307,9 @@ namespace Sean.Core.DbRepository
             {
                 Sql = sql,
                 Parameter = param
-            }.ExecuteAsync(Factory, transaction, master);
+            }.ExecuteAsync(Factory, master, transaction);
         }
-        public virtual async Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public virtual async Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -308,9 +318,9 @@ namespace Sean.Core.DbRepository
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryAsync<T>(Factory, transaction, master);
+            }.QueryAsync<T>(Factory, master, transaction);
         }
-        public virtual async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public virtual async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -319,9 +329,9 @@ namespace Sean.Core.DbRepository
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryFirstOrDefaultAsync<T>(Factory, transaction, master);
+            }.QueryFirstOrDefaultAsync<T>(Factory, master, transaction);
         }
-        public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -330,7 +340,7 @@ namespace Sean.Core.DbRepository
             {
                 Sql = sql,
                 Parameter = param
-            }.ExecuteScalarAsync<T>(Factory, transaction, master);
+            }.ExecuteScalarAsync<T>(Factory, master, transaction);
         }
 
         public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null)
@@ -348,20 +358,25 @@ namespace Sean.Core.DbRepository
             return await func(transaction.Connection);
         }
 
-        public virtual async Task<T> ExecuteTransactionAsync<T>(Func<IDbTransaction, Task<T>> func)
+        public virtual async Task<T> ExecuteTransactionAsync<T>(Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var connection = OpenNewConnection(true))
+            if (transaction?.Connection == null)
             {
-                return await ExecuteTransactionAsync(connection, func);
+                using (var connection = OpenNewConnection(true))
+                {
+                    return await ExecuteTransactionAsync(connection, func);
+                }
             }
+
+            return await ExecuteTransactionAsync(transaction.Connection, func, transaction);
         }
-        public virtual async Task<T> ExecuteTransactionAsync<T>(IDbConnection connection, Func<IDbTransaction, Task<T>> func)
+        public virtual async Task<T> ExecuteTransactionAsync<T>(IDbConnection connection, Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var trans = connection.BeginTransaction())
+            using (var trans = transaction ?? connection.BeginTransaction())
             {
                 try
                 {
@@ -374,20 +389,25 @@ namespace Sean.Core.DbRepository
                 }
             }
         }
-        public virtual async Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func)
+        public virtual async Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var connection = OpenNewConnection(true))
+            if (transaction?.Connection == null)
             {
-                return await ExecuteAutoTransactionAsync(connection, func);
+                using (var connection = OpenNewConnection(true))
+                {
+                    return await ExecuteAutoTransactionAsync(connection, func);
+                }
             }
+
+            return await ExecuteAutoTransactionAsync(transaction.Connection, func, transaction);
         }
-        public virtual async Task<bool> ExecuteAutoTransactionAsync(IDbConnection connection, Func<IDbTransaction, Task<bool>> func)
+        public virtual async Task<bool> ExecuteAutoTransactionAsync(IDbConnection connection, Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            using (var trans = connection.BeginTransaction())
+            using (var trans = transaction ?? connection.BeginTransaction())
             {
                 try
                 {
@@ -433,12 +453,12 @@ namespace Sean.Core.DbRepository
             await ExecuteAsync($"ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType};", master: master);
         }
 
-        public virtual async Task<int> DeleteAllAsync(string tableName)
+        public virtual async Task<int> DeleteAllAsync(string tableName, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
-            return await ExecuteAsync($"DELETE FROM {tableName};");
+            return await ExecuteAsync($"DELETE FROM {tableName};", transaction: transaction);
         }
 #endif
         #endregion

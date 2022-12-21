@@ -54,10 +54,10 @@ public interface IBaseRepository : ISqlMonitor
     DbConnection OpenNewConnection(bool master);
 
     #region Synchronous method
-    int Execute(string sql, object param = null, IDbTransaction transaction = null, bool master = true);
-    IEnumerable<T> Query<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true);
-    T QueryFirstOrDefault<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true);
-    T ExecuteScalar<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true);
+    int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    T QueryFirstOrDefault<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
 
     /// <summary>
     /// Execute using DbConnection.
@@ -75,7 +75,7 @@ public interface IBaseRepository : ISqlMonitor
     /// <typeparam name="T"></typeparam>
     /// <param name="func"></param>
     /// <returns></returns>
-    T ExecuteTransaction<T>(Func<IDbTransaction, T> func);
+    T ExecuteTransaction<T>(Func<IDbTransaction, T> func, IDbTransaction transaction = null);
     /// <summary>
     /// Execute using DbTransaction.
     /// </summary>
@@ -83,20 +83,20 @@ public interface IBaseRepository : ISqlMonitor
     /// <param name="connection">Database connection</param>
     /// <param name="func"></param>
     /// <returns></returns>
-    T ExecuteTransaction<T>(IDbConnection connection, Func<IDbTransaction, T> func);
+    T ExecuteTransaction<T>(IDbConnection connection, Func<IDbTransaction, T> func, IDbTransaction transaction = null);
     /// <summary>
     /// Execute using DbTransaction, automatically commit or rollback the transaction.
     /// </summary>
     /// <param name="func"></param>
     /// <returns></returns>
-    bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func);
+    bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func, IDbTransaction transaction = null);
     /// <summary>
     /// Execute using DbTransaction, automatically commit or rollback the transaction.
     /// </summary>
     /// <param name="connection">Database connection</param>
     /// <param name="func"></param>
     /// <returns></returns>
-    bool ExecuteAutoTransaction(IDbConnection connection, Func<IDbTransaction, bool> func);
+    bool ExecuteAutoTransaction(IDbConnection connection, Func<IDbTransaction, bool> func, IDbTransaction transaction = null);
 
     /// <summary>
     /// Whether the specified table exists.
@@ -131,15 +131,15 @@ public interface IBaseRepository : ISqlMonitor
     /// </summary>
     /// <param name="tableName">Table name.</param>
     /// <returns></returns>
-    int DeleteAll(string tableName);
+    int DeleteAll(string tableName, IDbTransaction transaction = null);
     #endregion
 
     #region Asynchronous method
 #if NETSTANDARD || NET45_OR_GREATER
-    Task<int> ExecuteAsync(string sql, object param = null, IDbTransaction transaction = null, bool master = true);
-    Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true);
-    Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true);
-    Task<T> ExecuteScalarAsync<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true);
+    Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
 
     /// <summary>
     /// Execute asynchronously using DbConnection.
@@ -157,7 +157,7 @@ public interface IBaseRepository : ISqlMonitor
     /// <typeparam name="T"></typeparam>
     /// <param name="func"></param>
     /// <returns></returns>
-    Task<T> ExecuteTransactionAsync<T>(Func<IDbTransaction, Task<T>> func);
+    Task<T> ExecuteTransactionAsync<T>(Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null);
     /// <summary>
     /// Execute asynchronously using DbTransaction.
     /// </summary>
@@ -165,19 +165,19 @@ public interface IBaseRepository : ISqlMonitor
     /// <param name="connection">Database connection</param>
     /// <param name="func"></param>
     /// <returns></returns>
-    Task<T> ExecuteTransactionAsync<T>(IDbConnection connection, Func<IDbTransaction, Task<T>> func);
+    Task<T> ExecuteTransactionAsync<T>(IDbConnection connection, Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null);
     /// <summary>
     /// Execute asynchronously using DbTransaction, automatically commit or rollback the transaction.
     /// </summary>
     /// <param name="func"></param>
     /// <returns></returns>
-    Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func);
+    Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null);
     /// <summary>
     /// Execute asynchronously using DbTransaction, automatically commit or rollback the transaction.
     /// </summary>
     /// <param name="func"></param>
     /// <returns></returns>
-    Task<bool> ExecuteAutoTransactionAsync(IDbConnection connection, Func<IDbTransaction, Task<bool>> func);
+    Task<bool> ExecuteAutoTransactionAsync(IDbConnection connection, Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null);
 
     /// <summary>
     /// Whether the specified table exists.
@@ -213,7 +213,7 @@ public interface IBaseRepository : ISqlMonitor
     /// </summary>
     /// <param name="tableName">Table name.</param>
     /// <returns></returns>
-    Task<int> DeleteAllAsync(string tableName);
+    Task<int> DeleteAllAsync(string tableName, IDbTransaction transaction = null);
 #endif
 
     #endregion
@@ -297,7 +297,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// Delete all data from the <see cref="IBaseRepository.TableName()"/> table.
     /// </summary>
     /// <returns></returns>
-    int DeleteAll();
+    int DeleteAll(IDbTransaction transaction = null);
 
     /// <summary>
     /// Update entity from the <see cref="IBaseRepository.TableName()"/> table.
@@ -490,7 +490,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// Delete all data from the <see cref="IBaseRepository.TableName()"/> table.
     /// </summary>
     /// <returns></returns>
-    Task<int> DeleteAllAsync();
+    Task<int> DeleteAllAsync(IDbTransaction transaction = null);
 
     /// <summary>
     /// Update entity from the <see cref="IBaseRepository.TableName()"/> table.

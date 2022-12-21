@@ -76,7 +76,7 @@ namespace Sean.Core.DbRepository.Dapper
         #endregion
 
         #region Synchronous method
-        public override int Execute(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public override int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -85,9 +85,9 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 Sql = sql,
                 Parameter = param
-            }.Execute(this, transaction, master);
+            }.Execute(this, master, transaction);
         }
-        public override IEnumerable<T> Query<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public override IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -96,9 +96,9 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 Sql = sql,
                 Parameter = param
-            }.Query<T>(this, transaction, master);
+            }.Query<T>(this, master, transaction);
         }
-        public override T QueryFirstOrDefault<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public override T QueryFirstOrDefault<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -107,9 +107,9 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryFirstOrDefault<T>(this, transaction, master);
+            }.QueryFirstOrDefault<T>(this, master, transaction);
         }
-        public override T ExecuteScalar<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public override T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -118,7 +118,7 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 Sql = sql,
                 Parameter = param
-            }.ExecuteScalar<T>(this, transaction, master);
+            }.ExecuteScalar<T>(this, master, transaction);
         }
 
         public override bool Add(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -128,14 +128,14 @@ namespace Sean.Core.DbRepository.Dapper
             PropertyInfo keyIdentityProperty;
             if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
             {
-                var id = this.GetSqlForAdd(entity, true, fieldExpression).ExecuteScalar<long>(this, transaction, true);
+                var id = this.GetSqlForAdd(entity, true, fieldExpression).ExecuteScalar<long>(this, true, transaction);
                 if (id < 1) return false;
 
                 keyIdentityProperty.SetValue(entity, id, null);
                 return true;
             }
 
-            return this.GetSqlForAdd(entity, false, fieldExpression).Execute(this, transaction, true) > 0;
+            return this.GetSqlForAdd(entity, false, fieldExpression).Execute(this, true, transaction) > 0;
         }
         public override bool Add(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
@@ -174,7 +174,7 @@ namespace Sean.Core.DbRepository.Dapper
                 //.ReturnAutoIncrementId(returnAutoIncrementId)
                 .SetParameter(entities)// BulkInsert
                 .Build()
-                .Execute(this, transaction, true) > 0;
+                .Execute(this, true, transaction) > 0;
         }
 
         public override bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -186,11 +186,11 @@ namespace Sean.Core.DbRepository.Dapper
                 case DatabaseType.MySql:
                 case DatabaseType.SQLite:
                     {
-                        return this.GetSqlForAddOrUpdate(entity, fieldExpression).Execute(this, transaction, true) > 0;
+                        return this.GetSqlForAddOrUpdate(entity, fieldExpression).Execute(this, true, transaction) > 0;
                     }
                 default:
                     {
-                        if (this.GetSqlForEntityExists(entity).ExecuteScalar<int>(this, null, true) < 1)
+                        if (this.GetSqlForEntityExists(entity).ExecuteScalar<int>(this, true, null) < 1)
                         {
                             // INSERT
                             return Add(entity, false, fieldExpression, transaction);
@@ -222,7 +222,7 @@ namespace Sean.Core.DbRepository.Dapper
                         .IncludeFields(fieldExpression)
                         .SetParameter(entities)
                         .Build()
-                        .Execute(this, transaction, true) > 0;
+                        .Execute(this, true, transaction) > 0;
                 default:
                     //if (transaction?.Connection == null)
                     //{
@@ -253,16 +253,16 @@ namespace Sean.Core.DbRepository.Dapper
 
         public override bool Delete(TEntity entity, IDbTransaction transaction = null)
         {
-            return this.GetSqlForDelete(entity).Execute(this, transaction, true) > 0;
+            return this.GetSqlForDelete(entity).Execute(this, true, transaction) > 0;
         }
         public override int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
         {
-            return this.GetSqlForDelete(whereExpression).Execute(this, transaction, true);
+            return this.GetSqlForDelete(whereExpression).Execute(this, true, transaction);
         }
 
         public override int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
         {
-            return this.GetSqlForUpdate(entity, fieldExpression, whereExpression).Execute(this, transaction, true);
+            return this.GetSqlForUpdate(entity, fieldExpression, whereExpression).Execute(this, true, transaction);
         }
         public override bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
@@ -296,30 +296,30 @@ namespace Sean.Core.DbRepository.Dapper
 
         public override bool Increment<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
-            return this.GetSqlForIncr(value, fieldExpression, whereExpression).Execute(this, transaction, true) > 0;
+            return this.GetSqlForIncr(value, fieldExpression, whereExpression).Execute(this, true, transaction) > 0;
         }
         public override bool Decrement<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
-            return this.GetSqlForDecr(value, fieldExpression, whereExpression).Execute(this, transaction, true) > 0;
+            return this.GetSqlForDecr(value, fieldExpression, whereExpression).Execute(this, true, transaction) > 0;
         }
 
         public override IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression).Query<TEntity>(this, null, master);
+            return this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression).Query<TEntity>(this, master, null);
         }
         public override IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression).Query<TEntity>(this, null, master);
+            return this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression).Query<TEntity>(this, master, null);
         }
 
         public override TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return this.GetSqlForGet(whereExpression, fieldExpression).QueryFirstOrDefault<TEntity>(this, null, master);
+            return this.GetSqlForGet(whereExpression, fieldExpression).QueryFirstOrDefault<TEntity>(this, master, null);
         }
 
         public override int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
         {
-            return this.GetSqlForCount(whereExpression).ExecuteScalar<int>(this, null, master);
+            return this.GetSqlForCount(whereExpression).ExecuteScalar<int>(this, master, null);
         }
 
         public override bool IsTableExists(string tableName, bool master = true, bool useCache = true)
@@ -335,7 +335,7 @@ namespace Sean.Core.DbRepository.Dapper
 
         #region Asynchronous method
 #if NETSTANDARD || NET45_OR_GREATER
-        public override async Task<int> ExecuteAsync(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public override async Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -344,9 +344,9 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 Sql = sql,
                 Parameter = param
-            }.ExecuteAsync(this, transaction, master);
+            }.ExecuteAsync(this, master, transaction);
         }
-        public override async Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public override async Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -355,9 +355,9 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryAsync<T>(this, transaction, master);
+            }.QueryAsync<T>(this, master, transaction);
         }
-        public override async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public override async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -366,9 +366,9 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryFirstOrDefaultAsync<T>(this, transaction, master);
+            }.QueryFirstOrDefaultAsync<T>(this, master, transaction);
         }
-        public override async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, IDbTransaction transaction = null, bool master = true)
+        public override async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -377,7 +377,7 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 Sql = sql,
                 Parameter = param
-            }.ExecuteScalarAsync<T>(this, transaction, master);
+            }.ExecuteScalarAsync<T>(this, master, transaction);
         }
 
         public override async Task<bool> AddAsync(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -387,14 +387,14 @@ namespace Sean.Core.DbRepository.Dapper
             PropertyInfo keyIdentityProperty;
             if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
             {
-                var id = await this.GetSqlForAdd(entity, true, fieldExpression).ExecuteScalarAsync<long>(this, transaction, true);
+                var id = await this.GetSqlForAdd(entity, true, fieldExpression).ExecuteScalarAsync<long>(this, true, transaction);
                 if (id < 1) return false;
 
                 keyIdentityProperty.SetValue(entity, id, null);
                 return true;
             }
 
-            return await this.GetSqlForAdd(entity, false, fieldExpression).ExecuteAsync(this, transaction, true) > 0;
+            return await this.GetSqlForAdd(entity, false, fieldExpression).ExecuteAsync(this, true, transaction) > 0;
         }
         public override async Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
@@ -433,7 +433,7 @@ namespace Sean.Core.DbRepository.Dapper
                 //.ReturnAutoIncrementId(returnAutoIncrementId)
                 .SetParameter(entities)// BulkInsert
                 .Build()
-                .ExecuteAsync(this, transaction, true) > 0;
+                .ExecuteAsync(this, true, transaction) > 0;
         }
 
         public override async Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -445,11 +445,11 @@ namespace Sean.Core.DbRepository.Dapper
                 case DatabaseType.MySql:
                 case DatabaseType.SQLite:
                     {
-                        return await this.GetSqlForAddOrUpdate(entity, fieldExpression).ExecuteAsync(this, transaction, true) > 0;
+                        return await this.GetSqlForAddOrUpdate(entity, fieldExpression).ExecuteAsync(this, true, transaction) > 0;
                     }
                 default:
                     {
-                        if (await this.GetSqlForEntityExists(entity).ExecuteScalarAsync<int>(this, null, true) < 1)
+                        if (await this.GetSqlForEntityExists(entity).ExecuteScalarAsync<int>(this, true, null) < 1)
                         {
                             // INSERT
                             return await AddAsync(entity, false, fieldExpression, transaction);
@@ -481,7 +481,7 @@ namespace Sean.Core.DbRepository.Dapper
                         .IncludeFields(fieldExpression)
                         .SetParameter(entities)
                         .Build()
-                        .ExecuteAsync(this, transaction, true) > 0;
+                        .ExecuteAsync(this, true, transaction) > 0;
                 default:
                     //if (transaction?.Connection == null)
                     //{
@@ -512,16 +512,16 @@ namespace Sean.Core.DbRepository.Dapper
 
         public override async Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null)
         {
-            return await this.GetSqlForDelete(entity).ExecuteAsync(this, transaction, true) > 0;
+            return await this.GetSqlForDelete(entity).ExecuteAsync(this, true, transaction) > 0;
         }
         public override async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
         {
-            return await this.GetSqlForDelete(whereExpression).ExecuteAsync(this, transaction, true);
+            return await this.GetSqlForDelete(whereExpression).ExecuteAsync(this, true, transaction);
         }
 
         public override async Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
         {
-            return await this.GetSqlForUpdate(entity, fieldExpression, whereExpression).ExecuteAsync(this, transaction, true);
+            return await this.GetSqlForUpdate(entity, fieldExpression, whereExpression).ExecuteAsync(this, true, transaction);
         }
         public override async Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
         {
@@ -555,30 +555,30 @@ namespace Sean.Core.DbRepository.Dapper
 
         public override async Task<bool> IncrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
-            return await this.GetSqlForIncr(value, fieldExpression, whereExpression).ExecuteAsync(this, transaction, true) > 0;
+            return await this.GetSqlForIncr(value, fieldExpression, whereExpression).ExecuteAsync(this, true, transaction) > 0;
         }
         public override async Task<bool> DecrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
         {
-            return await this.GetSqlForDecr(value, fieldExpression, whereExpression).ExecuteAsync(this, transaction, true) > 0;
+            return await this.GetSqlForDecr(value, fieldExpression, whereExpression).ExecuteAsync(this, true, transaction) > 0;
         }
 
         public override async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return await this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression).QueryAsync<TEntity>(this, null, master);
+            return await this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression).QueryAsync<TEntity>(this, master, null);
         }
         public override async Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return await this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression).QueryAsync<TEntity>(this, null, master);
+            return await this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression).QueryAsync<TEntity>(this, master, null);
         }
 
         public override async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return await this.GetSqlForGet(whereExpression, fieldExpression).QueryFirstOrDefaultAsync<TEntity>(this, null, master);
+            return await this.GetSqlForGet(whereExpression, fieldExpression).QueryFirstOrDefaultAsync<TEntity>(this, master, null);
         }
 
         public override async Task<int> CountAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
         {
-            return await this.GetSqlForCount(whereExpression).ExecuteScalarAsync<int>(this, null, master);
+            return await this.GetSqlForCount(whereExpression).ExecuteScalarAsync<int>(this, master, null);
         }
 
         public override async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)
