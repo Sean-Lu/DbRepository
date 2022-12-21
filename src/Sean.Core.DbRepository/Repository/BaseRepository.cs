@@ -210,6 +210,7 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
+            var useInternalTransaction = transaction == null;
             using (var trans = transaction ?? connection.BeginTransaction())
             {
                 try
@@ -218,7 +219,10 @@ namespace Sean.Core.DbRepository
                 }
                 catch
                 {
-                    trans.Rollback();
+                    if (useInternalTransaction)
+                    {
+                        trans.Rollback();
+                    }
                     throw;
                 }
             }
@@ -241,22 +245,32 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
+            var useInternalTransaction = transaction == null;
             using (var trans = transaction ?? connection.BeginTransaction())
             {
                 try
                 {
                     if (!func(trans))
                     {
-                        trans.Rollback();
+                        if (useInternalTransaction)
+                        {
+                            trans.Rollback();
+                        }
                         return false;
                     }
 
-                    trans.Commit();
+                    if (useInternalTransaction)
+                    {
+                        trans.Commit();
+                    }
                     return true;
                 }
                 catch
                 {
-                    trans.Rollback();
+                    if (useInternalTransaction)
+                    {
+                        trans.Rollback();
+                    }
                     throw;
                 }
             }
@@ -376,6 +390,7 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
+            var useInternalTransaction = transaction == null;
             using (var trans = transaction ?? connection.BeginTransaction())
             {
                 try
@@ -384,7 +399,10 @@ namespace Sean.Core.DbRepository
                 }
                 catch
                 {
-                    trans.Rollback();
+                    if (useInternalTransaction)
+                    {
+                        trans.Rollback();
+                    }
                     throw;
                 }
             }
@@ -407,22 +425,32 @@ namespace Sean.Core.DbRepository
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
+            var useInternalTransaction = transaction == null;
             using (var trans = transaction ?? connection.BeginTransaction())
             {
                 try
                 {
                     if (!await func(trans))
                     {
-                        trans.Rollback();
+                        if (useInternalTransaction)
+                        {
+                            trans.Rollback();
+                        }
                         return false;
                     }
 
-                    trans.Commit();
+                    if (useInternalTransaction)
+                    {
+                        trans.Commit();
+                    }
                     return true;
                 }
                 catch
                 {
-                    trans.Rollback();
+                    if (useInternalTransaction)
+                    {
+                        trans.Rollback();
+                    }
                     throw;
                 }
             }
