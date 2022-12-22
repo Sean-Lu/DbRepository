@@ -7,7 +7,7 @@ namespace Example.NetFramework.Entities
     /// <summary>
     /// 签到明细日志表
     /// </summary>
-    [Table("CheckInLog", Schema = "test")]
+    [Table("CheckInLog")]
     public class CheckInLogEntity
     {
         /// <summary>

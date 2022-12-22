@@ -7,7 +7,7 @@ namespace Example.NetFramework.Entities
     /// <summary>
     /// 用户表
     /// </summary>
-    [Table("User", Schema = "test")]
+    [Table("User")]
     public class UserEntity
     {
         /// <summary>

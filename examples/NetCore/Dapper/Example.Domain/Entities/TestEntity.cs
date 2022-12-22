@@ -8,7 +8,7 @@ namespace Example.Domain.Entities
     /// <summary>
     /// 测试表（仅供测试使用）
     /// </summary>
-    [Table("Test", Schema = "test")]
+    [Table("Test")]
     public class TestEntity
     {
         /// <summary>
