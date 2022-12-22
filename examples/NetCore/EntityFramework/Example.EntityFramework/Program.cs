@@ -17,9 +17,10 @@ using (var db = new EFDbContext())
 
     ITestRepository testRepository = new TestRepository(db);
 
+    var id = 6L;
     var newModel = new TestEntity
     {
-        Id = 6,
+        Id = id,
         UserId = 10001,
         UserName = "Test",
         Age = 18,
@@ -35,20 +36,21 @@ using (var db = new EFDbContext())
     var countResult = testRepository.Count();
     Console.WriteLine($"#################### Count 执行结果：{countResult}");
 
-    var queryResult = testRepository.QueryWithNoTracking(entity => entity.Id == 6);
+    var queryResult = testRepository.QueryWithNoTracking(entity => entity.Age >= 18 && entity.IsVip);
     Console.WriteLine($"#################### Query 执行结果：{JsonConvert.SerializeObject(queryResult, Formatting.Indented)}");
 
-    var getResult = testRepository.Get(entity => entity.Id == 6);
+    var getResult = testRepository.Get(entity => entity.Id == id);
     Console.WriteLine($"#################### Get 执行结果：{JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
 
     getResult.AccountBalance += 100;
     var updateResult = testRepository.Update(getResult);
     Console.WriteLine($"#################### Update 执行结果：{updateResult}");
 
-    getResult = testRepository.Get(entity => entity.Id == 6);
-    Console.WriteLine($"#################### Get 执行结果：{JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
+    getResult = testRepository.GetById(id);
+    Console.WriteLine($"#################### GetById 执行结果：{JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
 
     var deleteResult = testRepository.Delete(getResult);
+    //var deleteResult = testRepository.Delete(new TestEntity { Id = id });
     Console.WriteLine($"#################### Delete 执行结果：{deleteResult}");
 }
 
