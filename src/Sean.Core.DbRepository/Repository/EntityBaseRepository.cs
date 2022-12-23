@@ -262,7 +262,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return this.GetSqlForGet(whereExpression, fieldExpression).QueryFirstOrDefault<TEntity>(Factory, master, null);
+        return this.GetSqlForGet(whereExpression, fieldExpression).Get<TEntity>(Factory, master, null);
     }
 
     public virtual int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
@@ -488,7 +488,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return await this.GetSqlForGet(whereExpression, fieldExpression).QueryFirstOrDefaultAsync<TEntity>(Factory, master, null);
+        return await this.GetSqlForGet(whereExpression, fieldExpression).GetAsync<TEntity>(Factory, master, null);
     }
 
     public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true)

@@ -154,7 +154,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param
             }.Query<T>(Factory, master, transaction);
         }
-        public virtual T QueryFirstOrDefault<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual T Get<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -163,7 +163,7 @@ namespace Sean.Core.DbRepository
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryFirstOrDefault<T>(Factory, master, transaction);
+            }.Get<T>(Factory, master, transaction);
         }
         public virtual T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
@@ -330,7 +330,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param
             }.QueryAsync<T>(Factory, master, transaction);
         }
-        public virtual async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<T> GetAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -339,7 +339,7 @@ namespace Sean.Core.DbRepository
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryFirstOrDefaultAsync<T>(Factory, master, transaction);
+            }.GetAsync<T>(Factory, master, transaction);
         }
         public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {

@@ -1191,7 +1191,7 @@ namespace Sean.Core.DbRepository
         }
         #endregion
 
-        #region GetList<T>
+        #region Query<T>
         /// <summary>
         /// Query entities.
         /// </summary>
@@ -1201,11 +1201,11 @@ namespace Sean.Core.DbRepository
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: master database, false: slave database.</param>
         /// <returns>Returns a collection of entity after query.</returns>
-        public List<T> GetList<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public List<T> Query<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
             {
-                return GetList<T>(connection, commandText, parameters, commandType);
+                return Query<T>(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>
@@ -1216,11 +1216,11 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns>Returns a collection of entity after query.</returns>
-        public List<T> GetList<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public List<T> Query<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             using (var connection = CreateConnection(connectionString))
             {
-                return GetList<T>(connection, commandText, parameters, commandType);
+                return Query<T>(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>
@@ -1232,7 +1232,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
         /// <returns>Returns a collection of entity after query.</returns>
-        public List<T> GetList<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public List<T> Query<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -1253,7 +1253,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
         /// <returns>Returns a collection of entity after query.</returns>
-        public List<T> GetList<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public List<T> Query<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
@@ -1271,7 +1271,7 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
         /// <returns>Returns a collection of entity after query.</returns>
-        public List<T> GetList<T>(DbCommandInfo commandInfo)
+        public List<T> Query<T>(DbCommandInfo commandInfo)
         {
             //var table = ExecuteDataTable(commandInfo);
             //return table?.ToList<T>(CaseSensitive);
@@ -1291,11 +1291,11 @@ namespace Sean.Core.DbRepository
         /// <param name="parameters">Input parameters</param>
         /// <param name="master">true: master database, false: slave database.</param>
         /// <returns>Returns a collection of entity after query.</returns>
-        public async Task<List<T>> GetListAsync<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
+        public async Task<List<T>> QueryAsync<T>(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
         {
             using (var connection = CreateConnection(master))
             {
-                return await GetListAsync<T>(connection, commandText, parameters, commandType);
+                return await QueryAsync<T>(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>
@@ -1306,11 +1306,11 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>
         /// <returns>Returns a collection of entity after query.</returns>
-        public async Task<List<T>> GetListAsync<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public async Task<List<T>> QueryAsync<T>(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             using (var connection = CreateConnection(connectionString))
             {
-                return await GetListAsync<T>(connection, commandText, parameters, commandType);
+                return await QueryAsync<T>(connection, commandText, parameters, commandType);
             }
         }
         /// <summary>
@@ -1322,7 +1322,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
         /// <returns>Returns a collection of entity after query.</returns>
-        public async Task<List<T>> GetListAsync<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public async Task<List<T>> QueryAsync<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
@@ -1343,7 +1343,7 @@ namespace Sean.Core.DbRepository
         /// <param name="commandText">Command text to be executed</param>
         /// <param name="parameters">Input parameters</param>   
         /// <returns>Returns a collection of entity after query.</returns>
-        public async Task<List<T>> GetListAsync<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
+        public async Task<List<T>> QueryAsync<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
@@ -1361,7 +1361,7 @@ namespace Sean.Core.DbRepository
         /// <typeparam name="T"></typeparam>
         /// <param name="commandInfo"></param>
         /// <returns>Returns a collection of entity after query.</returns>
-        public async Task<List<T>> GetListAsync<T>(DbCommandInfo commandInfo)
+        public async Task<List<T>> QueryAsync<T>(DbCommandInfo commandInfo)
         {
             //var table = await ExecuteDataTableAsync(commandInfo);
             //return table?.ToList<T>(CaseSensitive);

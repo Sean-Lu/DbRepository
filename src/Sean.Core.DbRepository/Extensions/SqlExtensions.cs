@@ -22,13 +22,13 @@ namespace Sean.Core.DbRepository.Extensions
         {
             if (transaction != null)
             {
-                return dbFactory.GetList<T>(transaction, sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()));
+                return dbFactory.Query<T>(transaction, sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()));
             }
 
-            return dbFactory.GetList<T>(sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()), master: master);
+            return dbFactory.Query<T>(sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()), master: master);
         }
 
-        public static T QueryFirstOrDefault<T>(this ISqlWithParameter sql, DbFactory dbFactory, bool master = true, IDbTransaction transaction = null)
+        public static T Get<T>(this ISqlWithParameter sql, DbFactory dbFactory, bool master = true, IDbTransaction transaction = null)
         {
             if (transaction != null)
             {
@@ -74,13 +74,13 @@ namespace Sean.Core.DbRepository.Extensions
         {
             if (transaction != null)
             {
-                return await dbFactory.GetListAsync<T>(transaction, sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()));
+                return await dbFactory.QueryAsync<T>(transaction, sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()));
             }
 
-            return await dbFactory.GetListAsync<T>(sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()), master: master);
+            return await dbFactory.QueryAsync<T>(sql.Sql, SqlParameterUtil.ConvertToDbParameters(sql.Parameter, () => dbFactory.ProviderFactory.CreateParameter()), master: master);
         }
 
-        public static async Task<T> QueryFirstOrDefaultAsync<T>(this ISqlWithParameter sql, DbFactory dbFactory, bool master = true, IDbTransaction transaction = null)
+        public static async Task<T> GetAsync<T>(this ISqlWithParameter sql, DbFactory dbFactory, bool master = true, IDbTransaction transaction = null)
         {
             if (transaction != null)
             {

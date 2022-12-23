@@ -32,7 +32,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             return repository.Execute(connection => sql.Query<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
 
-        public static T QueryFirstOrDefault<T>(this ISqlWithParameter sql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
+        public static T Get<T>(this ISqlWithParameter sql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sql.Sql, sql.Parameter));
             //var result = singleCheck// Whether a single result is checked. If the value is true and multiple results are found, an exception will be thrown, otherwise the first result or the default value is returned.
@@ -42,9 +42,9 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static T QueryFirstOrDefault<T>(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
+        public static T Get<T>(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
-            return repository.Execute(connection => sql.QueryFirstOrDefault<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
+            return repository.Execute(connection => sql.Get<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
 
         public static T ExecuteScalar<T>(this ISqlWithParameter sql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
@@ -98,7 +98,7 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             return await repository.ExecuteAsync(async connection => await sql.QueryAsync<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
 
-        public static async Task<T> QueryFirstOrDefaultAsync<T>(this ISqlWithParameter sql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
+        public static async Task<T> GetAsync<T>(this ISqlWithParameter sql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sql.Sql, sql.Parameter));
             //var result = await (singleCheck// Whether a single result is checked. If the value is true and multiple results are found, an exception will be thrown, otherwise the first result or the default value is returned.
@@ -108,9 +108,9 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sql.Sql, sql.Parameter));
             return result;
         }
-        public static async Task<T> QueryFirstOrDefaultAsync<T>(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
+        public static async Task<T> GetAsync<T>(this ISqlWithParameter sql, IBaseRepository repository, bool master = true, IDbTransaction transaction = null)
         {
-            return await repository.ExecuteAsync(async connection => await sql.QueryFirstOrDefaultAsync<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
+            return await repository.ExecuteAsync(async connection => await sql.GetAsync<T>(connection, transaction, repository, repository.CommandTimeout), master, transaction);
         }
 
         public static async Task<T> ExecuteScalarAsync<T>(this ISqlWithParameter sql, IDbConnection connection, IDbTransaction transaction = null, ISqlMonitor sqlMonitor = null, int? commandTimeout = null)

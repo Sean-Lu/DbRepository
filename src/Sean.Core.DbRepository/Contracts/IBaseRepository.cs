@@ -56,7 +56,7 @@ public interface IBaseRepository : ISqlMonitor
     #region Synchronous method
     int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
     IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
-    T QueryFirstOrDefault<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    T Get<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
     T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
 
     /// <summary>
@@ -138,7 +138,7 @@ public interface IBaseRepository : ISqlMonitor
 #if NETSTANDARD || NET45_OR_GREATER
     Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
     Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
-    Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<T> GetAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
     Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
 
     /// <summary>

@@ -98,7 +98,7 @@ namespace Sean.Core.DbRepository.Dapper
                 Parameter = param
             }.Query<T>(this, master, transaction);
         }
-        public override T QueryFirstOrDefault<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public override T Get<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -107,7 +107,7 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryFirstOrDefault<T>(this, master, transaction);
+            }.Get<T>(this, master, transaction);
         }
         public override T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
@@ -314,7 +314,7 @@ namespace Sean.Core.DbRepository.Dapper
 
         public override TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return this.GetSqlForGet(whereExpression, fieldExpression).QueryFirstOrDefault<TEntity>(this, master, null);
+            return this.GetSqlForGet(whereExpression, fieldExpression).Get<TEntity>(this, master, null);
         }
 
         public override int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
@@ -357,7 +357,7 @@ namespace Sean.Core.DbRepository.Dapper
                 Parameter = param
             }.QueryAsync<T>(this, master, transaction);
         }
-        public override async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public override async Task<T> GetAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -366,7 +366,7 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryFirstOrDefaultAsync<T>(this, master, transaction);
+            }.GetAsync<T>(this, master, transaction);
         }
         public override async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
@@ -573,7 +573,7 @@ namespace Sean.Core.DbRepository.Dapper
 
         public override async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
         {
-            return await this.GetSqlForGet(whereExpression, fieldExpression).QueryFirstOrDefaultAsync<TEntity>(this, master, null);
+            return await this.GetSqlForGet(whereExpression, fieldExpression).GetAsync<TEntity>(this, master, null);
         }
 
         public override async Task<int> CountAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true)

@@ -52,7 +52,7 @@ namespace Example.NetFramework.Impls.DbTest
             var queryableSql = this.CreateQueryableBuilder<TestEntity>(true)
                 .Page(1, 2)
                 .Build();
-            //var queryResult = Factory.GetList<TestEntity>(queryableSql.Sql);
+            //var queryResult = Factory.Query<TestEntity>(queryableSql.Sql);
             var queryResult2 = Execute(c => c.Query<TestEntity>(queryableSql.Sql));
             _logger.LogInfo(JsonConvert.SerializeObject(queryResult2, Formatting.Indented));
             #endregion
