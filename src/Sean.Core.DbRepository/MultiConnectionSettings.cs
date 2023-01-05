@@ -94,6 +94,11 @@ namespace Sean.Core.DbRepository
         }
         #endregion
 
+        public void Clear()
+        {
+            _connectionStrings.Clear();
+        }
+
         public void Add(ConnectionStringOptions options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
