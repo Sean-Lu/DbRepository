@@ -9,7 +9,7 @@ namespace Sean.Core.DbRepository.Extensions
     public static class MemberInfoExtensions
     {
         /// <summary>
-        /// 获取数据库表字段名称
+        /// Gets the database table field name.
         /// </summary>
         /// <param name="memberInfo"></param>
         /// <returns></returns>
@@ -21,10 +21,9 @@ namespace Sean.Core.DbRepository.Extensions
                 return fieldAttribute.Name;
             }
 
-            var notMappedAttribute = memberInfo.GetCustomAttributesExt<NotMappedAttribute>(false)?.FirstOrDefault();
-            if (notMappedAttribute != null)
+            if (memberInfo.GetCustomAttributesExt<NotMappedAttribute>(false).Any())
             {
-                return null;
+                throw new InvalidOperationException($"The member [{memberInfo.DeclaringType?.Name}.{memberInfo.Name}] is not a database table field.");
             }
 
             return memberInfo.Name;
