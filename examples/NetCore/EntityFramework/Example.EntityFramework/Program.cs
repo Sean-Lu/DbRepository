@@ -5,6 +5,8 @@ using Example.EntityFramework.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
+Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置当前工作目录：@".\"
+
 //var connString = "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a";
 //var optionsBuilder = new DbContextOptionsBuilder<EFDbContext>();
 //optionsBuilder.UseMySQL(connString);

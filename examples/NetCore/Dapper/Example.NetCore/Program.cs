@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Example.Application.Extensions;
@@ -15,6 +16,8 @@ namespace Example.NetCore
     {
         static void Main(string[] args)
         {
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置当前工作目录：@".\"
+
             IocContainer.Instance.ConfigureServices(services =>
             {
                 services.AddApplicationDI();

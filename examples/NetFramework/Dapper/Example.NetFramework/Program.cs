@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Data.SQLite;
+using System.IO;
 using Example.NetFramework.Impls;
 using Example.NetFramework.Impls.DbTest;
 using MySql.Data.MySqlClient;
@@ -16,6 +17,8 @@ namespace Example.NetFramework
     {
         static void Main(string[] args)
         {
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置当前工作目录：@".\"
+
             #region 配置Logger
             SimpleLocalLoggerBase.DateTimeFormat = time => time.ToLongDateTime();
             SimpleLocalLoggerBase.DefaultLoggerOptions = new SimpleLocalLoggerOptions
