@@ -24,7 +24,12 @@ namespace Sean.Core.DbRepository
             return DbType.MarkAsTableOrFieldName(tableName);
         }
 
-        public virtual string FormatFieldName(string fieldName, bool multiTable = false)
+        public string FormatFieldName(string fieldName)
+        {
+            return FormatFieldName(fieldName, false);
+        }
+
+        public virtual string FormatFieldName(string fieldName, bool multiTable)
         {
             if (multiTable || MultiTable)
             {

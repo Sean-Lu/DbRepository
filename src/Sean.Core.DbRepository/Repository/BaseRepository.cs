@@ -126,7 +126,7 @@ namespace Sean.Core.DbRepository
             Factory.SqlMonitor?.OnSqlExecuted(context);
         }
 
-        public virtual DbConnection OpenNewConnection(bool master)
+        public virtual DbConnection OpenNewConnection(bool master = true)
         {
             return Factory.OpenNewConnection(master);
         }

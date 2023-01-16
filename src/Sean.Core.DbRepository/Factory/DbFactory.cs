@@ -1539,7 +1539,7 @@ namespace Sean.Core.DbRepository
 
         #region DbConnection
         /// <summary>
-        /// Create a new connection without setting the connection string.
+        /// Create a new connection without connection string.
         /// </summary>
         /// <returns></returns>
         public DbConnection CreateEmptyConnection()
@@ -1548,24 +1548,16 @@ namespace Sean.Core.DbRepository
         }
 
         /// <summary>
-        /// Create a new connection with default connection string.
-        /// </summary>
-        /// <returns></returns>
-        public DbConnection CreateConnection()
-        {
-            return CreateConnection(true);
-        }
-        /// <summary>
-        /// Create a new connection with default connection string.
+        /// Create a new connection with connection string.
         /// </summary>
         /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
-        public DbConnection CreateConnection(bool master)
+        public DbConnection CreateConnection(bool master = true)
         {
             return CreateConnection(_connectionSettings?.GetConnectionString(master));
         }
         /// <summary>
-        /// Create a new connection with specified connection string.
+        /// Create a new connection with connection string.
         /// </summary>
         /// <param name="connectionString">Database connection string</param>
         /// <returns></returns>
@@ -1585,17 +1577,9 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Create and open a new connection.
         /// </summary>
-        /// <returns></returns>
-        public DbConnection OpenNewConnection()
-        {
-            return OpenNewConnection(true);
-        }
-        /// <summary>
-        /// Create and open a new connection.
-        /// </summary>
         /// <param name="master">true: master database, false: slave database.</param>
         /// <returns></returns>
-        public DbConnection OpenNewConnection(bool master)
+        public DbConnection OpenNewConnection(bool master = true)
         {
             var connection = CreateConnection(master);
             OpenConnection(connection);

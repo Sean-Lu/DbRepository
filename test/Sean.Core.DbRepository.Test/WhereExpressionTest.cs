@@ -12,7 +12,7 @@ namespace Sean.Core.DbRepository.Test
     /// Expression表达式树测试：whereExpression
     /// </summary>
     [TestClass]
-    public class WhereExpressionTest
+    public class WhereExpressionTest : TestBase
     {
         private readonly ISqlAdapter _sqlAdapter;
         private readonly TestEntity _model;
@@ -40,7 +40,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserId", 10001L }
             };
             Assert.AreEqual("`UserId` = @UserId", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Age", 18 }
             };
             Assert.AreEqual("`Age` >= @Age", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Age", 18 }
             };
             Assert.AreEqual("`Age` >= @Age", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Age", age }
             };
             Assert.AreEqual("`Age` >= @Age", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserId", _model.UserId }
             };
             Assert.AreEqual("`UserId` = @UserId", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Sean.Core.DbRepository.Test
                 { "IsVip", true }
             };
             Assert.AreEqual("`IsVip` = @IsVip", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace Sean.Core.DbRepository.Test
                 { "IsVip", false }
             };
             Assert.AreEqual("`IsVip` = @IsVip", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Sean.Core.DbRepository.Test
                 { "CreateTime_2", endTime },
             };
             Assert.AreEqual("`CreateTime` >= @CreateTime AND `CreateTime` < @CreateTime_2", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -177,7 +177,7 @@ namespace Sean.Core.DbRepository.Test
                 { "CreateTime_2", endTime },
             };
             Assert.AreEqual("`CreateTime` >= @CreateTime AND `CreateTime` < @CreateTime_2", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UpdateTime_2", endTime },
             };
             Assert.AreEqual("`UpdateTime` is not null AND `UpdateTime` >= @UpdateTime AND `UpdateTime` < @UpdateTime_2", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -214,7 +214,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Sex", (int)SexType.Male }
             };
             Assert.AreEqual("`Sex` = @Sex", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -230,7 +230,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Sex", (int)SexType.Male }
             };
             Assert.AreEqual("`Sex` = @Sex", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -247,7 +247,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Sex", (int)SexType.Female }
             };
             Assert.AreEqual("`Sex` = @Sex", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -266,7 +266,7 @@ namespace Sean.Core.DbRepository.Test
                 { "AccountBalance", accountBalance }
             };
             Assert.AreEqual("`UserId` = @UserId AND `AccountBalance` < @AccountBalance", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -287,7 +287,7 @@ namespace Sean.Core.DbRepository.Test
                 { "IsBlack", false },
             };
             Assert.AreEqual("`UserId` = @UserId AND `AccountBalance` < @AccountBalance AND `IsBlack` = @IsBlack", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -306,7 +306,7 @@ namespace Sean.Core.DbRepository.Test
                 { "AccountBalance", accountBalance }
             };
             Assert.AreEqual("(`UserId` = @UserId OR `AccountBalance` >= @AccountBalance)", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -326,7 +326,7 @@ namespace Sean.Core.DbRepository.Test
                 { "IsVip", true }
             };
             Assert.AreEqual("(`UserId` = @UserId OR `AccountBalance` >= @AccountBalance AND `IsVip` = @IsVip)", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -346,7 +346,7 @@ namespace Sean.Core.DbRepository.Test
                 { "IsVip", true }
             };
             Assert.AreEqual("(`UserId` = @UserId OR `AccountBalance` >= @AccountBalance) AND `IsVip` = @IsVip", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         [TestMethod]
@@ -368,7 +368,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Country", (int)CountryType.China }
             };
             Assert.AreEqual("(`UserId` = @UserId OR `AccountBalance` >= @AccountBalance) AND `IsVip` = @IsVip AND `Age` > @Age AND (`IsBlack` = @IsBlack OR `Country` = @Country)", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         [TestMethod]
@@ -390,7 +390,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Country", (int)CountryType.China },
             };
             Assert.AreEqual("((`UserId` = @UserId OR `AccountBalance` >= @AccountBalance) AND `IsVip` = @IsVip OR `Age` > @Age AND (`IsBlack` = @IsBlack OR `Country` = @Country))", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -406,7 +406,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Remark", "测试%" }
             };
             Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -423,7 +423,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Remark", $"%{key}" }
             };
             Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -440,7 +440,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Remark", $"%{model.UserName}" }
             };
             Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -457,7 +457,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Remark", $"%{key}%" }
             };
             Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -474,7 +474,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Remark", $"%{model.UserName}%" }
             };
             Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -491,7 +491,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserName", values }
             };
             Assert.AreEqual("`UserName` IN @UserName", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -508,7 +508,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserName", values }
             };
             Assert.AreEqual("`UserName` IN @UserName", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -525,7 +525,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserName", values }
             };
             Assert.AreEqual("`UserName` IN @UserName", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -542,7 +542,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserName", values }
             };
             Assert.AreEqual("`UserName` IN @UserName", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -559,7 +559,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserName", values }
             };
             Assert.AreEqual("`UserName` IN @UserName", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -575,7 +575,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserName", "测试" }
             };
             Assert.AreEqual("`UserName` = @UserName", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -592,7 +592,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserName", userName }
             };
             Assert.AreEqual("`UserName` = @UserName", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -609,7 +609,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserName", userName }
             };
             Assert.AreEqual("`UserName` <> @UserName", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -622,7 +622,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("`UpdateTime` is not null", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -635,7 +635,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("`UpdateTime` is null", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -652,7 +652,7 @@ namespace Sean.Core.DbRepository.Test
                 {nameof(TestEntity.IsVip),true}
             };
             Assert.AreEqual("`IsVip` = @IsVip AND `UpdateTime` is not null", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -665,7 +665,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("(`Email` is null OR `Email` = '')", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -678,7 +678,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("`Email` is not null AND `Email` <> ''", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -695,7 +695,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Id", 10001L }
             };
             Assert.AreEqual("`Id` <> @Id", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -709,7 +709,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("`Id` is not null", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -726,7 +726,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Id", 10001L }
             };
             Assert.AreEqual("`Id` <> @Id", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -740,7 +740,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("`Id` is not null", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -753,7 +753,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("`Email` is null", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -766,7 +766,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("`Email` is not null", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -779,7 +779,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("1=1", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -792,7 +792,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("1=2", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -805,7 +805,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("1=1", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -818,7 +818,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("1=2", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
@@ -838,7 +838,7 @@ namespace Sean.Core.DbRepository.Test
                 { "IsVip", true }
             };
             Assert.AreEqual("1=1 AND `Age` > @Age AND `Age` < @Age_2 AND `IsVip` = @IsVip", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
         /// <summary>
         /// 动态Lambda表达式
@@ -863,7 +863,7 @@ namespace Sean.Core.DbRepository.Test
                 { "AccountBalance", 8888M }
             };
             Assert.AreEqual("1=1 AND `Age` > @Age AND `Age` < @Age_2 AND `IsVip` = @IsVip AND ((1=2 OR `Country` = @Country) OR `AccountBalance` > @AccountBalance)", whereClause);
-            AssertParameters(expectedParameters, parameters);
+            AssertSqlParameters(expectedParameters, parameters);
         }
         #endregion 支持的写法
 
@@ -920,15 +920,5 @@ namespace Sean.Core.DbRepository.Test
             });
         }
         #endregion 不支持的写法
-
-        private void AssertParameters(IDictionary<string, object> expectedParameters, IDictionary<string, object> actualParameters)
-        {
-            Assert.AreEqual(expectedParameters.Count, actualParameters.Count);
-            foreach (var key in expectedParameters.Keys)
-            {
-                Assert.IsTrue(actualParameters.ContainsKey(key), $"The {nameof(actualParameters)} does not contain key <{key}>.");
-                Assert.IsTrue(expectedParameters[key].Equals(actualParameters[key]), $"The expected value is <{expectedParameters[key]}>, the actual value is <{actualParameters[key]}>.");
-            }
-        }
     }
 }

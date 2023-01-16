@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Example.Application.Contracts;
 using Example.Application.Dtos;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
-using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Extensions;
 using Sean.Utility.Contracts;
+using Sean.Utility.Extensions;
 
 namespace Example.Application.Services
 {

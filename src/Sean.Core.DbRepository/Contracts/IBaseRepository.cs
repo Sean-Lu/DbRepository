@@ -51,7 +51,7 @@ public interface IBaseRepository : ISqlMonitor
     /// </summary>
     /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
-    DbConnection OpenNewConnection(bool master);
+    DbConnection OpenNewConnection(bool master = true);
 
     #region Synchronous method
     int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null);

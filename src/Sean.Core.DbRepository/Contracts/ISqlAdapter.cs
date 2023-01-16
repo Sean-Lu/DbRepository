@@ -17,8 +17,11 @@
 
         string FormatTableName();
         string FormatTableName(string tableName);
-        string FormatFieldName(string fieldName, bool multiTable = false);
+
+        string FormatFieldName(string fieldName);
+        string FormatFieldName(string fieldName, bool multiTable);
         string FormatFieldName(string fieldName, string tableName);
+
         string FormatInputParameter(string parameter);
 
         /// <summary>
