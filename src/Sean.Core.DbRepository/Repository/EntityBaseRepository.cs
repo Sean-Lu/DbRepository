@@ -199,6 +199,20 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         return this.GetSqlForDelete(entity).Execute(Factory, true, transaction) > 0;
     }
+    public virtual bool Delete(IEnumerable<TEntity> entities, IDbTransaction transaction = null)
+    {
+        if (entities == null || !entities.Any()) return false;
+
+        foreach (var entity in entities)
+        {
+            if (!Delete(entity, transaction))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
     public virtual int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
     {
         return this.GetSqlForDelete(whereExpression).Execute(Factory, true, transaction);
@@ -286,12 +300,9 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             var deleteList = entities.Where(t => t.EntityState == EntityStateType.Deleted).ToList();
             if (deleteList.Any())
             {
-                foreach (var deleteEntity in deleteList)
+                if (!Delete(deleteList, transaction: trans))
                 {
-                    if (!Delete(deleteEntity, transaction: trans))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 
@@ -485,6 +496,20 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         return await this.GetSqlForDelete(entity).ExecuteAsync(Factory, true, transaction) > 0;
     }
+    public virtual async Task<bool> DeleteAsync(IEnumerable<TEntity> entities, IDbTransaction transaction = null)
+    {
+        if (entities == null || !entities.Any()) return false;
+
+        foreach (var entity in entities)
+        {
+            if (!await DeleteAsync(entity, transaction))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
     public virtual async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
     {
         return await this.GetSqlForDelete(whereExpression).ExecuteAsync(Factory, true, transaction);
@@ -572,12 +597,9 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             var deleteList = entities.Where(t => t.EntityState == EntityStateType.Deleted).ToList();
             if (deleteList.Any())
             {
-                foreach (var deleteEntity in deleteList)
+                if (!await DeleteAsync(deleteList, transaction: trans))
                 {
-                    if (!await DeleteAsync(deleteEntity, transaction: trans))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 

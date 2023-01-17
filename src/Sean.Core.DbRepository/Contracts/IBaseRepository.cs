@@ -287,6 +287,13 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>Whether the command is executed successfully.</returns>
     bool Delete(TEntity entity, IDbTransaction transaction = null);
     /// <summary>
+    /// Delete entities from the <see cref="IBaseRepository.TableName()"/> table by primary key.
+    /// </summary>
+    /// <param name="entities"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    bool Delete(IEnumerable<TEntity> entities, IDbTransaction transaction = null);
+    /// <summary>
     /// Delete entities from the <see cref="IBaseRepository.TableName()"/> table.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
@@ -497,6 +504,13 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns>Whether the command is executed successfully.</returns>
     Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null);
+    /// <summary>
+    /// Delete entities from the <see cref="IBaseRepository.TableName()"/> table by primary key.
+    /// </summary>
+    /// <param name="entities"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    Task<bool> DeleteAsync(IEnumerable<TEntity> entities, IDbTransaction transaction = null);
     /// <summary>
     /// Delete entities from the <see cref="IBaseRepository.TableName()"/> table.
     /// </summary>
