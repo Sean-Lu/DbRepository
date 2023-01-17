@@ -501,6 +501,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return await this.GetSqlForCount(whereExpression).ExecuteScalarAsync<int>(Factory, master, null);
     }
 
+    public virtual async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
+    {
+        return await CountAsync(whereExpression, master) > 0;
+    }
+
     public virtual async Task<bool> IsTableExistsAsync(bool master = true, bool useCache = true)
     {
         return await IsTableExistsAsync(TableName(), master, useCache);
