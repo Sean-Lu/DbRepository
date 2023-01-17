@@ -251,6 +251,61 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return this.GetSqlForDecr(value, fieldExpression, whereExpression).Execute(Factory, true, transaction) > 0;
     }
 
+    public virtual bool Save<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
+    {
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
+
+        if (entities.All(c => c.EntityState == EntityStateType.Unchanged))
+        {
+            return true;
+        }
+
+        var result = ExecuteAutoTransaction(trans =>
+        {
+            var addList = entities.Where(t => t.EntityState == EntityStateType.Added).ToList();
+            if (addList.Any())
+            {
+                if (!Add(addList, returnAutoIncrementId, transaction: trans))
+                {
+                    return false;
+                }
+            }
+
+            var updateList = entities.Where(t => t.EntityState == EntityStateType.Modified).ToList();
+            if (updateList.Any())
+            {
+                if (!Update(updateList, transaction: trans))
+                {
+                    return false;
+                }
+            }
+
+            var deleteList = entities.Where(t => t.EntityState == EntityStateType.Deleted).ToList();
+            if (deleteList.Any())
+            {
+                foreach (var deleteEntity in deleteList)
+                {
+                    if (!Delete(deleteEntity, transaction: trans))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }, transaction);
+
+        if (result && transaction == null)
+        {
+            entities.ResetEntityState();
+        }
+
+        return result;
+    }
+
     public virtual IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
         return this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression).Query<TEntity>(Factory, master, null);
@@ -480,6 +535,61 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual async Task<bool> DecrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
         return await this.GetSqlForDecr(value, fieldExpression, whereExpression).ExecuteAsync(Factory, true, transaction) > 0;
+    }
+
+    public virtual async Task<bool> SaveAsync<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
+    {
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
+
+        if (entities.All(c => c.EntityState == EntityStateType.Unchanged))
+        {
+            return true;
+        }
+
+        var result = await ExecuteAutoTransactionAsync(async trans =>
+        {
+            var addList = entities.Where(t => t.EntityState == EntityStateType.Added).ToList();
+            if (addList.Any())
+            {
+                if (!await AddAsync(addList, returnAutoIncrementId, transaction: trans))
+                {
+                    return false;
+                }
+            }
+
+            var updateList = entities.Where(t => t.EntityState == EntityStateType.Modified).ToList();
+            if (updateList.Any())
+            {
+                if (!await UpdateAsync(updateList, transaction: trans))
+                {
+                    return false;
+                }
+            }
+
+            var deleteList = entities.Where(t => t.EntityState == EntityStateType.Deleted).ToList();
+            if (deleteList.Any())
+            {
+                foreach (var deleteEntity in deleteList)
+                {
+                    if (!await DeleteAsync(deleteEntity, transaction: trans))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }, transaction);
+
+        if (result && transaction == null)
+        {
+            entities.ResetEntityState();
+        }
+
+        return result;
     }
 
     public virtual async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)

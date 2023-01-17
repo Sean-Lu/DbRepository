@@ -9,7 +9,7 @@ namespace Example.Domain.Entities
     /// 测试表（仅供测试使用）
     /// </summary>
     [Table("Test")]
-    public class TestEntity
+    public class TestEntity : EntityStateBase
     {
         /// <summary>
         /// 自增主键

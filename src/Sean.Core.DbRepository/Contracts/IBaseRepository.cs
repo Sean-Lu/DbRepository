@@ -348,6 +348,16 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     bool Decrement<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct;
 
     /// <summary>
+    /// Save entities to the database by checking entity state.
+    /// </summary>
+    /// <typeparam name="TEntityState"></typeparam>
+    /// <param name="entities"></param>
+    /// <param name="returnAutoIncrementId"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    bool Save<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
+
+    /// <summary>
     /// Query entities from the <see cref="IBaseRepository.TableName()"/> table.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
@@ -547,6 +557,16 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns>Whether the command is executed successfully.</returns>
     Task<bool> DecrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct;
+
+    /// <summary>
+    /// Save entities to the database by checking entity state.
+    /// </summary>
+    /// <typeparam name="TEntityState"></typeparam>
+    /// <param name="entities"></param>
+    /// <param name="returnAutoIncrementId"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    Task<bool> SaveAsync<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
 
     /// <summary>
     /// Query entities from the <see cref="IBaseRepository.TableName()"/> table.
