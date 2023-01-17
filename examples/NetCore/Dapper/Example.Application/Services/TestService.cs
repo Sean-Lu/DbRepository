@@ -35,7 +35,6 @@ namespace Example.Application.Services
         public async Task<bool> AddAsync(IEnumerable<TestDto> list)
         {
             //return await _testRepository.AddAsync(_mapper.Map<List<TestEntity>>(list));
-
             return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.AddAsync(_mapper.Map<List<TestEntity>>(models)));
         }
 
@@ -47,7 +46,6 @@ namespace Example.Application.Services
         public async Task<bool> AddOrUpdateAsync(IEnumerable<TestDto> list)
         {
             //return await _testRepository.AddOrUpdateAsync(_mapper.Map<List<TestEntity>>(list));
-
             return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.AddOrUpdateAsync(_mapper.Map<List<TestEntity>>(models)));
         }
 
@@ -58,7 +56,8 @@ namespace Example.Application.Services
 
         public async Task<int> DeleteAllAsync()
         {
-            return await _testRepository.DeleteAsync(entity => true);
+            //return await _testRepository.DeleteAsync(entity => true);
+            return await _testRepository.DeleteAllAsync();
         }
 
         public async Task<bool> UpdateStatusAsync(long id, int status)

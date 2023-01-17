@@ -35,7 +35,6 @@ namespace Example.Application.Services
         public async Task<bool> AddAsync(IEnumerable<CheckInLogDto> list)
         {
             //return await _checkInLogRepository.AddAsync(_mapper.Map<List<CheckInLogEntity>>(list));
-
             return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _checkInLogRepository.AddAsync(_mapper.Map<List<CheckInLogEntity>>(models)));
         }
 
@@ -47,7 +46,6 @@ namespace Example.Application.Services
         public async Task<bool> AddOrUpdateAsync(IEnumerable<CheckInLogDto> list)
         {
             //return await _checkInLogRepository.AddOrUpdateAsync(_mapper.Map<List<CheckInLogEntity>>(list));
-
             return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _checkInLogRepository.AddOrUpdateAsync(_mapper.Map<List<CheckInLogEntity>>(models)));
         }
 
@@ -58,7 +56,8 @@ namespace Example.Application.Services
 
         public async Task<int> DeleteAllAsync()
         {
-            return await _checkInLogRepository.DeleteAsync(entity => true);
+            //return await _checkInLogRepository.DeleteAsync(entity => true);
+            return await _checkInLogRepository.DeleteAllAsync();
         }
 
         public async Task<CheckInLogDto> GetByIdAsync(long id)

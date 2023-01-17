@@ -270,6 +270,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return this.GetSqlForCount(whereExpression).ExecuteScalar<int>(Factory, master, null);
     }
 
+    public virtual bool Exists(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
+    {
+        return Count(whereExpression, master) > 0;
+    }
+
     public virtual bool IsTableExists(bool master = true, bool useCache = true)
     {
         return IsTableExists(TableName(), master, useCache);

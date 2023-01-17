@@ -228,6 +228,9 @@ _testRepository.Delete(entity => entity.UserId == 10001 && entity.Status != 0);
 // 删除全部数据：
 _testRepository.Delete(entity => true);
 
+// 删除全部数据：
+_testRepository.DeleteAll();
+
 // 更新数据：更新全部字段，过滤条件默认为实体的主键字段
 _testRepository.Update(entity);
 
@@ -264,6 +267,9 @@ TestEntity getResult = _testRepository.Get(entity => entity.Id == 2);
 
 // 统计数量：
 int countResult = _testRepository.Count(entity => entity.UserId == 10001);
+
+// 数据是否存在：
+bool exists = _testRepository.Exists(entity => entity.UserId == 10001);
 
 // 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.TableRepositoryTest
 ```

@@ -397,6 +397,14 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true);
 
     /// <summary>
+    /// Whether the data exists in the <see cref="IBaseRepository.TableName()"/> table that satisfy the where expression.
+    /// </summary>
+    /// <param name="whereExpression"></param>
+    /// <param name="master"></param>
+    /// <returns></returns>
+    bool Exists(Expression<Func<TEntity, bool>> whereExpression, bool master = true);
+
+    /// <summary>
     /// Whether the <see cref="IBaseRepository.TableName()"/> table exists.
     /// </summary>
     /// <param name="master"></param>
