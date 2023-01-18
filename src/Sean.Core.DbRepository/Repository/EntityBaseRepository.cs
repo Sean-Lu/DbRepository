@@ -265,6 +265,49 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return this.GetSqlForDecr(value, fieldExpression, whereExpression).Execute(Factory, true, transaction) > 0;
     }
 
+    public virtual bool Save<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
+    {
+        if (entity == null)
+        {
+            return false;
+        }
+
+        if (entity.EntityState == EntityStateType.Unchanged)
+        {
+            return true;
+        }
+
+        switch (entity.EntityState)
+        {
+            case EntityStateType.Added:
+                if (!Add(entity, returnAutoIncrementId, transaction: transaction))
+                {
+                    return false;
+                }
+                break;
+            case EntityStateType.Modified:
+                if (Update(entity, transaction: transaction) < 1)
+                {
+                    return false;
+                }
+                break;
+            case EntityStateType.Deleted:
+                if (!Delete(entity, transaction: transaction))
+                {
+                    return false;
+                }
+                break;
+            default:
+                throw new NotImplementedException($"EntityState: {entity.EntityState}");
+        }
+
+        if (transaction == null)
+        {
+            entity.ResetEntityState();
+        }
+
+        return true;
+    }
     public virtual bool Save<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
     {
         if (entities == null || !entities.Any())
@@ -562,6 +605,49 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         return await this.GetSqlForDecr(value, fieldExpression, whereExpression).ExecuteAsync(Factory, true, transaction) > 0;
     }
 
+    public virtual async Task<bool> SaveAsync<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
+    {
+        if (entity == null)
+        {
+            return false;
+        }
+
+        if (entity.EntityState == EntityStateType.Unchanged)
+        {
+            return true;
+        }
+
+        switch (entity.EntityState)
+        {
+            case EntityStateType.Added:
+                if (!await AddAsync(entity, returnAutoIncrementId, transaction: transaction))
+                {
+                    return false;
+                }
+                break;
+            case EntityStateType.Modified:
+                if (await UpdateAsync(entity, transaction: transaction) < 1)
+                {
+                    return false;
+                }
+                break;
+            case EntityStateType.Deleted:
+                if (!await DeleteAsync(entity, transaction: transaction))
+                {
+                    return false;
+                }
+                break;
+            default:
+                throw new NotImplementedException($"EntityState: {entity.EntityState}");
+        }
+
+        if (transaction == null)
+        {
+            entity.ResetEntityState();
+        }
+
+        return true;
+    }
     public virtual async Task<bool> SaveAsync<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
     {
         if (entities == null || !entities.Any())

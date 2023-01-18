@@ -232,7 +232,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
 
     #region Synchronous method
     /// <summary>
-    /// Insert entity into the <see cref="IBaseRepository.TableName()"/> table.
+    /// Insert entity.
     /// </summary>
     /// <param name="entity"></param>
     /// <param name="returnAutoIncrementId">Whether to return the auto-increment primary key Id.</param>
@@ -244,7 +244,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>Whether the command is executed successfully.</returns>
     bool Add(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
     /// <summary>
-    /// Bulk insert entities into the <see cref="IBaseRepository.TableName()"/> table.
+    /// Bulk insert entities.
     /// </summary>
     /// <param name="entities"></param>
     /// <param name="returnAutoIncrementId">Whether to return the auto-increment primary key Id.</param>
@@ -257,7 +257,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     bool Add(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
 
     /// <summary>
-    /// Replace entity into the <see cref="IBaseRepository.TableName()"/> table.
+    /// Insert or update entity.
     /// </summary>
     /// <param name="entity"></param>
     /// <param name="fieldExpression">The fields to insert or update. If the value is null, all fields of the entity are inserted or updated (excluding NotMapped fields). Example: 
@@ -268,7 +268,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>Whether the command is executed successfully.</returns>
     bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
     /// <summary>
-    /// Bulk replace entities into the <see cref="IBaseRepository.TableName()"/> table.
+    /// Bulk insert or update entities.
     /// </summary>
     /// <param name="entities"></param>
     /// <param name="fieldExpression">The fields to insert or update. If the value is null, all fields of the entity are inserted or updated (excluding NotMapped fields). Example: 
@@ -280,34 +280,34 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     bool AddOrUpdate(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
 
     /// <summary>
-    /// Delete entity from the <see cref="IBaseRepository.TableName()"/> table by primary key.
+    /// Delete by entity primary key.
     /// </summary>
     /// <param name="entity"></param>
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns>Whether the command is executed successfully.</returns>
     bool Delete(TEntity entity, IDbTransaction transaction = null);
     /// <summary>
-    /// Delete entities from the <see cref="IBaseRepository.TableName()"/> table by primary key.
+    /// Bulk delete by entity primary key.
     /// </summary>
     /// <param name="entities"></param>
     /// <param name="transaction"></param>
     /// <returns></returns>
     bool Delete(IEnumerable<TEntity> entities, IDbTransaction transaction = null);
     /// <summary>
-    /// Delete entities from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Delete by <paramref name="whereExpression"/>.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns>The number of rows affected.</returns>
     int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null);
     /// <summary>
-    /// Delete all data from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Delete all data.
     /// </summary>
     /// <returns></returns>
     int DeleteAll(IDbTransaction transaction = null);
 
     /// <summary>
-    /// Update entity from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Update entity.
     /// </summary>
     /// <param name="entity"></param>
     /// <param name="fieldExpression">The fields to update. If the value is null, all fields of the entity are updated (excluding primary key fields and NotMapped fields). Example: 
@@ -322,7 +322,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>The number of rows affected.</returns>
     int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null);
     /// <summary>
-    /// Bulk update entities from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Bulk update entities.
     /// </summary>
     /// <param name="entities"></param>
     /// <param name="fieldExpression">The fields to update. If the value is null, all fields of the entity are updated (excluding primary key fields and NotMapped fields). Example: 
@@ -334,7 +334,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
 
     /// <summary>
-    /// Increments the value of a numeric field from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Increments the value of numeric field.
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
     /// <param name="value"></param>
@@ -344,7 +344,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>Whether the command is executed successfully.</returns>
     bool Increment<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct;
     /// <summary>
-    /// Decrements the value of a numeric field from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Decrements the value of numeric field.
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
     /// <param name="value"></param>
@@ -354,6 +354,15 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>Whether the command is executed successfully.</returns>
     bool Decrement<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct;
 
+    /// <summary>
+    /// Save entity to the database by checking entity state.
+    /// </summary>
+    /// <typeparam name="TEntityState"></typeparam>
+    /// <param name="entity"></param>
+    /// <param name="returnAutoIncrementId"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    bool Save<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
     /// <summary>
     /// Save entities to the database by checking entity state.
     /// </summary>
@@ -365,7 +374,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     bool Save<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
 
     /// <summary>
-    /// Query entities from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Query entities.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
@@ -379,7 +388,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns></returns>
     IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
     /// <summary>
-    /// Query entities from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Query entities.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
@@ -394,7 +403,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
 
     /// <summary>
-    /// Query single entity from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Query single entity.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
@@ -406,7 +415,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
 
     /// <summary>
-    /// Gets the count in the <see cref="IBaseRepository.TableName()"/> table that satisfy the where expression.
+    /// Gets the count that satisfy the <paramref name="whereExpression"/>.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <param name="master">true: master database, false: slave database.</param>
@@ -414,7 +423,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true);
 
     /// <summary>
-    /// Whether the data exists in the <see cref="IBaseRepository.TableName()"/> table that satisfy the where expression.
+    /// Whether the data exists that satisfy the <paramref name="whereExpression"/>.
     /// </summary>
     /// <param name="whereExpression"></param>
     /// <param name="master"></param>
@@ -422,7 +431,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     bool Exists(Expression<Func<TEntity, bool>> whereExpression, bool master = true);
 
     /// <summary>
-    /// Whether the <see cref="IBaseRepository.TableName()"/> table exists.
+    /// Whether the table exists.
     /// </summary>
     /// <param name="master"></param>
     /// <param name="useCache"></param>
@@ -430,7 +439,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     bool IsTableExists(bool master = true, bool useCache = true);
 
     /// <summary>
-    /// Whether the specified table field exists in the <see cref="IBaseRepository.TableName()"/> table.
+    /// Whether the table field exists.
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <param name="master"></param>
@@ -439,7 +448,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     bool IsTableFieldExists(Expression<Func<TEntity, object>> fieldExpression, bool master = true, bool useCache = true);
 
     /// <summary>
-    /// Add table field to the <see cref="IBaseRepository.TableName()"/> table if it does not exist.
+    /// Add table field if it does not exist.
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <param name="fieldType"></param>
@@ -450,7 +459,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     #region Asynchronous method
 #if NETSTANDARD || NET45_OR_GREATER
     /// <summary>
-    /// Insert entity into the <see cref="IBaseRepository.TableName()"/> table.
+    /// Insert entity.
     /// </summary>
     /// <param name="entity"></param>
     /// <param name="returnAutoIncrementId">Whether to return the auto-increment primary key Id.</param>
@@ -462,7 +471,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>Whether the command is executed successfully.</returns>
     Task<bool> AddAsync(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
     /// <summary>
-    /// Bulk insert entities into the <see cref="IBaseRepository.TableName()"/> table.
+    /// Bulk insert entities.
     /// </summary>
     /// <param name="entities"></param>
     /// <param name="returnAutoIncrementId">Whether to return the auto-increment primary key Id.</param>
@@ -475,7 +484,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
 
     /// <summary>
-    /// Replace entity into the <see cref="IBaseRepository.TableName()"/> table.
+    /// Insert or update entity.
     /// </summary>
     /// <param name="entity"></param>
     /// <param name="fieldExpression">The fields to insert or update. If the value is null, all fields of the entity are inserted or updated (excluding NotMapped fields). Example: 
@@ -486,7 +495,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>Whether the command is executed successfully.</returns>
     Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
     /// <summary>
-    /// Bulk replace entities into the <see cref="IBaseRepository.TableName()"/> table.
+    /// Bulk Insert or update entities.
     /// </summary>
     /// <param name="entities"></param>
     /// <param name="fieldExpression">The fields to insert or update. If the value is null, all fields of the entity are inserted or updated (excluding NotMapped fields). Example: 
@@ -498,34 +507,34 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     Task<bool> AddOrUpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
 
     /// <summary>
-    /// Delete entity from the <see cref="IBaseRepository.TableName()"/> table by primary key.
+    /// Delete by entity primary key.
     /// </summary>
     /// <param name="entity"></param>
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns>Whether the command is executed successfully.</returns>
     Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null);
     /// <summary>
-    /// Delete entities from the <see cref="IBaseRepository.TableName()"/> table by primary key.
+    /// Bulk delete by entity primary key.
     /// </summary>
     /// <param name="entities"></param>
     /// <param name="transaction"></param>
     /// <returns></returns>
     Task<bool> DeleteAsync(IEnumerable<TEntity> entities, IDbTransaction transaction = null);
     /// <summary>
-    /// Delete entities from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Delete by <paramref name="whereExpression"/>.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns>The number of rows affected.</returns>
     Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null);
     /// <summary>
-    /// Delete all data from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Delete all data.
     /// </summary>
     /// <returns></returns>
     Task<int> DeleteAllAsync(IDbTransaction transaction = null);
 
     /// <summary>
-    /// Update entity from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Update entity.
     /// </summary>
     /// <param name="entity"></param>
     /// <param name="fieldExpression">The fields to update. If the value is null, all fields of the entity are updated (excluding primary key fields and NotMapped fields). Example: 
@@ -540,7 +549,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>The number of rows affected.</returns>
     Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null);
     /// <summary>
-    /// Bulk update entities from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Bulk update entities.
     /// </summary>
     /// <param name="entities"></param>
     /// <param name="fieldExpression">The fields to update. If the value is null, all fields of the entity are updated (excluding primary key fields and NotMapped fields). Example: 
@@ -552,7 +561,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
 
     /// <summary>
-    /// Increments the value of a numeric field from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Increments the value of numeric field.
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
     /// <param name="value"></param>
@@ -562,7 +571,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>Whether the command is executed successfully.</returns>
     Task<bool> IncrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct;
     /// <summary>
-    /// Decrements the value of a numeric field from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Decrements the value of numeric field.
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
     /// <param name="value"></param>
@@ -572,6 +581,15 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns>Whether the command is executed successfully.</returns>
     Task<bool> DecrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct;
 
+    /// <summary>
+    /// Save entity to the database by checking entity state.
+    /// </summary>
+    /// <typeparam name="TEntityState"></typeparam>
+    /// <param name="entity"></param>
+    /// <param name="returnAutoIncrementId"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    Task<bool> SaveAsync<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
     /// <summary>
     /// Save entities to the database by checking entity state.
     /// </summary>
@@ -583,7 +601,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     Task<bool> SaveAsync<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
 
     /// <summary>
-    /// Query entities from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Query entities.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
@@ -597,7 +615,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns></returns>
     Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
     /// <summary>
-    /// Query entities from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Query entities.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
@@ -612,7 +630,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
 
     /// <summary>
-    /// Query single entity from the <see cref="IBaseRepository.TableName()"/> table.
+    /// Query single entity.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
@@ -624,7 +642,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
 
     /// <summary>
-    /// Gets the count in the <see cref="IBaseRepository.TableName()"/> table that satisfy the where expression.
+    /// Gets the count that satisfy the <paramref name="whereExpression"/>.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <param name="master">true: master database, false: slave database.</param>
@@ -632,7 +650,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     Task<int> CountAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true);
 
     /// <summary>
-    /// Whether the data exists in the <see cref="IBaseRepository.TableName()"/> table that satisfy the where expression.
+    /// Whether the data exists that satisfy the <paramref name="whereExpression"/>.
     /// </summary>
     /// <param name="whereExpression"></param>
     /// <param name="master"></param>
@@ -640,7 +658,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true);
 
     /// <summary>
-    /// Whether the <see cref="IBaseRepository.TableName()"/> table exists.
+    /// Whether the table exists.
     /// </summary>
     /// <param name="master"></param>
     /// <param name="useCache"></param>
@@ -648,7 +666,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     Task<bool> IsTableExistsAsync(bool master = true, bool useCache = true);
 
     /// <summary>
-    /// Whether the specified table field exists in the <see cref="IBaseRepository.TableName()"/> table.
+    /// Whether the table field exists.
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <param name="master"></param>
@@ -657,7 +675,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     Task<bool> IsTableFieldExistsAsync(Expression<Func<TEntity, object>> fieldExpression, bool master = true, bool useCache = true);
 
     /// <summary>
-    /// Add table field to the <see cref="IBaseRepository.TableName()"/> table if it does not exist.
+    /// Add table field if it does not exist.
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <param name="fieldType"></param>
@@ -665,6 +683,5 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <returns></returns>
     Task AddTableFieldAsync(Expression<Func<TEntity, object>> fieldExpression, string fieldType, bool master = true);
 #endif
-
     #endregion
 }
