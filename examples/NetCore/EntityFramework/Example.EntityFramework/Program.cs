@@ -14,7 +14,8 @@ Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置�
 using (var db = new EFDbContext())
 //using (var db = new EFDbContext(optionsBuilder.Options))
 {
-    //var countResult = db.TestEntities.Count();
+    ////var countResult = db.TestEntities.Count();
+    //var countResult = db.Set<TestEntity>().Count();
     //Console.WriteLine($"#################### Count 执行结果：{countResult}");
 
     ITestRepository testRepository = new TestRepository(db);
