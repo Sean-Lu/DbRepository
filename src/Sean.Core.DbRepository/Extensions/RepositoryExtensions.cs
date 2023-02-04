@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
@@ -192,6 +193,13 @@ namespace Sean.Core.DbRepository.Extensions
                 .SetParameter(entity)
                 .Build();
         }
+        public static ISqlWithParameter GetSqlForBulkAdd<TEntity>(this IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null)
+        {
+            return repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                .SetParameter(entities)
+                .Build();
+        }
 
         public static ISqlWithParameter GetSqlForAddOrUpdate<TEntity>(this IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null)
         {
@@ -200,6 +208,13 @@ namespace Sean.Core.DbRepository.Extensions
             return repository.CreateReplaceableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
                 .SetParameter(entity)
+                .Build();
+        }
+        public static ISqlWithParameter GetSqlForBulkAddOrUpdate<TEntity>(this IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null)
+        {
+            return repository.CreateReplaceableBuilder<TEntity>(fieldExpression == null)
+                .IncludeFields(fieldExpression)
+                .SetParameter(entities)
                 .Build();
         }
 

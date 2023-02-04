@@ -169,12 +169,7 @@ namespace Sean.Core.DbRepository.Dapper
                 return true;
             }
 
-            return this.CreateInsertableBuilder(fieldExpression == null)
-                .IncludeFields(fieldExpression)
-                //.ReturnAutoIncrementId(returnAutoIncrementId)
-                .SetParameter(entities)// BulkInsert
-                .Build()
-                .Execute(this, true, transaction) > 0;
+            return this.GetSqlForBulkAdd(entities, fieldExpression).Execute(this, true, transaction) > 0;
         }
 
         public override bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -218,11 +213,7 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 case DatabaseType.MySql:
                 case DatabaseType.SQLite:
-                    return this.CreateReplaceableBuilder(fieldExpression == null)
-                        .IncludeFields(fieldExpression)
-                        .SetParameter(entities)
-                        .Build()
-                        .Execute(this, true, transaction) > 0;
+                    return this.GetSqlForBulkAddOrUpdate(entities, fieldExpression).Execute(this, true, transaction) > 0;
                 default:
                     //if (transaction?.Connection == null)
                     //{
@@ -428,12 +419,7 @@ namespace Sean.Core.DbRepository.Dapper
                 return true;
             }
 
-            return await this.CreateInsertableBuilder(fieldExpression == null)
-                .IncludeFields(fieldExpression)
-                //.ReturnAutoIncrementId(returnAutoIncrementId)
-                .SetParameter(entities)// BulkInsert
-                .Build()
-                .ExecuteAsync(this, true, transaction) > 0;
+            return await this.GetSqlForBulkAdd(entities, fieldExpression).ExecuteAsync(this, true, transaction) > 0;
         }
 
         public override async Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -477,11 +463,7 @@ namespace Sean.Core.DbRepository.Dapper
             {
                 case DatabaseType.MySql:
                 case DatabaseType.SQLite:
-                    return await this.CreateReplaceableBuilder(fieldExpression == null)
-                        .IncludeFields(fieldExpression)
-                        .SetParameter(entities)
-                        .Build()
-                        .ExecuteAsync(this, true, transaction) > 0;
+                    return await this.GetSqlForBulkAddOrUpdate(entities, fieldExpression).ExecuteAsync(this, true, transaction) > 0;
                 default:
                     //if (transaction?.Connection == null)
                     //{
