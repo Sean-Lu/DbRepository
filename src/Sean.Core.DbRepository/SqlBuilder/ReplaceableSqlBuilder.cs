@@ -85,7 +85,7 @@ VALUES{2};";
             return this;
         }
 
-        public virtual ISqlWithParameter Build()
+        public virtual ISqlCommand Build()
         {
             var fields = _includeFieldsList;
             if (!fields.Any())
@@ -175,7 +175,7 @@ VALUES{2};";
                     throw new NotSupportedException($"[{SqlAdapter.DbType}]The database does not support the 'REPLACE INTO' SQL syntax.");
             }
 
-            var sql = new DefaultSqlWithParameter
+            var sql = new DefaultSqlCommand
             {
                 Sql = sb.ToString(),
                 Parameter = _parameter
@@ -192,7 +192,7 @@ VALUES{2};";
         /// 创建新增或更新数据的SQL：<see cref="ReplaceableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
-        ISqlWithParameter Build();
+        ISqlCommand Build();
     }
 
     public interface IReplaceable<TEntity> : IReplaceable

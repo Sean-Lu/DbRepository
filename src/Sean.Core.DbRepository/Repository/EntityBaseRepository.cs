@@ -93,43 +93,48 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         PropertyInfo keyIdentityProperty;
         if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
         {
-            var id = this.GetSqlForAdd(entity, true, fieldExpression).ExecuteScalar<long>(Factory, true, transaction);
+            var id = ExecuteScalar<long>(this.GetSqlForAdd(entity, true, fieldExpression), true, transaction);
             if (id < 1) return false;
 
             keyIdentityProperty.SetValue(entity, id, null);
             return true;
         }
 
-        return this.GetSqlForAdd(entity, false, fieldExpression).Execute(Factory, true, transaction) > 0;
+        return Execute(this.GetSqlForAdd(entity, false, fieldExpression), true, transaction) > 0;
     }
     public virtual bool Add(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
         if (entities == null || !entities.Any()) return false;
 
-        //if (transaction?.Connection == null)
-        //{
-        //    return ExecuteAutoTransaction(trans =>
-        //    {
-        //        foreach (var entity in entities)
-        //        {
-        //            if (!Add(entity, returnAutoIncrementId, fieldExpression, trans))
-        //            {
-        //                return false;
-        //            }
-        //        }
-        //        return true;
-        //    });
-        //}
-
-        foreach (var entity in entities)
+        if (returnAutoIncrementId && typeof(TEntity).GetKeyIdentityProperty() != null)
         {
-            if (!Add(entity, returnAutoIncrementId, fieldExpression, transaction))
+            //if (transaction?.Connection == null)
+            //{
+            //    return ExecuteAutoTransaction(trans =>
+            //    {
+            //        foreach (var entity in entities)
+            //        {
+            //            if (!Add(entity, returnAutoIncrementId, fieldExpression, trans))
+            //            {
+            //                return false;
+            //            }
+            //        }
+            //        return true;
+            //    });
+            //}
+
+            foreach (var entity in entities)
             {
-                return false;
+                if (!Add(entity, returnAutoIncrementId, fieldExpression, transaction))
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
 
-        return true;
+        return Execute(this.GetSqlForBulkAdd(entities, fieldExpression), true, transaction) > 0;
     }
 
     public virtual bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -141,11 +146,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
                 {
-                    return this.GetSqlForAddOrUpdate(entity, fieldExpression).Execute(Factory, true, transaction) > 0;
+                    return Execute(this.GetSqlForAddOrUpdate(entity, fieldExpression), true, transaction) > 0;
                 }
             default:
                 {
-                    if (this.GetSqlForEntityExists(entity).ExecuteScalar<int>(Factory, true, null) < 1)
+                    if (ExecuteScalar<int>(this.GetSqlForEntityExists(entity), true, null) < 1)
                     {
                         // INSERT
                         return Add(entity, false, fieldExpression, transaction);
@@ -169,35 +174,42 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         if (entities == null || !entities.Any()) return false;
 
-        //if (transaction?.Connection == null)
-        //{
-        //    return ExecuteAutoTransaction(trans =>
-        //    {
-        //        foreach (var entity in entities)
-        //        {
-        //            if (!AddOrUpdate(entity, fieldExpression, trans))
-        //            {
-        //                return false;
-        //            }
-        //        }
-        //        return true;
-        //    });
-        //}
-
-        foreach (var entity in entities)
+        switch (DbType)
         {
-            if (!AddOrUpdate(entity, fieldExpression, transaction))
-            {
-                return false;
-            }
-        }
+            case DatabaseType.MySql:
+            case DatabaseType.SQLite:
+                return Execute(this.GetSqlForBulkAddOrUpdate(entities, fieldExpression), true, transaction) > 0;
+            default:
+                //if (transaction?.Connection == null)
+                //{
+                //    return ExecuteAutoTransaction(trans =>
+                //    {
+                //        foreach (var entity in entities)
+                //        {
+                //            if (!AddOrUpdate(entity, fieldExpression, trans))
+                //            {
+                //                return false;
+                //            }
+                //        }
+                //        return true;
+                //    });
+                //}
 
-        return true;
+                foreach (var entity in entities)
+                {
+                    if (!AddOrUpdate(entity, fieldExpression, transaction))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+        }
     }
 
     public virtual bool Delete(TEntity entity, IDbTransaction transaction = null)
     {
-        return this.GetSqlForDelete(entity).Execute(Factory, true, transaction) > 0;
+        return Execute(this.GetSqlForDelete(entity), true, transaction) > 0;
     }
     public virtual bool Delete(IEnumerable<TEntity> entities, IDbTransaction transaction = null)
     {
@@ -215,7 +227,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     }
     public virtual int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
     {
-        return this.GetSqlForDelete(whereExpression).Execute(Factory, true, transaction);
+        return Execute(this.GetSqlForDelete(whereExpression), true, transaction);
     }
     public virtual int DeleteAll(IDbTransaction transaction = null)
     {
@@ -224,7 +236,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
-        return this.GetSqlForUpdate(entity, fieldExpression, whereExpression).Execute(Factory, true, transaction);
+        return Execute(this.GetSqlForUpdate(entity, fieldExpression, whereExpression), true, transaction);
     }
     public virtual bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
@@ -258,11 +270,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual bool Increment<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        return this.GetSqlForIncr(value, fieldExpression, whereExpression).Execute(Factory, true, transaction) > 0;
+        return Execute(this.GetSqlForIncr(value, fieldExpression, whereExpression), true, transaction) > 0;
     }
     public virtual bool Decrement<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        return this.GetSqlForDecr(value, fieldExpression, whereExpression).Execute(Factory, true, transaction) > 0;
+        return Execute(this.GetSqlForDecr(value, fieldExpression, whereExpression), true, transaction) > 0;
     }
 
     public virtual bool Save<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
@@ -362,21 +374,21 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression).Query<TEntity>(Factory, master, null);
+        return Query<TEntity>(this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression), master, null);
     }
     public virtual IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression).Query<TEntity>(Factory, master, null);
+        return Query<TEntity>(this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression), master, null);
     }
 
     public virtual TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return this.GetSqlForGet(whereExpression, fieldExpression).Get<TEntity>(Factory, master, null);
+        return Get<TEntity>(this.GetSqlForGet(whereExpression, fieldExpression), master, null);
     }
 
     public virtual int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
     {
-        return this.GetSqlForCount(whereExpression).ExecuteScalar<int>(Factory, master, null);
+        return ExecuteScalar<int>(this.GetSqlForCount(whereExpression), master, null);
     }
 
     public virtual bool Exists(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
@@ -433,43 +445,48 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         PropertyInfo keyIdentityProperty;
         if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
         {
-            var id = await this.GetSqlForAdd(entity, true, fieldExpression).ExecuteScalarAsync<long>(Factory, true, transaction);
+            var id = await ExecuteScalarAsync<long>(this.GetSqlForAdd(entity, true, fieldExpression), true, transaction);
             if (id < 1) return false;
 
             keyIdentityProperty.SetValue(entity, id, null);
             return true;
         }
 
-        return await this.GetSqlForAdd(entity, false, fieldExpression).ExecuteAsync(Factory, true, transaction) > 0;
+        return await ExecuteAsync(this.GetSqlForAdd(entity, false, fieldExpression), true, transaction) > 0;
     }
     public virtual async Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
         if (entities == null || !entities.Any()) return false;
 
-        //if (transaction?.Connection == null)
-        //{
-        //    return await ExecuteAutoTransactionAsync(async trans =>
-        //    {
-        //        foreach (var entity in entities)
-        //        {
-        //            if (!await AddAsync(entity, returnAutoIncrementId, fieldExpression, trans))
-        //            {
-        //                return false;
-        //            }
-        //        }
-        //        return true;
-        //    });
-        //}
-
-        foreach (var entity in entities)
+        if (returnAutoIncrementId && typeof(TEntity).GetKeyIdentityProperty() != null)
         {
-            if (!await AddAsync(entity, returnAutoIncrementId, fieldExpression, transaction))
+            //if (transaction?.Connection == null)
+            //{
+            //    return await ExecuteAutoTransactionAsync(async trans =>
+            //    {
+            //        foreach (var entity in entities)
+            //        {
+            //            if (!await AddAsync(entity, returnAutoIncrementId, fieldExpression, trans))
+            //            {
+            //                return false;
+            //            }
+            //        }
+            //        return true;
+            //    });
+            //}
+
+            foreach (var entity in entities)
             {
-                return false;
+                if (!await AddAsync(entity, returnAutoIncrementId, fieldExpression, transaction))
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
 
-        return true;
+        return await ExecuteAsync(this.GetSqlForBulkAdd(entities, fieldExpression), true, transaction) > 0;
     }
 
     public virtual async Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -481,11 +498,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
                 {
-                    return await this.GetSqlForAddOrUpdate(entity, fieldExpression).ExecuteAsync(Factory, true, transaction) > 0;
+                    return await ExecuteAsync(this.GetSqlForAddOrUpdate(entity, fieldExpression), true, transaction) > 0;
                 }
             default:
                 {
-                    if (await this.GetSqlForEntityExists(entity).ExecuteScalarAsync<int>(Factory, true, null) < 1)
+                    if (await ExecuteScalarAsync<int>(this.GetSqlForEntityExists(entity), true, null) < 1)
                     {
                         // INSERT
                         return await AddAsync(entity, false, fieldExpression, transaction);
@@ -509,35 +526,42 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     {
         if (entities == null || !entities.Any()) return false;
 
-        //if (transaction?.Connection == null)
-        //{
-        //    return await ExecuteAutoTransactionAsync(async trans =>
-        //    {
-        //        foreach (var entity in entities)
-        //        {
-        //            if (!await AddOrUpdateAsync(entity, fieldExpression, trans))
-        //            {
-        //                return false;
-        //            }
-        //        }
-        //        return true;
-        //    });
-        //}
-
-        foreach (var entity in entities)
+        switch (DbType)
         {
-            if (!await AddOrUpdateAsync(entity, fieldExpression, transaction))
-            {
-                return false;
-            }
-        }
+            case DatabaseType.MySql:
+            case DatabaseType.SQLite:
+                return await ExecuteAsync(this.GetSqlForBulkAddOrUpdate(entities, fieldExpression), true, transaction) > 0;
+            default:
+                //if (transaction?.Connection == null)
+                //{
+                //    return await ExecuteAutoTransactionAsync(async trans =>
+                //    {
+                //        foreach (var entity in entities)
+                //        {
+                //            if (!await AddOrUpdateAsync(entity, fieldExpression, trans))
+                //            {
+                //                return false;
+                //            }
+                //        }
+                //        return true;
+                //    });
+                //}
 
-        return true;
+                foreach (var entity in entities)
+                {
+                    if (!await AddOrUpdateAsync(entity, fieldExpression, transaction))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+        }
     }
 
     public virtual async Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null)
     {
-        return await this.GetSqlForDelete(entity).ExecuteAsync(Factory, true, transaction) > 0;
+        return await ExecuteAsync(this.GetSqlForDelete(entity), true, transaction) > 0;
     }
     public virtual async Task<bool> DeleteAsync(IEnumerable<TEntity> entities, IDbTransaction transaction = null)
     {
@@ -555,7 +579,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     }
     public virtual async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
     {
-        return await this.GetSqlForDelete(whereExpression).ExecuteAsync(Factory, true, transaction);
+        return await ExecuteAsync(this.GetSqlForDelete(whereExpression), true, transaction);
     }
     public virtual async Task<int> DeleteAllAsync(IDbTransaction transaction = null)
     {
@@ -564,7 +588,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
-        return await this.GetSqlForUpdate(entity, fieldExpression, whereExpression).ExecuteAsync(Factory, true, transaction);
+        return await ExecuteAsync(this.GetSqlForUpdate(entity, fieldExpression, whereExpression), true, transaction);
     }
     public virtual async Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
@@ -598,11 +622,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<bool> IncrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        return await this.GetSqlForIncr(value, fieldExpression, whereExpression).ExecuteAsync(Factory, true, transaction) > 0;
+        return await ExecuteAsync(this.GetSqlForIncr(value, fieldExpression, whereExpression), true, transaction) > 0;
     }
     public virtual async Task<bool> DecrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        return await this.GetSqlForDecr(value, fieldExpression, whereExpression).ExecuteAsync(Factory, true, transaction) > 0;
+        return await ExecuteAsync(this.GetSqlForDecr(value, fieldExpression, whereExpression), true, transaction) > 0;
     }
 
     public virtual async Task<bool> SaveAsync<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
@@ -702,21 +726,21 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return await this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression).QueryAsync<TEntity>(Factory, master, null);
+        return await QueryAsync<TEntity>(this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression), master, null);
     }
     public virtual async Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return await this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression).QueryAsync<TEntity>(Factory, master, null);
+        return await QueryAsync<TEntity>(this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression), master, null);
     }
 
     public virtual async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return await this.GetSqlForGet(whereExpression, fieldExpression).GetAsync<TEntity>(Factory, master, null);
+        return await GetAsync<TEntity>(this.GetSqlForGet(whereExpression, fieldExpression), master, null);
     }
 
     public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
     {
-        return await this.GetSqlForCount(whereExpression).ExecuteScalarAsync<int>(Factory, master, null);
+        return await ExecuteScalarAsync<int>(this.GetSqlForCount(whereExpression), master, null);
     }
 
     public virtual async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true)

@@ -430,14 +430,14 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual ISqlWithParameter Build()
+        public virtual ISqlCommand Build()
         {
             if (MultiTable)
             {
                 SqlAdapter.MultiTable = true;
             }
 
-            var sql = new DefaultSqlWithParameter();
+            var sql = new DefaultSqlCommand();
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldInfo =>
             {
@@ -559,7 +559,7 @@ namespace Sean.Core.DbRepository
         /// 创建查询数据的SQL：<see cref="QueryableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
-        ISqlWithParameter Build();
+        ISqlCommand Build();
     }
 
     public interface IQueryable<TEntity> : IQueryable

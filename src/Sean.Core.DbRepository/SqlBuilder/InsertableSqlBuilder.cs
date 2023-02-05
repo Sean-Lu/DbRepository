@@ -104,7 +104,7 @@ VALUES{2};";
             return this;
         }
 
-        public virtual ISqlWithParameter Build()
+        public virtual ISqlCommand Build()
         {
             CheckIncludeIdentityFields();
 
@@ -202,7 +202,7 @@ VALUES{2};";
                 }
             }
 
-            var sql = new DefaultSqlWithParameter
+            var sql = new DefaultSqlCommand
             {
                 Sql = sb.ToString(),
                 Parameter = _parameter
@@ -271,7 +271,7 @@ VALUES{2};";
         /// 创建新增数据的SQL：<see cref="InsertableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
-        ISqlWithParameter Build();
+        ISqlCommand Build();
     }
 
     public interface IInsertable<TEntity> : IInsertable

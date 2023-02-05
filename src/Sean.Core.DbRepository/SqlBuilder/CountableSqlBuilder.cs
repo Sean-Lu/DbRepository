@@ -192,12 +192,12 @@ namespace Sean.Core.DbRepository
             return this;
         }
 
-        public virtual ISqlWithParameter Build()
+        public virtual ISqlCommand Build()
         {
             var sb = new StringBuilder();
             sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", WhereSql));
 
-            var sql = new DefaultSqlWithParameter
+            var sql = new DefaultSqlCommand
             {
                 Sql = sb.ToString(),
                 Parameter = _parameter
@@ -214,7 +214,7 @@ namespace Sean.Core.DbRepository
         /// 创建统计数量的SQL：<see cref="CountableSqlBuilder.SqlTemplate"/>
         /// </summary>
         /// <returns></returns>
-        ISqlWithParameter Build();
+        ISqlCommand Build();
     }
 
     public interface ICountable<TEntity> : ICountable

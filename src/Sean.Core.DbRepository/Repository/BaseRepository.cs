@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using System.Transactions;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
 #endif
@@ -137,44 +138,109 @@ namespace Sean.Core.DbRepository
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-            return new DefaultSqlWithParameter
+            return Execute(new DefaultSqlCommand
             {
                 Sql = sql,
                 Parameter = param
-            }.Execute(Factory, master, transaction);
+            }, master, transaction);
         }
+        public virtual int Execute(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (transaction != null)
+            {
+                return Factory.ExecuteNonQuery(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
+            }
+            return Factory.ExecuteNonQuery(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+        }
+
         public virtual IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-            return new DefaultSqlWithParameter
+            return Query<T>(new DefaultSqlCommand
             {
                 Sql = sql,
                 Parameter = param
-            }.Query<T>(Factory, master, transaction);
+            }, master, transaction);
         }
+        public virtual IEnumerable<T> Query<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (transaction != null)
+            {
+                return Factory.Query<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
+            }
+            return Factory.Query<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+        }
+
         public virtual T Get<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-            return new DefaultSqlWithParameter
+            return Get<T>(new DefaultSqlCommand
             {
                 Sql = sql,
                 Parameter = param
-            }.Get<T>(Factory, master, transaction);
+            }, master, transaction);
         }
+        public virtual T Get<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (transaction != null)
+            {
+                return Factory.Get<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
+            }
+            return Factory.Get<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+        }
+
         public virtual T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-            return new DefaultSqlWithParameter
+            return ExecuteScalar<T>(new DefaultSqlCommand
             {
                 Sql = sql,
                 Parameter = param
-            }.ExecuteScalar<T>(Factory, master, transaction);
+            }, master, transaction);
+        }
+        public virtual T ExecuteScalar<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (transaction != null)
+            {
+                return Factory.ExecuteScalar<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
+            }
+            return Factory.ExecuteScalar<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+        }
+
+        public virtual object ExecuteScalar(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
+
+            return ExecuteScalar(new DefaultSqlCommand
+            {
+                Sql = sql,
+                Parameter = param
+            }, master, transaction);
+        }
+        public virtual object ExecuteScalar(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (transaction != null)
+            {
+                return Factory.ExecuteScalar(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
+            }
+            return Factory.ExecuteScalar(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
         }
 
         public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null)
@@ -313,44 +379,109 @@ namespace Sean.Core.DbRepository
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-            return await new DefaultSqlWithParameter
+            return await ExecuteAsync(new DefaultSqlCommand
             {
                 Sql = sql,
                 Parameter = param
-            }.ExecuteAsync(Factory, master, transaction);
+            }, master, transaction);
         }
+        public virtual async Task<int> ExecuteAsync(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (transaction != null)
+            {
+                return await Factory.ExecuteNonQueryAsync(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
+            }
+            return await Factory.ExecuteNonQueryAsync(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+        }
+
         public virtual async Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-            return await new DefaultSqlWithParameter
+            return await QueryAsync<T>(new DefaultSqlCommand
             {
                 Sql = sql,
                 Parameter = param
-            }.QueryAsync<T>(Factory, master, transaction);
+            }, master, transaction);
         }
+        public virtual async Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (transaction != null)
+            {
+                return await Factory.QueryAsync<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
+            }
+            return await Factory.QueryAsync<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+        }
+
         public virtual async Task<T> GetAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-            return await new DefaultSqlWithParameter
+            return await GetAsync<T>(new DefaultSqlCommand
             {
                 Sql = sql,
                 Parameter = param
-            }.GetAsync<T>(Factory, master, transaction);
+            }, master, transaction);
         }
+        public virtual async Task<T> GetAsync<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (transaction != null)
+            {
+                return await Factory.GetAsync<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
+            }
+            return await Factory.GetAsync<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+        }
+
         public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-            return await new DefaultSqlWithParameter
+            return await ExecuteScalarAsync<T>(new DefaultSqlCommand
             {
                 Sql = sql,
                 Parameter = param
-            }.ExecuteScalarAsync<T>(Factory, master, transaction);
+            }, master, transaction);
+        }
+        public virtual async Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (transaction != null)
+            {
+                return await Factory.ExecuteScalarAsync<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
+            }
+            return await Factory.ExecuteScalarAsync<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+        }
+
+        public virtual async Task<object> ExecuteScalarAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
+
+            return await ExecuteScalarAsync(new DefaultSqlCommand
+            {
+                Sql = sql,
+                Parameter = param
+            }, master, transaction);
+        }
+        public virtual async Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (transaction != null)
+            {
+                return await Factory.ExecuteScalarAsync(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
+            }
+            return await Factory.ExecuteScalarAsync(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
         }
 
         public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null)

@@ -182,8 +182,8 @@ namespace Sean.Core.DbRepository.Extensions
         }
         #endregion
 
-        #region ISqlWithParameter
-        public static ISqlWithParameter GetSqlForAdd<TEntity>(this IBaseRepository repository, TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null)
+        #region SqlCommand
+        public static ISqlCommand GetSqlForAdd<TEntity>(this IBaseRepository repository, TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
@@ -193,7 +193,7 @@ namespace Sean.Core.DbRepository.Extensions
                 .SetParameter(entity)
                 .Build();
         }
-        public static ISqlWithParameter GetSqlForBulkAdd<TEntity>(this IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null)
+        public static ISqlCommand GetSqlForBulkAdd<TEntity>(this IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null)
         {
             return repository.CreateInsertableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
@@ -201,7 +201,7 @@ namespace Sean.Core.DbRepository.Extensions
                 .Build();
         }
 
-        public static ISqlWithParameter GetSqlForAddOrUpdate<TEntity>(this IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null)
+        public static ISqlCommand GetSqlForAddOrUpdate<TEntity>(this IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
@@ -210,7 +210,7 @@ namespace Sean.Core.DbRepository.Extensions
                 .SetParameter(entity)
                 .Build();
         }
-        public static ISqlWithParameter GetSqlForBulkAddOrUpdate<TEntity>(this IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null)
+        public static ISqlCommand GetSqlForBulkAddOrUpdate<TEntity>(this IBaseRepository repository, IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null)
         {
             return repository.CreateReplaceableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
@@ -218,7 +218,7 @@ namespace Sean.Core.DbRepository.Extensions
                 .Build();
         }
 
-        public static ISqlWithParameter GetSqlForDelete<TEntity>(this IBaseRepository repository, TEntity entity)
+        public static ISqlCommand GetSqlForDelete<TEntity>(this IBaseRepository repository, TEntity entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
@@ -226,14 +226,14 @@ namespace Sean.Core.DbRepository.Extensions
                 .SetParameter(entity)
                 .Build();
         }
-        public static ISqlWithParameter GetSqlForDelete<TEntity>(this IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression)
+        public static ISqlCommand GetSqlForDelete<TEntity>(this IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression)
         {
             return repository.CreateDeleteableBuilder<TEntity>()
                 .Where(whereExpression)
                 .Build();
         }
 
-        public static ISqlWithParameter GetSqlForUpdate<TEntity>(this IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null)
+        public static ISqlCommand GetSqlForUpdate<TEntity>(this IBaseRepository repository, TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
@@ -243,14 +243,14 @@ namespace Sean.Core.DbRepository.Extensions
                 .Build();
         }
 
-        public static ISqlWithParameter GetSqlForIncr<TEntity, TValue>(this IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression) where TValue : struct
+        public static ISqlCommand GetSqlForIncr<TEntity, TValue>(this IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression) where TValue : struct
         {
             return repository.CreateUpdateableBuilder<TEntity>(false)
                 .IncrFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
         }
-        public static ISqlWithParameter GetSqlForDecr<TEntity, TValue>(this IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression) where TValue : struct
+        public static ISqlCommand GetSqlForDecr<TEntity, TValue>(this IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression) where TValue : struct
         {
             return repository.CreateUpdateableBuilder<TEntity>(false)
                 .DecrFields(fieldExpression, value)
@@ -258,7 +258,7 @@ namespace Sean.Core.DbRepository.Extensions
                 .Build();
         }
 
-        public static ISqlWithParameter GetSqlForQuery<TEntity>(this IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null)
+        public static ISqlCommand GetSqlForQuery<TEntity>(this IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null)
         {
             return repository.CreateQueryableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
@@ -267,7 +267,7 @@ namespace Sean.Core.DbRepository.Extensions
                 .Page(pageIndex, pageSize)
                 .Build();
         }
-        public static ISqlWithParameter GetSqlForQueryOffset<TEntity>(this IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null)
+        public static ISqlCommand GetSqlForQueryOffset<TEntity>(this IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null)
         {
             return repository.CreateQueryableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
@@ -277,7 +277,7 @@ namespace Sean.Core.DbRepository.Extensions
                 .Build();
         }
 
-        public static ISqlWithParameter GetSqlForGet<TEntity>(this IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null)
+        public static ISqlCommand GetSqlForGet<TEntity>(this IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null)
         {
             return repository.CreateQueryableBuilder<TEntity>(fieldExpression == null)
                 .IncludeFields(fieldExpression)
@@ -285,14 +285,14 @@ namespace Sean.Core.DbRepository.Extensions
                 .Build();
         }
 
-        public static ISqlWithParameter GetSqlForCount<TEntity>(this IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression)
+        public static ISqlCommand GetSqlForCount<TEntity>(this IBaseRepository repository, Expression<Func<TEntity, bool>> whereExpression)
         {
             return repository.CreateCountableBuilder<TEntity>()
                 .Where(whereExpression)
                 .Build();
         }
 
-        public static ISqlWithParameter GetSqlForEntityExists<TEntity>(this IBaseRepository repository, TEntity entity)
+        public static ISqlCommand GetSqlForEntityExists<TEntity>(this IBaseRepository repository, TEntity entity)
         {
             var pkFields = typeof(TEntity).GetPrimaryKeys();
             if (pkFields == null || !pkFields.Any()) throw new Exception($"The entity class '{typeof(TEntity).Name}' has no primary key field.");
@@ -300,7 +300,7 @@ namespace Sean.Core.DbRepository.Extensions
             ICountable<TEntity> countableBuilder = repository.CreateCountableBuilder<TEntity>();
             pkFields.ForEach(pkField => countableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
             countableBuilder.SetParameter(entity);
-            ISqlWithParameter countSql = countableBuilder.Build();
+            ISqlCommand countSql = countableBuilder.Build();
             return countSql;
         }
         #endregion

@@ -55,9 +55,19 @@ public interface IBaseRepository : ISqlMonitor
 
     #region Synchronous method
     int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    int Execute(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null);
+
     IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    IEnumerable<T> Query<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null);
+
     T Get<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    T Get<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null);
+
     T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    T ExecuteScalar<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null);
+
+    object ExecuteScalar(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    object ExecuteScalar(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null);
 
     /// <summary>
     /// Execute using DbConnection.
@@ -137,9 +147,19 @@ public interface IBaseRepository : ISqlMonitor
     #region Asynchronous method
 #if NETSTANDARD || NET45_OR_GREATER
     Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<int> ExecuteAsync(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null);
+
     Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null);
+
     Task<T> GetAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<T> GetAsync<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null);
+
     Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null);
+
+    Task<object> ExecuteScalarAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null);
 
     /// <summary>
     /// Execute asynchronously using DbConnection.
