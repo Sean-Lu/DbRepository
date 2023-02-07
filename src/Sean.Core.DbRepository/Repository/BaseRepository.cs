@@ -5,7 +5,6 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using System.Transactions;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Core.DbRepository.Util;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
 #endif
@@ -141,18 +140,17 @@ namespace Sean.Core.DbRepository
             return Execute(new DefaultSqlCommand
             {
                 Sql = sql,
-                Parameter = param
-            }, master, transaction);
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                CommandTimeout = CommandTimeout
+            });
         }
-        public virtual int Execute(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        public virtual int Execute(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            if (transaction != null)
-            {
-                return Factory.ExecuteNonQuery(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
-            }
-            return Factory.ExecuteNonQuery(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+            return Factory.ExecuteNonQuery(sqlCommand);
         }
 
         public virtual IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
@@ -163,18 +161,17 @@ namespace Sean.Core.DbRepository
             return Query<T>(new DefaultSqlCommand
             {
                 Sql = sql,
-                Parameter = param
-            }, master, transaction);
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                CommandTimeout = CommandTimeout
+            });
         }
-        public virtual IEnumerable<T> Query<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        public virtual IEnumerable<T> Query<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            if (transaction != null)
-            {
-                return Factory.Query<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
-            }
-            return Factory.Query<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+            return Factory.Query<T>(sqlCommand);
         }
 
         public virtual T Get<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
@@ -185,18 +182,17 @@ namespace Sean.Core.DbRepository
             return Get<T>(new DefaultSqlCommand
             {
                 Sql = sql,
-                Parameter = param
-            }, master, transaction);
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                CommandTimeout = CommandTimeout
+            });
         }
-        public virtual T Get<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        public virtual T Get<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            if (transaction != null)
-            {
-                return Factory.Get<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
-            }
-            return Factory.Get<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+            return Factory.Get<T>(sqlCommand);
         }
 
         public virtual T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
@@ -207,18 +203,17 @@ namespace Sean.Core.DbRepository
             return ExecuteScalar<T>(new DefaultSqlCommand
             {
                 Sql = sql,
-                Parameter = param
-            }, master, transaction);
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                CommandTimeout = CommandTimeout
+            });
         }
-        public virtual T ExecuteScalar<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        public virtual T ExecuteScalar<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            if (transaction != null)
-            {
-                return Factory.ExecuteScalar<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
-            }
-            return Factory.ExecuteScalar<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+            return Factory.ExecuteScalar<T>(sqlCommand);
         }
 
         public virtual object ExecuteScalar(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
@@ -229,18 +224,17 @@ namespace Sean.Core.DbRepository
             return ExecuteScalar(new DefaultSqlCommand
             {
                 Sql = sql,
-                Parameter = param
-            }, master, transaction);
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                CommandTimeout = CommandTimeout
+            });
         }
-        public virtual object ExecuteScalar(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        public virtual object ExecuteScalar(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            if (transaction != null)
-            {
-                return Factory.ExecuteScalar(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
-            }
-            return Factory.ExecuteScalar(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+            return Factory.ExecuteScalar(sqlCommand);
         }
 
         public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null)
@@ -382,18 +376,17 @@ namespace Sean.Core.DbRepository
             return await ExecuteAsync(new DefaultSqlCommand
             {
                 Sql = sql,
-                Parameter = param
-            }, master, transaction);
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                CommandTimeout = CommandTimeout
+            });
         }
-        public virtual async Task<int> ExecuteAsync(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<int> ExecuteAsync(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            if (transaction != null)
-            {
-                return await Factory.ExecuteNonQueryAsync(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
-            }
-            return await Factory.ExecuteNonQueryAsync(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+            return await Factory.ExecuteNonQueryAsync(sqlCommand);
         }
 
         public virtual async Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
@@ -404,18 +397,17 @@ namespace Sean.Core.DbRepository
             return await QueryAsync<T>(new DefaultSqlCommand
             {
                 Sql = sql,
-                Parameter = param
-            }, master, transaction);
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                CommandTimeout = CommandTimeout
+            });
         }
-        public virtual async Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            if (transaction != null)
-            {
-                return await Factory.QueryAsync<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
-            }
-            return await Factory.QueryAsync<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+            return await Factory.QueryAsync<T>(sqlCommand);
         }
 
         public virtual async Task<T> GetAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
@@ -426,18 +418,17 @@ namespace Sean.Core.DbRepository
             return await GetAsync<T>(new DefaultSqlCommand
             {
                 Sql = sql,
-                Parameter = param
-            }, master, transaction);
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                CommandTimeout = CommandTimeout
+            });
         }
-        public virtual async Task<T> GetAsync<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<T> GetAsync<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            if (transaction != null)
-            {
-                return await Factory.GetAsync<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
-            }
-            return await Factory.GetAsync<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+            return await Factory.GetAsync<T>(sqlCommand);
         }
 
         public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
@@ -448,18 +439,17 @@ namespace Sean.Core.DbRepository
             return await ExecuteScalarAsync<T>(new DefaultSqlCommand
             {
                 Sql = sql,
-                Parameter = param
-            }, master, transaction);
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                CommandTimeout = CommandTimeout
+            });
         }
-        public virtual async Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            if (transaction != null)
-            {
-                return await Factory.ExecuteScalarAsync<T>(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
-            }
-            return await Factory.ExecuteScalarAsync<T>(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+            return await Factory.ExecuteScalarAsync<T>(sqlCommand);
         }
 
         public virtual async Task<object> ExecuteScalarAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
@@ -470,18 +460,17 @@ namespace Sean.Core.DbRepository
             return await ExecuteScalarAsync(new DefaultSqlCommand
             {
                 Sql = sql,
-                Parameter = param
-            }, master, transaction);
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                CommandTimeout = CommandTimeout
+            });
         }
-        public virtual async Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            if (transaction != null)
-            {
-                return await Factory.ExecuteScalarAsync(transaction, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter));
-            }
-            return await Factory.ExecuteScalarAsync(sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, Factory.ProviderFactory.CreateParameter), master: master);
+            return await Factory.ExecuteScalarAsync(sqlCommand);
         }
 
         public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null)

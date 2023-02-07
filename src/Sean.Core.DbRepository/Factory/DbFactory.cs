@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 #endif
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 using Sean.Utility.Contracts;
 using Sean.Utility.Format;
 
@@ -155,65 +156,67 @@ namespace Sean.Core.DbRepository
         }
         #endregion
 
-        #region ExecuteCommandInfo
-        public T ExecuteCommandInfo<T>(DbCommandInfo commandInfo, Func<DbCommand, T> func)
+        #region ExecuteSqlCommand
+        public T ExecuteSqlCommand<T>(ISqlCommand sqlCommand, Func<DbCommand, T> func)
         {
-            if (commandInfo == null) throw new ArgumentNullException(nameof(commandInfo));
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
             if (func == null)
             {
                 return default;
             }
 
-            var shouldCloseConnection = false;
-            if (commandInfo.Transaction == null && commandInfo.Connection == null)
+            var isInternalConnection = false;
+            using (var command = CreateDbCommand(sqlCommand))
             {
-                commandInfo.Connection = CreateConnection();
-                shouldCloseConnection = true;
-            }
-
-            try
-            {
-                using (var command = CreateDbCommand(commandInfo))
+                try
                 {
+                    if (command.Connection == null)
+                    {
+                        command.Connection = CreateConnection(sqlCommand.Master);
+                        isInternalConnection = true;
+                    }
+
                     return func(command);
                 }
-            }
-            finally
-            {
-                if (shouldCloseConnection)
+                finally
                 {
-                    CloseConnection(commandInfo.Connection);
+                    if (isInternalConnection)
+                    {
+                        CloseConnection(command.Connection);
+                    }
                 }
             }
         }
 
-        public async Task<T> ExecuteCommandInfoAsync<T>(DbCommandInfo commandInfo, Func<DbCommand, Task<T>> func)
+        public async Task<T> ExecuteSqlCommandAsync<T>(ISqlCommand sqlCommand, Func<DbCommand, Task<T>> func)
         {
-            if (commandInfo == null) throw new ArgumentNullException(nameof(commandInfo));
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
             if (func == null)
             {
                 return default;
             }
 
-            var shouldCloseConnection = false;
-            if (commandInfo.Transaction == null && commandInfo.Connection == null)
+            var isInternalConnection = false;
+            using (var command = CreateDbCommand(sqlCommand))
             {
-                commandInfo.Connection = CreateConnection();
-                shouldCloseConnection = true;
-            }
-
-            try
-            {
-                using (var command = CreateDbCommand(commandInfo))
+                try
                 {
+                    if (command.Connection == null)
+                    {
+                        command.Connection = CreateConnection(sqlCommand.Master);
+                        isInternalConnection = true;
+                    }
+
                     return await func(command);
                 }
-            }
-            finally
-            {
-                if (shouldCloseConnection)
+                finally
                 {
-                    CloseConnection(commandInfo.Connection);
+                    if (isInternalConnection)
+                    {
+                        CloseConnection(command.Connection);
+                    }
                 }
             }
         }
@@ -291,10 +294,11 @@ namespace Sean.Core.DbRepository
         /// Execute INSERT or DELETE or UPDATE operation.
         /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
         /// </summary>
+        /// <param name="sqlCommand"></param>
         /// <returns>Returns the number of affected rows.</returns>
-        public int ExecuteNonQuery(DbCommandInfo commandInfo)
+        public int ExecuteNonQuery(ISqlCommand sqlCommand)
         {
-            return ExecuteCommandInfo(commandInfo, command => command.ExecuteNonQuery(SqlMonitor));
+            return ExecuteSqlCommand(sqlCommand, command => command.ExecuteNonQuery(SqlMonitor));
         }
 
         /// <summary>
@@ -368,10 +372,11 @@ namespace Sean.Core.DbRepository
         /// Execute INSERT or DELETE or UPDATE operation.
         /// <para>执行 INSERT 或 DELETE 或 UPDATE 操作。</para>
         /// </summary>
+        /// <param name="sqlCommand"></param>
         /// <returns>Returns the number of affected rows.</returns>
-        public async Task<int> ExecuteNonQueryAsync(DbCommandInfo commandInfo)
+        public async Task<int> ExecuteNonQueryAsync(ISqlCommand sqlCommand)
         {
-            return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteNonQueryAsync(SqlMonitor));
+            return await ExecuteSqlCommandAsync(sqlCommand, async command => await command.ExecuteNonQueryAsync(SqlMonitor));
         }
         #endregion
 
@@ -443,11 +448,11 @@ namespace Sean.Core.DbRepository
         /// Execute the query.
         /// <para>执行查询</para>
         /// </summary>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns></returns>
-        public DataTable ExecuteDataTable(DbCommandInfo commandInfo)
+        public DataTable ExecuteDataTable(ISqlCommand sqlCommand)
         {
-            var dataSet = ExecuteDataSet(commandInfo);
+            var dataSet = ExecuteDataSet(sqlCommand);
             return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
 
@@ -518,11 +523,11 @@ namespace Sean.Core.DbRepository
         /// Execute the query.
         /// <para>执行查询</para>
         /// </summary>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns></returns>
-        public async Task<DataTable> ExecuteDataTableAsync(DbCommandInfo commandInfo)
+        public async Task<DataTable> ExecuteDataTableAsync(ISqlCommand sqlCommand)
         {
-            var dataSet = await ExecuteDataSetAsync(commandInfo);
+            var dataSet = await ExecuteDataSetAsync(sqlCommand);
             return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
         }
         #endregion
@@ -605,11 +610,11 @@ namespace Sean.Core.DbRepository
         /// Execute the query.
         /// <para>执行查询</para>
         /// </summary>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns></returns>
-        public DataSet ExecuteDataSet(DbCommandInfo commandInfo)
+        public DataSet ExecuteDataSet(ISqlCommand sqlCommand)
         {
-            return ExecuteCommandInfo(commandInfo, command =>
+            return ExecuteSqlCommand(sqlCommand, command =>
             {
                 using (var adapter = _providerFactory.CreateDataAdapter())
                 {
@@ -704,11 +709,11 @@ namespace Sean.Core.DbRepository
         /// Execute the query.
         /// <para>执行查询</para>
         /// </summary>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns></returns>
-        public async Task<DataSet> ExecuteDataSetAsync(DbCommandInfo commandInfo)
+        public async Task<DataSet> ExecuteDataSetAsync(ISqlCommand sqlCommand)
         {
-            return await ExecuteCommandInfoAsync(commandInfo, async command =>
+            return await ExecuteSqlCommandAsync(sqlCommand, async command =>
             {
                 using (var adapter = _providerFactory.CreateDataAdapter())
                 {
@@ -801,11 +806,11 @@ namespace Sean.Core.DbRepository
         /// Execute the query.
         /// <para>执行查询</para>
         /// </summary>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns></returns>
-        public DbDataReader ExecuteReader(DbCommandInfo commandInfo)
+        public DbDataReader ExecuteReader(ISqlCommand sqlCommand)
         {
-            return ExecuteCommandInfo(commandInfo, command => command.ExecuteReader(CommandBehavior.Default, SqlMonitor));
+            return ExecuteSqlCommand(sqlCommand, command => command.ExecuteReader(CommandBehavior.Default, SqlMonitor));
         }
 
         /// <summary>   
@@ -881,11 +886,11 @@ namespace Sean.Core.DbRepository
         /// Execute the query.
         /// <para>执行查询</para>
         /// </summary>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns></returns>
-        public async Task<DbDataReader> ExecuteReaderAsync(DbCommandInfo commandInfo)
+        public async Task<DbDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand)
         {
-            return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor));
+            return await ExecuteSqlCommandAsync(sqlCommand, async command => await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor));
         }
         #endregion
 
@@ -961,11 +966,11 @@ namespace Sean.Core.DbRepository
         /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
         /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns></returns>
-        public object ExecuteScalar(DbCommandInfo commandInfo)
+        public object ExecuteScalar(ISqlCommand sqlCommand)
         {
-            return ExecuteCommandInfo(commandInfo, command => command.ExecuteScalar(SqlMonitor));
+            return ExecuteSqlCommand(sqlCommand, command => command.ExecuteScalar(SqlMonitor));
         }
 
         /// <summary>
@@ -1032,11 +1037,11 @@ namespace Sean.Core.DbRepository
         /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns></returns>
-        public T ExecuteScalar<T>(DbCommandInfo commandInfo)
+        public T ExecuteScalar<T>(ISqlCommand sqlCommand)
         {
-            var obj = ExecuteScalar(commandInfo);
+            var obj = ExecuteScalar(sqlCommand);
             return ObjectConvert.ChangeType<T>(obj);
         }
 
@@ -1111,11 +1116,11 @@ namespace Sean.Core.DbRepository
         /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
         /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns></returns>
-        public async Task<object> ExecuteScalarAsync(DbCommandInfo commandInfo)
+        public async Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand)
         {
-            return await ExecuteCommandInfoAsync(commandInfo, async command => await command.ExecuteScalarAsync(SqlMonitor));
+            return await ExecuteSqlCommandAsync(sqlCommand, async command => await command.ExecuteScalarAsync(SqlMonitor));
         }
 
         /// <summary>
@@ -1182,11 +1187,11 @@ namespace Sean.Core.DbRepository
         /// <para>执行查询，并返回查询所返回的结果集中第一行的第一列。 所有其他的列和行将被忽略。</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns></returns>
-        public async Task<T> ExecuteScalarAsync<T>(DbCommandInfo commandInfo)
+        public async Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand)
         {
-            var obj = await ExecuteScalarAsync(commandInfo);
+            var obj = await ExecuteScalarAsync(sqlCommand);
             return ObjectConvert.ChangeType<T>(obj);
         }
         #endregion
@@ -1268,15 +1273,15 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Query entities.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="commandInfo"></param>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="sqlCommand"></param>
         /// <returns>Returns a collection of entity after query.</returns>
-        public List<T> Query<T>(DbCommandInfo commandInfo)
+        public List<T> Query<T>(ISqlCommand sqlCommand)
         {
-            //var table = ExecuteDataTable(commandInfo);
+            //var table = ExecuteDataTable(sqlCommand);
             //return table?.ToList<T>(CaseSensitive);
 
-            using (var dataReader = ExecuteReader(commandInfo))
+            using (var dataReader = ExecuteReader(sqlCommand))
             {
                 return dataReader.GetList<T>(CaseSensitive);
             }
@@ -1358,15 +1363,15 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// Query entities.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="commandInfo"></param>
+        /// <typeparam name="T">Returned entity type</typeparam>
+        /// <param name="sqlCommand"></param>
         /// <returns>Returns a collection of entity after query.</returns>
-        public async Task<List<T>> QueryAsync<T>(DbCommandInfo commandInfo)
+        public async Task<List<T>> QueryAsync<T>(ISqlCommand sqlCommand)
         {
-            //var table = await ExecuteDataTableAsync(commandInfo);
+            //var table = await ExecuteDataTableAsync(sqlCommand);
             //return table?.ToList<T>(CaseSensitive);
 
-            using (var dataReader = await ExecuteReaderAsync(commandInfo))
+            using (var dataReader = await ExecuteReaderAsync(sqlCommand))
             {
                 return dataReader.GetList<T>(CaseSensitive);
             }
@@ -1445,11 +1450,11 @@ namespace Sean.Core.DbRepository
         /// Query single entity.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns>Returns a single entity after query.</returns>
-        public T Get<T>(DbCommandInfo commandInfo)
+        public T Get<T>(ISqlCommand sqlCommand)
         {
-            using (var dataReader = ExecuteReader(commandInfo))
+            using (var dataReader = ExecuteReader(sqlCommand))
             {
                 return dataReader.Get<T>(CaseSensitive);
             }
@@ -1526,11 +1531,11 @@ namespace Sean.Core.DbRepository
         /// Query single entity.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="commandInfo"></param>
+        /// <param name="sqlCommand"></param>
         /// <returns>Returns a single entity after query.</returns>
-        public async Task<T> GetAsync<T>(DbCommandInfo commandInfo)
+        public async Task<T> GetAsync<T>(ISqlCommand sqlCommand)
         {
-            using (var dataReader = await ExecuteReaderAsync(commandInfo))
+            using (var dataReader = await ExecuteReaderAsync(sqlCommand))
             {
                 return dataReader.Get<T>(CaseSensitive);
             }
@@ -1636,9 +1641,9 @@ namespace Sean.Core.DbRepository
         #endregion
 
         #region Private Methods
-        private DbCommand CreateDbCommand(DbCommandInfo commandInfo)
+        private DbCommand CreateDbCommand(ISqlCommand sqlCommand)
         {
-            return CreateDbCommand(commandInfo.Transaction, commandInfo.Connection, commandInfo.CommandType, commandInfo.CommandText, commandInfo.Parameters, commandInfo.CommandTimeout);
+            return CreateDbCommand(sqlCommand.Transaction, null, sqlCommand.CommandType, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, _providerFactory.CreateParameter), sqlCommand.CommandTimeout);
         }
         private DbCommand CreateDbCommand(IDbTransaction transaction, IDbConnection connection, CommandType commandType, string commandText, IEnumerable<DbParameter> parameters, int? commandTimeout = null)
         {

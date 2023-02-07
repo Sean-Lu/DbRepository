@@ -1,13 +1,18 @@
-﻿namespace Sean.Core.DbRepository;
+﻿using System.Data;
+
+namespace Sean.Core.DbRepository;
 
 public class DefaultSqlCommand : ISqlCommand
 {
     public string Sql { get; set; }
     public object Parameter { get; set; }
+    public bool Master { get; set; } = true;
+    public IDbTransaction Transaction { get; set; }
+    public int? CommandTimeout { get; set; }
+    public CommandType CommandType { get; set; } = CommandType.Text;
 }
 
-public class DefaultSqlCommand<T> : ISqlCommand<T>
+public class DefaultSqlCommand<T> : DefaultSqlCommand, ISqlCommand<T>
 {
-    public string Sql { get; set; }
-    public T Parameter { get; set; }
+    public new T Parameter { get; set; }
 }

@@ -93,14 +93,22 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         PropertyInfo keyIdentityProperty;
         if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
         {
-            var id = ExecuteScalar<long>(this.GetSqlForAdd(entity, true, fieldExpression), true, transaction);
+            var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
+            sqlCommandReturnId.Master = true;
+            sqlCommandReturnId.Transaction = transaction;
+            sqlCommandReturnId.CommandTimeout = CommandTimeout;
+            var id = ExecuteScalar<long>(sqlCommandReturnId);
             if (id < 1) return false;
 
             keyIdentityProperty.SetValue(entity, id, null);
             return true;
         }
 
-        return Execute(this.GetSqlForAdd(entity, false, fieldExpression), true, transaction) > 0;
+        var sqlCommand = this.GetSqlForAdd(entity, false, fieldExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return Execute(sqlCommand) > 0;
     }
     public virtual bool Add(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
@@ -134,7 +142,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             return true;
         }
 
-        return Execute(this.GetSqlForBulkAdd(entities, fieldExpression), true, transaction) > 0;
+        var sqlCommand = this.GetSqlForBulkAdd(entities, fieldExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return Execute(sqlCommand) > 0;
     }
 
     public virtual bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -146,11 +158,18 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
                 {
-                    return Execute(this.GetSqlForAddOrUpdate(entity, fieldExpression), true, transaction) > 0;
+                    var sqlCommand = this.GetSqlForAddOrUpdate(entity, fieldExpression);
+                    sqlCommand.Master = true;
+                    sqlCommand.Transaction = transaction;
+                    sqlCommand.CommandTimeout = CommandTimeout;
+                    return Execute(sqlCommand) > 0;
                 }
             default:
                 {
-                    if (ExecuteScalar<int>(this.GetSqlForEntityExists(entity), true, null) < 1)
+                    var sqlCommand = this.GetSqlForEntityExists(entity);
+                    sqlCommand.Master = true;
+                    sqlCommand.CommandTimeout = CommandTimeout;
+                    if (ExecuteScalar<int>(sqlCommand) < 1)
                     {
                         // INSERT
                         return Add(entity, false, fieldExpression, transaction);
@@ -178,7 +197,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         {
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
-                return Execute(this.GetSqlForBulkAddOrUpdate(entities, fieldExpression), true, transaction) > 0;
+                var sqlCommand = this.GetSqlForBulkAddOrUpdate(entities, fieldExpression);
+                sqlCommand.Master = true;
+                sqlCommand.Transaction = transaction;
+                sqlCommand.CommandTimeout = CommandTimeout;
+                return Execute(sqlCommand) > 0;
             default:
                 //if (transaction?.Connection == null)
                 //{
@@ -209,7 +232,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual bool Delete(TEntity entity, IDbTransaction transaction = null)
     {
-        return Execute(this.GetSqlForDelete(entity), true, transaction) > 0;
+        var sqlCommand = this.GetSqlForDelete(entity);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return Execute(sqlCommand) > 0;
     }
     public virtual bool Delete(IEnumerable<TEntity> entities, IDbTransaction transaction = null)
     {
@@ -227,7 +254,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     }
     public virtual int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
     {
-        return Execute(this.GetSqlForDelete(whereExpression), true, transaction);
+        var sqlCommand = this.GetSqlForDelete(whereExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return Execute(sqlCommand);
     }
     public virtual int DeleteAll(IDbTransaction transaction = null)
     {
@@ -236,7 +267,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
-        return Execute(this.GetSqlForUpdate(entity, fieldExpression, whereExpression), true, transaction);
+        var sqlCommand = this.GetSqlForUpdate(entity, fieldExpression, whereExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return Execute(sqlCommand);
     }
     public virtual bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
@@ -270,11 +305,19 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual bool Increment<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        return Execute(this.GetSqlForIncr(value, fieldExpression, whereExpression), true, transaction) > 0;
+        var sqlCommand = this.GetSqlForIncr(value, fieldExpression, whereExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return Execute(sqlCommand) > 0;
     }
     public virtual bool Decrement<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        return Execute(this.GetSqlForDecr(value, fieldExpression, whereExpression), true, transaction) > 0;
+        var sqlCommand = this.GetSqlForDecr(value, fieldExpression, whereExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return Execute(sqlCommand) > 0;
     }
 
     public virtual bool Save<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
@@ -374,21 +417,33 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return Query<TEntity>(this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression), master, null);
+        var sqlCommand = this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression);
+        sqlCommand.Master = master;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return Query<TEntity>(sqlCommand);
     }
     public virtual IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return Query<TEntity>(this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression), master, null);
+        var sqlCommand = this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression);
+        sqlCommand.Master = master;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return Query<TEntity>(sqlCommand);
     }
 
     public virtual TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return Get<TEntity>(this.GetSqlForGet(whereExpression, fieldExpression), master, null);
+        var sqlCommand = this.GetSqlForGet(whereExpression, fieldExpression);
+        sqlCommand.Master = master;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return Get<TEntity>(sqlCommand);
     }
 
     public virtual int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
     {
-        return ExecuteScalar<int>(this.GetSqlForCount(whereExpression), master, null);
+        var sqlCommand = this.GetSqlForCount(whereExpression);
+        sqlCommand.Master = master;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return ExecuteScalar<int>(sqlCommand);
     }
 
     public virtual bool Exists(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
@@ -445,14 +500,22 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         PropertyInfo keyIdentityProperty;
         if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
         {
-            var id = await ExecuteScalarAsync<long>(this.GetSqlForAdd(entity, true, fieldExpression), true, transaction);
+            var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
+            sqlCommandReturnId.Master = true;
+            sqlCommandReturnId.Transaction = transaction;
+            sqlCommandReturnId.CommandTimeout = CommandTimeout;
+            var id = await ExecuteScalarAsync<long>(sqlCommandReturnId);
             if (id < 1) return false;
 
             keyIdentityProperty.SetValue(entity, id, null);
             return true;
         }
 
-        return await ExecuteAsync(this.GetSqlForAdd(entity, false, fieldExpression), true, transaction) > 0;
+        var sqlCommand = this.GetSqlForAdd(entity, false, fieldExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await ExecuteAsync(sqlCommand) > 0;
     }
     public virtual async Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
@@ -486,7 +549,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             return true;
         }
 
-        return await ExecuteAsync(this.GetSqlForBulkAdd(entities, fieldExpression), true, transaction) > 0;
+        var sqlCommand = this.GetSqlForBulkAdd(entities, fieldExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await ExecuteAsync(sqlCommand) > 0;
     }
 
     public virtual async Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -498,11 +565,18 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
                 {
-                    return await ExecuteAsync(this.GetSqlForAddOrUpdate(entity, fieldExpression), true, transaction) > 0;
+                    var sqlCommand = this.GetSqlForAddOrUpdate(entity, fieldExpression);
+                    sqlCommand.Master = true;
+                    sqlCommand.Transaction = transaction;
+                    sqlCommand.CommandTimeout = CommandTimeout;
+                    return await ExecuteAsync(sqlCommand) > 0;
                 }
             default:
                 {
-                    if (await ExecuteScalarAsync<int>(this.GetSqlForEntityExists(entity), true, null) < 1)
+                    var sqlCommand = this.GetSqlForEntityExists(entity);
+                    sqlCommand.Master = true;
+                    sqlCommand.CommandTimeout = CommandTimeout;
+                    if (await ExecuteScalarAsync<int>(sqlCommand) < 1)
                     {
                         // INSERT
                         return await AddAsync(entity, false, fieldExpression, transaction);
@@ -530,7 +604,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         {
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
-                return await ExecuteAsync(this.GetSqlForBulkAddOrUpdate(entities, fieldExpression), true, transaction) > 0;
+                var sqlCommand = this.GetSqlForBulkAddOrUpdate(entities, fieldExpression);
+                sqlCommand.Master = true;
+                sqlCommand.Transaction = transaction;
+                sqlCommand.CommandTimeout = CommandTimeout;
+                return await ExecuteAsync(sqlCommand) > 0;
             default:
                 //if (transaction?.Connection == null)
                 //{
@@ -561,7 +639,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null)
     {
-        return await ExecuteAsync(this.GetSqlForDelete(entity), true, transaction) > 0;
+        var sqlCommand = this.GetSqlForDelete(entity);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await ExecuteAsync(sqlCommand) > 0;
     }
     public virtual async Task<bool> DeleteAsync(IEnumerable<TEntity> entities, IDbTransaction transaction = null)
     {
@@ -579,7 +661,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     }
     public virtual async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
     {
-        return await ExecuteAsync(this.GetSqlForDelete(whereExpression), true, transaction);
+        var sqlCommand = this.GetSqlForDelete(whereExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await ExecuteAsync(sqlCommand);
     }
     public virtual async Task<int> DeleteAllAsync(IDbTransaction transaction = null)
     {
@@ -588,7 +674,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
-        return await ExecuteAsync(this.GetSqlForUpdate(entity, fieldExpression, whereExpression), true, transaction);
+        var sqlCommand = this.GetSqlForUpdate(entity, fieldExpression, whereExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await ExecuteAsync(sqlCommand);
     }
     public virtual async Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
@@ -622,11 +712,19 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<bool> IncrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        return await ExecuteAsync(this.GetSqlForIncr(value, fieldExpression, whereExpression), true, transaction) > 0;
+        var sqlCommand = this.GetSqlForIncr(value, fieldExpression, whereExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await ExecuteAsync(sqlCommand) > 0;
     }
     public virtual async Task<bool> DecrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        return await ExecuteAsync(this.GetSqlForDecr(value, fieldExpression, whereExpression), true, transaction) > 0;
+        var sqlCommand = this.GetSqlForDecr(value, fieldExpression, whereExpression);
+        sqlCommand.Master = true;
+        sqlCommand.Transaction = transaction;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await ExecuteAsync(sqlCommand) > 0;
     }
 
     public virtual async Task<bool> SaveAsync<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
@@ -726,21 +824,33 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return await QueryAsync<TEntity>(this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression), master, null);
+        var sqlCommand = this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression);
+        sqlCommand.Master = master;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await QueryAsync<TEntity>(sqlCommand);
     }
     public virtual async Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return await QueryAsync<TEntity>(this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression), master, null);
+        var sqlCommand = this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression);
+        sqlCommand.Master = master;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await QueryAsync<TEntity>(sqlCommand);
     }
 
     public virtual async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        return await GetAsync<TEntity>(this.GetSqlForGet(whereExpression, fieldExpression), master, null);
+        var sqlCommand = this.GetSqlForGet(whereExpression, fieldExpression);
+        sqlCommand.Master = master;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await GetAsync<TEntity>(sqlCommand);
     }
 
     public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
     {
-        return await ExecuteScalarAsync<int>(this.GetSqlForCount(whereExpression), master, null);
+        var sqlCommand = this.GetSqlForCount(whereExpression);
+        sqlCommand.Master = master;
+        sqlCommand.CommandTimeout = CommandTimeout;
+        return await ExecuteScalarAsync<int>(sqlCommand);
     }
 
     public virtual async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
