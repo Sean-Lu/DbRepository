@@ -10,7 +10,7 @@ namespace Sean.Core.DbRepository;
 /// <summary>
 /// Database table base repository.
 /// </summary>
-public interface IBaseRepository : ISqlMonitor
+public interface IBaseRepository
 {
     /// <summary>
     /// Database factory
@@ -21,6 +21,8 @@ public interface IBaseRepository : ISqlMonitor
     /// Database type
     /// </summary>
     DatabaseType DbType { get; }
+
+    ISqlMonitor SqlMonitor { get; }
 
     /// <summary>
     /// Number of seconds before command execution timeout.

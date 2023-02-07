@@ -20,6 +20,8 @@ namespace Sean.Core.DbRepository
 
         public DatabaseType DbType => Factory.DbType;
 
+        public ISqlMonitor SqlMonitor => Factory.SqlMonitor;
+
         public int? CommandTimeout
         {
             get => Factory.CommandTimeout;
@@ -36,6 +38,8 @@ namespace Sean.Core.DbRepository
         protected BaseRepository(IConfiguration configuration, string configName = Constants.Master)
         {
             Factory = new DbFactory(configuration, configName);
+            Factory.SqlMonitor.SqlExecuting += OnSqlExecuting;
+            Factory.SqlMonitor.SqlExecuted += OnSqlExecuted;
         }
 #else
         /// <summary>
@@ -45,6 +49,8 @@ namespace Sean.Core.DbRepository
         protected BaseRepository(string configName = Constants.Master)
         {
             Factory = new DbFactory(configName);
+            Factory.SqlMonitor.SqlExecuting += OnSqlExecuting;
+            Factory.SqlMonitor.SqlExecuted += OnSqlExecuted;
         }
 #endif
         /// <summary>
@@ -54,6 +60,8 @@ namespace Sean.Core.DbRepository
         protected BaseRepository(MultiConnectionSettings connectionSettings)
         {
             Factory = new DbFactory(connectionSettings);
+            Factory.SqlMonitor.SqlExecuting += OnSqlExecuting;
+            Factory.SqlMonitor.SqlExecuted += OnSqlExecuted;
         }
         /// <summary>
         /// Single database.
@@ -116,14 +124,14 @@ namespace Sean.Core.DbRepository
             }
         }
 
-        public virtual void OnSqlExecuting(SqlExecutingContext context)
+        protected virtual void OnSqlExecuting(SqlExecutingContext context)
         {
-            Factory.SqlMonitor?.OnSqlExecuting(context);
+
         }
 
-        public virtual void OnSqlExecuted(SqlExecutedContext context)
+        protected virtual void OnSqlExecuted(SqlExecutedContext context)
         {
-            Factory.SqlMonitor?.OnSqlExecuted(context);
+
         }
 
         public virtual DbConnection OpenNewConnection(bool master = true)

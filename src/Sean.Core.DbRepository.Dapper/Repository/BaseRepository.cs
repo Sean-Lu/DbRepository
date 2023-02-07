@@ -76,41 +76,41 @@ namespace Sean.Core.DbRepository.Dapper
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            return Execute(connection => connection.Execute(sqlCommand, this), sqlCommand.Master, sqlCommand.Transaction);
+            return Execute(connection => connection.Execute(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction);
         }
         public override IEnumerable<T> Query<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            return Execute(connection => connection.Query<T>(sqlCommand, this), sqlCommand.Master, sqlCommand.Transaction);
+            return Execute(connection => connection.Query<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction);
         }
         public override T Get<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            return Execute(connection => connection.Get<T>(sqlCommand, this), sqlCommand.Master, sqlCommand.Transaction);
+            return Execute(connection => connection.Get<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction);
         }
         public override T ExecuteScalar<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            return Execute(connection => connection.ExecuteScalar<T>(sqlCommand, this), sqlCommand.Master, sqlCommand.Transaction);
+            return Execute(connection => connection.ExecuteScalar<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction);
         }
         public override object ExecuteScalar(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            return Execute(connection => connection.ExecuteScalar(sqlCommand, this), sqlCommand.Master, sqlCommand.Transaction);
+            return Execute(connection => connection.ExecuteScalar(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction);
         }
 
         public override bool IsTableExists(string tableName, bool master = true, bool useCache = true)
         {
-            return this.IsTableExists(tableName, (sql, connection) => connection.ExecuteScalar<int>(new DefaultSqlCommand { Sql = sql, CommandTimeout = CommandTimeout }, this) > 0, master, useCache);
+            return this.IsTableExists(tableName, (sql, connection) => connection.ExecuteScalar<int>(new DefaultSqlCommand { Sql = sql, CommandTimeout = CommandTimeout }, SqlMonitor) > 0, master, useCache);
         }
 
         public override bool IsTableFieldExists(string tableName, string fieldName, bool master = true, bool useCache = true)
         {
-            return this.IsTableFieldExists(tableName, fieldName, (sql, connection) => connection.ExecuteScalar<int>(new DefaultSqlCommand { Sql = sql, CommandTimeout = CommandTimeout }, this) > 0, master, useCache);
+            return this.IsTableFieldExists(tableName, fieldName, (sql, connection) => connection.ExecuteScalar<int>(new DefaultSqlCommand { Sql = sql, CommandTimeout = CommandTimeout }, SqlMonitor) > 0, master, useCache);
         }
         #endregion
 
@@ -120,41 +120,41 @@ namespace Sean.Core.DbRepository.Dapper
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            return await ExecuteAsync(async connection => await connection.ExecuteAsync(sqlCommand, this), sqlCommand.Master, sqlCommand.Transaction);
+            return await ExecuteAsync(async connection => await connection.ExecuteAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction);
         }
         public override async Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            return await ExecuteAsync(async connection => await connection.QueryAsync<T>(sqlCommand, this), sqlCommand.Master, sqlCommand.Transaction);
+            return await ExecuteAsync(async connection => await connection.QueryAsync<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction);
         }
         public override async Task<T> GetAsync<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            return await ExecuteAsync(async connection => await connection.GetAsync<T>(sqlCommand, this), sqlCommand.Master, sqlCommand.Transaction);
+            return await ExecuteAsync(async connection => await connection.GetAsync<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction);
         }
         public override async Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            return await ExecuteAsync(async connection => await connection.ExecuteScalarAsync<T>(sqlCommand, this), sqlCommand.Master, sqlCommand.Transaction);
+            return await ExecuteAsync(async connection => await connection.ExecuteScalarAsync<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction);
         }
         public override async Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-            return await ExecuteAsync(async connection => await connection.ExecuteScalarAsync(sqlCommand, this), sqlCommand.Master, sqlCommand.Transaction);
+            return await ExecuteAsync(async connection => await connection.ExecuteScalarAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction);
         }
 
         public override async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)
         {
-            return await this.IsTableExistsAsync(tableName, async (sql, connection) => await connection.ExecuteScalarAsync<int>(new DefaultSqlCommand { Sql = sql, CommandTimeout = CommandTimeout }, this) > 0, master, useCache);
+            return await this.IsTableExistsAsync(tableName, async (sql, connection) => await connection.ExecuteScalarAsync<int>(new DefaultSqlCommand { Sql = sql, CommandTimeout = CommandTimeout }, SqlMonitor) > 0, master, useCache);
         }
 
         public override async Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true)
         {
-            return await this.IsTableFieldExistsAsync(tableName, fieldName, async (sql, connection) => await connection.ExecuteScalarAsync<int>(new DefaultSqlCommand { Sql = sql, CommandTimeout = CommandTimeout }, this) > 0, master, useCache);
+            return await this.IsTableFieldExistsAsync(tableName, fieldName, async (sql, connection) => await connection.ExecuteScalarAsync<int>(new DefaultSqlCommand { Sql = sql, CommandTimeout = CommandTimeout }, SqlMonitor) > 0, master, useCache);
         }
 #endif
         #endregion

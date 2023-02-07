@@ -31,14 +31,14 @@ namespace Example.Domain.Repositories
             _logger = logger;
         }
 
-        public override void OnSqlExecuting(SqlExecutingContext context)
+        protected override void OnSqlExecuting(SqlExecutingContext context)
         {
             base.OnSqlExecuting(context);
 
             //_logger.LogInfo($"SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
         }
 
-        public override void OnSqlExecuted(SqlExecutedContext context)
+        protected override void OnSqlExecuted(SqlExecutedContext context)
         {
             base.OnSqlExecuted(context);
 
