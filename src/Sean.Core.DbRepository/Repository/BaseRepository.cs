@@ -22,6 +22,8 @@ namespace Sean.Core.DbRepository
 
         public ISqlMonitor SqlMonitor => Factory.SqlMonitor;
 
+        public int? BulkCountLimit { get; set; }
+
         public int? CommandTimeout
         {
             get => Factory.CommandTimeout;

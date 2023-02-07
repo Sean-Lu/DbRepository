@@ -28,6 +28,8 @@ namespace Example.NetFramework
             };
             #endregion
 
+            #region Database configuration.
+
             #region 配置数据库和数据库提供者工厂之间的映射关系
             DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", MySqlClientFactory.Instance));// MySql
             DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", SqlClientFactory.Instance));// Microsoft SQL Server
@@ -36,7 +38,10 @@ namespace Example.NetFramework
             //DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));// SQLite
             #endregion
 
+            DbFactory.BulkCountLimit = 200;
             DbFactory.JsonSerializer = NewJsonSerializer.Instance;
+
+            #endregion
 
             ISimpleDo toDo = new MySqlTest();
             //ISimpleDo toDo = new SQLiteTest();

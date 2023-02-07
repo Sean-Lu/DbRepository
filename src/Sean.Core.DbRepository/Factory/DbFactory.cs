@@ -22,6 +22,10 @@ namespace Sean.Core.DbRepository
     public class DbFactory
     {
         /// <summary>
+        /// The limit on the number of entities when executing database bulk operations. The default value is 1000.
+        /// </summary>
+        public static int? BulkCountLimit { get; set; } = 1000;
+        /// <summary>
         /// The time (in seconds) to wait for the command to execute. The default value is 30 seconds.
         /// <para>等待命令执行所需的时间（以秒为单位）。 默认值为 30 秒。</para>
         /// </summary>

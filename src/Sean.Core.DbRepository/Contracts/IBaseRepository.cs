@@ -25,6 +25,11 @@ public interface IBaseRepository
     ISqlMonitor SqlMonitor { get; }
 
     /// <summary>
+    /// The limit on the number of entities when executing database bulk operations.
+    /// </summary>
+    int? BulkCountLimit { get; set; }
+
+    /// <summary>
     /// Number of seconds before command execution timeout.
     /// </summary>
     int? CommandTimeout { get; set; }

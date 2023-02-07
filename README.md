@@ -171,20 +171,12 @@ var _db = new DbFactory("Database connection string...", MySqlClientFactory.Inst
 - 以下测试结果来自单元测试：**`PerformanceComparisonTest.CompareBulkInsertTimeConsumed`**
 - 测试数据库：MySQL 8.0.27
 - 测试表：Test
+- 测试时间：2023-02-07 15:00:00
 
-| Operation        | 50 Entities | 200 Entities | 1,000 Entities | 2,000 Entities | 5,000 Entities |
+| Operation        | 50 Entities | 200 Entities | 1000 Entities  | 2000 Entities  | 5000 Entities  |
 | ---------------- | ----------- | ------------ | -------------- | -------------- | -------------- |
-| `Dapper.Execute` | 446 ms      | 1370 ms      | 6639 ms        | 12165 ms       | 31318 ms       |
-| `BulkInsert`     | 10 ms       | 34 ms        | 437 ms         | 1674 ms        | 15062 ms       |
-
-- 实践证明：在一次性批量执行大量实体数据时，如果实体数量超过200，建议分批执行，每次执行的实体数量不超过200，这样总的执行消耗时间是最理想的。代码示例：
-
-```csharp
-await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.AddAsync(_mapper.Map<List<TestEntity>>(models)));
-await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.UpdateAsync(_mapper.Map<List<TestEntity>>(models)));
-await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.AddOrUpdateAsync(_mapper.Map<List<TestEntity>>(models)));
-```
-
+| `Dapper.Execute` | 318 ms      | 1401 ms      | 5875 ms        | 11991 ms       | 29968 ms       |
+| `BulkInsert`     | 15 ms       | 27 ms        | 84 ms          | 176 ms         | 471 ms         |
 
 ## 常用实体类注解（`TableEntity`）
 

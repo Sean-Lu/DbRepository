@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Sean.Core.DbRepository.Extensions;
 using System.Linq;
 using System.Reflection;
+using Sean.Utility.Extensions;
 #if NETSTANDARD
 using Microsoft.Extensions.Configuration;
 #endif
@@ -142,6 +143,19 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             return true;
         }
 
+        var bulkCountLimit = BulkCountLimit ?? DbFactory.BulkCountLimit;
+        if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
+        {
+            return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
+            {
+                var sqlCommand = this.GetSqlForBulkAdd(models, fieldExpression);
+                sqlCommand.Master = true;
+                sqlCommand.Transaction = transaction;
+                sqlCommand.CommandTimeout = CommandTimeout;
+                return Execute(sqlCommand) > 0;
+            });
+        }
+
         var sqlCommand = this.GetSqlForBulkAdd(entities, fieldExpression);
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
@@ -197,36 +211,53 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         {
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
-                var sqlCommand = this.GetSqlForBulkAddOrUpdate(entities, fieldExpression);
-                sqlCommand.Master = true;
-                sqlCommand.Transaction = transaction;
-                sqlCommand.CommandTimeout = CommandTimeout;
-                return Execute(sqlCommand) > 0;
-            default:
-                //if (transaction?.Connection == null)
-                //{
-                //    return ExecuteAutoTransaction(trans =>
-                //    {
-                //        foreach (var entity in entities)
-                //        {
-                //            if (!AddOrUpdate(entity, fieldExpression, trans))
-                //            {
-                //                return false;
-                //            }
-                //        }
-                //        return true;
-                //    });
-                //}
-
-                foreach (var entity in entities)
                 {
-                    if (!AddOrUpdate(entity, fieldExpression, transaction))
+                    var bulkCountLimit = BulkCountLimit ?? DbFactory.BulkCountLimit;
+                    if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
                     {
-                        return false;
+                        return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
+                        {
+                            var sqlCommand = this.GetSqlForBulkAddOrUpdate(models, fieldExpression);
+                            sqlCommand.Master = true;
+                            sqlCommand.Transaction = transaction;
+                            sqlCommand.CommandTimeout = CommandTimeout;
+                            return Execute(sqlCommand) > 0;
+                        });
                     }
-                }
 
-                return true;
+                    var sqlCommand = this.GetSqlForBulkAddOrUpdate(entities, fieldExpression);
+                    sqlCommand.Master = true;
+                    sqlCommand.Transaction = transaction;
+                    sqlCommand.CommandTimeout = CommandTimeout;
+                    return Execute(sqlCommand) > 0;
+                }
+            default:
+                {
+                    //if (transaction?.Connection == null)
+                    //{
+                    //    return ExecuteAutoTransaction(trans =>
+                    //    {
+                    //        foreach (var entity in entities)
+                    //        {
+                    //            if (!AddOrUpdate(entity, fieldExpression, trans))
+                    //            {
+                    //                return false;
+                    //            }
+                    //        }
+                    //        return true;
+                    //    });
+                    //}
+
+                    foreach (var entity in entities)
+                    {
+                        if (!AddOrUpdate(entity, fieldExpression, transaction))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
         }
     }
 
@@ -549,6 +580,19 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             return true;
         }
 
+        var bulkCountLimit = BulkCountLimit ?? DbFactory.BulkCountLimit;
+        if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
+        {
+            return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
+            {
+                var sqlCommand = this.GetSqlForBulkAdd(models, fieldExpression);
+                sqlCommand.Master = true;
+                sqlCommand.Transaction = transaction;
+                sqlCommand.CommandTimeout = CommandTimeout;
+                return await ExecuteAsync(sqlCommand) > 0;
+            });
+        }
+
         var sqlCommand = this.GetSqlForBulkAdd(entities, fieldExpression);
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
@@ -604,36 +648,53 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         {
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
-                var sqlCommand = this.GetSqlForBulkAddOrUpdate(entities, fieldExpression);
-                sqlCommand.Master = true;
-                sqlCommand.Transaction = transaction;
-                sqlCommand.CommandTimeout = CommandTimeout;
-                return await ExecuteAsync(sqlCommand) > 0;
-            default:
-                //if (transaction?.Connection == null)
-                //{
-                //    return await ExecuteAutoTransactionAsync(async trans =>
-                //    {
-                //        foreach (var entity in entities)
-                //        {
-                //            if (!await AddOrUpdateAsync(entity, fieldExpression, trans))
-                //            {
-                //                return false;
-                //            }
-                //        }
-                //        return true;
-                //    });
-                //}
-
-                foreach (var entity in entities)
                 {
-                    if (!await AddOrUpdateAsync(entity, fieldExpression, transaction))
+                    var bulkCountLimit = BulkCountLimit ?? DbFactory.BulkCountLimit;
+                    if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
                     {
-                        return false;
+                        return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
+                        {
+                            var sqlCommand = this.GetSqlForBulkAddOrUpdate(models, fieldExpression);
+                            sqlCommand.Master = true;
+                            sqlCommand.Transaction = transaction;
+                            sqlCommand.CommandTimeout = CommandTimeout;
+                            return await ExecuteAsync(sqlCommand) > 0;
+                        });
                     }
-                }
 
-                return true;
+                    var sqlCommand = this.GetSqlForBulkAddOrUpdate(entities, fieldExpression);
+                    sqlCommand.Master = true;
+                    sqlCommand.Transaction = transaction;
+                    sqlCommand.CommandTimeout = CommandTimeout;
+                    return await ExecuteAsync(sqlCommand) > 0;
+                }
+            default:
+                {
+                    //if (transaction?.Connection == null)
+                    //{
+                    //    return await ExecuteAutoTransactionAsync(async trans =>
+                    //    {
+                    //        foreach (var entity in entities)
+                    //        {
+                    //            if (!await AddOrUpdateAsync(entity, fieldExpression, trans))
+                    //            {
+                    //                return false;
+                    //            }
+                    //        }
+                    //        return true;
+                    //    });
+                    //}
+
+                    foreach (var entity in entities)
+                    {
+                        if (!await AddOrUpdateAsync(entity, fieldExpression, transaction))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
         }
     }
 
