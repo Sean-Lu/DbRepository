@@ -31,8 +31,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             //var result = singleCheck// Whether a single result is checked. If the value is true and multiple results are found, an exception will be thrown, otherwise the first result or the default value is returned.
-            //    ? connection.QuerySingleOrDefault<T>(sqlCommand.Sql, sqlCommand.Parameter, transaction, commandTimeout: commandTimeout)
-            //    : connection.QueryFirstOrDefault<T>(sqlCommand.Sql, sqlCommand.Parameter, transaction, commandTimeout: commandTimeout);
+            //    ? connection.QuerySingleOrDefault<T>(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType)
+            //    : connection.QueryFirstOrDefault<T>(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType);
             var result = connection.QueryFirstOrDefault<T>(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType);
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             return result;
@@ -77,8 +77,8 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             //var result = await (singleCheck// Whether a single result is checked. If the value is true and multiple results are found, an exception will be thrown, otherwise the first result or the default value is returned.
-            //    ? connection.QuerySingleOrDefaultAsync<T>(sqlCommand.Sql, sqlCommand.Parameter, transaction, commandTimeout: commandTimeout)
-            //    : connection.QueryFirstOrDefaultAsync<T>(sqlCommand.Sql, sqlCommand.Parameter, transaction, commandTimeout: commandTimeout));
+            //    ? connection.QuerySingleOrDefaultAsync<T>(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType)
+            //    : connection.QueryFirstOrDefaultAsync<T>(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType));
             var result = await connection.QueryFirstOrDefaultAsync<T>(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType);
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             return result;

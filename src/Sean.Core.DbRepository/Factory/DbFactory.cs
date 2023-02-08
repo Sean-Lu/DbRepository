@@ -177,7 +177,7 @@ namespace Sean.Core.DbRepository
                 {
                     if (command.Connection == null)
                     {
-                        command.Connection = CreateConnection(sqlCommand.Master);
+                        command.Connection = OpenNewConnection(sqlCommand.Master);
                         isInternalConnection = true;
                     }
 
@@ -209,7 +209,7 @@ namespace Sean.Core.DbRepository
                 {
                     if (command.Connection == null)
                     {
-                        command.Connection = CreateConnection(sqlCommand.Master);
+                        command.Connection = OpenNewConnection(sqlCommand.Master);
                         isInternalConnection = true;
                     }
 
