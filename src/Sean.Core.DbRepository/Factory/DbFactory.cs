@@ -187,7 +187,7 @@ namespace Sean.Core.DbRepository
                 {
                     if (isInternalConnection)
                     {
-                        CloseConnection(command.Connection);
+                        command.Connection?.Dispose();
                     }
                 }
             }
@@ -219,7 +219,7 @@ namespace Sean.Core.DbRepository
                 {
                     if (isInternalConnection)
                     {
-                        CloseConnection(command.Connection);
+                        command.Connection?.Dispose();
                     }
                 }
             }
@@ -1629,7 +1629,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <returns></returns>
-        public void CloseConnection(IDbConnection connection)
+        public void CloseConnection(IDbConnection connection, bool disposeConnection = true)
         {
             if (connection == null)
             {
@@ -1640,14 +1640,18 @@ namespace Sean.Core.DbRepository
             {
                 connection.Close();
             }
-            connection.Dispose();
+
+            if (disposeConnection)
+            {
+                connection.Dispose();
+            }
         }
         #endregion
 
         #region Private Methods
         private DbCommand CreateDbCommand(ISqlCommand sqlCommand)
         {
-            return CreateDbCommand(sqlCommand.Transaction, null, sqlCommand.CommandType, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, _providerFactory.CreateParameter), sqlCommand.CommandTimeout);
+            return CreateDbCommand(sqlCommand.Transaction, sqlCommand.Connection, sqlCommand.CommandType, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, _providerFactory.CreateParameter), sqlCommand.CommandTimeout);
         }
         private DbCommand CreateDbCommand(IDbTransaction transaction, IDbConnection connection, CommandType commandType, string commandText, IEnumerable<DbParameter> parameters, int? commandTimeout = null)
         {

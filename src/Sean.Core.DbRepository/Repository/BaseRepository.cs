@@ -142,7 +142,7 @@ namespace Sean.Core.DbRepository
         }
 
         #region Synchronous method
-        public virtual int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -153,6 +153,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param,
                 Master = master,
                 Transaction = transaction,
+                Connection = connection,
                 CommandTimeout = CommandTimeout
             });
         }
@@ -163,7 +164,7 @@ namespace Sean.Core.DbRepository
             return Factory.ExecuteNonQuery(sqlCommand);
         }
 
-        public virtual IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -174,6 +175,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param,
                 Master = master,
                 Transaction = transaction,
+                Connection = connection,
                 CommandTimeout = CommandTimeout
             });
         }
@@ -184,7 +186,7 @@ namespace Sean.Core.DbRepository
             return Factory.Query<T>(sqlCommand);
         }
 
-        public virtual T Get<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual T Get<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -195,6 +197,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param,
                 Master = master,
                 Transaction = transaction,
+                Connection = connection,
                 CommandTimeout = CommandTimeout
             });
         }
@@ -205,7 +208,7 @@ namespace Sean.Core.DbRepository
             return Factory.Get<T>(sqlCommand);
         }
 
-        public virtual T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -216,6 +219,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param,
                 Master = master,
                 Transaction = transaction,
+                Connection = connection,
                 CommandTimeout = CommandTimeout
             });
         }
@@ -226,7 +230,7 @@ namespace Sean.Core.DbRepository
             return Factory.ExecuteScalar<T>(sqlCommand);
         }
 
-        public virtual object ExecuteScalar(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual object ExecuteScalar(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -237,6 +241,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param,
                 Master = master,
                 Transaction = transaction,
+                Connection = connection,
                 CommandTimeout = CommandTimeout
             });
         }
@@ -247,41 +252,45 @@ namespace Sean.Core.DbRepository
             return Factory.ExecuteScalar(sqlCommand);
         }
 
-        public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null)
+        public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            if (transaction?.Connection == null)
+            if (transaction?.Connection != null)
             {
-                using (var connection = OpenNewConnection(master))
-                {
-                    return func(connection);
-                }
+                return func(transaction.Connection);
             }
 
-            return func(transaction.Connection);
-        }
-
-        public virtual T ExecuteTransaction<T>(Func<IDbTransaction, T> func, IDbTransaction transaction = null)
-        {
-            if (func == null) throw new ArgumentNullException(nameof(func));
-
-            if (transaction?.Connection == null)
+            if (connection != null)
             {
-                using (var connection = OpenNewConnection(true))
-                {
-                    return ExecuteTransaction(connection, func);
-                }
+                return func(connection);
             }
 
-            return ExecuteTransaction(transaction.Connection, func, transaction);
+            using (connection = OpenNewConnection(master))
+            {
+                return func(connection);
+            }
+
         }
-        public virtual T ExecuteTransaction<T>(IDbConnection connection, Func<IDbTransaction, T> func, IDbTransaction transaction = null)
+
+        public virtual T ExecuteTransaction<T>(Func<IDbTransaction, T> func, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            if (transaction == null)// Use internal transaction.
+            if (transaction != null)
             {
+                return func(transaction);
+            }
+
+            var isInternalConnection = false;
+            try
+            {
+                if (connection == null)
+                {
+                    connection = OpenNewConnection(true);
+                    isInternalConnection = true;
+                }
+
                 using (var trans = connection.BeginTransaction())
                 {
                     try
@@ -295,29 +304,32 @@ namespace Sean.Core.DbRepository
                     }
                 }
             }
-
-            return func(transaction);
-        }
-        public virtual bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func, IDbTransaction transaction = null)
-        {
-            if (func == null) throw new ArgumentNullException(nameof(func));
-
-            if (transaction?.Connection == null)
+            finally
             {
-                using (var connection = OpenNewConnection(true))
+                if (isInternalConnection)
                 {
-                    return ExecuteAutoTransaction(connection, func);
+                    connection?.Dispose();
                 }
             }
-
-            return ExecuteAutoTransaction(transaction.Connection, func, transaction);
         }
-        public virtual bool ExecuteAutoTransaction(IDbConnection connection, Func<IDbTransaction, bool> func, IDbTransaction transaction = null)
+        public virtual bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            if (transaction == null)// Use internal transaction.
+            if (transaction != null)
             {
+                return func(transaction);
+            }
+
+            var isInternalConnection = false;
+            try
+            {
+                if (connection == null)
+                {
+                    connection = OpenNewConnection(true);
+                    isInternalConnection = true;
+                }
+
                 using (var trans = connection.BeginTransaction())
                 {
                     try
@@ -338,18 +350,23 @@ namespace Sean.Core.DbRepository
                     }
                 }
             }
-
-            return func(transaction);
+            finally
+            {
+                if (isInternalConnection)
+                {
+                    connection?.Dispose();
+                }
+            }
         }
 
         public virtual bool IsTableExists(string tableName, bool master = true, bool useCache = true)
         {
-            return this.IsTableExists(tableName, (sql, connection) => Factory.Get<int>(connection, sql) > 0, master, useCache);
+            return this.IsTableExists(tableName, (sql, connection) => ExecuteScalar<int>(sql, connection: connection) > 0, master, useCache);
         }
 
         public virtual bool IsTableFieldExists(string tableName, string fieldName, bool master = true, bool useCache = true)
         {
-            return this.IsTableFieldExists(tableName, fieldName, (sql, connection) => Factory.Get<int>(connection, sql) > 0, master, useCache);
+            return this.IsTableFieldExists(tableName, fieldName, (sql, connection) => ExecuteScalar<int>(sql, connection: connection) > 0, master, useCache);
         }
 
         public virtual void AddTableField(string tableName, string fieldName, string fieldType, bool master = true)
@@ -378,7 +395,7 @@ namespace Sean.Core.DbRepository
 
         #region Asynchronous method
 #if NETSTANDARD || NET45_OR_GREATER
-        public virtual async Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -389,6 +406,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param,
                 Master = master,
                 Transaction = transaction,
+                Connection = connection,
                 CommandTimeout = CommandTimeout
             });
         }
@@ -399,7 +417,7 @@ namespace Sean.Core.DbRepository
             return await Factory.ExecuteNonQueryAsync(sqlCommand);
         }
 
-        public virtual async Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -410,6 +428,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param,
                 Master = master,
                 Transaction = transaction,
+                Connection = connection,
                 CommandTimeout = CommandTimeout
             });
         }
@@ -420,7 +439,7 @@ namespace Sean.Core.DbRepository
             return await Factory.QueryAsync<T>(sqlCommand);
         }
 
-        public virtual async Task<T> GetAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<T> GetAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -431,6 +450,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param,
                 Master = master,
                 Transaction = transaction,
+                Connection = connection,
                 CommandTimeout = CommandTimeout
             });
         }
@@ -441,7 +461,7 @@ namespace Sean.Core.DbRepository
             return await Factory.GetAsync<T>(sqlCommand);
         }
 
-        public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -452,6 +472,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param,
                 Master = master,
                 Transaction = transaction,
+                Connection = connection,
                 CommandTimeout = CommandTimeout
             });
         }
@@ -462,7 +483,7 @@ namespace Sean.Core.DbRepository
             return await Factory.ExecuteScalarAsync<T>(sqlCommand);
         }
 
-        public virtual async Task<object> ExecuteScalarAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<object> ExecuteScalarAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
@@ -473,6 +494,7 @@ namespace Sean.Core.DbRepository
                 Parameter = param,
                 Master = master,
                 Transaction = transaction,
+                Connection = connection,
                 CommandTimeout = CommandTimeout
             });
         }
@@ -483,41 +505,45 @@ namespace Sean.Core.DbRepository
             return await Factory.ExecuteScalarAsync(sqlCommand);
         }
 
-        public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null)
+        public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            if (transaction?.Connection == null)
+            if (transaction?.Connection != null)
             {
-                using (var connection = OpenNewConnection(master))
-                {
-                    return await func(connection);
-                }
+                return await func(transaction.Connection);
             }
 
-            return await func(transaction.Connection);
-        }
-
-        public virtual async Task<T> ExecuteTransactionAsync<T>(Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null)
-        {
-            if (func == null) throw new ArgumentNullException(nameof(func));
-
-            if (transaction?.Connection == null)
+            if (connection != null)
             {
-                using (var connection = OpenNewConnection(true))
-                {
-                    return await ExecuteTransactionAsync(connection, func);
-                }
+                return await func(connection);
             }
 
-            return await ExecuteTransactionAsync(transaction.Connection, func, transaction);
+            using (connection = OpenNewConnection(master))
+            {
+                return await func(connection);
+            }
+
         }
-        public virtual async Task<T> ExecuteTransactionAsync<T>(IDbConnection connection, Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null)
+
+        public virtual async Task<T> ExecuteTransactionAsync<T>(Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            if (transaction == null)// Use internal transaction.
+            if (transaction != null)
             {
+                return await func(transaction);
+            }
+
+            var isInternalConnection = false;
+            try
+            {
+                if (connection == null)
+                {
+                    connection = OpenNewConnection(true);
+                    isInternalConnection = true;
+                }
+
                 using (var trans = connection.BeginTransaction())
                 {
                     try
@@ -531,29 +557,32 @@ namespace Sean.Core.DbRepository
                     }
                 }
             }
-
-            return await func(transaction);
-        }
-        public virtual async Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null)
-        {
-            if (func == null) throw new ArgumentNullException(nameof(func));
-
-            if (transaction?.Connection == null)
+            finally
             {
-                using (var connection = OpenNewConnection(true))
+                if (isInternalConnection)
                 {
-                    return await ExecuteAutoTransactionAsync(connection, func);
+                    connection?.Dispose();
                 }
             }
-
-            return await ExecuteAutoTransactionAsync(transaction.Connection, func, transaction);
         }
-        public virtual async Task<bool> ExecuteAutoTransactionAsync(IDbConnection connection, Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null)
+        public virtual async Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            if (transaction == null)// Use internal transaction.
+            if (transaction != null)
             {
+                return await func(transaction);
+            }
+
+            var isInternalConnection = false;
+            try
+            {
+                if (connection == null)
+                {
+                    connection = OpenNewConnection(true);
+                    isInternalConnection = true;
+                }
+
                 using (var trans = connection.BeginTransaction())
                 {
                     try
@@ -574,18 +603,23 @@ namespace Sean.Core.DbRepository
                     }
                 }
             }
-
-            return await func(transaction);
+            finally
+            {
+                if (isInternalConnection)
+                {
+                    connection?.Dispose();
+                }
+            }
         }
 
         public virtual async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)
         {
-            return await this.IsTableExistsAsync(tableName, async (sql, connection) => await Factory.GetAsync<int>(connection, sql) > 0, master, useCache);
+            return await this.IsTableExistsAsync(tableName, async (sql, connection) => await ExecuteScalarAsync<int>(sql, connection: connection) > 0, master, useCache);
         }
 
         public virtual async Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true)
         {
-            return await this.IsTableFieldExistsAsync(tableName, fieldName, async (sql, connection) => await Factory.GetAsync<int>(connection, sql) > 0, master, useCache);
+            return await this.IsTableFieldExistsAsync(tableName, fieldName, async (sql, connection) => await ExecuteScalarAsync<int>(sql, connection: connection) > 0, master, useCache);
         }
 
         public virtual async Task AddTableFieldAsync(string tableName, string fieldName, string fieldType, bool master = true)

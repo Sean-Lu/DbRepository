@@ -61,19 +61,19 @@ public interface IBaseRepository
     DbConnection OpenNewConnection(bool master = true);
 
     #region Synchronous method
-    int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     int Execute(ISqlCommand sqlCommand);
 
-    IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     IEnumerable<T> Query<T>(ISqlCommand sqlCommand);
 
-    T Get<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    T Get<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     T Get<T>(ISqlCommand sqlCommand);
 
-    T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    T ExecuteScalar<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     T ExecuteScalar<T>(ISqlCommand sqlCommand);
 
-    object ExecuteScalar(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    object ExecuteScalar(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     object ExecuteScalar(ISqlCommand sqlCommand);
 
     /// <summary>
@@ -84,7 +84,7 @@ public interface IBaseRepository
     /// <param name="master">true: master database, false: slave database.</param>
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns></returns>
-    T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null);
+    T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
 
     /// <summary>
     /// Execute using DbTransaction.
@@ -92,28 +92,13 @@ public interface IBaseRepository
     /// <typeparam name="T"></typeparam>
     /// <param name="func"></param>
     /// <returns></returns>
-    T ExecuteTransaction<T>(Func<IDbTransaction, T> func, IDbTransaction transaction = null);
-    /// <summary>
-    /// Execute using DbTransaction.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="connection">Database connection</param>
-    /// <param name="func"></param>
-    /// <returns></returns>
-    T ExecuteTransaction<T>(IDbConnection connection, Func<IDbTransaction, T> func, IDbTransaction transaction = null);
+    T ExecuteTransaction<T>(Func<IDbTransaction, T> func, IDbTransaction transaction = null, IDbConnection connection = null);
     /// <summary>
     /// Execute using DbTransaction, automatically commit or rollback the transaction.
     /// </summary>
     /// <param name="func"></param>
     /// <returns></returns>
-    bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func, IDbTransaction transaction = null);
-    /// <summary>
-    /// Execute using DbTransaction, automatically commit or rollback the transaction.
-    /// </summary>
-    /// <param name="connection">Database connection</param>
-    /// <param name="func"></param>
-    /// <returns></returns>
-    bool ExecuteAutoTransaction(IDbConnection connection, Func<IDbTransaction, bool> func, IDbTransaction transaction = null);
+    bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func, IDbTransaction transaction = null, IDbConnection connection = null);
 
     /// <summary>
     /// Whether the specified table exists.
@@ -153,19 +138,19 @@ public interface IBaseRepository
 
     #region Asynchronous method
 #if NETSTANDARD || NET45_OR_GREATER
-    Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     Task<int> ExecuteAsync(ISqlCommand sqlCommand);
 
-    Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand);
 
-    Task<T> GetAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<T> GetAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     Task<T> GetAsync<T>(ISqlCommand sqlCommand);
 
-    Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<T> ExecuteScalarAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand);
 
-    Task<object> ExecuteScalarAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null);
+    Task<object> ExecuteScalarAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand);
 
     /// <summary>
@@ -176,7 +161,7 @@ public interface IBaseRepository
     /// <param name="master">true: master database, false: slave database.</param>
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns></returns>
-    Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null);
+    Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
 
     /// <summary>
     /// Execute asynchronously using DbTransaction.
@@ -184,27 +169,13 @@ public interface IBaseRepository
     /// <typeparam name="T"></typeparam>
     /// <param name="func"></param>
     /// <returns></returns>
-    Task<T> ExecuteTransactionAsync<T>(Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null);
-    /// <summary>
-    /// Execute asynchronously using DbTransaction.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="connection">Database connection</param>
-    /// <param name="func"></param>
-    /// <returns></returns>
-    Task<T> ExecuteTransactionAsync<T>(IDbConnection connection, Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null);
+    Task<T> ExecuteTransactionAsync<T>(Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null, IDbConnection connection = null);
     /// <summary>
     /// Execute asynchronously using DbTransaction, automatically commit or rollback the transaction.
     /// </summary>
     /// <param name="func"></param>
     /// <returns></returns>
-    Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null);
-    /// <summary>
-    /// Execute asynchronously using DbTransaction, automatically commit or rollback the transaction.
-    /// </summary>
-    /// <param name="func"></param>
-    /// <returns></returns>
-    Task<bool> ExecuteAutoTransactionAsync(IDbConnection connection, Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null);
+    Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null, IDbConnection connection = null);
 
     /// <summary>
     /// Whether the specified table exists.

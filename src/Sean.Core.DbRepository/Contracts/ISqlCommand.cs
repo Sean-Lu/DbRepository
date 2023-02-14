@@ -17,9 +17,13 @@ public interface ISqlCommand
     /// </summary>
     bool Master { get; set; }
     /// <summary>
-    /// Database transaction
+    /// Database transaction.
     /// </summary>
     IDbTransaction Transaction { get; set; }
+    /// <summary>
+    /// Database connection.
+    /// </summary>
+    IDbConnection Connection { get; set; }
     /// <summary>
     /// The time (in seconds) to wait for the command to execute. The default value is 30 seconds.
     /// </summary>

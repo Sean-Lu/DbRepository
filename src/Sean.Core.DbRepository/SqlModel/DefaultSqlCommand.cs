@@ -8,6 +8,7 @@ public class DefaultSqlCommand : ISqlCommand
     public object Parameter { get; set; }
     public bool Master { get; set; } = true;
     public IDbTransaction Transaction { get; set; }
+    public IDbConnection Connection { get; set; }
     public int? CommandTimeout { get; set; }
     public CommandType CommandType { get; set; } = CommandType.Text;
 }
