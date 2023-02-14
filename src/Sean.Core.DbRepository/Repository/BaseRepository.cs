@@ -270,7 +270,6 @@ namespace Sean.Core.DbRepository
             {
                 return func(connection);
             }
-
         }
 
         public virtual T ExecuteTransaction<T>(Func<IDbTransaction, T> func, IDbTransaction transaction = null, IDbConnection connection = null)
@@ -523,7 +522,6 @@ namespace Sean.Core.DbRepository
             {
                 return await func(connection);
             }
-
         }
 
         public virtual async Task<T> ExecuteTransactionAsync<T>(Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null, IDbConnection connection = null)

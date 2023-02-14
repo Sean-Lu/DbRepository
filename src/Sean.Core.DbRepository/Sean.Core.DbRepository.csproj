@@ -1,70 +1,71 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFrameworks>net45;net46;netstandard2;netstandard2.1</TargetFrameworks>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <Authors>Sean</Authors>
-    <Copyright>Copyright © 2019-2023 Sean</Copyright>
-    <Description>ORM, Support all relational databases.</Description>
-    <PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
-    <LangVersion>latest</LangVersion>
-    <Version>2.1.7</Version>
+	<PropertyGroup>
+		<TargetFrameworks>net45;net46;netstandard2;netstandard2.1</TargetFrameworks>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+		<Authors>Sean</Authors>
+		<Copyright>Copyright © 2019-2023 Sean</Copyright>
+		<Description>ORM, Support all relational databases.</Description>
+		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
+		<LangVersion>latest</LangVersion>
+		<Version>2.1.8</Version>
 
-    <!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 
-    <!--<DebugSymbols>true</DebugSymbols>-->
-    <!--<DebugType>embedded</DebugType>-->
+		<!--<DebugSymbols>true</DebugSymbols>-->
+		<!-- DebugType: portable, embedded, full -->
+		<!--<DebugType>embedded</DebugType>-->
 
-    <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
-    <!-- You must publish both packages, the package that contains the DLL (.nupkg) and the one that contains the symbols (.snupkg) -->
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
+		<!-- You must publish both packages, the package that contains the DLL (.nupkg) and the one that contains the symbols (.snupkg) -->
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
-  </PropertyGroup>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <Deterministic>true</Deterministic>
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+		<Deterministic>true</Deterministic>
 
-    <!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-  </PropertyGroup>
+		<!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <!-- Required if your repository is on GitHub -->
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+	<ItemGroup>
+		<!-- Required if your repository is on GitHub -->
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
 
-    <!-- Required if your repository is on GitLab -->
-    <!--<PackageReference Include="Microsoft.SourceLink.GitLab" Version="1.1.1" PrivateAssets="All"/>-->
-  </ItemGroup>
+		<!-- Required if your repository is on GitLab -->
+		<!--<PackageReference Include="Microsoft.SourceLink.GitLab" Version="1.1.1" PrivateAssets="All"/>-->
+	</ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-  </ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+		<Reference Include="System.Configuration" />
+		<Reference Include="System.Transactions" />
+		<Reference Include="System.ComponentModel.DataAnnotations" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net46'">
+		<Reference Include="System.Configuration" />
+		<Reference Include="System.Transactions" />
+		<Reference Include="System.ComponentModel.DataAnnotations" />
+	</ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2'">
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
-  </ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2'">
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+	</ItemGroup>
 
-  <!--<ItemGroup>
+	<!--<ItemGroup>
 		<None Update="dllconfigs\Sean.Core.DbRepository.dll.config">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -79,7 +80,7 @@
 		</Content>
 	</ItemGroup>-->
 
-  <ItemGroup>
-    <PackageReference Include="Sean.Utility" Version="2.1.3" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Sean.Utility" Version="2.1.3" />
+	</ItemGroup>
 </Project>
