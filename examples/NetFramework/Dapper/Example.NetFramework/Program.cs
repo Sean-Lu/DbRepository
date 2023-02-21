@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Data.SqlClient;
-using System.Data.SQLite;
+using System.Globalization;
 using System.IO;
-using Example.NetFramework.Impls;
+using System.Linq;
+using System.Reflection;
+using Example.Application.Extensions;
+using Example.Infrastructure;
 using Example.NetFramework.Impls.DbTest;
-using MySql.Data.MySqlClient;
-using Sean.Core.DbRepository;
-using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DependencyInjection;
 using Sean.Utility.Contracts;
-using Sean.Utility.Extensions;
-using Sean.Utility.Impls.Log;
 
 namespace Example.NetFramework
 {
@@ -19,35 +17,39 @@ namespace Example.NetFramework
         {
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置当前工作目录：@".\"
 
-            #region 配置Logger
-            SimpleLocalLoggerBase.DateTimeFormat = time => time.ToLongDateTime();
-            SimpleLocalLoggerBase.DefaultLoggerOptions = new SimpleLocalLoggerOptions
+            DIManager.Register(container =>
             {
-                LogToConsole = true,
-                LogToLocalFile = true
-            };
-            #endregion
+                container.AddApplicationDI();
 
-            #region Database configuration.
+                var types = Assembly.GetExecutingAssembly().GetTypes().Where(c => c.IsClass && typeof(ISimpleDo).IsAssignableFrom(c)).ToList();
+                types.ForEach(c =>
+                {
+                    container.RegisterType(c, c, ServiceLifeStyle.Transient);
+                });
+            });
 
-            #region 配置数据库和数据库提供者工厂之间的映射关系
-            DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", MySqlClientFactory.Instance));// MySql
-            DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", SqlClientFactory.Instance));// Microsoft SQL Server
-            //DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", OracleClientFactory.Instance));// Oracle
-            DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", SQLiteFactory.Instance));// SQLite
-            //DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));// SQLite
-            #endregion
-
-            DbFactory.BulkCountLimit = 200;
-            DbFactory.JsonSerializer = NewJsonSerializer.Instance;
-
-            #endregion
-
-            ISimpleDo toDo = new MySqlTest();
-            //ISimpleDo toDo = new SQLiteTest();
+            //ISimpleDo toDo = DIManager.Container.Resolve<MySqlTest>();
+            ISimpleDo toDo = DIManager.Container.Resolve<SQLiteTest>();
             toDo.Execute();
 
             Console.ReadLine();
+        }
+
+        private static void TestDateTime()
+        {
+            #region 利用反射机制修改 DateTime.ToString() 的默认格式
+            Console.WriteLine($"修改默认时间格式之前：{DateTime.Now}");
+            if (DateTimeFormatInfo.CurrentInfo != null)
+            {
+                var type = DateTimeFormatInfo.CurrentInfo.GetType();
+                var field = type.GetField("generalLongTimePattern", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (field != null)
+                {
+                    field.SetValue(DateTimeFormatInfo.CurrentInfo, "yyyy-MM-dd HH:mm:ss");
+                }
+            }
+            Console.WriteLine($"修改默认时间格式之后：{DateTime.Now}");
+            #endregion
         }
     }
 }

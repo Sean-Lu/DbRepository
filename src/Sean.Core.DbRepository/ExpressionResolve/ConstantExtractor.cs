@@ -13,7 +13,7 @@ internal static class ConstantExtractor
 
         if (expression is ConstantExpression constantExpression)
         {
-            return ParseConstantExpression(constantExpression);
+            return constantExpression.Value;
         }
         else if (expression is MemberExpression memberExpression)
         {
@@ -25,7 +25,8 @@ internal static class ConstantExtractor
         }
         else if (expression is ConditionalExpression conditionalExpression)
         {
-            return ParseConditionalExpression(conditionalExpression);
+            bool condition = (bool)ParseConstant(conditionalExpression.Test);
+            return ParseConstant(condition ? conditionalExpression.IfTrue : conditionalExpression.IfFalse);
         }
         else if (expression is BinaryExpression binaryExpression)
         {
@@ -36,23 +37,30 @@ internal static class ConstantExtractor
             }
             else if (expressionName == "SimpleBinaryExpression")
             {
-                return ParseSimpleBinaryExpression(binaryExpression);
+                if (binaryExpression.NodeType == ExpressionType.ArrayIndex)
+                {
+                    var array = ParseConstant(binaryExpression.Left) as Array;
+                    var index = (int)ParseConstant(binaryExpression.Right);
+                    return array?.GetValue(index);
+                }
+
+                return new NotSupportedException();
             }
         }
         else if (expression is UnaryExpression unaryExpression)
         {
             if (expression.NodeType == ExpressionType.Convert)
             {
-                return ParseConvertExpression(unaryExpression);
+                var value = ParseConstant(unaryExpression.Operand);
+                return ObjectConvert.ChangeType(value, unaryExpression.Type);
+            }
+            else if (expression.NodeType == ExpressionType.Not && expression.Type == typeof(bool))
+            {
+                return !(bool)ParseConstant(unaryExpression.Operand);
             }
         }
 
         throw new NotSupportedException($"Unsupported Expression: {expression}");
-    }
-
-    private static object ParseConstantExpression(ConstantExpression constantExpression)
-    {
-        return constantExpression.Value;
     }
 
     private static object ParseMemberConstantExpression(MemberExpression memberExpression)
@@ -142,45 +150,16 @@ internal static class ConstantExtractor
         return mi.Invoke(instance, parameters);
     }
 
-    private static object ParseConditionalExpression(ConditionalExpression conditionalExpression)
-    {
-        bool condition = (bool)ParseConstant(conditionalExpression.Test);
-        if (condition)
-        {
-            return ParseConstant(conditionalExpression.IfTrue);
-        }
-
-        return ParseConstant(conditionalExpression.IfFalse);
-    }
-
     private static object ParseMethodBinaryExpression(BinaryExpression methodBinaryExpression)
     {
         object left = ParseConstant(methodBinaryExpression.Left);
         object right = ParseConstant(methodBinaryExpression.Right);
         MethodInfo methodInfo = methodBinaryExpression.Method;
-        if (methodInfo.IsStatic)
+        if (methodInfo != null && methodInfo.IsStatic)
         {
             return methodInfo.Invoke(null, new[] { left, right });
         }
 
-        return methodInfo.Invoke(left, new[] { right });
-    }
-
-    private static object ParseSimpleBinaryExpression(BinaryExpression simpleBinaryExpression)
-    {
-        if (simpleBinaryExpression.NodeType == ExpressionType.ArrayIndex)
-        {
-            var array = ParseConstant(simpleBinaryExpression.Left) as Array;
-            var index = (int)ParseConstant(simpleBinaryExpression.Right);
-            return array?.GetValue(index);
-        }
-
-        return new NotSupportedException();
-    }
-
-    private static object ParseConvertExpression(UnaryExpression convertExpression)
-    {
-        var value = ParseConstant(convertExpression.Operand);
-        return ObjectConvert.ChangeType(value, convertExpression.Type);
+        return methodInfo?.Invoke(left, new[] { right });
     }
 }

@@ -39,7 +39,7 @@ namespace Sean.Core.DbRepository
 
                 factory = map.ProviderFactory;
             }
-            return factory ?? throw new Exception($"[{type}]请先在配置文件或代码中配置数据库驱动映射关系。{Environment.NewLine}代码配置示例：DatabaseType.{type}.SetDbProviderMap(new DbProviderMap(\"{type}\", xxxFactory.Instance));");
+            return factory ?? throw new Exception($"[{type}] The database client driver mapping is missing, configure it in the configuration file or code before using it. {Environment.NewLine}1. Code example: DatabaseType.{type}.SetDbProviderMap(new DbProviderMap(\"{type}\", xxxFactory.Instance)); {Environment.NewLine}2. Configuration file example: {nameof(DbFactory)}.{nameof(DbFactory.ProviderFactoryConfigurationPath)} {Environment.NewLine}   https://github.com/Sean-Lu/DbRepository/blob/master/src/Sean.Core.DbRepository/dllconfigs/Sean.Core.DbRepository.dll.config");
         }
         /// <summary>
         /// Get the <see cref="DbProviderFactory"/> by specified database provider name

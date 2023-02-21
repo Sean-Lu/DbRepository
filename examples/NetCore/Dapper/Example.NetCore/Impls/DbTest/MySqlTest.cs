@@ -14,16 +14,18 @@ namespace Example.NetCore.Impls.DbTest
     public class MySqlTest : ISimpleDo
     {
         private readonly ILogger _logger;
+        private readonly IConfiguration _configuration;
         private readonly ITestService _testService;
         private readonly ICheckInLogService _checkInLogService;
 
         public MySqlTest(
-            IConfiguration configuration,
             ISimpleLogger<MySqlTest> logger,
+            IConfiguration configuration,
             ITestService testService,
             ICheckInLogService checkInLogService)
         {
             _logger = logger;
+            _configuration = configuration;
             _testService = testService;
             _checkInLogService = checkInLogService;
         }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Sean.Core.DbRepository;
 
-namespace Example.Domain.Entities
+namespace Example.Model.Entities
 {
     /// <summary>
     /// 测试表（仅供测试使用）
@@ -82,8 +82,6 @@ namespace Example.Domain.Entities
         #region 忽略字段
         [NotMapped]
         public virtual int? NullableTest { get; set; }
-        [NotMapped]
-        public virtual TestEntity NestedClassMemberTest { get; set; }
         #endregion
     }
 

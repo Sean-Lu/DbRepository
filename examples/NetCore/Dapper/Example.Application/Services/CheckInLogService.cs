@@ -6,7 +6,6 @@ using Example.Application.Dtos;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
 using Sean.Utility.Contracts;
-using Sean.Utility.Extensions;
 
 namespace Example.Application.Services
 {
@@ -60,10 +59,24 @@ namespace Example.Application.Services
             return await _checkInLogRepository.DeleteAllAsync();
         }
 
+        public async Task<bool> UpdateCheckInTypeAsync(long id, int checkInType)
+        {
+            return await _checkInLogRepository.UpdateAsync(new CheckInLogEntity
+            {
+                CheckInType = checkInType
+            }, entity => new { entity.CheckInType }, entity => entity.Id == id) > 0;
+        }
+
         public async Task<CheckInLogDto> GetByIdAsync(long id)
         {
             var entity = await _checkInLogRepository.GetAsync(entity => entity.Id == id);
             return _mapper.Map<CheckInLogDto>(entity);
+        }
+
+        public async Task<List<CheckInLogDto>> GetAllAsync()
+        {
+            var entities = await _checkInLogRepository.QueryAsync(entity => true, master: false);// 查询结果来自从库
+            return _mapper.Map<List<CheckInLogDto>>(entities);
         }
 
         public async Task<List<CheckInLogDto>> SearchAsync(long userId, int pageIndex, int pageSize)

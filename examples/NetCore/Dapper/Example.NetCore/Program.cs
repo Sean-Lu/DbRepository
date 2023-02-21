@@ -7,8 +7,6 @@ using Example.NetCore.Impls.DbTest;
 using Microsoft.Extensions.DependencyInjection;
 using Sean.Core.Ioc;
 using Sean.Utility.Contracts;
-using Sean.Utility.Extensions;
-using Sean.Utility.Impls.Log;
 
 namespace Example.NetCore
 {
@@ -28,10 +26,6 @@ namespace Example.NetCore
                     services.AddTransient(c);
                 });
             });
-
-            #region 配置Logger
-            SimpleLocalLoggerBase.DateTimeFormat = time => time.ToLongDateTime();
-            #endregion
 
             ISimpleDo toDo = IocContainer.Instance.GetService<MySqlTest>();
             //ISimpleDo toDo = IocContainer.Instance.GetService<SQLiteTest>();

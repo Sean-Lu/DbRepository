@@ -2,13 +2,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Example.NetFramework.Entities
+namespace Example.Model.Entities
 {
     /// <summary>
-    /// 测试表
+    /// 用户表
     /// </summary>
-    [Table("Test")]
-    public class TestEntity
+    [Table("User")]
+    public class UserEntity
     {
         /// <summary>
         /// 自增主键

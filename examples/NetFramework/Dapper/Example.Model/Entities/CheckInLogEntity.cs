@@ -1,14 +1,15 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Sean.Core.DbRepository;
 
-namespace Example.NetFramework.Entities
+namespace Example.Model.Entities
 {
     /// <summary>
     /// 签到明细日志表
     /// </summary>
     [Table("CheckInLog")]
-    public class CheckInLogEntity
+    public class CheckInLogEntity : EntityStateBase
     {
         /// <summary>
         /// 自增主键

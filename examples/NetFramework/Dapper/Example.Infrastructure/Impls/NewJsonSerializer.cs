@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Sean.Utility.Contracts;
 
-namespace Example.NetFramework.Impls
+namespace Example.Infrastructure.Impls
 {
     public class NewJsonSerializer : IJsonSerializer
     {

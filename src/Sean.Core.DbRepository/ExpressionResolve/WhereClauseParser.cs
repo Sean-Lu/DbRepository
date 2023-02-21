@@ -19,22 +19,22 @@ public static class WhereClauseParser
         {
             if (IsLogicalOperation(binaryExpression.NodeType))
             {
-                var sqlBuilder = new StringBuilder();
+                var sb = new StringBuilder();
                 var leftClause = Parse(parameterExpression, binaryExpression.Left, adhesive);
                 var rightClause = Parse(parameterExpression, binaryExpression.Right, adhesive);
                 //sqlBuilder.Append($"({leftClause}) {binaryExpression.NodeType.ToSqlString()} ({rightClause})");
                 switch (binaryExpression.NodeType)
                 {
                     case ExpressionType.AndAlso:
-                        sqlBuilder.Append($"{leftClause} AND {rightClause}");
+                        sb.Append($"{leftClause} AND {rightClause}");
                         break;
                     case ExpressionType.OrElse:
-                        sqlBuilder.Append($"({leftClause} OR {rightClause})");
+                        sb.Append($"({leftClause} OR {rightClause})");
                         break;
                     default:
                         throw new NotSupportedException($"Unsupported BinaryExpression NodeType: {binaryExpression.NodeType}");
                 }
-                return sqlBuilder;
+                return sb;
             }
             else if (IsComparativeOperation(binaryExpression.NodeType))
             {
@@ -197,10 +197,10 @@ public static class WhereClauseParser
                 // Code example:
                 // entity => true
                 // entity => false
-                StringBuilder sqlBuilder = new StringBuilder();
+                var sb = new StringBuilder();
                 var value = (bool)constantExpression.Value;
-                sqlBuilder.Append(value ? "1=1" : "1=2");
-                return sqlBuilder;
+                sb.Append(value ? "1=1" : "1=2");
+                return sb;
             }
 
             throw new NotSupportedException($"Unsupported ConstantExpression: {constantExpression}");

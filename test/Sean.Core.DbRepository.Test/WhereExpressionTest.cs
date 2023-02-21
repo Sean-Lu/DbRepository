@@ -349,50 +349,6 @@ namespace Sean.Core.DbRepository.Test
             AssertSqlParameters(expectedParameters, parameters);
         }
 
-        [TestMethod]
-        public void ValidateMultiCondition()
-        {
-            var accountBalance = 100M;
-            Expression<Func<TestEntity, bool>> whereExpression = entity => (entity.UserId == _model.UserId || entity.AccountBalance >= accountBalance)
-                                                                           && entity.IsVip
-                                                                           && entity.Age > 20
-                                                                           && (!entity.IsBlack || entity.Country == CountryType.China);
-            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
-            var expectedParameters = new Dictionary<string, object>
-            {
-                { "UserId", _model.UserId },
-                { "AccountBalance", accountBalance },
-                { "IsVip", true },
-                { "Age", 20 },
-                { "IsBlack", false },
-                { "Country", (int)CountryType.China }
-            };
-            Assert.AreEqual("(`UserId` = @UserId OR `AccountBalance` >= @AccountBalance) AND `IsVip` = @IsVip AND `Age` > @Age AND (`IsBlack` = @IsBlack OR `Country` = @Country)", whereClause);
-            AssertSqlParameters(expectedParameters, parameters);
-        }
-
-        [TestMethod]
-        public void ValidateMultiCondition2()
-        {
-            var accountBalance = 100M;
-            Expression<Func<TestEntity, bool>> whereExpression = entity => (entity.UserId == _model.UserId || entity.AccountBalance >= accountBalance)
-                                                                           && entity.IsVip
-                                                                           || entity.Age > 20
-                                                                           && (!entity.IsBlack || entity.Country == CountryType.China);
-            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
-            var expectedParameters = new Dictionary<string, object>
-            {
-                { "UserId", _model.UserId },
-                { "AccountBalance", accountBalance },
-                { "IsVip", true },
-                { "Age", 20 },
-                { "IsBlack", false },
-                { "Country", (int)CountryType.China },
-            };
-            Assert.AreEqual("((`UserId` = @UserId OR `AccountBalance` >= @AccountBalance) AND `IsVip` = @IsVip OR `Age` > @Age AND (`IsBlack` = @IsBlack OR `Country` = @Country))", whereClause);
-            AssertSqlParameters(expectedParameters, parameters);
-        }
-
         /// <summary>
         /// StartsWith
         /// </summary>
@@ -444,7 +400,24 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
-        /// Contains（string）
+        /// string.Substring()
+        /// </summary>
+        [TestMethod]
+        public void ValidateStringSubstring()
+        {
+            var model = new TestEntity { UserName = "Test" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Remark == model.UserName.Substring(0, 2);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Remark", "Te" }
+            };
+            Assert.AreEqual("`Remark` = @Remark", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// string.Contains()
         /// </summary>
         [TestMethod]
         public void ValidateStringContains()
@@ -459,9 +432,8 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
-        /// Contains（string）
+        /// string.Contains()
         /// </summary>
         [TestMethod]
         public void ValidateStringContains2()
@@ -471,14 +443,30 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
             {
-                { "Remark", $"%{model.UserName}%" }
+                { "Remark", "%Test%" }
+            };
+            Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        /// <summary>
+        /// string.Contains()
+        /// </summary>
+        [TestMethod]
+        public void ValidateStringContains3()
+        {
+            var model = new TestEntity { UserName = "Test" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Remark.Contains(model.UserName.Substring(0, 2));
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Remark", "%Te%" }
             };
             Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
         /// <summary>
-        /// Contains（数组）
+        /// Array.Contains()
         /// </summary>
         [TestMethod]
         public void ValidateArrayContains()
@@ -495,7 +483,7 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
-        /// Contains（List）
+        /// List.Contains()
         /// </summary>
         [TestMethod]
         public void ValidateListContains()
@@ -512,7 +500,7 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
-        /// Contains（IList）
+        /// IList.Contains()
         /// </summary>
         [TestMethod]
         public void ValidateIListContains()
@@ -529,7 +517,7 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
-        /// Contains（ICollection）
+        /// ICollection.Contains()
         /// </summary>
         [TestMethod]
         public void ValidateICollectionContains2()
@@ -546,7 +534,7 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
-        /// Contains（IEnumerable）
+        /// IEnumerable.Contains()
         /// </summary>
         [TestMethod]
         public void ValidateIEnumerableContains()
@@ -865,6 +853,176 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("1=1 AND `Age` > @Age AND `Age` < @Age_2 AND `IsVip` = @IsVip AND ((1=2 OR `Country` = @Country) OR `AccountBalance` > @AccountBalance)", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
+
+        /// <summary>
+        /// 嵌套类成员
+        /// </summary>
+        [TestMethod]
+        public void ValidateNestedClassMember()
+        {
+            var testModel = new TestEntity
+            {
+                NestedClassMemberTest = new TestEntity
+                {
+                    Age = 18
+                }
+            };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Age >= testModel.NestedClassMemberTest.Age;
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Age", 18 }
+            };
+            Assert.AreEqual("`Age` >= @Age", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// 实例方法调用
+        /// </summary>
+        [TestMethod]
+        public void ValidateInstanceMethodCall()
+        {
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Age >= GetRelAge(18);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Age", 18 }
+            };
+            Assert.AreEqual("`Age` >= @Age", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        /// <summary>
+        /// 实例方法调用
+        /// </summary>
+        [TestMethod]
+        public void ValidateInstanceMethodCall2()
+        {
+            var testModel = new TestEntity
+            {
+                NestedClassMemberTest = new TestEntity
+                {
+                    Age = 18
+                }
+            };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Age >= GetRelAge(testModel.NestedClassMemberTest.Age);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Age", 18 }
+            };
+            Assert.AreEqual("`Age` >= @Age", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// 实例方法调用
+        /// </summary>
+        [TestMethod]
+        public void ValidateInstanceMethodComplexCall()
+        {
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Age >= int.Parse(GetRelAge(18).ToString());
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Age", 18 }
+            };
+            Assert.AreEqual("`Age` >= @Age", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// 静态方法调用
+        /// </summary>
+        [TestMethod]
+        public void ValidateStaticMethodCall()
+        {
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Age >= GetFakeAge(18);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Age", 18 }
+            };
+            Assert.AreEqual("`Age` >= @Age", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// 条件运算符
+        /// </summary>
+        [TestMethod]
+        public void ValidateConditionalOperator()
+        {
+            string userName = "Test001";
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserName == (!string.IsNullOrWhiteSpace(userName) ? userName : "Test002");
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserName", "Test001" }
+            };
+            Assert.AreEqual("`UserName` = @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        /// <summary>
+        /// 条件运算符
+        /// </summary>
+        [TestMethod]
+        public void ValidateConditionalOperator2()
+        {
+            string userName = "Test001";
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserName == (string.IsNullOrWhiteSpace(userName) ? "Test002" : userName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserName", "Test001" }
+            };
+            Assert.AreEqual("`UserName` = @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        [TestMethod]
+        public void ValidateMultiCondition()
+        {
+            var accountBalance = 100M;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => (entity.UserId == _model.UserId || entity.AccountBalance >= accountBalance)
+                                                                           && entity.IsVip
+                                                                           && entity.Age > 20
+                                                                           && (!entity.IsBlack || entity.Country == CountryType.China);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserId", _model.UserId },
+                { "AccountBalance", accountBalance },
+                { "IsVip", true },
+                { "Age", 20 },
+                { "IsBlack", false },
+                { "Country", (int)CountryType.China }
+            };
+            Assert.AreEqual("(`UserId` = @UserId OR `AccountBalance` >= @AccountBalance) AND `IsVip` = @IsVip AND `Age` > @Age AND (`IsBlack` = @IsBlack OR `Country` = @Country)", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        [TestMethod]
+        public void ValidateMultiCondition2()
+        {
+            var accountBalance = 100M;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => (entity.UserId == _model.UserId || entity.AccountBalance >= accountBalance)
+                                                                           && entity.IsVip
+                                                                           || entity.Age > 20
+                                                                           && (!entity.IsBlack || entity.Country == CountryType.China);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserId", _model.UserId },
+                { "AccountBalance", accountBalance },
+                { "IsVip", true },
+                { "Age", 20 },
+                { "IsBlack", false },
+                { "Country", (int)CountryType.China },
+            };
+            Assert.AreEqual("((`UserId` = @UserId OR `AccountBalance` >= @AccountBalance) AND `IsVip` = @IsVip OR `Age` > @Age AND (`IsBlack` = @IsBlack OR `Country` = @Country))", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
         #endregion 支持的写法
 
         #region 不支持的写法
@@ -920,5 +1078,17 @@ namespace Sean.Core.DbRepository.Test
             });
         }
         #endregion 不支持的写法
+
+        #region Private methods
+        private int GetRelAge(int value)
+        {
+            return value;
+        }
+
+        private static int GetFakeAge(int value)
+        {
+            return value;
+        }
+        #endregion
     }
 }

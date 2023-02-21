@@ -6,6 +6,7 @@ using Example.Infrastructure.Impls;
 using Microsoft.Extensions.DependencyInjection;
 using Sean.Utility.Contracts;
 using Sean.Utility.Extensions;
+using Sean.Utility.Impls.Log;
 
 namespace Example.Infrastructure.Extensions
 {
@@ -17,6 +18,10 @@ namespace Example.Infrastructure.Extensions
         /// <param name="services"></param>
         public static void AddInfrastructureDI(this IServiceCollection services)
         {
+            #region 配置Logger
+            SimpleLocalLoggerBase.DateTimeFormat = time => time.ToLongDateTime();
+            #endregion
+
             services.AddSimpleLocalLogger();
 
             services.AddTransient<IJsonSerializer, NewJsonSerializer>();

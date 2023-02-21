@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Example.Application.Dtos;
 
@@ -14,7 +12,9 @@ namespace Example.Application.Contracts
         Task<bool> AddOrUpdateAsync(IEnumerable<CheckInLogDto> list);
         Task<bool> DeleteByIdAsync(long id);
         Task<int> DeleteAllAsync();
+        Task<bool> UpdateCheckInTypeAsync(long id, int checkInType);
         Task<CheckInLogDto> GetByIdAsync(long id);
+        Task<List<CheckInLogDto>> GetAllAsync();
         Task<List<CheckInLogDto>> SearchAsync(long userId, int pageIndex, int pageSize);
     }
 }

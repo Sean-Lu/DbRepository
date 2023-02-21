@@ -1,15 +1,13 @@
 ﻿using System;
-using Dapper;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
 using Example.Domain.Contracts;
-using Example.Domain.Entities;
-using Microsoft.Extensions.Configuration;
+using Example.Model.Entities;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Dapper;
 using Sean.Utility.Contracts;
+using System.Collections.Generic;
 
 namespace Example.Domain.Repositories
 {
@@ -19,9 +17,8 @@ namespace Example.Domain.Repositories
         private readonly ILogger _logger;
 
         public TestRepository(
-            IConfiguration configuration,
-            ISimpleLogger<TestRepository> logger
-            ) : base(configuration)
+            ILogger<TestRepository> logger
+            ) : base("test_SQLite")
         {
             _logger = logger;
         }
@@ -99,18 +96,13 @@ namespace Example.Domain.Repositories
 
         public async Task TestCRUDWithTransactionAsync()
         {
-            using (var trans = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            if (DbType == DatabaseType.SQLite)
             {
-                if (Transaction.Current != null)
-                {
-                    Transaction.Current.TransactionCompleted += (sender, args) =>
-                    {
-                        _logger.LogDebug("###################环境事务执行结束");
-                    };
-                }
+                TableName();// 如果表不存在，需要先创建表，否则下面的事务操作会在自动创建表的时候出现锁库的情况
+            }
 
-                var list = (await ExecuteAsync(async conn => await conn.QueryAsync<TestEntity>($"select * from {TableName()} limit 3")))?.ToList();
-
+            var result = await ExecuteAutoTransactionAsync(async trans =>
+            {
                 var testModel = new TestEntity
                 {
                     UserId = 10001,
@@ -122,17 +114,39 @@ namespace Example.Domain.Repositories
                     CreateTime = DateTime.Now,
                     UpdateTime = DateTime.Now
                 };
-                var addResult = await AddAsync(testModel, true);
+                var addResult = await AddAsync(testModel, true, transaction: trans);
                 _logger.LogDebug($"######Add result: {addResult}");
+                if (!addResult)
+                {
+                    return false;
+                }
 
                 var queryResult = (await QueryAsync(entity => true, null, 1, 3))?.ToList();
                 _logger.LogDebug($"######Query result: {JsonConvert.SerializeObject(queryResult, Formatting.Indented)}");
 
-                var deleteResult = await DeleteAsync(testModel);
+                var deleteResult = await DeleteAsync(testModel, transaction: trans);
                 _logger.LogDebug($"######Delete result: {deleteResult}");
+                if (!deleteResult)
+                {
+                    return false;
+                }
 
-                trans.Complete();
+                return true;
+            });
+        }
+
+        private async Task TestUnionAllAsync()
+        {
+            // UNION ALL：合并所有分表数据
+            var hexCount = 2;// 分表表名后缀16进制位数
+            var sqlList = new List<string>();
+            for (var i = 0; i < Math.Pow(16, hexCount); i++)
+            {
+                var tableName = $"OrderExtUser_{Convert.ToString(i, 16).PadLeft(hexCount, '0').ToLower()}";
+                sqlList.Add($"SELECT * FROM {tableName}");
             }
+            var sql = string.Join(" UNION ALL ", sqlList);
+            var result = (await QueryAsync<dynamic>(sql))?.ToList();
         }
     }
 }
