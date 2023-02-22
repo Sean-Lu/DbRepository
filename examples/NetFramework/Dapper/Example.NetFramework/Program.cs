@@ -28,8 +28,8 @@ namespace Example.NetFramework
                 });
             });
 
-            //ISimpleDo toDo = DIManager.Container.Resolve<MySqlTest>();
-            ISimpleDo toDo = DIManager.Container.Resolve<SQLiteTest>();
+            //ISimpleDo toDo = DIManager.Resolve<MySqlTest>();
+            ISimpleDo toDo = DIManager.Resolve<SQLiteTest>();
             toDo.Execute();
 
             Console.ReadLine();

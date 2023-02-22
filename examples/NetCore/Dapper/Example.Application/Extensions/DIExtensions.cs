@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Example.Application.Extensions
 {
-    public static class ServiceCollectionExtensions
+    public static class DIExtensions
     {
         /// <summary>
         /// 应用层依赖注入
@@ -15,13 +15,13 @@ namespace Example.Application.Extensions
         {
             services.AddDomainDI();
 
-            services.RegisterServicesByAssemblyInterface(Assembly.GetExecutingAssembly(), "Service", ServiceLifetime.Transient);
+            services.RegisterByAssemblyInterface(Assembly.GetExecutingAssembly(), "Service", ServiceLifetime.Transient);
 
             services.AddAutoMapper(expression =>
             {
                 expression.AllowNullCollections = true;
                 expression.AllowNullDestinationValues = true;
-                expression.Advanced.AllowAdditiveTypeMapCreation = true;
+                //expression.Advanced.AllowAdditiveTypeMapCreation = true;
                 expression.AddMaps(typeof(AutoMapperProfile));
             });
         }

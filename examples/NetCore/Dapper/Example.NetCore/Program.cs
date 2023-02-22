@@ -3,9 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Example.Application.Extensions;
+using Example.Infrastructure;
 using Example.NetCore.Impls.DbTest;
 using Microsoft.Extensions.DependencyInjection;
-using Sean.Core.Ioc;
 using Sean.Utility.Contracts;
 
 namespace Example.NetCore
@@ -16,7 +16,7 @@ namespace Example.NetCore
         {
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置当前工作目录：@".\"
 
-            IocContainer.Instance.ConfigureServices(services =>
+            DIManager.ConfigureServices(services =>
             {
                 services.AddApplicationDI();
 
@@ -27,8 +27,8 @@ namespace Example.NetCore
                 });
             });
 
-            ISimpleDo toDo = IocContainer.Instance.GetService<MySqlTest>();
-            //ISimpleDo toDo = IocContainer.Instance.GetService<SQLiteTest>();
+            ISimpleDo toDo = DIManager.GetService<MySqlTest>();
+            //ISimpleDo toDo = DIManager.GetService<SQLiteTest>();
             toDo.Execute();
 
             Console.ReadLine();

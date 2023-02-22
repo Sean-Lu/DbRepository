@@ -10,7 +10,7 @@ using Sean.Utility.Impls.Log;
 
 namespace Example.Infrastructure.Extensions
 {
-    public static class ServiceCollectionExtensions
+    public static class DIExtensions
     {
         /// <summary>
         /// 基础设施层依赖注入
@@ -27,7 +27,7 @@ namespace Example.Infrastructure.Extensions
             services.AddTransient<IJsonSerializer, NewJsonSerializer>();
         }
 
-        public static IServiceCollection RegisterServicesByAssemblyInterface(this IServiceCollection services, Assembly assembly, string interfaceSuffix, ServiceLifetime serviceLifetime)
+        public static IServiceCollection RegisterByAssemblyInterface(this IServiceCollection services, Assembly assembly, string interfaceSuffix, ServiceLifetime serviceLifetime)
         {
             var types = assembly.GetTypes();
             var interfaceTypes = types.Where(c => c.IsInterface && c.Name.EndsWith(interfaceSuffix));
@@ -52,7 +52,7 @@ namespace Example.Infrastructure.Extensions
             }
             return services;
         }
-        public static IServiceCollection RegisterServicesByAssemblyClass(this IServiceCollection services, Assembly assembly, string classSuffix, ServiceLifetime serviceLifetime)
+        public static IServiceCollection RegisterByAssemblyClass(this IServiceCollection services, Assembly assembly, string classSuffix, ServiceLifetime serviceLifetime)
         {
             var serviceImplList = assembly.GetTypes().Where(s => s.IsClass && !s.IsInterface && !s.IsAbstract && s.Name.EndsWith(classSuffix)).ToList();
 

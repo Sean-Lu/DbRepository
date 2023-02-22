@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
-using Example.Domain.Repositories;
+using Example.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sean.Core.DbRepository.Extensions;
-using Sean.Core.Ioc;
 using Sean.Utility.Contracts;
 
 namespace Sean.Core.DbRepository.Test
@@ -24,8 +19,8 @@ namespace Sean.Core.DbRepository.Test
 
         public TableRepositoryTest()
         {
-            _logger = IocContainer.Instance.GetService<ISimpleLogger<TableRepositoryTest>>();
-            _testRepository = IocContainer.Instance.GetService<ITestRepository>();
+            _logger = DIManager.GetService<ISimpleLogger<TableRepositoryTest>>();
+            _testRepository = DIManager.GetService<ITestRepository>();
         }
 
         /// <summary>

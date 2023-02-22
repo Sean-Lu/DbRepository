@@ -14,7 +14,7 @@ using Example.Infrastructure.Impls;
 
 namespace Example.Domain.Extensions
 {
-    public static class ServiceCollectionExtensions
+    public static class DIExtensions
     {
         /// <summary>
         /// 领域层依赖注入
@@ -24,7 +24,7 @@ namespace Example.Domain.Extensions
         {
             services.AddInfrastructureDI();
 
-            services.RegisterServicesByAssemblyInterface(Assembly.GetExecutingAssembly(), "Repository", ServiceLifetime.Transient);
+            services.RegisterByAssemblyInterface(Assembly.GetExecutingAssembly(), "Repository", ServiceLifetime.Transient);
 
             #region Database configuration.
 

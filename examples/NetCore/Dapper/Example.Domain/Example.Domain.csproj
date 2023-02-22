@@ -10,10 +10,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MySql.Data" Version="8.0.31" />
+		<PackageReference Include="MySql.Data" Version="8.0.32" />
 		<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.80" />
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.90" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
 	</ItemGroup>
 
 </Project>

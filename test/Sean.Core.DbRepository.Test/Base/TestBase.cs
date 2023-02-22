@@ -1,7 +1,7 @@
 ﻿using Example.Application.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sean.Core.Ioc;
 using System.Collections.Generic;
+using Example.Infrastructure;
 
 namespace Sean.Core.DbRepository.Test
 {
@@ -9,7 +9,7 @@ namespace Sean.Core.DbRepository.Test
     {
         static TestBase()
         {
-            IocContainer.Instance.ConfigureServices(services =>
+            DIManager.ConfigureServices(services =>
             {
                 services.AddApplicationDI();
             });

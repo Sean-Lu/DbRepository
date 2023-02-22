@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Dapper;
 using Example.Domain.Contracts;
 using Example.Domain.Entities;
+using Example.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Core.Ioc;
 using Sean.Utility.Contracts;
 
 namespace Sean.Core.DbRepository.Test
@@ -27,9 +26,9 @@ namespace Sean.Core.DbRepository.Test
 
         public PerformanceComparisonTest()
         {
-            _logger = IocContainer.Instance.GetService<ISimpleLogger<PerformanceComparisonTest>>();
-            _configuration = IocContainer.Instance.GetService<IConfiguration>();
-            _testRepository = IocContainer.Instance.GetService<ITestRepository>();
+            _logger = DIManager.GetService<ISimpleLogger<PerformanceComparisonTest>>();
+            _configuration = DIManager.GetService<IConfiguration>();
+            _testRepository = DIManager.GetService<ITestRepository>();
             _enablePerformanceComparisonTest = _configuration.GetValue<bool>("UnitTestOptions:EnablePerformanceComparisonTest");
         }
 
