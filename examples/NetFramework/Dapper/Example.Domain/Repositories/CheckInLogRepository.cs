@@ -61,22 +61,22 @@ namespace Example.Domain.Repositories
 
         private async Task TestDapperQueryAsync()
         {
-            var queryableSql = this.CreateQueryableBuilder(true)
+            var sqlCommand = this.CreateQueryableBuilder(true)
                 .Where(entity => entity.UserId == 100000)
                 .Build();
 
             #region Dapper > QueryFirst\QueryFirstOrDefault
             // 没有结果返回时，QueryFirst 方法会报错（System.InvalidOperationException:“序列不包含任何元素”），QueryFirstOrDefault 方法会返回默认值
             // 有多个结果返回时，2个方法都会返回第一个结果
-            //var get1 = await ExecuteAsync(async c => await c.QueryFirstAsync<CheckInLogEntity>(queryableSql.Sql, queryableSql.Parameter));
-            var get2 = await ExecuteAsync(async c => await c.QueryFirstOrDefaultAsync<CheckInLogEntity>(queryableSql.Sql, queryableSql.Parameter));
+            var get1 = await ExecuteAsync(async c => await c.QueryFirstAsync<CheckInLogEntity>(sqlCommand.Sql, sqlCommand.Parameter));
+            var get2 = await ExecuteAsync(async c => await c.QueryFirstOrDefaultAsync<CheckInLogEntity>(sqlCommand.Sql, sqlCommand.Parameter));
             #endregion
 
             #region Dapper > QuerySingle\QuerySingleOrDefault
             // 没有结果返回时，QuerySingle 方法会报错（System.InvalidOperationException:“序列不包含任何元素”），QuerySingleOrDefault 方法会返回默认值
             // 有多个结果返回时，2个方法都会报错（System.InvalidOperationException:“序列包含一个以上的元素”）
-            //var get3 = await ExecuteAsync(async c => await c.QuerySingleAsync<CheckInLogEntity>(queryableSql.Sql, queryableSql.Parameter));
-            //var get4 = await ExecuteAsync(async c => await c.QuerySingleOrDefaultAsync<CheckInLogEntity>(queryableSql.Sql, queryableSql.Parameter));
+            var get3 = await ExecuteAsync(async c => await c.QuerySingleAsync<CheckInLogEntity>(sqlCommand.Sql, sqlCommand.Parameter));
+            var get4 = await ExecuteAsync(async c => await c.QuerySingleOrDefaultAsync<CheckInLogEntity>(sqlCommand.Sql, sqlCommand.Parameter));
             #endregion
         }
     }

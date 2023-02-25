@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Sean.Core.DbRepository.Dapper.Extensions;
@@ -101,6 +102,18 @@ namespace Sean.Core.DbRepository.Dapper
 
             return Execute(connection => connection.ExecuteScalar(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
         }
+        public override DataTable ExecuteDataTable(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return Execute(connection => connection.ExecuteDataTable(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        }
+        public override DataSet ExecuteDataSet(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return Execute(connection => connection.ExecuteDataSet(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        }
         #endregion
 
         #region Asynchronous method
@@ -134,6 +147,18 @@ namespace Sean.Core.DbRepository.Dapper
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
             return await ExecuteAsync(async connection => await connection.ExecuteScalarAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        }
+        public override async Task<DataTable> ExecuteDataTableAsync(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return await ExecuteAsync(async connection => await connection.ExecuteDataTableAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        }
+        public override async Task<DataSet> ExecuteDataSetAsync(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return await ExecuteAsync(async connection => await connection.ExecuteDataSetAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
         }
 #endif
         #endregion

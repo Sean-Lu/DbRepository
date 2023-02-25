@@ -60,17 +60,17 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Example.Application\Example.Application.csproj">
+    <ProjectReference Include="..\Example.Application\Example.NetFramework.Application.csproj">
       <Project>{ba84d489-f29e-4e71-9a02-824b5728ff3d}</Project>
-      <Name>Example.Application</Name>
+      <Name>Example.NetFramework.Application</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Example.Infrastructure\Example.Infrastructure.csproj">
+    <ProjectReference Include="..\Example.Infrastructure\Example.NetFramework.Infrastructure.csproj">
       <Project>{821c0f13-a7e3-4bab-8e84-a968f7ee294f}</Project>
-      <Name>Example.Infrastructure</Name>
+      <Name>Example.NetFramework.Infrastructure</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Example.Model\Example.Model.csproj">
+    <ProjectReference Include="..\Example.Model\Example.NetFramework.Model.csproj">
       <Project>{d93dcc52-1474-4da5-8b33-2e80046e094b}</Project>
-      <Name>Example.Model</Name>
+      <Name>Example.NetFramework.Model</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

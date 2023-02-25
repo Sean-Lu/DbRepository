@@ -17,7 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\examples\NetCore\Dapper\Example.Application\Example.Application.csproj" />
+		<ProjectReference Include="..\..\examples\NetCore\Dapper\Example.Application\Example.NetCore.Application.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

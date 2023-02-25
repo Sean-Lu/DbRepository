@@ -1,5 +1,5 @@
 ﻿using System;
-using Dapper;
+//using Dapper;
 using Microsoft.Extensions.Configuration;
 using Sean.Core.DbRepository;
 using Sean.Utility.Contracts;
@@ -22,7 +22,8 @@ namespace Example.NetCore.Impls.DbTest
         public void Execute()
         {
             var sql = "SELECT SYSDATE FROM DUAL";
-            var result = Execute(c => c.QuerySingle<DateTime>(sql, new { }));
+            //DateTime result = Execute(c => c.QueryFirstOrDefault<DateTime>(sql));
+            DateTime result = Get<DateTime>(sql);
             Console.WriteLine(result.SetDateTimeKindIfUnspecified().ToLongDateTimeWithTimezone());
         }
     }

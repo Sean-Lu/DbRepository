@@ -42,7 +42,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`UserId` = @UserId", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// 常量
         /// </summary>
@@ -58,7 +57,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`Age` >= @Age", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// 常量
         /// </summary>
@@ -91,7 +89,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`Age` >= @Age", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// 变量
         /// </summary>
@@ -123,7 +120,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`IsVip` = @IsVip", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// bool
         /// </summary>
@@ -159,7 +155,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`CreateTime` >= @CreateTime AND `CreateTime` < @CreateTime_2", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// DateTime
         /// </summary>
@@ -216,7 +211,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`Sex` = @Sex", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// Enum
         /// </summary>
@@ -232,7 +226,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`Sex` = @Sex", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// Enum
         /// </summary>
@@ -268,7 +261,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`UserId` = @UserId AND `AccountBalance` < @AccountBalance", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// &&
         /// </summary>
@@ -308,7 +300,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("(`UserId` = @UserId OR `AccountBalance` >= @AccountBalance)", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// ||
         /// </summary>
@@ -328,7 +319,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("(`UserId` = @UserId OR `AccountBalance` >= @AccountBalance AND `IsVip` = @IsVip)", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// ||
         /// </summary>
@@ -381,7 +371,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// EndsWith
         /// </summary>
@@ -565,7 +554,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`UserName` = @UserName", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// Equals
         /// </summary>
@@ -582,7 +570,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`UserName` = @UserName", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// Equals
         /// </summary>
@@ -612,7 +599,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`UpdateTime` is not null", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// HasValue
         /// </summary>
@@ -625,7 +611,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`UpdateTime` is null", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// HasValue
         /// </summary>
@@ -655,7 +640,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("(`Email` is null OR `Email` = '')", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// IsNullOrEmpty
         /// </summary>
@@ -685,7 +669,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`Id` <> @Id", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// Nullable value in 'whereExpression'.
         /// </summary>
@@ -699,7 +682,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`Id` is not null", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// Nullable value in 'whereExpression'.
         /// </summary>
@@ -716,7 +698,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`Id` <> @Id", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// Nullable value in 'whereExpression'.
         /// </summary>
@@ -728,6 +709,38 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
             Assert.AreEqual("`Id` is not null", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        /// <summary>
+        /// Nullable value in 'whereExpression'.
+        /// </summary>
+        [TestMethod]
+        public void ValidateNullableValue5()
+        {
+            long? excludeId = 10001;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Id != excludeId.GetValueOrDefault();
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Id", 10001L }
+            };
+            Assert.AreEqual("`Id` <> @Id", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        /// <summary>
+        /// Nullable value in 'whereExpression'.
+        /// </summary>
+        [TestMethod]
+        public void ValidateNullableValue6()
+        {
+            long? excludeId = null;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Id != excludeId.GetValueOrDefault();
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Id", 0L }
+            };
+            Assert.AreEqual("`Id` <> @Id", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
@@ -743,7 +756,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`Email` is null", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// null
         /// </summary>
@@ -769,7 +781,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("1=1", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// 没有任何条件
         /// </summary>
@@ -782,7 +793,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("1=2", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// 没有任何条件
         /// </summary>
@@ -795,7 +805,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("1=1", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         /// <summary>
         /// 没有任何条件
         /// </summary>
@@ -837,10 +846,13 @@ namespace Sean.Core.DbRepository.Test
             Expression<Func<TestEntity, bool>> whereExpression = entity => true;
             whereExpression = whereExpression.AndAlso(entity => entity.Age > 18 && entity.Age < 25);
             whereExpression = whereExpression.AndAlso(entity => entity.IsVip);
-            Expression<Func<TestEntity, bool>> whereExpression2 = entity => false;
-            whereExpression2 = whereExpression2.OrElse(entity => entity.Country == CountryType.China);
-            whereExpression2 = whereExpression2.OrElse(entity => entity.AccountBalance > 8888);
-            whereExpression = whereExpression.AndAlso(whereExpression2);
+
+            Expression<Func<TestEntity, bool>> whereExpression2 = entity => true;
+            whereExpression2 = whereExpression2.AndAlso(entity => entity.Country == CountryType.China);
+            whereExpression2 = whereExpression2.AndAlso(entity => entity.AccountBalance > 8888);
+
+            whereExpression = whereExpression.OrElse(whereExpression2);
+
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
             {
@@ -850,7 +862,7 @@ namespace Sean.Core.DbRepository.Test
                 { "Country", 1 },
                 { "AccountBalance", 8888M }
             };
-            Assert.AreEqual("1=1 AND `Age` > @Age AND `Age` < @Age_2 AND `IsVip` = @IsVip AND ((1=2 OR `Country` = @Country) OR `AccountBalance` > @AccountBalance)", whereClause);
+            Assert.AreEqual("(1=1 AND `Age` > @Age AND `Age` < @Age_2 AND `IsVip` = @IsVip OR 1=1 AND `Country` = @Country AND `AccountBalance` > @AccountBalance)", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
@@ -979,6 +991,70 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("`UserName` = @UserName", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
+        /// <summary>
+        /// 条件运算符
+        /// </summary>
+        [TestMethod]
+        public void ValidateConditionalOperator3()
+        {
+            bool isVip = true;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserName == (isVip ? "Test001" : "Test002");
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserName", "Test001" }
+            };
+            Assert.AreEqual("`UserName` = @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        /// <summary>
+        /// 条件运算符
+        /// </summary>
+        [TestMethod]
+        public void ValidateConditionalOperator4()
+        {
+            bool isVip = true;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserName == (!isVip ? "Test001" : "Test002");
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserName", "Test002" }
+            };
+            Assert.AreEqual("`UserName` = @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        /// <summary>
+        /// 条件运算符
+        /// </summary>
+        [TestMethod]
+        public void ValidateConditionalOperator5()
+        {
+            bool? isVip = null;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserName == (isVip.HasValue ? "Test001" : "Test002");
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserName", "Test002" }
+            };
+            Assert.AreEqual("`UserName` = @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        /// <summary>
+        /// 条件运算符
+        /// </summary>
+        [TestMethod]
+        public void ValidateConditionalOperator6()
+        {
+            bool? isVip = true;
+            Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UserName == (!isVip.HasValue ? "Test001" : "Test002");
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserName", "Test002" }
+            };
+            Assert.AreEqual("`UserName` = @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
 
         [TestMethod]
         public void ValidateMultiCondition()
@@ -1001,7 +1077,6 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual("(`UserId` = @UserId OR `AccountBalance` >= @AccountBalance) AND `IsVip` = @IsVip AND `Age` > @Age AND (`IsBlack` = @IsBlack OR `Country` = @Country)", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
-
         [TestMethod]
         public void ValidateMultiCondition2()
         {

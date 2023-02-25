@@ -1,5 +1,4 @@
 ﻿using System;
-using Dapper;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -108,8 +107,6 @@ namespace Example.Domain.Repositories
                         _logger.LogDebug("###################环境事务执行结束");
                     };
                 }
-
-                var list = (await ExecuteAsync(async conn => await conn.QueryAsync<TestEntity>($"select * from {TableName()} limit 3")))?.ToList();
 
                 var testModel = new TestEntity
                 {

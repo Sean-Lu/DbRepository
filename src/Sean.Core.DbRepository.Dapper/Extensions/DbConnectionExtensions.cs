@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
+using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository.Dapper.Extensions
 {
@@ -53,6 +54,30 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             return result;
         }
+
+        public static DataTable ExecuteDataTable(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null)
+        {
+            sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            DataTable result;
+            using (var reader = connection.ExecuteReader(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType))
+            {
+                result = reader.GetDataTable();
+            }
+            sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            return result;
+        }
+
+        public static DataSet ExecuteDataSet(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null)
+        {
+            sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            DataSet result;
+            using (var reader = connection.ExecuteReader(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType))
+            {
+                result = reader.GetDataSet();
+            }
+            sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            return result;
+        }
         #endregion
 
         #region Asynchronous method
@@ -96,6 +121,30 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
         {
             sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             var result = await connection.ExecuteScalarAsync(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType);
+            sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            return result;
+        }
+
+        public static async Task<DataTable> ExecuteDataTableAsync(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null)
+        {
+            sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            DataTable result;
+            using (var reader = await connection.ExecuteReaderAsync(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType))
+            {
+                result = reader.GetDataTable();
+            }
+            sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            return result;
+        }
+
+        public static async Task<DataSet> ExecuteDataSetAsync(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null)
+        {
+            sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            DataSet result;
+            using (var reader = await connection.ExecuteReaderAsync(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType))
+            {
+                result = reader.GetDataSet();
+            }
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             return result;
         }

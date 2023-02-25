@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Sean.Utility.Extensions;
 using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository;
@@ -74,7 +75,7 @@ internal static class ConstantExtractor
 
         #region 访问实例成员
         var value = ParseConstant(memberExpression.Expression);
-        return value != null ? GetInstanceMemberValue(memberExpression, value) : null;
+        return GetInstanceMemberValue(memberExpression, value);
         #endregion
     }
 
@@ -113,15 +114,32 @@ internal static class ConstantExtractor
     {
         string memberName = memberExpression.Member.Name;
         MemberTypes memberType = memberExpression.Member.MemberType;
-        Type type = memberExpression.Member.DeclaringType;//instance.GetType();
+        Type memberDeclaringType = memberExpression.Member.DeclaringType;//instance.GetType();
         var bindingAttr = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
+
+        if (instance == null)
+        {
+            if (memberDeclaringType.IsNullableType())
+            {
+                if (memberName == "HasValue")// Nullable<T>.HasValue
+                {
+                    return false;
+                }
+                if (memberName == "Value")// Nullable<T>.Value
+                {
+                    return null;
+                }
+            }
+            //return null;
+        }
+
         switch (memberType)
         {
             case MemberTypes.Field:
-                FieldInfo fieldInfo = type.GetField(memberName, bindingAttr);
+                FieldInfo fieldInfo = memberDeclaringType.GetField(memberName, bindingAttr);
                 return fieldInfo.GetValue(instance);
             case MemberTypes.Property:
-                PropertyInfo propertyInfo = type.GetProperty(memberName, bindingAttr);
+                PropertyInfo propertyInfo = memberDeclaringType.GetProperty(memberName, bindingAttr);
                 return propertyInfo.GetValue(instance, null);
             default:
                 throw new NotSupportedException($"Unsupported MemberTypes: {memberType}");
@@ -145,6 +163,18 @@ internal static class ConstantExtractor
                 Expression expression = methodCallExpression.Arguments[i];
                 parameters[i] = ParseConstant(expression);
             }
+        }
+
+        if (instance == null)
+        {
+            if (mi.DeclaringType.IsNullableType())
+            {
+                if (mi.Name == "GetValueOrDefault" && mi.DeclaringType.GetGenericArguments().Length == 1)// Nullable<T>.GetValueOrDefault()
+                {
+                    return mi.DeclaringType.GetGenericArguments()[0].GetDefaultValue();
+                }
+            }
+            //return null;
         }
 
         return mi.Invoke(instance, parameters);

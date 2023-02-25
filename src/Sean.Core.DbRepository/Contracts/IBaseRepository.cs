@@ -76,6 +76,12 @@ public interface IBaseRepository
     object ExecuteScalar(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     object ExecuteScalar(ISqlCommand sqlCommand);
 
+    DataTable ExecuteDataTable(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
+    DataTable ExecuteDataTable(ISqlCommand sqlCommand);
+
+    DataSet ExecuteDataSet(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
+    DataSet ExecuteDataSet(ISqlCommand sqlCommand);
+
     /// <summary>
     /// Execute using DbConnection.
     /// </summary>
@@ -152,6 +158,12 @@ public interface IBaseRepository
 
     Task<object> ExecuteScalarAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand);
+
+    Task<DataTable> ExecuteDataTableAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
+    Task<DataTable> ExecuteDataTableAsync(ISqlCommand sqlCommand);
+
+    Task<DataSet> ExecuteDataSetAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
+    Task<DataSet> ExecuteDataSetAsync(ISqlCommand sqlCommand);
 
     /// <summary>
     /// Execute asynchronously using DbConnection.

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C696302D-64B0-4A02-BA4D-3C7AF2A19A33}</ProjectGuid>
+    <ProjectGuid>{BA84D489-F29E-4E71-9A02-824B5728FF3D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Example.Domain</RootNamespace>
-    <AssemblyName>Example.Domain</AssemblyName>
+    <RootNamespace>Example.Application</RootNamespace>
+    <AssemblyName>Example.Application</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -41,12 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Contracts\ICheckInLogRepository.cs" />
-    <Compile Include="Contracts\ITestRepository.cs" />
+    <Compile Include="Contracts\ICheckInLogService.cs" />
+    <Compile Include="Contracts\ITestService.cs" />
     <Compile Include="Extensions\DIExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Repositories\CheckInLogRepository.cs" />
-    <Compile Include="Repositories\TestRepository.cs" />
+    <Compile Include="Services\CheckInLogService.cs" />
+    <Compile Include="Services\TestService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj">
@@ -57,27 +57,25 @@
       <Project>{88f3d155-67b9-4f08-b039-e15a4d6027bf}</Project>
       <Name>Sean.Core.DbRepository</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Example.Infrastructure\Example.Infrastructure.csproj">
+    <ProjectReference Include="..\Example.Domain\Example.NetFramework.Domain.csproj">
+      <Project>{c696302d-64b0-4a02-ba4d-3c7af2a19a33}</Project>
+      <Name>Example.NetFramework.Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Example.Infrastructure\Example.NetFramework.Infrastructure.csproj">
       <Project>{821c0f13-a7e3-4bab-8e84-a968f7ee294f}</Project>
-      <Name>Example.Infrastructure</Name>
+      <Name>Example.NetFramework.Infrastructure</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Example.Model\Example.Model.csproj">
+    <ProjectReference Include="..\Example.Model\Example.NetFramework.Model.csproj">
       <Project>{d93dcc52-1474-4da5-8b33-2e80046e094b}</Project>
-      <Name>Example.Model</Name>
+      <Name>Example.NetFramework.Model</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Entities\" />
+    <Folder Include="Dtos\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MySql.Data">
-      <Version>8.0.32</Version>
-    </PackageReference>
     <PackageReference Include="Sean.Core.DependencyInjection">
       <Version>1.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Data.SQLite.Core">
-      <Version>1.0.117</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

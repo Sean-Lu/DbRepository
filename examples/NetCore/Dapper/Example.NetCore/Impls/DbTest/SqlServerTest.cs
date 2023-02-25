@@ -1,5 +1,6 @@
 ﻿using System;
-using Dapper;
+using System.Linq;
+//using Dapper;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
@@ -19,7 +20,8 @@ namespace Example.NetCore.Impls.DbTest
         public void Execute()
         {
             var sql = "SELECT top 2 * FROM Test";
-            var result = Execute(c => c.Query<dynamic>(sql, new { }));
+            //var result = Execute(c => c.Query<dynamic>(sql))?.ToList();
+            var result = Query<dynamic>(sql)?.ToList();
             Console.WriteLine(JsonConvert.SerializeObject(result));
         }
     }

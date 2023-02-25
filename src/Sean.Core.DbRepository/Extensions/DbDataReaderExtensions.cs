@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
-using System.Threading.Tasks;
 using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository.Extensions
@@ -110,8 +109,32 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static DataTable GetDataTable(this IDataReader dataReader)
         {
-            var dataSet = dataReader.GetDataSet();
-            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+            var table = new DataTable();
+
+            //table.Load(dataReader);// Exception
+            //return table;
+
+            for (var i = 0; i < dataReader.FieldCount; i++)
+            {
+                var column = new DataColumn
+                {
+                    DataType = dataReader.GetFieldType(i),
+                    ColumnName = dataReader.GetName(i)
+                };
+                table.Columns.Add(column);
+            }
+
+            while (dataReader.Read())
+            {
+                var row = table.NewRow();
+                for (var i = 0; i < dataReader.FieldCount; i++)
+                {
+                    row[i] = dataReader[i];
+                }
+                table.Rows.Add(row);
+            }
+
+            return table;
         }
         /// <summary>
         /// <see cref="DataSet"/>
@@ -129,27 +152,11 @@ namespace Sean.Core.DbRepository.Extensions
 
             do
             {
-                var table = new DataTable();
-                for (var i = 0; i < dataReader.FieldCount; i++)
+                var table = GetDataTable(dataReader);
+                if (table != null)
                 {
-                    var column = new DataColumn
-                    {
-                        DataType = dataReader.GetFieldType(i),
-                        ColumnName = dataReader.GetName(i)
-                    };
-                    table.Columns.Add(column);
+                    result.Tables.Add(table);
                 }
-
-                while (dataReader.Read())
-                {
-                    var row = table.NewRow();
-                    for (var i = 0; i < dataReader.FieldCount; i++)
-                    {
-                        row[i] = dataReader[i];
-                    }
-                    table.Rows.Add(row);
-                }
-                result.Tables.Add(table);
             } while (dataReader.NextResult());
 
             return result;

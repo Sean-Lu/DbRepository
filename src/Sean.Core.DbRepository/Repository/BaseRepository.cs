@@ -252,6 +252,50 @@ namespace Sean.Core.DbRepository
             return Factory.ExecuteScalar(sqlCommand);
         }
 
+        public virtual DataTable ExecuteDataTable(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
+
+            return ExecuteDataTable(new DefaultSqlCommand
+            {
+                Sql = sql,
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                Connection = connection,
+                CommandTimeout = CommandTimeout
+            });
+        }
+        public virtual DataTable ExecuteDataTable(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return Factory.ExecuteDataTable(sqlCommand);
+        }
+
+        public virtual DataSet ExecuteDataSet(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
+
+            return ExecuteDataSet(new DefaultSqlCommand
+            {
+                Sql = sql,
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                Connection = connection,
+                CommandTimeout = CommandTimeout
+            });
+        }
+        public virtual DataSet ExecuteDataSet(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return Factory.ExecuteDataSet(sqlCommand);
+        }
+
         public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
@@ -502,6 +546,50 @@ namespace Sean.Core.DbRepository
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
             return await Factory.ExecuteScalarAsync(sqlCommand);
+        }
+
+        public virtual async Task<DataTable> ExecuteDataTableAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
+
+            return await ExecuteDataTableAsync(new DefaultSqlCommand
+            {
+                Sql = sql,
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                Connection = connection,
+                CommandTimeout = CommandTimeout
+            });
+        }
+        public virtual async Task<DataTable> ExecuteDataTableAsync(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return await Factory.ExecuteDataTableAsync(sqlCommand);
+        }
+
+        public virtual async Task<DataSet> ExecuteDataSetAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
+
+            return await ExecuteDataSetAsync(new DefaultSqlCommand
+            {
+                Sql = sql,
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                Connection = connection,
+                CommandTimeout = CommandTimeout
+            });
+        }
+        public virtual async Task<DataSet> ExecuteDataSetAsync(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return await Factory.ExecuteDataSetAsync(sqlCommand);
         }
 
         public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
