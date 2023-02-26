@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Example.Application.Extensions;
 using Example.Infrastructure;
-using Example.NetFramework.Impls.DbTest;
+using Example.NetFramework.Impls;
 using Sean.Core.DependencyInjection;
 using Sean.Utility.Contracts;
 
@@ -28,8 +28,7 @@ namespace Example.NetFramework
                 });
             });
 
-            //ISimpleDo toDo = DIManager.Resolve<MySqlTest>();
-            ISimpleDo toDo = DIManager.Resolve<SQLiteTest>();
+            ISimpleDo toDo = DIManager.Resolve<DBTest>();
             toDo.Execute();
 
             Console.ReadLine();

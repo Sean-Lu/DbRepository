@@ -71,9 +71,14 @@ namespace Example.Application.Services
             return (await _testRepository.QueryAsync(entity => true))?.ToList();
         }
 
-        public async Task TestCRUDWithTransactionAsync()
+        public async Task<bool> TestCRUDAsync()
         {
-            await _testRepository.TestCRUDWithTransactionAsync();
+            return await _testRepository.TestCRUDAsync();
+        }
+
+        public async Task<bool> TestCRUDWithTransactionAsync()
+        {
+            return await _testRepository.TestCRUDWithTransactionAsync();
         }
     }
 }

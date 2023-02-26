@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Example.Application.Extensions;
 using Example.Infrastructure;
-using Example.NetCore.Impls.DbTest;
+using Example.NetCore.ConsoleApp.Impls;
 using Microsoft.Extensions.DependencyInjection;
 using Sean.Utility.Contracts;
 
@@ -27,8 +27,7 @@ namespace Example.NetCore
                 });
             });
 
-            ISimpleDo toDo = DIManager.GetService<MySqlTest>();
-            //ISimpleDo toDo = DIManager.GetService<SQLiteTest>();
+            ISimpleDo toDo = DIManager.GetService<DBTest>();
             toDo.Execute();
 
             Console.ReadLine();

@@ -16,7 +16,8 @@ namespace Example.Application.Contracts
         Task<TestDto> GetByIdAsync(long id);
         Task<List<TestDto>> GetAllAsync();
 
-        Task TestCRUDWithTransactionAsync();
+        Task<bool> TestCRUDAsync();
+        Task<bool> TestCRUDWithTransactionAsync();
 
         Task<bool> ExecuteAutoTransactionTest();
     }

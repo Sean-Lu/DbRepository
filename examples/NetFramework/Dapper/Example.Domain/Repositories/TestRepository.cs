@@ -8,6 +8,8 @@ using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Dapper;
 using Sean.Utility.Contracts;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 
 namespace Example.Domain.Repositories
 {
@@ -18,7 +20,15 @@ namespace Example.Domain.Repositories
 
         public TestRepository(
             ILogger<TestRepository> logger
-            ) : base("test_SQLite")
+            //) : base()// MySQL
+            ) : base("test_SQLite")// SQLite
+            //) : base("test_SqlServer")// SqlServer
+            //) : base("test_SqlServerCe")// SqlServerCe
+            //) : base("test_Oracle")// Oracle
+            //) : base("test_PostgreSql")// PostgreSql
+            //) : base("test_Firebird")// Firebird
+            //) : base("test_Informix")// Informix
+            //) : base("test_DB2")// DB2
         {
             _logger = logger;
         }
@@ -94,45 +104,79 @@ namespace Example.Domain.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task TestCRUDWithTransactionAsync()
+        public async Task<bool> TestCRUDAsync(IDbTransaction trans = null)
+        {
+            var testModel = new TestEntity
+            {
+                UserId = 10001,
+                UserName = "Test01",
+                Age = 18,
+                IsVip = true,
+                AccountBalance = 99.95M,
+                Remark = "Test",
+                CreateTime = DateTime.Now,
+                UpdateTime = DateTime.Now
+            };
+            var addResult = await AddAsync(testModel, true, transaction: trans);
+            _logger.LogDebug($"######Add result: {addResult}");
+            if (!addResult)
+            {
+                return false;
+            }
+
+            testModel.AccountBalance = 1000M;
+            testModel.Age = 20;
+            var updateResult = await UpdateAsync(testModel, entity => new { entity.AccountBalance, entity.Age }, transaction: trans) > 0;
+            _logger.LogDebug($"######Update result: {updateResult}");
+            if (!updateResult)
+            {
+                return false;
+            }
+
+            var incrResult = await IncrementAsync(1, entity => entity.AccountBalance, entity => entity.Id == testModel.Id, transaction: trans);
+            _logger.LogDebug($"######Increment result: {incrResult}");
+            if (!incrResult)
+            {
+                return false;
+            }
+
+            var orderBy = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.UserId);
+            orderBy.Next = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.Id);
+            var queryResult = (await QueryAsync(entity => true, orderBy, 1, 3))?.ToList();
+            _logger.LogDebug($"######Query result: {JsonConvert.SerializeObject(queryResult, Formatting.Indented)}");
+
+            var getResult = await GetAsync(entity => entity.UserId == 10001);
+            _logger.LogDebug($"######Get result: {JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
+
+            var deleteResult = await DeleteAsync(testModel, transaction: trans);
+            _logger.LogDebug($"######Delete result: {deleteResult}");
+            if (!deleteResult)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> TestCRUDWithTransactionAsync()
         {
             if (DbType == DatabaseType.SQLite)
             {
                 TableName();// 如果表不存在，需要先创建表，否则下面的事务操作会在自动创建表的时候出现锁库的情况
             }
 
-            var result = await ExecuteAutoTransactionAsync(async trans =>
+            var transResult = await ExecuteAutoTransactionAsync(async trans =>
             {
-                var testModel = new TestEntity
-                {
-                    UserId = 10001,
-                    UserName = "Test01",
-                    Age = 18,
-                    IsVip = true,
-                    AccountBalance = 99.95M,
-                    Remark = "Test",
-                    CreateTime = DateTime.Now,
-                    UpdateTime = DateTime.Now
-                };
-                var addResult = await AddAsync(testModel, true, transaction: trans);
-                _logger.LogDebug($"######Add result: {addResult}");
-                if (!addResult)
-                {
-                    return false;
-                }
-
-                var queryResult = (await QueryAsync(entity => true, null, 1, 3))?.ToList();
-                _logger.LogDebug($"######Query result: {JsonConvert.SerializeObject(queryResult, Formatting.Indented)}");
-
-                var deleteResult = await DeleteAsync(testModel, transaction: trans);
-                _logger.LogDebug($"######Delete result: {deleteResult}");
-                if (!deleteResult)
+                if (!await TestCRUDAsync(trans))
                 {
                     return false;
                 }
 
                 return true;
             });
+
+            _logger.LogDebug($"######Transaction result: {transResult}");
+            return transResult;
         }
 
         private async Task TestUnionAllAsync()

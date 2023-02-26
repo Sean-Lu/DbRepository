@@ -43,8 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Impls\DbTest\MySqlTest.cs" />
-    <Compile Include="Impls\DbTest\SQLiteTest.cs" />
+    <Compile Include="Impls\DBTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

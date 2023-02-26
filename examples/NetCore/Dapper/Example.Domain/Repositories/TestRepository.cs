@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -20,7 +21,15 @@ namespace Example.Domain.Repositories
         public TestRepository(
             IConfiguration configuration,
             ISimpleLogger<TestRepository> logger
-            ) : base(configuration)
+            ) : base(configuration)// MySQL
+            //) : base(configuration, "test_SQLite")// SQLite
+            //) : base(configuration, "test_SqlServer")// SqlServer
+            //) : base(configuration, "test_SqlServerCe")// SqlServerCe
+            //) : base(configuration, "test_Oracle")// Oracle
+            //) : base(configuration, "test_PostgreSql")// PostgreSql
+            //) : base(configuration, "test_Firebird")// Firebird
+            //) : base(configuration, "test_Informix")// Informix
+            //) : base(configuration, "test_DB2")// DB2
         {
             _logger = logger;
         }
@@ -96,7 +105,61 @@ namespace Example.Domain.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task TestCRUDWithTransactionAsync()
+        public async Task<bool> TestCRUDAsync(IDbTransaction trans = null)
+        {
+            var testModel = new TestEntity
+            {
+                UserId = 10001,
+                UserName = "Test01",
+                Age = 18,
+                IsVip = true,
+                AccountBalance = 99.95M,
+                Remark = "Test",
+                CreateTime = DateTime.Now,
+                UpdateTime = DateTime.Now
+            };
+            var addResult = await AddAsync(testModel, true, transaction: trans);
+            _logger.LogDebug($"######Add result: {addResult}");
+            if (!addResult)
+            {
+                return false;
+            }
+
+            testModel.AccountBalance = 1000M;
+            testModel.Age = 20;
+            var updateResult = await UpdateAsync(testModel, entity => new { entity.AccountBalance, entity.Age }, transaction: trans) > 0;
+            _logger.LogDebug($"######Update result: {updateResult}");
+            if (!updateResult)
+            {
+                return false;
+            }
+
+            var incrResult = await IncrementAsync(1, entity => entity.AccountBalance, entity => entity.Id == testModel.Id, transaction: trans);
+            _logger.LogDebug($"######Increment result: {incrResult}");
+            if (!incrResult)
+            {
+                return false;
+            }
+
+            var orderBy = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.UserId);
+            orderBy.Next = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.Id);
+            var queryResult = (await QueryAsync(entity => true, orderBy, 1, 3))?.ToList();
+            _logger.LogDebug($"######Query result: {JsonConvert.SerializeObject(queryResult, Formatting.Indented)}");
+
+            var getResult = await GetAsync(entity => entity.UserId == 10001);
+            _logger.LogDebug($"######Get result: {JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
+
+            var deleteResult = await DeleteAsync(testModel, transaction: trans);
+            _logger.LogDebug($"######Delete result: {deleteResult}");
+            if (!deleteResult)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> TestCRUDWithTransactionAsync()
         {
             using (var trans = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -108,28 +171,15 @@ namespace Example.Domain.Repositories
                     };
                 }
 
-                var testModel = new TestEntity
+                if (!await TestCRUDAsync())
                 {
-                    UserId = 10001,
-                    UserName = "Test01",
-                    Age = 18,
-                    IsVip = true,
-                    AccountBalance = 99.95M,
-                    Remark = "Test",
-                    CreateTime = DateTime.Now,
-                    UpdateTime = DateTime.Now
-                };
-                var addResult = await AddAsync(testModel, true);
-                _logger.LogDebug($"######Add result: {addResult}");
-
-                var queryResult = (await QueryAsync(entity => true, null, 1, 3))?.ToList();
-                _logger.LogDebug($"######Query result: {JsonConvert.SerializeObject(queryResult, Formatting.Indented)}");
-
-                var deleteResult = await DeleteAsync(testModel);
-                _logger.LogDebug($"######Delete result: {deleteResult}");
+                    return false;
+                }
 
                 trans.Complete();
             }
+
+            return true;
         }
     }
 }

@@ -81,9 +81,14 @@ namespace Example.Application.Services
             return _mapper.Map<List<TestDto>>(entity);
         }
 
-        public async Task TestCRUDWithTransactionAsync()
+        public async Task<bool> TestCRUDAsync()
         {
-            await _testRepository.TestCRUDWithTransactionAsync();
+            return await _testRepository.TestCRUDAsync();
+        }
+
+        public async Task<bool> TestCRUDWithTransactionAsync()
+        {
+            return await _testRepository.TestCRUDWithTransactionAsync();
         }
 
         public async Task<bool> ExecuteAutoTransactionTest()
