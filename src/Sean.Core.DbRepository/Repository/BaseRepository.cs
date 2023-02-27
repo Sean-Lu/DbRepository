@@ -296,6 +296,28 @@ namespace Sean.Core.DbRepository
             return Factory.ExecuteDataSet(sqlCommand);
         }
 
+        public virtual IDataReader ExecuteReader(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
+
+            return ExecuteReader(new DefaultSqlCommand
+            {
+                Sql = sql,
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                Connection = connection,
+                CommandTimeout = CommandTimeout
+            });
+        }
+        public virtual IDataReader ExecuteReader(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return Factory.ExecuteReader(sqlCommand);
+        }
+
         public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
@@ -590,6 +612,28 @@ namespace Sean.Core.DbRepository
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
             return await Factory.ExecuteDataSetAsync(sqlCommand);
+        }
+
+        public virtual async Task<IDataReader> ExecuteReaderAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
+
+            return await ExecuteReaderAsync(new DefaultSqlCommand
+            {
+                Sql = sql,
+                Parameter = param,
+                Master = master,
+                Transaction = transaction,
+                Connection = connection,
+                CommandTimeout = CommandTimeout
+            });
+        }
+        public virtual async Task<IDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return await Factory.ExecuteReaderAsync(sqlCommand);
         }
 
         public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)

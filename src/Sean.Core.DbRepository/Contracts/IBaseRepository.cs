@@ -82,6 +82,9 @@ public interface IBaseRepository
     DataSet ExecuteDataSet(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     DataSet ExecuteDataSet(ISqlCommand sqlCommand);
 
+    IDataReader ExecuteReader(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
+    IDataReader ExecuteReader(ISqlCommand sqlCommand);
+
     /// <summary>
     /// Execute using DbConnection.
     /// </summary>
@@ -164,6 +167,9 @@ public interface IBaseRepository
 
     Task<DataSet> ExecuteDataSetAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     Task<DataSet> ExecuteDataSetAsync(ISqlCommand sqlCommand);
+
+    Task<IDataReader> ExecuteReaderAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
+    Task<IDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand);
 
     /// <summary>
     /// Execute asynchronously using DbConnection.

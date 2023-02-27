@@ -114,6 +114,12 @@ namespace Sean.Core.DbRepository.Dapper
 
             return Execute(connection => connection.ExecuteDataSet(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
         }
+        public override IDataReader ExecuteReader(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return Execute(connection => connection.ExecuteReader(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        }
         #endregion
 
         #region Asynchronous method
@@ -159,6 +165,12 @@ namespace Sean.Core.DbRepository.Dapper
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
             return await ExecuteAsync(async connection => await connection.ExecuteDataSetAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        }
+        public override async Task<IDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            return await ExecuteAsync(async connection => await connection.ExecuteReaderAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
         }
 #endif
         #endregion

@@ -78,6 +78,14 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             return result;
         }
+
+        public static IDataReader ExecuteReader(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null)
+        {
+            sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            var result = connection.ExecuteReader(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType);
+            sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            return result;
+        }
         #endregion
 
         #region Asynchronous method
@@ -145,6 +153,14 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             {
                 result = reader.GetDataSet();
             }
+            sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            return result;
+        }
+
+        public static async Task<IDataReader> ExecuteReaderAsync(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null)
+        {
+            sqlMonitor?.OnSqlExecuting(new SqlExecutingContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
+            var result = await connection.ExecuteReaderAsync(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType);
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             return result;
         }
