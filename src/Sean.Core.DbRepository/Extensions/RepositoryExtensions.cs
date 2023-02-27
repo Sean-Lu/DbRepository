@@ -17,7 +17,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
         /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
@@ -29,7 +29,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
         /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
@@ -42,7 +42,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
         /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
@@ -54,7 +54,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
         /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
@@ -90,7 +90,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
         /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
@@ -102,7 +102,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
         /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
@@ -115,7 +115,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
         /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
@@ -127,7 +127,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="repository"></param>
-        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
         /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class

@@ -51,7 +51,7 @@ namespace Sean.Core.DbRepository
         /// Create an instance of <see cref="IQueryable{TEntity}"/>.
         /// </summary>
         /// <param name="dbType">Database type.</param>
-        /// <param name="autoIncludeFields">是否自动解析表字段</param>
+        /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
         /// <param name="tableName">The table name.</param>
         /// <returns></returns>
         public static IQueryable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
