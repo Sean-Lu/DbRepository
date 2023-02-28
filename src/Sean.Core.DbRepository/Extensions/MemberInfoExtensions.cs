@@ -15,15 +15,15 @@ namespace Sean.Core.DbRepository.Extensions
         /// <returns></returns>
         public static string GetFieldName(this MemberInfo memberInfo)
         {
-            var fieldAttribute = memberInfo.GetCustomAttributesExt<ColumnAttribute>(false)?.FirstOrDefault();
-            if (fieldAttribute != null)
-            {
-                return fieldAttribute.Name;
-            }
-
             if (memberInfo.GetCustomAttributesExt<NotMappedAttribute>(false).Any())
             {
                 throw new InvalidOperationException($"The member [{memberInfo.DeclaringType?.Name}.{memberInfo.Name}] is not a database table field.");
+            }
+
+            var fieldAttribute = memberInfo.GetCustomAttributesExt<ColumnAttribute>(false)?.FirstOrDefault();
+            if (fieldAttribute != null && !string.IsNullOrEmpty(fieldAttribute.Name))
+            {
+                return fieldAttribute.Name;
             }
 
             return memberInfo.Name;
