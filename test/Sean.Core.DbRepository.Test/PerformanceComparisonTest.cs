@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Dapper;
-using Example.Domain.Contracts;
-using Example.Domain.Entities;
-using Example.Infrastructure;
+using Example.Dapper.Core.Domain.Contracts;
+using Example.Dapper.Core.Domain.Entities;
+using Example.Dapper.Core.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Extensions;
@@ -17,7 +17,7 @@ namespace Sean.Core.DbRepository.Test
     /// 性能对比测试
     /// </summary>
     [TestClass]
-    public class PerformanceComparisonTest : TestBase
+    public class PerformanceComparisonTest : DapperTestBase
     {
         private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
@@ -74,7 +74,7 @@ namespace Sean.Core.DbRepository.Test
 
             #region [Dapper.Execute]批量新增数据
             _testRepository.Delete(entity => true);// 删除所有数据
-            _testRepository.Execute(c =>
+            _testRepository.Execute(conn =>
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Restart();
@@ -85,7 +85,7 @@ namespace Sean.Core.DbRepository.Test
                 var buildSqlElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
 
                 stopwatch.Restart();
-                var result = c.Execute(insertableSql.Sql, list);// 批量新增数据
+                var result = conn.Execute(insertableSql.Sql, list);// 批量新增数据
                 stopwatch.Stop();
                 Assert.IsTrue(result == list.Count);
                 var executeElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
@@ -97,7 +97,7 @@ namespace Sean.Core.DbRepository.Test
 
             #region [BulkInsert]批量新增数据
             _testRepository.Delete(entity => true);// 删除所有数据
-            _testRepository.Execute(c =>
+            _testRepository.Execute(conn =>
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Restart();
@@ -108,7 +108,7 @@ namespace Sean.Core.DbRepository.Test
                 var buildSqlElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
 
                 stopwatch.Restart();
-                var result = c.Execute(insertableSql.Sql, insertableSql.Parameter);// 批量新增数据
+                var result = conn.Execute(insertableSql.Sql, insertableSql.Parameter);// 批量新增数据
                 stopwatch.Stop();
                 Assert.IsTrue(result == list.Count);
                 var executeElapsedMilliseconds = stopwatch.ElapsedMilliseconds;

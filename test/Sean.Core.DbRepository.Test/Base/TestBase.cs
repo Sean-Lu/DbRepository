@@ -1,20 +1,10 @@
-﻿using Example.Application.Extensions;
+﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using Example.Infrastructure;
 
 namespace Sean.Core.DbRepository.Test
 {
     public abstract class TestBase
     {
-        static TestBase()
-        {
-            DIManager.ConfigureServices(services =>
-            {
-                services.AddApplicationDI();
-            });
-        }
-
         protected void AssertSqlParameters(IDictionary<string, object> expectedDictionary, IDictionary<string, object> actualDictionary)
         {
             Assert.AreEqual(expectedDictionary.Count, actualDictionary.Count);

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Example.Domain.Entities;
+using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Sean.Core.DbRepository.Test

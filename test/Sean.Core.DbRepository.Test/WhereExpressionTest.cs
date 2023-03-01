@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Example.Domain.Entities;
+using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Extensions;
 

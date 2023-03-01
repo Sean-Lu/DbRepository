@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Linq;
-using Example.Domain.Contracts;
-using Example.Domain.Entities;
-using Example.Infrastructure;
+using Example.Dapper.Core.Domain.Contracts;
+using Example.Dapper.Core.Domain.Entities;
+using Example.Dapper.Core.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Utility.Contracts;
 
 namespace Sean.Core.DbRepository.Test
 {
     /// <summary>
-    /// XXXRepository 测试
+    /// {TableName}Repository
     /// </summary>
     [TestClass]
-    public class TableRepositoryTest : TestBase
+    public class TableRepositoryTest : DapperTestBase
     {
         private readonly ILogger _logger;
         private readonly ITestRepository _testRepository;

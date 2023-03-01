@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Example.Domain.Entities;
+using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Sean.Core.DbRepository.Test
@@ -33,11 +33,11 @@ namespace Sean.Core.DbRepository.Test
             //BaseSqlBuilder.SqlIndented = true;
             //BaseSqlBuilder.SqlParameterized = false;
 
-            ISqlCommand sql = SqlFactory<TestEntity>.CreateInsertableBuilder(DatabaseType.MySql, true)
+            ISqlCommand sqlCommand = SqlFactory<TestEntity>.CreateInsertableBuilder(DatabaseType.MySql, true)
                 .SetParameter(list)
                 .Build();
 
-            Console.WriteLine(sql.Sql);
+            Console.WriteLine(sqlCommand.Sql);
         }
 
         [TestMethod]
@@ -62,11 +62,11 @@ namespace Sean.Core.DbRepository.Test
             //BaseSqlBuilder.SqlIndented = true;
             //BaseSqlBuilder.SqlParameterized = false;
 
-            ISqlCommand sql = SqlFactory<TestEntity>.CreateReplaceableBuilder(DatabaseType.MySql, true)
+            ISqlCommand sqlCommand = SqlFactory<TestEntity>.CreateReplaceableBuilder(DatabaseType.MySql, true)
                 .SetParameter(list)
                 .Build();
 
-            Console.WriteLine(sql.Sql);
+            Console.WriteLine(sqlCommand.Sql);
         }
     }
 }

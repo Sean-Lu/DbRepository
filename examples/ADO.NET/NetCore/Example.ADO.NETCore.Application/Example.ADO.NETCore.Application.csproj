@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Example.ADO.NETCore.Domain\Example.ADO.NETCore.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,123 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Example.Dapper.Core.Domain.Contracts;
+using Example.Dapper.Core.Domain.Entities;
+using Microsoft.Extensions.Configuration;
+using Sean.Core.DbRepository;
+using Sean.Core.DbRepository.Dapper;
+using Sean.Core.DbRepository.Extensions;
+using Sean.Utility.Contracts;
+
+namespace Example.Dapper.Core.Domain.Repositories
+{
+    //public class CheckInLogRepository : EntityBaseRepository<CheckInLogEntity>, ICheckInLogRepository// Using ADO.NET
+    public class CheckInLogRepository : BaseRepository<CheckInLogEntity>, ICheckInLogRepository// Using Dapper
+    {
+        public DateTime? SubTableDate { get; set; }
+
+        private readonly ILogger _logger;
+
+        public CheckInLogRepository(
+            IConfiguration configuration,
+            ISimpleLogger<CheckInLogRepository> logger
+            ) : base(configuration)
+        {
+            _logger = logger;
+        }
+
+        protected override void OnSqlExecuting(SqlExecutingContext context)
+        {
+            base.OnSqlExecuting(context);
+
+            //_logger.LogInfo($"SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+        }
+
+        protected override void OnSqlExecuted(SqlExecutedContext context)
+        {
+            base.OnSqlExecuted(context);
+
+            //_logger.LogInfo($"SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+        }
+
+        public override string TableName()
+        {
+            var tableName = SubTableDate.HasValue
+                ? $"{MainTableName}_{SubTableDate.Value:yyyyMM}"// 自定义表名规则：按时间分表
+                : base.TableName();
+            AutoCreateTable(tableName);// 自动创建表（如果表不存在）
+            return tableName;
+        }
+
+        public override string CreateTableSql(string tableName)
+        {
+            return $@"CREATE TABLE `{tableName}` (
+  `Id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `UserId` bigint(20) NOT NULL COMMENT '用户ID',
+  `CheckInType` int(2) NOT NULL COMMENT '签到类型',
+  `CreateTime` datetime NOT NULL COMMENT '创建时间',
+  `IP` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'IP地址',
+  PRIMARY KEY (`Id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='签到明细日志表';";
+        }
+
+        public async Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
+        {
+            #region 自定义 SqlCommand 示例
+            // SqlCommand 示例1：
+            var sql = this.CreateQueryableBuilder(true)
+                .Page(pageIndex, pageSize)
+                .Where($"{nameof(CheckInLogEntity.UserId)} = @{nameof(CheckInLogEntity.UserId)} AND {nameof(CheckInLogEntity.CheckInType)} IN @{nameof(CheckInLogEntity.CheckInType)}")
+                .OrderBy($"{nameof(CheckInLogEntity.UserId)} ASC, {nameof(CheckInLogEntity.CreateTime)} DESC")
+                .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
+                .Build();
+            sql.Master = false;// 查询结果来自从库
+
+            // SqlCommand 示例2：
+            var sql2 = this.CreateQueryableBuilder(true)
+                .Page(pageIndex, pageSize)
+                .WhereField(entity => entity.UserId, SqlOperation.Equal)
+                .WhereField(entity => nameof(CheckInLogEntity.CheckInType), SqlOperation.In)
+                .OrderByField(OrderByType.Asc, nameof(CheckInLogEntity.UserId))
+                .OrderByField(OrderByType.Desc, nameof(CheckInLogEntity.CreateTime))
+                .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
+                .Build();
+            sql2.Master = false;// 查询结果来自从库
+
+            // SqlCommand 示例3：
+            var sql3 = this.CreateQueryableBuilder(true)
+                .Page(pageIndex, pageSize)
+                .WhereField(entity => entity.UserId, SqlOperation.Equal)
+                .WhereField(entity => entity.CheckInType, SqlOperation.In)
+                .WhereField(entity => entity.CreateTime, SqlOperation.GreaterOrEqual, paramName: "StartTime")
+                .WhereField(entity => entity.CreateTime, SqlOperation.Less, paramName: "EndTime")
+                .OrderByField(OrderByType.Asc, entity => entity.UserId)
+                .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
+                .SetParameter(new
+                {
+                    UserId = userId,
+                    CheckInType = new[] { 1, 2 },
+                    StartTime = DateTime.Parse("2020-1-1 00:00:00"),
+                    EndTime = DateTime.Now
+                })
+                .Build();
+            sql3.Master = false;// 查询结果来自从库
+            #endregion
+
+            #region 返回结果示例
+            //// 返回结果示例1：使用自定义 SqlCommand （复杂SQL）
+            //return await QueryAsync<CheckInLogEntity>(sql);
+
+            // 返回结果示例2：使用 Expression 表达式树（推荐）
+            int[] checkInTypes = { 1, 2 };
+            var orderBy = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
+            orderBy.Next = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.Id);
+            return await QueryAsync(entity => entity.UserId == userId
+                                              && checkInTypes.Contains(entity.CheckInType)
+                                              && entity.CreateTime >= DateTime.Parse("2020-1-1 00:00:00")
+                                              && entity.CreateTime < DateTime.Now, orderBy, pageIndex, pageSize, master: false);// 查询结果来自从库
+            #endregion
+        }
+    }
+}
