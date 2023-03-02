@@ -14,16 +14,20 @@ Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置�
 using (var db = new EFDbContext())
 //using (var db = new EFDbContext(optionsBuilder.Options))
 {
+    if (db.Database.EnsureCreated())// CodeFirst: 自动创建表
+    {
+        Console.WriteLine("数据库创建并初始化完成...");
+    }
+
     ////var countResult = db.TestEntities.Count();
     //var countResult = db.Set<TestEntity>().Count();
     //Console.WriteLine($"#################### Count 执行结果：{countResult}");
 
     ITestRepository testRepository = new TestRepository(db);
 
-    var id = 6L;
     var newModel = new TestEntity
     {
-        Id = id,
+        //Id = 6L,
         UserId = 10001,
         UserName = "Test",
         Age = 18,
@@ -39,21 +43,24 @@ using (var db = new EFDbContext())
     var countResult = testRepository.Count();
     Console.WriteLine($"#################### Count 执行结果：{countResult}");
 
-    var queryResult = testRepository.QueryWithNoTracking(entity => entity.Age >= 18 && entity.IsVip);
+    var queryResult = testRepository.QueryWithNoTracking(entity => entity.Age >= 18 && entity.IsVip && entity.Country == CountryType.China && entity.Sex == SexType.Male);
     Console.WriteLine($"#################### Query 执行结果：{JsonConvert.SerializeObject(queryResult, Formatting.Indented)}");
 
-    var getResult = testRepository.Get(entity => entity.Id == id);
+    var queryByDateTimeResult = testRepository.QueryWithNoTracking(entity => entity.CreateTime.Year == 2023 && entity.CreateTime.Month == 3);
+    Console.WriteLine($"#################### Query 执行结果：{JsonConvert.SerializeObject(queryByDateTimeResult, Formatting.Indented)}");
+
+    var getResult = testRepository.Get(entity => entity.Id == newModel.Id);
     Console.WriteLine($"#################### Get 执行结果：{JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
 
     getResult.AccountBalance += 100;
     var updateResult = testRepository.Update(getResult);
     Console.WriteLine($"#################### Update 执行结果：{updateResult}");
 
-    getResult = testRepository.GetById(id);
+    getResult = testRepository.GetById(newModel.Id);
     Console.WriteLine($"#################### GetById 执行结果：{JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
 
     var deleteResult = testRepository.Delete(getResult);
-    //var deleteResult = testRepository.Delete(new TestEntity { Id = id });
+    //var deleteResult = testRepository.Delete(new TestEntity { Id = newModel.Id });
     Console.WriteLine($"#################### Delete 执行结果：{deleteResult}");
 }
 

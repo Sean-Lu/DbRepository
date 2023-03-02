@@ -19,17 +19,23 @@ namespace Example.EF.Core.ConsoleApp
         {
             base.OnConfiguring(optionsBuilder);
 
-            //var connString = "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a";
-            var connString = "server=127.0.0.1;database=test;user id=root;password=12345!a";
-            optionsBuilder.UseMySQL(connString/*, builder => builder.CommandTimeout(30)*/);
+            //// MySQL
+            ////var connString = "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a";
+            //var connString = "server=127.0.0.1;database=test;user id=root;password=12345!a";
+            //optionsBuilder.UseMySQL(connString);
 
-            //// 设置不跟踪所有查询  
+            // SQLite
+            //var connString = "data source=.\\test.db;version=3";
+            var connString = "data source=.\\test.db";
+            optionsBuilder.UseSqlite(connString);
+
+            //// 设置不跟踪所有查询
             //optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
-            //// 启用敏感数据日志记录
-            //optionsBuilder.EnableSensitiveDataLogging();
+            // 启用敏感数据日志记录
+            optionsBuilder.EnableSensitiveDataLogging();
 
-            // 记录日志，包含生成的sql          
+            // 记录日志，包含生成的sql
             optionsBuilder.LogTo(msg =>
             {
                 Debug.WriteLine(msg);// 输出调试窗口消息
