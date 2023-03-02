@@ -160,72 +160,6 @@ namespace Sean.Core.DbRepository
         }
         #endregion
 
-        #region ExecuteSqlCommand
-        public T ExecuteSqlCommand<T>(ISqlCommand sqlCommand, Func<DbCommand, T> func)
-        {
-            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-            if (func == null)
-            {
-                return default;
-            }
-
-            var isInternalConnection = false;
-            using (var command = CreateDbCommand(sqlCommand))
-            {
-                try
-                {
-                    if (command.Connection == null)
-                    {
-                        command.Connection = OpenNewConnection(sqlCommand.Master);
-                        isInternalConnection = true;
-                    }
-
-                    return func(command);
-                }
-                finally
-                {
-                    if (isInternalConnection)
-                    {
-                        command.Connection?.Dispose();
-                    }
-                }
-            }
-        }
-
-        public async Task<T> ExecuteSqlCommandAsync<T>(ISqlCommand sqlCommand, Func<DbCommand, Task<T>> func)
-        {
-            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-            if (func == null)
-            {
-                return default;
-            }
-
-            var isInternalConnection = false;
-            using (var command = CreateDbCommand(sqlCommand))
-            {
-                try
-                {
-                    if (command.Connection == null)
-                    {
-                        command.Connection = OpenNewConnection(sqlCommand.Master);
-                        isInternalConnection = true;
-                    }
-
-                    return await func(command);
-                }
-                finally
-                {
-                    if (isInternalConnection)
-                    {
-                        command.Connection?.Dispose();
-                    }
-                }
-            }
-        }
-        #endregion
-
         #region ExecuteNonQuery
         /// <summary>
         /// Execute INSERT or DELETE or UPDATE operation.
@@ -302,7 +236,7 @@ namespace Sean.Core.DbRepository
         /// <returns>Returns the number of affected rows.</returns>
         public int ExecuteNonQuery(ISqlCommand sqlCommand)
         {
-            return ExecuteSqlCommand(sqlCommand, command => command.ExecuteNonQuery(SqlMonitor));
+            return ExecuteSqlCommand(sqlCommand, (command, _) => command.ExecuteNonQuery(SqlMonitor));
         }
 
         /// <summary>
@@ -380,7 +314,7 @@ namespace Sean.Core.DbRepository
         /// <returns>Returns the number of affected rows.</returns>
         public async Task<int> ExecuteNonQueryAsync(ISqlCommand sqlCommand)
         {
-            return await ExecuteSqlCommandAsync(sqlCommand, async command => await command.ExecuteNonQueryAsync(SqlMonitor));
+            return await ExecuteSqlCommandAsync(sqlCommand, async (command, _) => await command.ExecuteNonQueryAsync(SqlMonitor));
         }
         #endregion
 
@@ -618,20 +552,11 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public DataSet ExecuteDataSet(ISqlCommand sqlCommand)
         {
-            return ExecuteSqlCommand(sqlCommand, command =>
+            return ExecuteSqlCommand(sqlCommand, (command, _) =>
             {
                 using (var adapter = _providerFactory.CreateDataAdapter())
                 {
-                    if (adapter == null)
-                    {
-                        // 如果创建 DbDataAdapter 失败，则尝试通过 DbDataReader 读取器来获取数据
-                        using (var reader = command.ExecuteReader(CommandBehavior.Default, SqlMonitor))
-                        {
-                            return reader.GetDataSet();
-                        }
-                    }
-
-                    return adapter.ExecuteDataSet(command, SqlMonitor);
+                    return command.ExecuteDataSet(SqlMonitor, adapter);
                 }
             });
         }
@@ -717,20 +642,11 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public async Task<DataSet> ExecuteDataSetAsync(ISqlCommand sqlCommand)
         {
-            return await ExecuteSqlCommandAsync(sqlCommand, async command =>
+            return await ExecuteSqlCommandAsync(sqlCommand, async (command, _) =>
             {
                 using (var adapter = _providerFactory.CreateDataAdapter())
                 {
-                    if (adapter == null)
-                    {
-                        // 如果创建 DbDataAdapter 失败，则尝试通过 DbDataReader 读取器来获取数据
-                        using (var reader = await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor))
-                        {
-                            return reader.GetDataSet();
-                        }
-                    }
-
-                    return await adapter.ExecuteDataSetAsync(command, SqlMonitor);
+                    return await command.ExecuteDataSetAsync(SqlMonitor, adapter);
                 }
             });
         }
@@ -814,7 +730,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public DbDataReader ExecuteReader(ISqlCommand sqlCommand)
         {
-            return ExecuteSqlCommand(sqlCommand, command => command.ExecuteReader(CommandBehavior.Default, SqlMonitor));
+            return ExecuteSqlCommand(sqlCommand, (command, isInternalConnection) => command.ExecuteReader(isInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor), false);
         }
 
         /// <summary>   
@@ -894,7 +810,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public async Task<DbDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand)
         {
-            return await ExecuteSqlCommandAsync(sqlCommand, async command => await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor));
+            return await ExecuteSqlCommandAsync(sqlCommand, async (command, isInternalConnection) => await command.ExecuteReaderAsync(isInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor), false);
         }
         #endregion
 
@@ -974,7 +890,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public object ExecuteScalar(ISqlCommand sqlCommand)
         {
-            return ExecuteSqlCommand(sqlCommand, command => command.ExecuteScalar(SqlMonitor));
+            return ExecuteSqlCommand(sqlCommand, (command, _) => command.ExecuteScalar(SqlMonitor));
         }
 
         /// <summary>
@@ -1124,7 +1040,7 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public async Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand)
         {
-            return await ExecuteSqlCommandAsync(sqlCommand, async command => await command.ExecuteScalarAsync(SqlMonitor));
+            return await ExecuteSqlCommandAsync(sqlCommand, async (command, _) => await command.ExecuteScalarAsync(SqlMonitor));
         }
 
         /// <summary>
@@ -1340,7 +1256,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = await ExecuteReaderAsync(connection, commandText, parameters, commandType))
             {
-                return dataReader.GetList<T>(CaseSensitive);
+                return await dataReader.GetListAsync<T>(CaseSensitive);
             }
         }
         /// <summary>
@@ -1361,7 +1277,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = await ExecuteReaderAsync(transaction, commandText, parameters, commandType))
             {
-                return dataReader.GetList<T>(CaseSensitive);
+                return await dataReader.GetListAsync<T>(CaseSensitive);
             }
         }
         /// <summary>
@@ -1377,7 +1293,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = await ExecuteReaderAsync(sqlCommand))
             {
-                return dataReader.GetList<T>(CaseSensitive);
+                return await dataReader.GetListAsync<T>(CaseSensitive);
             }
         }
         #endregion
@@ -1510,7 +1426,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = await ExecuteReaderAsync(connection, commandText, parameters, commandType))
             {
-                return dataReader.Get<T>(CaseSensitive);
+                return await dataReader.GetAsync<T>(CaseSensitive);
             }
         }
         /// <summary>
@@ -1528,7 +1444,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = await ExecuteReaderAsync(transaction, commandText, parameters, commandType))
             {
-                return dataReader.Get<T>(CaseSensitive);
+                return await dataReader.GetAsync<T>(CaseSensitive);
             }
         }
         /// <summary>
@@ -1541,7 +1457,7 @@ namespace Sean.Core.DbRepository
         {
             using (var dataReader = await ExecuteReaderAsync(sqlCommand))
             {
-                return dataReader.Get<T>(CaseSensitive);
+                return await dataReader.GetAsync<T>(CaseSensitive);
             }
         }
         #endregion
@@ -1648,7 +1564,7 @@ namespace Sean.Core.DbRepository
         }
         #endregion
 
-        #region Private Methods
+        #region Private method
         private DbCommand CreateDbCommand(ISqlCommand sqlCommand)
         {
             return CreateDbCommand(sqlCommand.Transaction, sqlCommand.Connection, sqlCommand.CommandType, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(sqlCommand.Parameter, _providerFactory.CreateParameter), sqlCommand.CommandTimeout);
@@ -1682,6 +1598,72 @@ namespace Sean.Core.DbRepository
 
             return (DbCommand)command;
         }
+
+        #region ExecuteSqlCommand
+        private T ExecuteSqlCommand<T>(ISqlCommand sqlCommand, Func<DbCommand, bool, T> func, bool autoCloseInternalConnection = true)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (func == null)
+            {
+                return default;
+            }
+
+            var isInternalConnection = false;
+            using (var command = CreateDbCommand(sqlCommand))
+            {
+                try
+                {
+                    if (command.Connection == null)
+                    {
+                        command.Connection = OpenNewConnection(sqlCommand.Master);
+                        isInternalConnection = true;
+                    }
+
+                    return func(command, isInternalConnection);
+                }
+                finally
+                {
+                    if (isInternalConnection && autoCloseInternalConnection)
+                    {
+                        command.Connection?.Dispose();
+                    }
+                }
+            }
+        }
+
+        private async Task<T> ExecuteSqlCommandAsync<T>(ISqlCommand sqlCommand, Func<DbCommand, bool, Task<T>> func, bool autoCloseInternalConnection = true)
+        {
+            if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
+
+            if (func == null)
+            {
+                return default;
+            }
+
+            var isInternalConnection = false;
+            using (var command = CreateDbCommand(sqlCommand))
+            {
+                try
+                {
+                    if (command.Connection == null)
+                    {
+                        command.Connection = OpenNewConnection(sqlCommand.Master);
+                        isInternalConnection = true;
+                    }
+
+                    return await func(command, isInternalConnection);
+                }
+                finally
+                {
+                    if (isInternalConnection && autoCloseInternalConnection)
+                    {
+                        command.Connection?.Dispose();
+                    }
+                }
+            }
+        }
+        #endregion
 
         private void OnDbProviderFactoryChanged(DbProviderFactory providerFactory)
         {

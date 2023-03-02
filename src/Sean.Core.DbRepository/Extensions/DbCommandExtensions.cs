@@ -42,7 +42,6 @@ namespace Sean.Core.DbRepository.Extensions
                 return adapter.ExecuteDataSet(command, sqlMonitor);
             }
 
-            // 如果创建 DbDataAdapter 失败，则尝试通过 DbDataReader 读取器来获取数据
             using (var reader = command.ExecuteReader(CommandBehavior.Default, sqlMonitor))
             {
                 return reader.GetDataSet();
@@ -55,7 +54,6 @@ namespace Sean.Core.DbRepository.Extensions
                 return adapter.ExecuteDataTable(command, sqlMonitor);
             }
 
-            // 如果创建 DbDataAdapter 失败，则尝试通过 DbDataReader 读取器来获取数据
             using (var reader = command.ExecuteReader(CommandBehavior.Default, sqlMonitor))
             {
                 return reader.GetDataTable();
@@ -93,10 +91,9 @@ namespace Sean.Core.DbRepository.Extensions
                 return await adapter.ExecuteDataSetAsync(command, sqlMonitor);
             }
 
-            // 如果创建 DbDataAdapter 失败，则尝试通过 DbDataReader 读取器来获取数据
             using (var reader = await command.ExecuteReaderAsync(CommandBehavior.Default, sqlMonitor))
             {
-                return reader.GetDataSet();
+                return await reader.GetDataSetAsync();
             }
         }
         public static async Task<DataTable> ExecuteDataTableAsync(this DbCommand command, ISqlMonitor sqlMonitor, DbDataAdapter adapter = null)
@@ -106,10 +103,9 @@ namespace Sean.Core.DbRepository.Extensions
                 return await adapter.ExecuteDataTableAsync(command, sqlMonitor);
             }
 
-            // 如果创建 DbDataAdapter 失败，则尝试通过 DbDataReader 读取器来获取数据
             using (var reader = await command.ExecuteReaderAsync(CommandBehavior.Default, sqlMonitor))
             {
-                return reader.GetDataTable();
+                return await reader.GetDataTableAsync();
             }
         }
     }

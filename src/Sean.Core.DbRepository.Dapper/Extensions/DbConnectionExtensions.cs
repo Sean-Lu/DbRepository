@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Threading.Tasks;
 using Sean.Core.DbRepository.Extensions;
 
@@ -139,7 +140,14 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             DataTable result;
             using (var reader = await connection.ExecuteReaderAsync(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType))
             {
-                result = reader.GetDataTable();
+                if (reader is DbDataReader dbDataReader)
+                {
+                    result = await dbDataReader.GetDataTableAsync();
+                }
+                else
+                {
+                    result = reader.GetDataTable();
+                }
             }
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             return result;
@@ -151,7 +159,14 @@ namespace Sean.Core.DbRepository.Dapper.Extensions
             DataSet result;
             using (var reader = await connection.ExecuteReaderAsync(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType))
             {
-                result = reader.GetDataSet();
+                if (reader is DbDataReader dbDataReader)
+                {
+                    result = await dbDataReader.GetDataSetAsync();
+                }
+                else
+                {
+                    result = reader.GetDataSet();
+                }
             }
             sqlMonitor?.OnSqlExecuted(new SqlExecutedContext(connection, sqlCommand.Sql, sqlCommand.Parameter));
             return result;

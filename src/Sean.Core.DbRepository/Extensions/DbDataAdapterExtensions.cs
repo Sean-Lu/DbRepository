@@ -11,22 +11,20 @@ namespace Sean.Core.DbRepository.Extensions
     {
         public static DataSet ExecuteDataSet(this DbDataAdapter adapter, DbCommand selectCommand, ISqlMonitor sqlMonitor)
         {
-            adapter.SelectCommand = selectCommand;
-
-            return adapter.SelectCommand.Execute(sqlMonitor, c =>
+            return selectCommand.Execute(sqlMonitor, dbCommand =>
             {
                 var result = new DataSet();
+                adapter.SelectCommand = dbCommand;
                 adapter.Fill(result);
                 return result;
             });
         }
         public static DataTable ExecuteDataTable(this DbDataAdapter adapter, DbCommand selectCommand, ISqlMonitor sqlMonitor)
         {
-            adapter.SelectCommand = selectCommand;
-
-            return adapter.SelectCommand.Execute(sqlMonitor, c =>
+            return selectCommand.Execute(sqlMonitor, dbCommand =>
             {
                 var result = new DataTable();
+                adapter.SelectCommand = dbCommand;
                 adapter.Fill(result);
                 return result;
             });
@@ -34,24 +32,22 @@ namespace Sean.Core.DbRepository.Extensions
 
         public static async Task<DataSet> ExecuteDataSetAsync(this DbDataAdapter adapter, DbCommand selectCommand, ISqlMonitor sqlMonitor)
         {
-            adapter.SelectCommand = selectCommand;
-
-            return await adapter.SelectCommand.ExecuteAsync(sqlMonitor, c =>
+            return await selectCommand.ExecuteAsync(sqlMonitor, async dbCommand =>
             {
                 var result = new DataSet();
+                adapter.SelectCommand = dbCommand;
                 adapter.Fill(result);
-                return Task.FromResult(result);
+                return await Task.FromResult(result);
             });
         }
         public static async Task<DataTable> ExecuteDataTableAsync(this DbDataAdapter adapter, DbCommand selectCommand, ISqlMonitor sqlMonitor)
         {
-            adapter.SelectCommand = selectCommand;
-
-            return await adapter.SelectCommand.ExecuteAsync(sqlMonitor, c =>
+            return await selectCommand.ExecuteAsync(sqlMonitor, async dbCommand =>
             {
                 var result = new DataTable();
+                adapter.SelectCommand = dbCommand;
                 adapter.Fill(result);
-                return Task.FromResult(result);
+                return await Task.FromResult(result);
             });
         }
     }
