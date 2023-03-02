@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 using System.Data.SQLite;
 using System.Reflection;
+using Example.ADO.NETCore.Infrastructure.Converter;
 using Example.ADO.NETCore.Infrastructure.Extensions;
 using Example.ADO.NETCore.Infrastructure.Impls;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,14 +48,14 @@ namespace Example.ADO.NETCore.Domain.Extensions
         {
             //Console.WriteLine(context.SqlParameter == null
             //    ? $"######SQL准备执行: {context.Sql}"
-            //    : $"######SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+            //    : $"######SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}");
         }
 
         private static void OnSqlExecuted(SqlExecutedContext context)
         {
             Console.WriteLine(context.SqlParameter == null
                 ? $"######SQL已经执行: {context.Sql}"
-                : $"######SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+                : $"######SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}");
         }
     }
 }
