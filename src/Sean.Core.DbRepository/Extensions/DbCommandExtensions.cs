@@ -35,24 +35,24 @@ namespace Sean.Core.DbRepository.Extensions
             return command.Execute(sqlMonitor, c => c.ExecuteScalar());
         }
 
-        public static DataSet ExecuteDataSet(this DbCommand command, ISqlMonitor sqlMonitor, DbDataAdapter adapter = null)
+        public static DataSet ExecuteDataSet(this DbCommand command, ISqlMonitor sqlMonitor/*, DbDataAdapter adapter = null*/)
         {
-            if (adapter != null)
-            {
-                return adapter.ExecuteDataSet(command, sqlMonitor);
-            }
+            //if (adapter != null)
+            //{
+            //    return adapter.ExecuteDataSet(command, sqlMonitor);
+            //}
 
             using (var reader = command.ExecuteReader(CommandBehavior.Default, sqlMonitor))
             {
                 return reader.GetDataSet();
             }
         }
-        public static DataTable ExecuteDataTable(this DbCommand command, ISqlMonitor sqlMonitor, DbDataAdapter adapter = null)
+        public static DataTable ExecuteDataTable(this DbCommand command, ISqlMonitor sqlMonitor/*, DbDataAdapter adapter = null*/)
         {
-            if (adapter != null)
-            {
-                return adapter.ExecuteDataTable(command, sqlMonitor);
-            }
+            //if (adapter != null)
+            //{
+            //    return adapter.ExecuteDataTable(command, sqlMonitor);
+            //}
 
             using (var reader = command.ExecuteReader(CommandBehavior.Default, sqlMonitor))
             {
@@ -84,24 +84,24 @@ namespace Sean.Core.DbRepository.Extensions
             return await command.ExecuteAsync(sqlMonitor, async c => await c.ExecuteScalarAsync());
         }
 
-        public static async Task<DataSet> ExecuteDataSetAsync(this DbCommand command, ISqlMonitor sqlMonitor, DbDataAdapter adapter = null)
+        public static async Task<DataSet> ExecuteDataSetAsync(this DbCommand command, ISqlMonitor sqlMonitor/*, DbDataAdapter adapter = null*/)
         {
-            if (adapter != null)
-            {
-                return await adapter.ExecuteDataSetAsync(command, sqlMonitor);
-            }
+            //if (adapter != null)
+            //{
+            //    return await adapter.ExecuteDataSetAsync(command, sqlMonitor);
+            //}
 
             using (var reader = await command.ExecuteReaderAsync(CommandBehavior.Default, sqlMonitor))
             {
                 return await reader.GetDataSetAsync();
             }
         }
-        public static async Task<DataTable> ExecuteDataTableAsync(this DbCommand command, ISqlMonitor sqlMonitor, DbDataAdapter adapter = null)
+        public static async Task<DataTable> ExecuteDataTableAsync(this DbCommand command, ISqlMonitor sqlMonitor/*, DbDataAdapter adapter = null*/)
         {
-            if (adapter != null)
-            {
-                return await adapter.ExecuteDataTableAsync(command, sqlMonitor);
-            }
+            //if (adapter != null)
+            //{
+            //    return await adapter.ExecuteDataTableAsync(command, sqlMonitor);
+            //}
 
             using (var reader = await command.ExecuteReaderAsync(CommandBehavior.Default, sqlMonitor))
             {

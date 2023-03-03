@@ -363,8 +363,13 @@ namespace Sean.Core.DbRepository
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
-            var dataSet = ExecuteDataSet(connection, commandText, parameters, commandType);
-            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                //using (var adapter = _providerFactory.CreateDataAdapter())
+                {
+                    return command.ExecuteDataTable(SqlMonitor/*, adapter*/);
+                }
+            }
         }
         /// <summary>   
         /// Execute the query.
@@ -379,8 +384,13 @@ namespace Sean.Core.DbRepository
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
-            var dataSet = ExecuteDataSet(transaction, commandText, parameters, commandType);
-            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+            using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
+            {
+                //using (var adapter = _providerFactory.CreateDataAdapter())
+                {
+                    return command.ExecuteDataTable(SqlMonitor/*, adapter*/);
+                }
+            }
         }
         /// <summary>
         /// Execute the query.
@@ -390,8 +400,13 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public DataTable ExecuteDataTable(ISqlCommand sqlCommand)
         {
-            var dataSet = ExecuteDataSet(sqlCommand);
-            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+            return ExecuteSqlCommand(sqlCommand, (command, _) =>
+            {
+                //using (var adapter = _providerFactory.CreateDataAdapter())
+                {
+                    return command.ExecuteDataTable(SqlMonitor/*, adapter*/);
+                }
+            });
         }
 
         /// <summary>   
@@ -438,8 +453,13 @@ namespace Sean.Core.DbRepository
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
 
-            var dataSet = await ExecuteDataSetAsync(connection, commandText, parameters, commandType);
-            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                //using (var adapter = _providerFactory.CreateDataAdapter())
+                {
+                    return await command.ExecuteDataTableAsync(SqlMonitor/*, adapter*/);
+                }
+            }
         }
         /// <summary>   
         /// Execute the query.
@@ -454,8 +474,13 @@ namespace Sean.Core.DbRepository
         {
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
-            var dataSet = await ExecuteDataSetAsync(transaction, commandText, parameters, commandType);
-            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+            using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
+            {
+                //using (var adapter = _providerFactory.CreateDataAdapter())
+                {
+                    return await command.ExecuteDataTableAsync(SqlMonitor/*, adapter*/);
+                }
+            }
         }
         /// <summary>
         /// Execute the query.
@@ -465,8 +490,13 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public async Task<DataTable> ExecuteDataTableAsync(ISqlCommand sqlCommand)
         {
-            var dataSet = await ExecuteDataSetAsync(sqlCommand);
-            return dataSet != null && dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
+            return await ExecuteSqlCommandAsync(sqlCommand, async (command, _) =>
+            {
+                //using (var adapter = _providerFactory.CreateDataAdapter())
+                {
+                    return await command.ExecuteDataTableAsync(SqlMonitor/*, adapter*/);
+                }
+            });
         }
         #endregion
 
@@ -517,9 +547,9 @@ namespace Sean.Core.DbRepository
 
             using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
             {
-                using (var adapter = _providerFactory.CreateDataAdapter())
+                //using (var adapter = _providerFactory.CreateDataAdapter())
                 {
-                    return command.ExecuteDataSet(SqlMonitor, adapter);
+                    return command.ExecuteDataSet(SqlMonitor/*, adapter*/);
                 }
             }
         }
@@ -538,9 +568,9 @@ namespace Sean.Core.DbRepository
 
             using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
             {
-                using (var adapter = _providerFactory.CreateDataAdapter())
+                //using (var adapter = _providerFactory.CreateDataAdapter())
                 {
-                    return command.ExecuteDataSet(SqlMonitor, adapter);
+                    return command.ExecuteDataSet(SqlMonitor/*, adapter*/);
                 }
             }
         }
@@ -554,9 +584,9 @@ namespace Sean.Core.DbRepository
         {
             return ExecuteSqlCommand(sqlCommand, (command, _) =>
             {
-                using (var adapter = _providerFactory.CreateDataAdapter())
+                //using (var adapter = _providerFactory.CreateDataAdapter())
                 {
-                    return command.ExecuteDataSet(SqlMonitor, adapter);
+                    return command.ExecuteDataSet(SqlMonitor/*, adapter*/);
                 }
             });
         }
@@ -607,9 +637,9 @@ namespace Sean.Core.DbRepository
 
             using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
             {
-                using (var adapter = _providerFactory.CreateDataAdapter())
+                //using (var adapter = _providerFactory.CreateDataAdapter())
                 {
-                    return await command.ExecuteDataSetAsync(SqlMonitor, adapter);
+                    return await command.ExecuteDataSetAsync(SqlMonitor/*, adapter*/);
                 }
             }
         }
@@ -628,9 +658,9 @@ namespace Sean.Core.DbRepository
 
             using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
             {
-                using (var adapter = _providerFactory.CreateDataAdapter())
+                //using (var adapter = _providerFactory.CreateDataAdapter())
                 {
-                    return await command.ExecuteDataSetAsync(SqlMonitor, adapter);
+                    return await command.ExecuteDataSetAsync(SqlMonitor/*, adapter*/);
                 }
             }
         }
@@ -644,9 +674,9 @@ namespace Sean.Core.DbRepository
         {
             return await ExecuteSqlCommandAsync(sqlCommand, async (command, _) =>
             {
-                using (var adapter = _providerFactory.CreateDataAdapter())
+                //using (var adapter = _providerFactory.CreateDataAdapter())
                 {
-                    return await command.ExecuteDataSetAsync(SqlMonitor, adapter);
+                    return await command.ExecuteDataSetAsync(SqlMonitor/*, adapter*/);
                 }
             });
         }

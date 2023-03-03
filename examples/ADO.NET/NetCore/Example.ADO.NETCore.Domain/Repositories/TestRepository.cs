@@ -8,6 +8,7 @@ using Example.ADO.NETCore.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
+using Sean.Core.DbRepository.Extensions;
 using Sean.Utility.Contracts;
 
 namespace Example.ADO.NETCore.Domain.Repositories
@@ -147,6 +148,13 @@ namespace Example.ADO.NETCore.Domain.Repositories
 
             var getResult = await GetAsync(entity => entity.UserId == 10001);
             _logger.LogDebug($"######Get result: {JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
+
+            var sqlCommand = this.CreateQueryableBuilder(true)
+                .Where(entity => entity.Age >= 18 && entity.IsVip)
+                .Page(1, 3)
+                .Build();
+            var executeDataTableResult = await ExecuteDataTableAsync(sqlCommand);
+            _logger.LogDebug($"######ExecuteDataTable result: {JsonConvert.SerializeObject(executeDataTableResult, Formatting.Indented)}");
 
             var deleteResult = await DeleteAsync(testModel, transaction: trans);
             _logger.LogDebug($"######Delete result: {deleteResult}");
