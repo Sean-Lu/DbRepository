@@ -1609,24 +1609,26 @@ namespace Sean.Core.DbRepository
                 return default;
             }
 
-            var isInternalConnection = false;
+            var useInternalConnection = false;
             using (var command = CreateDbCommand(sqlCommand))
             {
+                DbConnection connection = null;
                 try
                 {
                     if (command.Connection == null)
                     {
-                        command.Connection = OpenNewConnection(sqlCommand.Master);
-                        isInternalConnection = true;
+                        useInternalConnection = true;
+                        connection = OpenNewConnection(sqlCommand.Master);
+                        command.Connection = connection;
                     }
 
-                    return func(command, isInternalConnection);
+                    return func(command, useInternalConnection);
                 }
                 finally
                 {
-                    if (isInternalConnection && autoCloseInternalConnection)
+                    if (useInternalConnection && autoCloseInternalConnection)
                     {
-                        command.Connection?.Dispose();
+                        connection?.Dispose();
                     }
                 }
             }
@@ -1641,24 +1643,26 @@ namespace Sean.Core.DbRepository
                 return default;
             }
 
-            var isInternalConnection = false;
+            var useInternalConnection = false;
             using (var command = CreateDbCommand(sqlCommand))
             {
+                DbConnection connection = null;
                 try
                 {
                     if (command.Connection == null)
                     {
-                        command.Connection = OpenNewConnection(sqlCommand.Master);
-                        isInternalConnection = true;
+                        useInternalConnection = true;
+                        connection = OpenNewConnection(sqlCommand.Master);
+                        command.Connection = connection;
                     }
 
-                    return await func(command, isInternalConnection);
+                    return await func(command, useInternalConnection);
                 }
                 finally
                 {
-                    if (isInternalConnection && autoCloseInternalConnection)
+                    if (useInternalConnection && autoCloseInternalConnection)
                     {
-                        command.Connection?.Dispose();
+                        connection?.Dispose();
                     }
                 }
             }
