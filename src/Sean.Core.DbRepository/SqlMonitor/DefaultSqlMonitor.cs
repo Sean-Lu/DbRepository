@@ -22,14 +22,22 @@ namespace Sean.Core.DbRepository
 
         public void OnSqlExecuting(SqlExecutingContext context)
         {
-            _sqlExecuting?.Invoke(context);
             SqlExecuting?.Invoke(context);
+            if (context.Handled)
+            {
+                return;
+            }
+            _sqlExecuting?.Invoke(context);
         }
 
         public void OnSqlExecuted(SqlExecutedContext context)
         {
-            _aqlExecuted?.Invoke(context);
             SqlExecuted?.Invoke(context);
+            if (context.Handled)
+            {
+                return;
+            }
+            _aqlExecuted?.Invoke(context);
         }
     }
 }

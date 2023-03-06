@@ -38,13 +38,15 @@ namespace Example.Dapper.Domain.Repositories
             base.OnSqlExecuting(context);
 
             //_logger.LogInfo($"SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+            //context.Handled = true;
         }
 
         protected override void OnSqlExecuted(SqlExecutedContext context)
         {
             base.OnSqlExecuted(context);
 
-            //_logger.LogInfo($"SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+            _logger.LogInfo($"SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+            context.Handled = true;
         }
 
         public override string TableName()

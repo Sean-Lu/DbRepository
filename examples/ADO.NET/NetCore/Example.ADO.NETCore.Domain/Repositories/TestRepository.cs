@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Example.ADO.NETCore.Domain.Contracts;
 using Example.ADO.NETCore.Domain.Entities;
+using Example.ADO.NETCore.Infrastructure.Converter;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
@@ -39,13 +40,15 @@ namespace Example.ADO.NETCore.Domain.Repositories
             base.OnSqlExecuting(context);
 
             //_logger.LogInfo($"SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}");
+            //context.Handled = true;
         }
 
         protected override void OnSqlExecuted(SqlExecutedContext context)
         {
             base.OnSqlExecuted(context);
 
-            //_logger.LogInfo($"SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}");
+            _logger.LogInfo($"SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}");
+            context.Handled = true;
         }
 
         public override string TableName()

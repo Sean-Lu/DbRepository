@@ -14,4 +14,9 @@ public class SqlExecutedContext
     public IDbConnection Connection { get; }
     public string Sql { get; }
     public object SqlParameter { get; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the event was handled.
+    /// </summary>
+    public bool Handled { get; set; }
 }

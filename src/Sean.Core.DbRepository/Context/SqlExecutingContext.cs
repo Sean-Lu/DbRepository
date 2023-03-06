@@ -15,5 +15,9 @@ public class SqlExecutingContext
     public string Sql { get; }
     public object SqlParameter { get; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the event was handled.
+    /// </summary>
+    public bool Handled { get; set; }
     //public bool Cancel { get; set; }
 }
