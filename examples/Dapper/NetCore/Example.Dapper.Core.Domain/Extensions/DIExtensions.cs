@@ -60,8 +60,8 @@ namespace Example.Dapper.Core.Domain.Extensions
         private static void OnSqlExecuted(SqlExecutedContext context)
         {
             Console.WriteLine(context.SqlParameter == null
-                ? $"######SQL已经执行: {context.Sql}"
-                : $"######SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+                ? $"######SQL已经执行({context.ExecutionElapsed}ms): {context.Sql}"
+                : $"######SQL已经执行({context.ExecutionElapsed}ms): {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
         }
     }
 }

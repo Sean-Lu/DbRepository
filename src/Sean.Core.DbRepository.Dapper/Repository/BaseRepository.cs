@@ -4,7 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Sean.Core.DbRepository.Dapper.Extensions;
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
 using Microsoft.Extensions.Configuration;
 #endif
 
@@ -17,7 +17,7 @@ namespace Sean.Core.DbRepository.Dapper
     public abstract class BaseRepository<TEntity> : EntityBaseRepository<TEntity> where TEntity : class
     {
         #region Constructors
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
         /// <summary>
         /// Single or clustered database.
         /// </summary>
@@ -123,7 +123,6 @@ namespace Sean.Core.DbRepository.Dapper
         #endregion
 
         #region Asynchronous method
-#if NETSTANDARD || NET45_OR_GREATER
         public override async Task<int> ExecuteAsync(ISqlCommand sqlCommand)
         {
             if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
@@ -172,7 +171,6 @@ namespace Sean.Core.DbRepository.Dapper
 
             return await ExecuteAsync(async connection => await connection.ExecuteReaderAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
         }
-#endif
         #endregion
     }
 }

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net461;netstandard2.0;netstandard2.1</TargetFrameworks>
+		<TargetFrameworks>net461;netstandard2.0;netstandard2.1;net5</TargetFrameworks>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<Authors>Sean</Authors>
 		<Copyright>Copyright © 2019-2023 Sean</Copyright>

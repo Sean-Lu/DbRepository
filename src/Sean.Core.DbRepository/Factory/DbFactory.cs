@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
 using Microsoft.Extensions.Configuration;
 #endif
 using Sean.Core.DbRepository.Extensions;
@@ -91,7 +91,7 @@ namespace Sean.Core.DbRepository
         private int? _commandTimeout;
 
         #region Constructors
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
         /// <summary>
         /// Single or clustered database.
         /// </summary>

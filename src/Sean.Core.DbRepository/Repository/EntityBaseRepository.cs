@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Extensions;
 using System.Linq;
 using System.Reflection;
 using Sean.Utility.Extensions;
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
 using Microsoft.Extensions.Configuration;
 #endif
 
@@ -23,7 +23,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual string MainTableName => typeof(TEntity).GetMainTableName();
 
     #region Constructors
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
     /// <summary>
     /// Single or clustered database.
     /// </summary>
@@ -523,7 +523,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     #endregion
 
     #region Asynchronous method
-#if NETSTANDARD || NET45_OR_GREATER
     public virtual async Task<bool> AddAsync(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
         if (entity == null) return false;
@@ -957,6 +956,5 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             await AddTableFieldAsync(tableName, fieldName, fieldType, master);
         }
     }
-#endif
     #endregion
 }

@@ -1,11 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Example.EF.Core.ConsoleApp.Contracts;
 using Microsoft.EntityFrameworkCore;
-#if NET6_0
-
-#else
-using System.Data.Entity;
-#endif
 
 namespace Example.EF.Core.ConsoleApp.Repositories
 {

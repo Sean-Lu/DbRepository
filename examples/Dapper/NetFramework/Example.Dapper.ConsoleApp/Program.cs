@@ -34,7 +34,7 @@ namespace Example.Dapper.ConsoleApp
             Console.ReadLine();
         }
 
-        private static void TestDateTime()
+        private static void ModifyDateTimeFormat()
         {
             #region 利用反射机制修改 DateTime.ToString() 的默认格式
             Console.WriteLine($"修改默认时间格式之前：{DateTime.Now}");

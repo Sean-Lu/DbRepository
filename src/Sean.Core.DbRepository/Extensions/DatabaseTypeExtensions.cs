@@ -22,7 +22,7 @@ namespace Sean.Core.DbRepository.Extensions
         {
             if (providerMap != null)
             {
-#if NETSTANDARD2_1 || NET5_0
+#if NETSTANDARD2_1 || NET5_0_OR_GREATER
                 if (!string.IsNullOrWhiteSpace(providerMap.ProviderInvariantName) && !string.IsNullOrWhiteSpace(providerMap.FactoryTypeAssemblyQualifiedName))
                 {
                     DbProviderFactories.UnregisterFactory(providerMap.ProviderInvariantName);

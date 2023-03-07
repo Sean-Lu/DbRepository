@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Threading;
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
 using Microsoft.Extensions.Configuration;
 #endif
 
@@ -21,7 +21,7 @@ namespace Sean.Core.DbRepository
 
         public bool IsEmpty => _connectionStrings == null || !_connectionStrings.Any();
 
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
         private readonly IConfiguration _configuration;
 #endif
 
@@ -29,7 +29,7 @@ namespace Sean.Core.DbRepository
         private int _times;
 
         #region Constructors
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
         /// <summary>
         /// Single or clustered database.
         /// </summary>
@@ -107,7 +107,7 @@ namespace Sean.Core.DbRepository
             {
                 if (!string.IsNullOrWhiteSpace(options.ConnectionName))
                 {
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
                     options.ReloadFromConnectionName(_configuration);
 #else
                     options.ReloadFromConnectionName();

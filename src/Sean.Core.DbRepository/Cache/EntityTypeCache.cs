@@ -2,9 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-#if !NET40
 using System.ComponentModel.DataAnnotations.Schema;
-#endif
 using System.Linq;
 using System.Reflection;
 using Sean.Core.DbRepository.Extensions;

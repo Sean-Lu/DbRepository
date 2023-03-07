@@ -146,7 +146,6 @@ public interface IBaseRepository
     #endregion
 
     #region Asynchronous method
-#if NETSTANDARD || NET45_OR_GREATER
     Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
     Task<int> ExecuteAsync(ISqlCommand sqlCommand);
 
@@ -230,8 +229,6 @@ public interface IBaseRepository
     /// <param name="tableName">Table name.</param>
     /// <returns></returns>
     Task<int> DeleteAllAsync(string tableName, IDbTransaction transaction = null);
-#endif
-
     #endregion
 }
 
@@ -473,7 +470,6 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     #endregion
 
     #region Asynchronous method
-#if NETSTANDARD || NET45_OR_GREATER
     /// <summary>
     /// Insert entity.
     /// </summary>
@@ -698,6 +694,5 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="master"></param>
     /// <returns></returns>
     Task AddTableFieldAsync(Expression<Func<TEntity, object>> fieldExpression, string fieldType, bool master = true);
-#endif
     #endregion
 }

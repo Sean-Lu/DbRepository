@@ -5,7 +5,7 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using System.Transactions;
 using Sean.Core.DbRepository.Extensions;
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
 using Microsoft.Extensions.Configuration;
 #endif
 
@@ -31,7 +31,7 @@ namespace Sean.Core.DbRepository
         }
 
         #region Constructors
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
         /// <summary>
         /// Single or clustered database.
         /// </summary>
@@ -459,7 +459,6 @@ namespace Sean.Core.DbRepository
         #endregion
 
         #region Asynchronous method
-#if NETSTANDARD || NET45_OR_GREATER
         public virtual async Task<int> ExecuteAsync(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
         {
             if (string.IsNullOrWhiteSpace(sql))
@@ -774,7 +773,6 @@ namespace Sean.Core.DbRepository
 
             return await ExecuteAsync($"DELETE FROM {tableName};", transaction: transaction);
         }
-#endif
         #endregion
     }
 }

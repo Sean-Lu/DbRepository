@@ -54,8 +54,8 @@ namespace Example.ADO.NETCore.Domain.Extensions
         private static void OnSqlExecuted(SqlExecutedContext context)
         {
             Console.WriteLine(context.SqlParameter == null
-                ? $"######SQL已经执行: {context.Sql}"
-                : $"######SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}");
+                ? $"######SQL已经执行({context.ExecutionElapsed}ms): {context.Sql}"
+                : $"######SQL已经执行({context.ExecutionElapsed}ms): {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}");
         }
     }
 }

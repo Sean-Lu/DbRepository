@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Common;
 using System.Linq;
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 #endif
@@ -135,7 +135,7 @@ namespace Sean.Core.DbRepository
 
             return result;
         }
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
         /// <summary>
         /// Creates an instance of <see cref="ConnectionStringOptions"/>.
         /// </summary>
@@ -448,7 +448,7 @@ namespace Sean.Core.DbRepository
             }
         }
 
-#if NETSTANDARD
+#if NETSTANDARD || NET5_0_OR_GREATER
         public void ReloadFromConnectionName(IConfiguration configuration)
         {
             if (string.IsNullOrWhiteSpace(ConnectionName))

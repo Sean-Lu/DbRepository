@@ -47,7 +47,7 @@ namespace Example.Dapper.Core.Domain.Repositories
         {
             base.OnSqlExecuted(context);
 
-            _logger.LogInfo($"SQL已经执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+            _logger.LogInfo($"SQL已经执行({context.ExecutionElapsed}ms): {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
             context.Handled = true;
         }
 

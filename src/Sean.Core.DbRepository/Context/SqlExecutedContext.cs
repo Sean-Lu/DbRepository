@@ -19,4 +19,8 @@ public class SqlExecutedContext
     /// Gets or sets a value indicating whether the event was handled.
     /// </summary>
     public bool Handled { get; set; }
+    /// <summary>
+    /// Gets the execution elapsed time, in milliseconds.
+    /// </summary>
+    public long ExecutionElapsed { get; set; }
 }
