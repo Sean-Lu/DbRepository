@@ -109,7 +109,6 @@ internal static class ConstantExtractor
     /// <param name="memberExpression"></param>
     /// <param name="instance"></param>
     /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
     private static object GetInstanceMemberValue(MemberExpression memberExpression, object instance)
     {
         string memberName = memberExpression.Member.Name;

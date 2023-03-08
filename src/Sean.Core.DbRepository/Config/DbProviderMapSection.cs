@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿#if NETFRAMEWORK
+using System.Configuration;
 
 namespace Sean.Core.DbRepository
 {
@@ -8,3 +9,4 @@ namespace Sean.Core.DbRepository
         public DatabaseElementCollection Databases => this["databases"] as DatabaseElementCollection;
     }
 }
+#endif

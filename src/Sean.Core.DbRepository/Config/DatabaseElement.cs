@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿#if NETFRAMEWORK
+using System.Configuration;
 
 namespace Sean.Core.DbRepository
 {
@@ -65,3 +66,4 @@ namespace Sean.Core.DbRepository
         }
     }
 }
+#endif

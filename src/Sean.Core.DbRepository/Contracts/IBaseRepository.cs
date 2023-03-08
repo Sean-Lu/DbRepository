@@ -20,7 +20,7 @@ public interface IBaseRepository
     /// <summary>
     /// Database type
     /// </summary>
-    DatabaseType DbType { get; }
+    DatabaseType DbType { get; set; }
 
     ISqlMonitor SqlMonitor { get; }
 

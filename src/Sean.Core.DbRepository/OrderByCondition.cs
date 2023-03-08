@@ -29,7 +29,7 @@ namespace Sean.Core.DbRepository
 
         public OrderByCondition Next { get; set; }
 
-        public static OrderByCondition New<TEntity>(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
+        public static OrderByCondition Create<TEntity>(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
         {
             var orderBy = new OrderByCondition
             {
@@ -55,9 +55,9 @@ namespace Sean.Core.DbRepository
         {
         }
 
-        public static OrderByCondition New(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
+        public static OrderByCondition Create(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
         {
-            return OrderByCondition.New(type, fieldExpression, next);
+            return OrderByCondition.Create(type, fieldExpression, next);
         }
     }
 }

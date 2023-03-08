@@ -309,8 +309,7 @@ namespace Sean.Core.DbRepository.Extensions
                 }
             }
 
-            if (result == null) throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
-            return result;
+            return result ?? throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
         }
         #endregion
     }

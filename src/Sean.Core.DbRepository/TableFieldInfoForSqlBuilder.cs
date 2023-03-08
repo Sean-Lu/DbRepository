@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sean.Core.DbRepository
 {
-    public class TableFieldInfoForSqlBuilder
+    internal class TableFieldInfoForSqlBuilder
     {
         /// <summary>
         /// 表名

@@ -1,9 +1,10 @@
-﻿using System.Configuration;
+﻿#if NETFRAMEWORK
+using System.Configuration;
 using System.IO;
 
 namespace Sean.Core.DbRepository
 {
-    internal class ConfigBuilder
+    internal static class ConfigBuilder
     {
         private const string DbProviderMapSectionName = "dbProviderMap";
 
@@ -32,3 +33,4 @@ namespace Sean.Core.DbRepository
         }
     }
 }
+#endif

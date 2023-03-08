@@ -11,7 +11,7 @@ namespace Sean.Core.DbRepository
     /// <summary>
     /// <see cref="DbProviderFactory"/>
     /// </summary>
-    public class DbProviderFactoryManager
+    public static class DbProviderFactoryManager
     {
         internal static readonly ConcurrentDictionary<DatabaseType, DbProviderMap> DbProviderMapDic;
 
@@ -19,7 +19,11 @@ namespace Sean.Core.DbRepository
         {
             DbProviderMapDic = new ConcurrentDictionary<DatabaseType, DbProviderMap>();
 
+#if NETSTANDARD || NET5_0_OR_GREATER
+            LoadFromXmlFile();
+#else
             LoadFromConfigurationFile();
+#endif
         }
 
         /// <summary>
@@ -84,30 +88,32 @@ namespace Sean.Core.DbRepository
 #endif
         }
 
+#if NETSTANDARD || NET5_0_OR_GREATER
         /// <summary>
         /// 以XML文件的方式读取配置
         /// </summary>
         private static void LoadFromXmlFile()
         {
-            if (File.Exists(DbFactory.ProviderFactoryConfigurationPath))
+            if (!File.Exists(DbFactory.ProviderFactoryConfigurationPath))
             {
-                const string xpathTemplate = "/configuration/dbProviderMap/databases/database[@name='{0}']";
-                ((DatabaseType[])Enum.GetValues(typeof(DatabaseType))).ToList().ForEach(dbType =>
-                {
-                    DbProviderMap map = null;
-                    var xpath = string.Format(xpathTemplate, dbType.ToString());
-                    var xmlNode = XmlHelper.GetXmlNode(DbFactory.ProviderFactoryConfigurationPath, xpath);
-                    if (xmlNode != null)
-                    {
-                        var providerInvariantName = XmlHelper.GetXmlAttributeValue(xmlNode, "providerInvariantName");
-                        var factoryTypeAssemblyQualifiedName = XmlHelper.GetXmlAttributeValue(xmlNode, "factoryTypeAssemblyQualifiedName");
-                        map = new DbProviderMap(providerInvariantName, factoryTypeAssemblyQualifiedName);
-                    }
-                    dbType.SetDbProviderMap(map);
-                });
+                return;
             }
-        }
 
+            const string xpathTemplate = "/configuration/dbProviderMap/databases/database[@name='{0}']";
+            ((DatabaseType[])Enum.GetValues(typeof(DatabaseType))).ToList().ForEach(dbType =>
+            {
+                var xpath = string.Format(xpathTemplate, dbType.ToString());
+                var xmlNode = XmlHelper.GetXmlNode(DbFactory.ProviderFactoryConfigurationPath, xpath);
+                if (xmlNode != null)
+                {
+                    var providerInvariantName = XmlHelper.GetXmlAttributeValue(xmlNode, "providerInvariantName");
+                    var factoryTypeAssemblyQualifiedName = XmlHelper.GetXmlAttributeValue(xmlNode, "factoryTypeAssemblyQualifiedName");
+                    var map = new DbProviderMap(providerInvariantName, factoryTypeAssemblyQualifiedName);
+                    dbType.SetDbProviderMap(map);
+                }
+            });
+        }
+#else
         /// <summary>
         /// 以配置文件的方式读取配置
         /// </summary>
@@ -143,5 +149,6 @@ namespace Sean.Core.DbRepository
                 }
             });
         }
+#endif
     }
 }

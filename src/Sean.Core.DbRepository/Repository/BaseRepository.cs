@@ -18,7 +18,11 @@ namespace Sean.Core.DbRepository
     {
         public DbFactory Factory { get; }
 
-        public DatabaseType DbType => Factory.DbType;
+        public DatabaseType DbType
+        {
+            get => Factory.DbType;
+            set => Factory.DbType = value;
+        }
 
         public ISqlMonitor SqlMonitor => Factory.SqlMonitor;
 

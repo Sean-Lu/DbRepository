@@ -30,7 +30,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case SqlOperation.Like:
                     return "LIKE";
                 default:
-                    throw new NotImplementedException($"未实现的SQL操作符类型：{operation.ToString()}");
+                    throw new NotSupportedException(operation.ToString());
             }
         }
 
@@ -57,7 +57,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case ExpressionType.OrElse:
                     return "OR";
                 default:
-                    throw new NotImplementedException($"未实现的表达式树节点的节点类型：{expressionType}");
+                    throw new NotSupportedException(expressionType.ToString());
             }
         }
 

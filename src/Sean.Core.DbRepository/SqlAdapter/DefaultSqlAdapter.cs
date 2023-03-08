@@ -76,7 +76,7 @@ namespace Sean.Core.DbRepository
                 case DatabaseType.PostgreSql:
                     return "SELECT LASTVAL() AS Id;";
                 default:
-                    throw new NotSupportedException($"[{nameof(GetSqlForSelectLastInsertId)}]-[{DbType}]");
+                    throw new NotSupportedException($"Unsupported database type: {DbType}");
             }
         }
     }

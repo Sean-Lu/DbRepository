@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#if NETFRAMEWORK
 using System.Configuration;
-using System.Linq;
-using System.Text;
 
 namespace Sean.Core.DbRepository
 {
@@ -32,3 +29,4 @@ namespace Sean.Core.DbRepository
         }
     }
 }
+#endif

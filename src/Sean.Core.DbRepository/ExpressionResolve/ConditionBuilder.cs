@@ -9,14 +9,12 @@ namespace Sean.Core.DbRepository
 {
     internal static class ConditionBuilder
     {
-        private const string ExceptionPrefix = "[BuildSqlWhereClause]";
-
         public static StringBuilder BuildCondition(ParameterExpression parameterExpression, MemberExpression memberExpression, WhereClauseAdhesive adhesive, ExpressionType comparison, object value, bool comparisonReverse = false)
         {
             if (memberExpression.Expression is not ParameterExpression parameterExpression2
                 || parameterExpression2.Name != parameterExpression.Name)
             {
-                throw new NotSupportedException($"{ExceptionPrefix} Unsupported MemberExpression: {memberExpression}");
+                throw new NotSupportedException($"Unsupported MemberExpression: {memberExpression}");
             }
 
             var memberInfo = memberExpression.Member;
@@ -64,7 +62,7 @@ namespace Sean.Core.DbRepository
                         valueSymbol = "%{0}%";
                         break;
                     default:
-                        throw new NotSupportedException($"{ExceptionPrefix} Unsupported MethodCallExpression Method: {methodCallExpression.Method.Name}");
+                        throw new NotSupportedException($"Unsupported MethodCallExpression Method: {methodCallExpression.Method.Name}");
                 }
 
                 var memberInfo = memberExpression.Member;
@@ -75,7 +73,7 @@ namespace Sean.Core.DbRepository
                 return new StringBuilder(string.Format($"{fieldName} {symbol}", $"{adhesive.SqlAdapter.FormatInputParameter(parameterName)}"));
             }
 
-            throw new NotSupportedException($"{ExceptionPrefix} Unsupported MethodCallExpression: {methodCallExpression}");
+            throw new NotSupportedException($"Unsupported MethodCallExpression: {methodCallExpression}");
         }
 
         public static StringBuilder BuildInCondition(ParameterExpression parameterExpression, MemberExpression memberExpression, Expression valueExpression, WhereClauseAdhesive adhesive)
@@ -83,7 +81,7 @@ namespace Sean.Core.DbRepository
             if (memberExpression.Expression is not ParameterExpression parameterExpression2
                 || parameterExpression2.Name != parameterExpression.Name)
             {
-                throw new NotSupportedException($"{ExceptionPrefix} Unsupported MemberExpression: {memberExpression}");
+                throw new NotSupportedException($"Unsupported MemberExpression: {memberExpression}");
             }
 
             var memberInfo = memberExpression.Member;
@@ -106,7 +104,7 @@ namespace Sean.Core.DbRepository
                     : new StringBuilder($"({fieldName} is null OR {fieldName} = '')");
             }
 
-            throw new NotSupportedException($"{ExceptionPrefix} Unsupported MethodCallExpression: {methodCallExpression}");
+            throw new NotSupportedException($"Unsupported MethodCallExpression: {methodCallExpression}");
         }
 
         public static string UniqueParameter(MemberInfo mi, WhereClauseAdhesive adhesive)
