@@ -6,8 +6,9 @@ namespace Sean.Core.DbRepository
 {
     public class OrderByCondition
     {
-        public OrderByCondition()
+        public OrderByCondition(string orderBy)
         {
+            OrderBy = orderBy;
         }
 
         public OrderByCondition(OrderByType type, string field, OrderByCondition next = null)
@@ -24,26 +25,22 @@ namespace Sean.Core.DbRepository
             Next = next;
         }
 
-        public OrderByType Type { get; set; }
-        public string[] Fields { get; set; }
+        public OrderByType Type { get; }
+        public string[] Fields { get; }
+
+        public string OrderBy { get; }
 
         public OrderByCondition Next { get; set; }
 
         public static OrderByCondition Create<TEntity>(OrderByType type, Expression<Func<TEntity, object>> fieldExpression, OrderByCondition next = null)
         {
-            var orderBy = new OrderByCondition
-            {
-                Type = type,
-                Fields = fieldExpression.GetFieldNames().ToArray(),
-                Next = next
-            };
-            return orderBy;
+            return new OrderByCondition(type, fieldExpression.GetFieldNames().ToArray(), next);
         }
     }
 
     public class OrderByCondition<TEntity> : OrderByCondition
     {
-        public OrderByCondition()
+        public OrderByCondition(string orderBy) : base(orderBy)
         {
         }
 

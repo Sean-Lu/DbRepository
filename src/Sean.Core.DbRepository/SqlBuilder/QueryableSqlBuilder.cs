@@ -376,14 +376,24 @@ namespace Sean.Core.DbRepository
         {
             if (!string.IsNullOrWhiteSpace(orderBy))
             {
-                if (_orderBy.Value.Length > 0) this._orderBy.Value.Append(" ");
+                if (_orderBy.Value.Length > 0) this._orderBy.Value.Append(", ");
                 this._orderBy.Value.Append(orderBy);
             }
             return this;
         }
         public virtual IQueryable<TEntity> OrderBy(OrderByCondition orderBy)
         {
-            orderBy?.Resolve((type, fields) => OrderByField(type, fields));
+            orderBy?.Resolve((type, fields, orderByValue) =>
+            {
+                if (!string.IsNullOrEmpty(orderByValue))
+                {
+                    OrderBy(orderByValue);
+                }
+                else
+                {
+                    OrderByField(type, fields);
+                }
+            });
             return this;
         }
         public virtual IQueryable<TEntity> OrderByField(OrderByType type, params string[] fieldNames)

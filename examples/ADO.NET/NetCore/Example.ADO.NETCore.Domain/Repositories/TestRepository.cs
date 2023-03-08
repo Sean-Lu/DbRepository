@@ -144,6 +144,8 @@ namespace Example.ADO.NETCore.Domain.Repositories
                 return false;
             }
 
+            //var orderBy = new OrderByCondition($"{Table<TestEntity>.Field(entity => entity.UserId)} {OrderByType.Asc}");
+            //orderBy.Next = new OrderByCondition($"{Table<TestEntity>.Field(entity => entity.Id)} {OrderByType.Asc}");
             var orderBy = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.UserId);
             orderBy.Next = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.Id);
             var queryResult = (await QueryAsync(entity => true, orderBy, 1, 3))?.ToList();
