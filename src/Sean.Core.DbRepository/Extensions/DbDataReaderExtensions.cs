@@ -68,7 +68,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <param name="dataReader"></param>
         /// <returns></returns>
-        public static DataTable GetDataTable(this IDataReader dataReader)
+        public static DataTable GetDataTable(this IDataReader dataReader, bool allowDuplicateColumn = true)
         {
             var table = new DataTable();
 
@@ -77,10 +77,25 @@ namespace Sean.Core.DbRepository.Extensions
 
             for (var i = 0; i < dataReader.FieldCount; i++)
             {
+                var dataType = dataReader.GetFieldType(i);
+                var columnName = dataReader.GetName(i);
+                if (table.Columns.Contains(columnName) && allowDuplicateColumn)
+                {
+                    var index = 1;
+                    do
+                    {
+                        columnName = $"{dataReader.GetName(i)}{index}";
+                        if (!table.Columns.Contains(columnName))
+                        {
+                            break;
+                        }
+                        index++;
+                    } while (true);
+                }
                 var column = new DataColumn
                 {
-                    DataType = dataReader.GetFieldType(i),
-                    ColumnName = dataReader.GetName(i)
+                    DataType = dataType,
+                    ColumnName = columnName
                 };
                 table.Columns.Add(column);
             }
@@ -102,7 +117,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <param name="dataReader"></param>
         /// <returns></returns>
-        public static DataSet GetDataSet(this IDataReader dataReader)
+        public static DataSet GetDataSet(this IDataReader dataReader, bool allowDuplicateColumn = true)
         {
             if (dataReader == null)
             {
@@ -113,7 +128,7 @@ namespace Sean.Core.DbRepository.Extensions
 
             do
             {
-                var table = GetDataTable(dataReader);
+                var table = GetDataTable(dataReader, allowDuplicateColumn);
                 if (table != null)
                 {
                     result.Tables.Add(table);
@@ -178,7 +193,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <param name="dataReader"></param>
         /// <returns></returns>
-        public static async Task<DataTable> GetDataTableAsync(this DbDataReader dataReader)
+        public static async Task<DataTable> GetDataTableAsync(this DbDataReader dataReader, bool allowDuplicateColumn = true)
         {
             var table = new DataTable();
 
@@ -187,10 +202,25 @@ namespace Sean.Core.DbRepository.Extensions
 
             for (var i = 0; i < dataReader.FieldCount; i++)
             {
+                var dataType = dataReader.GetFieldType(i);
+                var columnName = dataReader.GetName(i);
+                if (table.Columns.Contains(columnName) && allowDuplicateColumn)
+                {
+                    var index = 1;
+                    do
+                    {
+                        columnName = $"{dataReader.GetName(i)}{index}";
+                        if (!table.Columns.Contains(columnName))
+                        {
+                            break;
+                        }
+                        index++;
+                    } while (true);
+                }
                 var column = new DataColumn
                 {
-                    DataType = dataReader.GetFieldType(i),
-                    ColumnName = dataReader.GetName(i)
+                    DataType = dataType,
+                    ColumnName = columnName
                 };
                 table.Columns.Add(column);
             }
@@ -212,7 +242,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// </summary>
         /// <param name="dataReader"></param>
         /// <returns></returns>
-        public static async Task<DataSet> GetDataSetAsync(this DbDataReader dataReader)
+        public static async Task<DataSet> GetDataSetAsync(this DbDataReader dataReader, bool allowDuplicateColumn = true)
         {
             if (dataReader == null)
             {
@@ -223,7 +253,7 @@ namespace Sean.Core.DbRepository.Extensions
 
             do
             {
-                var table = await GetDataTableAsync(dataReader);
+                var table = await GetDataTableAsync(dataReader, allowDuplicateColumn);
                 if (table != null)
                 {
                     result.Tables.Add(table);
