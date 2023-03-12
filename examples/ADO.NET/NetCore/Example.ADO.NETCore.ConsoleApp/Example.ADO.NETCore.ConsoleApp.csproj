@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Contracts\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Example.ADO.NETCore.Application\Example.ADO.NETCore.Application.csproj" />
   </ItemGroup>
 

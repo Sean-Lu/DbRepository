@@ -64,6 +64,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.ADO.NETCore.Domain"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.ADO.NETCore.Infrastructure", "examples\ADO.NET\NetCore\Example.ADO.NETCore.Infrastructure\Example.ADO.NETCore.Infrastructure.csproj", "{DD9B60DE-08EC-492F-8242-5C8670C11565}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Common", "examples\Example.Common\Example.Common.csproj", "{19327AA9-5275-48B8-8D3D-F1C31D142D42}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -146,6 +148,10 @@ Global
 		{DD9B60DE-08EC-492F-8242-5C8670C11565}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD9B60DE-08EC-492F-8242-5C8670C11565}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD9B60DE-08EC-492F-8242-5C8670C11565}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19327AA9-5275-48B8-8D3D-F1C31D142D42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19327AA9-5275-48B8-8D3D-F1C31D142D42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19327AA9-5275-48B8-8D3D-F1C31D142D42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19327AA9-5275-48B8-8D3D-F1C31D142D42}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -173,6 +179,7 @@ Global
 		{33CB68FA-4B1C-4B6C-9606-2A66ABDAF48E} = {8441EEA5-F811-487E-BA2E-ABE6B34F3E2D}
 		{F6691C10-DF8A-467A-9DE7-0F71B0070B62} = {8441EEA5-F811-487E-BA2E-ABE6B34F3E2D}
 		{DD9B60DE-08EC-492F-8242-5C8670C11565} = {8441EEA5-F811-487E-BA2E-ABE6B34F3E2D}
+		{19327AA9-5275-48B8-8D3D-F1C31D142D42} = {671A131E-A24E-45E5-AD14-37238EBF44C2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {45207871-A31A-4F76-8C92-C46E7ADD1F61}

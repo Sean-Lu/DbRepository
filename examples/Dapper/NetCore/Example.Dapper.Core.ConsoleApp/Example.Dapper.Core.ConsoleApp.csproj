@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Contracts\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Example.Dapper.Core.Application\Example.Dapper.Core.Application.csproj" />
   </ItemGroup>
 

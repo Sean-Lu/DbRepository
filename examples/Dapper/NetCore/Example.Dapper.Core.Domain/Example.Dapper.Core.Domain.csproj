@@ -6,6 +6,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\..\src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj" />
+		<ProjectReference Include="..\..\..\Example.Common\Example.Common.csproj" />
 		<ProjectReference Include="..\Example.Dapper.Core.Infrastructure\Example.Dapper.Core.Infrastructure.csproj" />
 	</ItemGroup>
 

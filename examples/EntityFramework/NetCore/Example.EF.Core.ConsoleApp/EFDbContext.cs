@@ -19,15 +19,17 @@ namespace Example.EF.Core.ConsoleApp
         {
             base.OnConfiguring(optionsBuilder);
 
-            //// MySQL
-            ////var connString = "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a";
+            //// MySQL: CRUD test passed.
             //var connString = "server=127.0.0.1;database=test;user id=root;password=12345!a";
             //optionsBuilder.UseMySQL(connString);
 
-            // SQLite
-            //var connString = "data source=.\\test.db;version=3";
+            // SQLite: CRUD test passed.
             var connString = "data source=.\\test.db";
             optionsBuilder.UseSqlite(connString);
+
+            //// SQL Server: CRUD test passed.
+            //var connString = "server=127.0.0.1;database=test;uid=sa;pwd=12345!a;TrustServerCertificate=true";
+            //optionsBuilder.UseSqlServer(connString);
 
             //// 设置不跟踪所有查询
             //optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
