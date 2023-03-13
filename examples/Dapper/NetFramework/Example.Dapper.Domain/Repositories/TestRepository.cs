@@ -23,7 +23,7 @@ namespace Example.Dapper.Domain.Repositories
             ILogger<TestRepository> logger
             //) : base()// MySQL: CRUD test passed.
             ) : base("test_SQLite")// SQLite: CRUD test passed.
-            //) : base("test_SqlServer")// SqlServer
+            //) : base("test_SqlServer")// SQL Server: CRUD test passed.
             //) : base("test_Oracle")// Oracle
             //) : base("test_PostgreSql")// PostgreSql
             //) : base("test_Firebird")// Firebird

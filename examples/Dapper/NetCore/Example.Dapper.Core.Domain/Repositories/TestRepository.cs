@@ -25,7 +25,7 @@ namespace Example.Dapper.Core.Domain.Repositories
             ISimpleLogger<TestRepository> logger
             //) : base(configuration)// MySQL: CRUD test passed.
             ) : base(configuration, "test_SQLite")// SQLite: CRUD test passed.
-            //) : base(configuration, "test_SqlServer")// SqlServer
+            //) : base(configuration, "test_SqlServer")// SQL Server: CRUD test passed.
             //) : base(configuration, "test_Oracle")// Oracle
             //) : base(configuration, "test_PostgreSql")// PostgreSql
             //) : base(configuration, "test_Firebird")// Firebird

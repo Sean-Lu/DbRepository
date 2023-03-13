@@ -497,7 +497,7 @@ namespace Sean.Core.DbRepository
                         sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql};";
                         break;
                     default:
-                        sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";// 同MySql
+                        sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";
                         break;
                 }
             }
@@ -534,29 +534,34 @@ namespace Sean.Core.DbRepository
                     return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {rows} OFFSET {offset};";
                 case DatabaseType.SqlServer:
                 case DatabaseType.SqlServerCe:
-                    return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} OFFSET {offset} ROWS FETCH NEXT {rows} ROWS ONLY;";
+                    if (!string.IsNullOrWhiteSpace(OrderBySql))
+                    {
+                        // SQL Server Offset Fetch子句：必须将 OFFSET 和 FETCH 子句与 ORDER BY 子句一起使用，否则将收到错误消息。 OFFSET 和 FETCH 子句比实现 TOP 子句更适合实现查询分页解决方案。
+                        return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} OFFSET {offset} ROWS FETCH NEXT {rows} ROWS ONLY;";
+                    }
+
+                    const string orderBy = " ORDER BY (SELECT 1)";
+                    return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{orderBy} OFFSET {offset} ROWS FETCH NEXT {rows} ROWS ONLY;";
                 case DatabaseType.DB2:
                     // SQL Server、Oracle等数据库都支持：ROW_NUMBER() OVER()
                     return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {offset + rows};";
                 case DatabaseType.Access:
                     return $"SELECT TOP {rows} {selectFields} FROM (SELECT TOP {offset + rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}) t2;";
                 case DatabaseType.Oracle:
-                    if (string.IsNullOrWhiteSpace(OrderBySql))
-                    {
-                        // 无ORDER BY排序
-                        // SQL示例：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 AND ROWNUM<=10) t2 WHERE t2.ROW_NUM>5;
-                        var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {offset + rows}" : $"{WhereSql} AND ROWNUM <= {offset + rows}";
-                        return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset};";
-                    }
-                    else
+                    if (!string.IsNullOrWhiteSpace(OrderBySql))
                     {
                         // 有ORDER BY排序
                         // SQL示例1：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM (SELECT ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 ORDER BY ID DESC) t2 WHERE ROWNUM<=10) t3 WHERE t3.ROW_NUM>5
                         // SQL示例2：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROW_NUMBER() OVER(ORDER BY ID DESC) ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456) t2 WHERE t2.ROW_NUM>5 AND t2.ROW_NUM<=10;
                         return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({OrderBySql}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {offset + rows};";
                     }
+
+                    // 无ORDER BY排序
+                    // SQL示例：SELECT ROW_NUM, ID, SITE_ID FROM (SELECT ROWNUM ROW_NUM, ID, SITE_ID FROM SITE_TEST WHERE SITE_ID=123456 AND ROWNUM<=10) t2 WHERE t2.ROW_NUM>5;
+                    var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {offset + rows}" : $"{WhereSql} AND ROWNUM <= {offset + rows}";
+                    return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset};";
                 default:
-                    return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows};";// 同MySql
+                    return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows};";
             }
         }
     }
