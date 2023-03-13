@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using EntityFrameworkCore.UseRowNumberForPaging;
 using Example.EF.Core.ConsoleApp.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -29,7 +30,8 @@ namespace Example.EF.Core.ConsoleApp
 
             //// SQL Server: CRUD test passed.
             //var connString = "server=127.0.0.1;database=test;uid=sa;pwd=12345!a;TrustServerCertificate=true";
-            //optionsBuilder.UseSqlServer(connString);
+            ////optionsBuilder.UseSqlServer(connString);// SQL Server 2012 ~ +
+            //optionsBuilder.UseSqlServer(connString, c => c.UseRowNumberForPaging());// SQL Server 2005 ~ 2008
 
             //// 设置不跟踪所有查询
             //optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
