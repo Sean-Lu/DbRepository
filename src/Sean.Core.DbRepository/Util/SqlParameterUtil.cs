@@ -35,7 +35,7 @@ namespace Sean.Core.DbRepository.Util
                 {
                     var sqlParameter = dbParameterFactory();
                     sqlParameter.ParameterName = keyValuePair.Key;
-                    sqlParameter.Value = keyValuePair.Value;
+                    sqlParameter.Value = keyValuePair.Value ?? DBNull.Value;
                     result.Add(sqlParameter);
                 }
             }
