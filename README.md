@@ -1,54 +1,68 @@
-## 简介
+## 🌈 简介
 
 > `ORM`，支持所有**关系型数据库**（实现`DbProviderFactory`），如：`MySQL`、`SQL Server`、`Oracle`、`SQLite`、`Access`、`Firebird`、`PostgreSql`、`DB2`、`Informix`等
 
 - 支持主从库分离（主库：增\删\改，从库：查）
 - 支持分表（自定义表名规则）
 - 支持`Expression`表达式树（自动转换为参数化SQL语句）
-
-```
-注：非参数化SQL会有SQL注入的风险。
-```
-
 - 常用类：
 
-| Class                           | Namespace                       | Description     |
-| ------------------------------- | ------------------------------- | --------------- |
-| `DbFactory`                     | `Sean.Core.DbRepository`        | 数据库工厂           |
-| `SqlFactory`                    | `Sean.Core.DbRepository`        | `SQL`创建工厂（CRUD） |
-| `BaseRepository`                | `Sean.Core.DbRepository`        | 基于`DbFactory`实现 |
-| `EntityBaseRepository<TEntity>` | `Sean.Core.DbRepository`        | 基于`DbFactory`实现 |
-| `BaseRepository<TEntity>`       | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory`实现 |
+| Class                           | Namespace                       | Description                    |
+| ------------------------------- | ------------------------------- | ------------------------------ |
+| `DbFactory`                     | `Sean.Core.DbRepository`        | 数据库工厂                     |
+| `SqlFactory`                    | `Sean.Core.DbRepository`        | `SQL`创建工厂（CRUD）          |
+| `BaseRepository`                | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
+| `EntityBaseRepository<TEntity>` | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
+| `BaseRepository<TEntity>`       | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory` + `Dapper`实现 |
 
 - `DbFactory`类：支持所有实现`DbProviderFactory`的数据库
 
 ```
 Get<T>()、GetList<T>() 其中 T ：
-1. 支持自定义的Model实体模型（表字段映射匹配实体属性是否大小写敏感： DbFactory.CaseSensitive ）
-2. 支持dynamic（动态类型）
-2. 支持以下类型（默认只取查询结果的第一列数据）：
-    - 值类型，如：int、long、double、decimal、DateTime、bool等
-    - string字符串类型（特殊的引用类型）
-3. 部分特殊类型暂时不支持，如：KeyValuePair<long, decimal>
-
-注：Dapper不仅支持以上所有类型，兼容性和性能也更好，建议使用：BaseRepository<TEntity> + Dapper
+1. 支持自定义的 Model 实体类
+2. 支持 dynamic 动态类型
+3. 支持值类型，如：int、long、double、decimal、DateTime、bool等
+4. 支持 string 类型
 ```
 
-- `Oracle`数据库：
-
-```
-微软官方已经废弃System.Data.OracleClient（需要安装Oracle客户端），且不再更新。
-推荐使用Oracle官方提供的数据库连接驱动：Oracle.ManagedDataAccess（不需要安装Oracle客户端）。
-```
-
-## Nuget Packages
+## 💖 Nuget Packages
 
 | Package                                                                                        | NuGet Stable                                                                                                                                                        | NuGet Pre-release                                                                                                                                                      | Downloads                                                                                                                                                            |
 | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Sean.Core.DbRepository](https://www.nuget.org/packages/Sean.Core.DbRepository/)               | [![Sean.Core.DbRepository](https://img.shields.io/nuget/v/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/)                      | [![Sean.Core.DbRepository](https://img.shields.io/nuget/vpre/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/)                      | [![Sean.Core.DbRepository](https://img.shields.io/nuget/dt/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/)                      |
 | [Sean.Core.DbRepository.Dapper](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/v/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/vpre/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/dt/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) |
 
-## 数据库连接字符串配置
+## 🍉 CRUD Test
+
+| Database        | Test result |
+| --------------- | ----------- |
+| `MySQL`         | ✅         |
+| `SQL Server`    | ✅         |
+| `Oracle`        | -           |
+| `SQLite`        | ✅         |
+| `MS Access`     | -           |
+| `Firebird`      | -           |
+| `PostgreSql`    | -           |
+| `DB2`           | -           |
+| `Informix`      | -           |
+
+## 💯 性能测试
+
+> `Dapper`的`Execute`方法执行插入批量实体数据的本质是一条一条的插入，当数据量非常大时会很慢，可以分批把多条实体数据拼成一条脚本一次性执行（`BulkInsert`）。
+
+- 以下测试结果来自单元测试：**`PerformanceComparisonTest.CompareBulkInsertTimeConsumed`**
+- 测试数据库：MySQL 8.0.27
+- 测试表：Test
+- 测试时间：2023-02-07 15:00:00
+
+| Operation        | 50 Entities | 200 Entities | 1000 Entities  | 2000 Entities  | 5000 Entities  |
+| ---------------- | ----------- | ------------ | -------------- | -------------- | -------------- |
+| `Dapper.Execute` | 318 ms      | 1401 ms      | 5875 ms        | 11991 ms       | 29968 ms       |
+| `BulkInsert`     | 15 ms       | 27 ms        | 84 ms          | 176 ms         | 471 ms         |
+
+## 👉 使用示例
+
+### 数据库连接字符串配置
 
 > `.NET Framework`: `App.config`、`Web.config`
 
@@ -100,14 +114,14 @@ Get<T>()、GetList<T>() 其中 T ：
 }
 ```
 
-## 数据库提供者工厂（DbProviderFactory）
+### 数据库提供者工厂配置
 
 > 支持2种方式来配置数据库和数据库提供者工厂之间的映射关系：
 
 - 方式1：通过代码实现
 - 方式2：通过配置文件实现
 
-### 方式1：代码
+#### 方式1：代码
 
 - 代码示例1：
 
@@ -134,9 +148,9 @@ DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "Sy
 var _db = new DbFactory("Database connection string...", MySqlClientFactory.Instance);
 ```
 
-### 方式2：配置文件
+#### 方式2：配置文件
 
-> 配置文件路径可以通过`DbFactory.ProviderFactoryConfigurationPath`设置
+> 配置文件路径可以通过`DbContextConfiguration.Options.DbProviderFactoryConfigurationPath`设置
 
 - 配置文件示例：
 
@@ -164,39 +178,9 @@ var _db = new DbFactory("Database connection string...", MySqlClientFactory.Inst
 </configuration>
 ```
 
-## 性能对比（Performance Comparison）
+### 增删改查（CRUD）
 
-> `Dapper`的`Execute`方法执行插入批量实体数据的本质是一条一条的插入，当数据量非常大时会很慢，可以分批把多条实体数据拼成一条脚本一次性执行（`BulkInsert`）。
-
-- 以下测试结果来自单元测试：**`PerformanceComparisonTest.CompareBulkInsertTimeConsumed`**
-- 测试数据库：MySQL 8.0.27
-- 测试表：Test
-- 测试时间：2023-02-07 15:00:00
-
-| Operation        | 50 Entities | 200 Entities | 1000 Entities  | 2000 Entities  | 5000 Entities  |
-| ---------------- | ----------- | ------------ | -------------- | -------------- | -------------- |
-| `Dapper.Execute` | 318 ms      | 1401 ms      | 5875 ms        | 11991 ms       | 29968 ms       |
-| `BulkInsert`     | 15 ms       | 27 ms        | 84 ms          | 176 ms         | 471 ms         |
-
-## 常用实体类注解（`TableEntity`）
-
-| Attribute                    | AttributeUsage | Namespace                                      | Description                          |
-| ---------------------------- | -------------- | ---------------------------------------------- | ------------------------------------ |
-| `TableAttribute`             | Class          | `System.ComponentModel.DataAnnotations.Schema` | 自定义表名                                |
-| `SequenceAttribute`          | Class          | `Sean.Core.DbRepository`                       | 指定序列号名称（生成自增Id）                      |
-| `KeyAttribute`               | Property       | `System.ComponentModel.DataAnnotations`        | 标记为主键字段                              |
-| `DatabaseGeneratedAttribute` | Property       | `System.ComponentModel.DataAnnotations.Schema` | 设置数据库生成字段值的方式（通常和`KeyAttribute`一起使用） |
-| `ColumnAttribute`            | Property       | `System.ComponentModel.DataAnnotations.Schema` | 自定义字段名                               |
-| `NotMappedAttribute`         | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为为忽略字段                             |
-| ~~`ForeignKeyAttribute`~~    | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为外键字段（***暂不支持***）                  |
-
-## 使用示例（Example）
-
-> 项目：`examples\Example.NetCore`
-> 
-> 项目：`examples\Example.NetFramework`
-
-- 增删改查（CRUD）：`IBaseRepository<TEntity>`
+> `IBaseRepository<TEntity>`
 
 ```csharp
 // 新增数据：
@@ -266,19 +250,7 @@ bool exists = _testRepository.Exists(entity => entity.UserId == 10001);
 // 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.TableRepositoryTest
 ```
 
-- 表达式树：**`Expression<Func<TEntity, object>> fieldExpression`**
-
-```csharp
-// 单个字段：
-entity => entity.Status
-
-// 多个字段（匿名类型）：
-entity => new { entity.Status, entity.UpdateTime }
-
-// 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.FieldExpressionTest
-```
-
-- 表达式树：**`Expression<Func<TEntity, bool>> whereExpression`**
+> 表达式树：**`Expression<Func<TEntity, bool>> whereExpression`**
 
 ```csharp
 // 常量
@@ -305,7 +277,31 @@ entity => entity.UserId == _model.UserId && entity.Remark.StartsWith("测试")
 // 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.WhereExpressionTest
 ```
 
-## 常见问题
+> 表达式树：**`Expression<Func<TEntity, object>> fieldExpression`**
+
+```csharp
+// 单个字段：
+entity => entity.Status
+
+// 多个字段（匿名类型）：
+entity => new { entity.Status, entity.UpdateTime }
+
+// 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.FieldExpressionTest
+```
+
+> 常用实体类注解：`TableEntity`
+
+| Attribute                    | AttributeUsage | Namespace                                      | Description                                                |
+| ---------------------------- | -------------- | ---------------------------------------------- | ---------------------------------------------------------- |
+| `TableAttribute`             | Class          | `System.ComponentModel.DataAnnotations.Schema` | 自定义表名                                                 |
+| `SequenceAttribute`          | Class          | `Sean.Core.DbRepository`                       | 指定序列号名称（生成自增Id）                               |
+| `KeyAttribute`               | Property       | `System.ComponentModel.DataAnnotations`        | 标记为主键字段                                             |
+| `DatabaseGeneratedAttribute` | Property       | `System.ComponentModel.DataAnnotations.Schema` | 设置数据库生成字段值的方式（通常和`KeyAttribute`一起使用） |
+| `ColumnAttribute`            | Property       | `System.ComponentModel.DataAnnotations.Schema` | 自定义字段名                                               |
+| `NotMappedAttribute`         | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为为忽略字段                                           |
+| ~~`ForeignKeyAttribute`~~    | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为外键字段（***暂不支持***）                           |
+
+## ❓ 常见问题
 
 > 注：从`.NET Standard` 2.1版本开始（`.NET Core` >= 3.0）才有`System.Data.Common.DbProviderFactories`类
 

@@ -1,43 +1,36 @@
 ﻿using System;
 
-namespace Sean.Core.DbRepository
+namespace Sean.Core.DbRepository;
+
+public class DefaultSqlMonitor : ISqlMonitor
 {
-    public class DefaultSqlMonitor : ISqlMonitor
+    public event Action<SqlExecutingContext> SqlExecuting;
+    public event Action<SqlExecutedContext> SqlExecuted;
+
+    public DefaultSqlMonitor()
     {
-        public event Action<SqlExecutingContext> SqlExecuting;
-        public event Action<SqlExecutedContext> SqlExecuted;
 
-        private readonly Action<SqlExecutingContext> _sqlExecuting;
-        private readonly Action<SqlExecutedContext> _aqlExecuted;
+    }
 
-        public DefaultSqlMonitor()
+    public void OnSqlExecuting(SqlExecutingContext context)
+    {
+        SqlExecuting?.Invoke(context);
+        if (context.Handled)
         {
-
-        }
-        public DefaultSqlMonitor(Action<SqlExecutingContext> sqlExecuting, Action<SqlExecutedContext> aqlExecuted)
-        {
-            _sqlExecuting = sqlExecuting;
-            _aqlExecuted = aqlExecuted;
+            return;
         }
 
-        public void OnSqlExecuting(SqlExecutingContext context)
+        DbContextConfiguration.Options.TriggerSqlExecuting(context);
+    }
+
+    public void OnSqlExecuted(SqlExecutedContext context)
+    {
+        SqlExecuted?.Invoke(context);
+        if (context.Handled)
         {
-            SqlExecuting?.Invoke(context);
-            if (context.Handled)
-            {
-                return;
-            }
-            _sqlExecuting?.Invoke(context);
+            return;
         }
 
-        public void OnSqlExecuted(SqlExecutedContext context)
-        {
-            SqlExecuted?.Invoke(context);
-            if (context.Handled)
-            {
-                return;
-            }
-            _aqlExecuted?.Invoke(context);
-        }
+        DbContextConfiguration.Options.TriggerSqlExecuted(context);
     }
 }

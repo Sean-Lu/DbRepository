@@ -284,8 +284,8 @@ namespace Sean.Core.DbRepository.Extensions
                 {
                     dic.Add(dataReader.GetName(i), dataReader[i]);
                 }
-                var json = DbFactory.JsonSerializer.Serialize(dic);
-                model = DbFactory.JsonSerializer.Deserialize<T>(json);
+                var json = DbContextConfiguration.Options.JsonSerializer.Serialize(dic);
+                model = DbContextConfiguration.Options.JsonSerializer.Deserialize<T>(json);
             }
             else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)
             {

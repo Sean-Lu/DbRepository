@@ -43,7 +43,10 @@ namespace Sean.Core.DbRepository
 
                 factory = map.ProviderFactory;
             }
-            return factory ?? throw new Exception($"[{type}] The database client driver mapping is missing, configure it in the configuration file or code before using it. {Environment.NewLine}1. Code example: DatabaseType.{type}.SetDbProviderMap(new DbProviderMap(\"{type}\", xxxFactory.Instance)); {Environment.NewLine}2. Configuration file example: {nameof(DbFactory)}.{nameof(DbFactory.ProviderFactoryConfigurationPath)} {Environment.NewLine}   https://github.com/Sean-Lu/DbRepository/blob/master/src/Sean.Core.DbRepository/dllconfigs/Sean.Core.DbRepository.dll.config");
+            return factory ?? throw new Exception($"[{type}] The database client driver mapping is missing, configure it in the configuration file or code before using it. {Environment.NewLine}" +
+                                                  $"1. Code example: DatabaseType.{type}.SetDbProviderMap(new DbProviderMap(\"{type}\", xxxFactory.Instance)); {Environment.NewLine}" +
+                                                  $"2. Configuration file example: {nameof(DbContextConfiguration)}.{nameof(DbContextConfiguration.Options)}.{nameof(DbOptions.DbProviderFactoryConfigurationPath)} {Environment.NewLine}" +
+                                                  $"   https://github.com/Sean-Lu/DbRepository/blob/master/src/Sean.Core.DbRepository/dllconfigs/Sean.Core.DbRepository.dll.config");
         }
         /// <summary>
         /// Get the <see cref="DbProviderFactory"/> by specified database provider name
@@ -94,7 +97,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         private static void LoadFromXmlFile()
         {
-            if (!File.Exists(DbFactory.ProviderFactoryConfigurationPath))
+            if (!File.Exists(DbContextConfiguration.Options.DbProviderFactoryConfigurationPath))
             {
                 return;
             }
@@ -103,7 +106,7 @@ namespace Sean.Core.DbRepository
             ((DatabaseType[])Enum.GetValues(typeof(DatabaseType))).ToList().ForEach(dbType =>
             {
                 var xpath = string.Format(xpathTemplate, dbType.ToString());
-                var xmlNode = XmlHelper.GetXmlNode(DbFactory.ProviderFactoryConfigurationPath, xpath);
+                var xmlNode = XmlHelper.GetXmlNode(DbContextConfiguration.Options.DbProviderFactoryConfigurationPath, xpath);
                 if (xmlNode != null)
                 {
                     var providerInvariantName = XmlHelper.GetXmlAttributeValue(xmlNode, "providerInvariantName");

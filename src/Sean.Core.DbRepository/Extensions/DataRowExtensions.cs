@@ -39,8 +39,8 @@ namespace Sean.Core.DbRepository.Extensions
             }
             else if (type == typeof(object))// dynamic动态类型
             {
-                var json = DbFactory.JsonSerializer.Serialize(dr.ToDataTable());
-                var list = DbFactory.JsonSerializer.Deserialize<List<T>>(json);
+                var json = DbContextConfiguration.Options.JsonSerializer.Serialize(dr.ToDataTable());
+                var list = DbContextConfiguration.Options.JsonSerializer.Deserialize<List<T>>(json);
                 model = list.FirstOrDefault();
             }
             else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)

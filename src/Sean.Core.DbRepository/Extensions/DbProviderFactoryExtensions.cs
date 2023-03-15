@@ -15,10 +15,9 @@ namespace Sean.Core.DbRepository.Extensions
             var name = providerFactory.GetType().Name;//Connecttion.GetType()
             if (name.StartsWith("MySql")) dbType = DatabaseType.MySql;
             else if (name.StartsWith("SqlClient")) dbType = DatabaseType.SqlServer;
-            else if (name.StartsWith("SqlCe")) dbType = DatabaseType.SqlServerCe;
             else if (name.StartsWith("Oracle")) dbType = DatabaseType.Oracle;
             else if (name.StartsWith("SQLite")) dbType = DatabaseType.SQLite;
-            //else if (dbFactoryName.StartsWith("OleDb")) _dbType = DatabaseType.Access;// OleDb可以连接很多数据库
+            //else if (dbFactoryName.StartsWith("OleDb")) _dbType = DatabaseType.Access;
             else if (name.StartsWith("Firebird")) dbType = DatabaseType.Firebird;
             else if (name.StartsWith("Npgsql")) dbType = DatabaseType.PostgreSql;
             else if (name.StartsWith("DB2")) dbType = DatabaseType.DB2;

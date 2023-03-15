@@ -143,7 +143,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             return true;
         }
 
-        var bulkCountLimit = BulkCountLimit ?? DbFactory.BulkCountLimit;
+        var bulkCountLimit = BulkCountLimit ?? DbContextConfiguration.Options.BulkEntityCount;
         if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
         {
             return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
@@ -212,7 +212,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
                 {
-                    var bulkCountLimit = BulkCountLimit ?? DbFactory.BulkCountLimit;
+                    var bulkCountLimit = BulkCountLimit ?? DbContextConfiguration.Options.BulkEntityCount;
                     if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
                     {
                         return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
@@ -579,7 +579,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             return true;
         }
 
-        var bulkCountLimit = BulkCountLimit ?? DbFactory.BulkCountLimit;
+        var bulkCountLimit = BulkCountLimit ?? DbContextConfiguration.Options.BulkEntityCount;
         if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
         {
             return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
@@ -648,7 +648,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
                 {
-                    var bulkCountLimit = BulkCountLimit ?? DbFactory.BulkCountLimit;
+                    var bulkCountLimit = BulkCountLimit ?? DbContextConfiguration.Options.BulkEntityCount;
                     if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
                     {
                         return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>

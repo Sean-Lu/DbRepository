@@ -34,10 +34,18 @@ namespace Example.Dapper.Domain.Extensions
             //DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));// SQLite
             #endregion
 
-            DbFactory.BulkCountLimit = 200;
-            DbFactory.OnSqlExecuting += OnSqlExecuting;
-            DbFactory.OnSqlExecuted += OnSqlExecuted;
-            DbFactory.JsonSerializer = NewJsonSerializer.Instance;
+            DbContextConfiguration.Configure(options =>
+            {
+                options.BulkEntityCount = 200;
+                options.JsonSerializer = NewJsonSerializer.Instance;
+                options.SqlExecuting += OnSqlExecuting;
+                options.SqlExecuted += OnSqlExecuted;
+            });
+
+            //DbContextConfiguration.ConfigureSqlServer(options =>
+            //{
+            //    options.UseRowNumberForPaging = true;// SQL Server 2005 ~ 2008
+            //});
 
             #endregion
         }

@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 #if NETSTANDARD || NET5_0_OR_GREATER
 using Microsoft.Extensions.Configuration;
 #endif
 using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DbRepository.Util;
-using Sean.Utility.Contracts;
 using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository
@@ -21,31 +18,6 @@ namespace Sean.Core.DbRepository
     /// </summary>
     public class DbFactory
     {
-        /// <summary>
-        /// The limit on the number of entities when executing database bulk operations. The default value is 1000.
-        /// </summary>
-        public static int? BulkCountLimit { get; set; } = 1000;
-        /// <summary>
-        /// The time (in seconds) to wait for the command to execute. The default value is 30 seconds.
-        /// <para>等待命令执行所需的时间（以秒为单位）。 默认值为 30 秒。</para>
-        /// </summary>
-        public static int? DefaultCommandTimeout { get; set; }
-        /// <summary>
-        /// Whether the entity class property names are case-sensitive when mapping database table fields. The default value is false.
-        /// <para>映射数据库表字段时，实体类属性名是否区分大小写。默认值：false。</para>
-        /// </summary>
-        public static bool CaseSensitive { get; set; } = false;
-        /// <summary>
-        /// <see cref="DbProviderFactory"/> configuration file path.
-        /// <para>数据库提供者工厂的配置文件路径</para>
-        /// </summary>
-        public static string ProviderFactoryConfigurationPath { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"dllconfigs\{Assembly.GetExecutingAssembly().GetName().Name}.dll.config");
-
-        public static IJsonSerializer JsonSerializer { get; set; } = JsonHelper.Serializer;
-
-        public static event Action<SqlExecutingContext> OnSqlExecuting;
-        public static event Action<SqlExecutedContext> OnSqlExecuted;
-
         /// <summary>
         /// <see cref="DbProviderFactory"/>
         /// </summary>
@@ -81,7 +53,7 @@ namespace Sean.Core.DbRepository
         /// </summary>
         public int? CommandTimeout
         {
-            get => _commandTimeout ?? DefaultCommandTimeout;
+            get => _commandTimeout ?? DbContextConfiguration.Options.DefaultCommandTimeout;
             set => _commandTimeout = value;
         }
 
@@ -104,7 +76,7 @@ namespace Sean.Core.DbRepository
 
             ConnectionSettings = new MultiConnectionSettings(configuration, configName);
 
-            SqlMonitor = new DefaultSqlMonitor(OnSqlExecuting, OnSqlExecuted);
+            SqlMonitor = new DefaultSqlMonitor();
         }
 #else
         /// <summary>
@@ -118,7 +90,7 @@ namespace Sean.Core.DbRepository
 
             ConnectionSettings = new MultiConnectionSettings(configName);
 
-            SqlMonitor = new DefaultSqlMonitor(OnSqlExecuting, OnSqlExecuted);
+            SqlMonitor = new DefaultSqlMonitor();
         }
 #endif
         /// <summary>
@@ -129,7 +101,7 @@ namespace Sean.Core.DbRepository
         {
             ConnectionSettings = connectionSettings ?? throw new ArgumentNullException(nameof(connectionSettings));
 
-            SqlMonitor = new DefaultSqlMonitor(OnSqlExecuting, OnSqlExecuted);
+            SqlMonitor = new DefaultSqlMonitor();
         }
         /// <summary>
         /// Single database.
@@ -1196,7 +1168,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = ExecuteReader(connection, commandText, parameters, commandType))
             {
-                return dataReader.GetList<T>(CaseSensitive);
+                return dataReader.GetList<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
         /// <summary>
@@ -1217,7 +1189,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = ExecuteReader(transaction, commandText, parameters, commandType))
             {
-                return dataReader.GetList<T>(CaseSensitive);
+                return dataReader.GetList<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
         /// <summary>
@@ -1233,7 +1205,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = ExecuteReader(sqlCommand))
             {
-                return dataReader.GetList<T>(CaseSensitive);
+                return dataReader.GetList<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
 
@@ -1286,7 +1258,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = await ExecuteReaderAsync(connection, commandText, parameters, commandType))
             {
-                return await dataReader.GetListAsync<T>(CaseSensitive);
+                return await dataReader.GetListAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
         /// <summary>
@@ -1307,7 +1279,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = await ExecuteReaderAsync(transaction, commandText, parameters, commandType))
             {
-                return await dataReader.GetListAsync<T>(CaseSensitive);
+                return await dataReader.GetListAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
         /// <summary>
@@ -1323,7 +1295,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = await ExecuteReaderAsync(sqlCommand))
             {
-                return await dataReader.GetListAsync<T>(CaseSensitive);
+                return await dataReader.GetListAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
         #endregion
@@ -1375,7 +1347,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = ExecuteReader(connection, commandText, parameters, commandType))
             {
-                return dataReader.Get<T>(CaseSensitive);
+                return dataReader.Get<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
         /// <summary>
@@ -1393,7 +1365,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = ExecuteReader(transaction, commandText, parameters, commandType))
             {
-                return dataReader.Get<T>(CaseSensitive);
+                return dataReader.Get<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
         /// <summary>
@@ -1406,7 +1378,7 @@ namespace Sean.Core.DbRepository
         {
             using (var dataReader = ExecuteReader(sqlCommand))
             {
-                return dataReader.Get<T>(CaseSensitive);
+                return dataReader.Get<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
 
@@ -1456,7 +1428,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = await ExecuteReaderAsync(connection, commandText, parameters, commandType))
             {
-                return await dataReader.GetAsync<T>(CaseSensitive);
+                return await dataReader.GetAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
         /// <summary>
@@ -1474,7 +1446,7 @@ namespace Sean.Core.DbRepository
 
             using (var dataReader = await ExecuteReaderAsync(transaction, commandText, parameters, commandType))
             {
-                return await dataReader.GetAsync<T>(CaseSensitive);
+                return await dataReader.GetAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
         /// <summary>
@@ -1487,7 +1459,7 @@ namespace Sean.Core.DbRepository
         {
             using (var dataReader = await ExecuteReaderAsync(sqlCommand))
             {
-                return await dataReader.GetAsync<T>(CaseSensitive);
+                return await dataReader.GetAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
         }
         #endregion

@@ -21,11 +21,11 @@ namespace Sean.Core.DbRepository
         public static DbProviderMapSection GetDbProviderMapSection()
         {
             var sectionName = DbProviderMapSectionName;
-            if (File.Exists(DbFactory.ProviderFactoryConfigurationPath))
+            if (File.Exists(DbContextConfiguration.Options.DbProviderFactoryConfigurationPath))
             {
                 return ConfigurationManager.OpenMappedExeConfiguration(new ExeConfigurationFileMap
                 {
-                    ExeConfigFilename = DbFactory.ProviderFactoryConfigurationPath
+                    ExeConfigFilename = DbContextConfiguration.Options.DbProviderFactoryConfigurationPath
                 }, ConfigurationUserLevel.None).GetSection(sectionName) as DbProviderMapSection;
             }
 

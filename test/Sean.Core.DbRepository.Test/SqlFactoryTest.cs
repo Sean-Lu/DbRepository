@@ -33,7 +33,7 @@ namespace Sean.Core.DbRepository.Test
             //BaseSqlBuilder.SqlIndented = true;
             //BaseSqlBuilder.SqlParameterized = false;
 
-            ISqlCommand sqlCommand = SqlFactory<TestEntity>.CreateInsertableBuilder(DatabaseType.MySql, true)
+            ISqlCommand sqlCommand = SqlFactory.CreateInsertableBuilder<TestEntity>(DatabaseType.MySql, true)
                 .SetParameter(list)
                 .Build();
 
@@ -62,7 +62,7 @@ namespace Sean.Core.DbRepository.Test
             //BaseSqlBuilder.SqlIndented = true;
             //BaseSqlBuilder.SqlParameterized = false;
 
-            ISqlCommand sqlCommand = SqlFactory<TestEntity>.CreateReplaceableBuilder(DatabaseType.MySql, true)
+            ISqlCommand sqlCommand = SqlFactory.CreateReplaceableBuilder<TestEntity>(DatabaseType.MySql, true)
                 .SetParameter(list)
                 .Build();
 

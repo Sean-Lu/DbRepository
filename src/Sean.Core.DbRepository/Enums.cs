@@ -18,10 +18,6 @@
         /// </summary>
         SqlServer,
         /// <summary>
-        /// SQL Server Compact Edition
-        /// </summary>
-        SqlServerCe,
-        /// <summary>
         /// Oracle
         /// </summary>
         Oracle,
