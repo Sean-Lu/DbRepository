@@ -34,6 +34,9 @@ public class DbOptions
 
     public IJsonSerializer JsonSerializer { get; set; } = JsonHelper.Serializer;
 
+    public Func<DbProviderFactory, DatabaseType> MapToDatabaseType;
+    public Func<DatabaseType, DbProviderFactory> MapToDbProviderFactory;
+
     public event Action<SqlExecutingContext> SqlExecuting;
     public event Action<SqlExecutedContext> SqlExecuted;
 

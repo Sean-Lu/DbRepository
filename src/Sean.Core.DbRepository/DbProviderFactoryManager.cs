@@ -11,7 +11,7 @@ namespace Sean.Core.DbRepository
     /// <summary>
     /// <see cref="DbProviderFactory"/>
     /// </summary>
-    public static class DbProviderFactoryManager
+    internal static class DbProviderFactoryManager
     {
         internal static readonly ConcurrentDictionary<DatabaseType, DbProviderMap> DbProviderMapDic;
 
@@ -26,14 +26,14 @@ namespace Sean.Core.DbRepository
 #endif
         }
 
-        /// <summary>
-        /// Get the <see cref="DbProviderFactory"/> by specified database type
-        /// </summary>
-        /// <param name="type">Database type</param>
-        /// <returns></returns>
         public static DbProviderFactory GetDbProviderFactory(DatabaseType type)
         {
-            DbProviderFactory factory = null;
+            DbProviderFactory factory = DbContextConfiguration.Options.MapToDbProviderFactory?.Invoke(type);
+            if (factory != null)
+            {
+                return factory;
+            }
+
             if (DbProviderMapDic.TryGetValue(type, out var map) && map != null)
             {
                 if (map.ProviderFactory == null && !string.IsNullOrWhiteSpace(map.ProviderInvariantName))
@@ -43,16 +43,9 @@ namespace Sean.Core.DbRepository
 
                 factory = map.ProviderFactory;
             }
-            return factory ?? throw new Exception($"[{type}] The database client driver mapping is missing, configure it in the configuration file or code before using it. {Environment.NewLine}" +
-                                                  $"1. Code example: DatabaseType.{type}.SetDbProviderMap(new DbProviderMap(\"{type}\", xxxFactory.Instance)); {Environment.NewLine}" +
-                                                  $"2. Configuration file example: {nameof(DbContextConfiguration)}.{nameof(DbContextConfiguration.Options)}.{nameof(DbOptions.DbProviderFactoryConfigurationPath)} {Environment.NewLine}" +
-                                                  $"   https://github.com/Sean-Lu/DbRepository/blob/master/src/Sean.Core.DbRepository/dllconfigs/Sean.Core.DbRepository.dll.config");
+
+            return factory ?? throw new Exception($"The mapping from DatabaseType.{type} to DbProviderFactory is not found.");
         }
-        /// <summary>
-        /// Get the <see cref="DbProviderFactory"/> by specified database provider name
-        /// </summary>
-        /// <param name="providerName">Database provider name</param>
-        /// <returns></returns>
         public static DbProviderFactory GetDbProviderFactory(string providerName)
         {
             if (string.IsNullOrWhiteSpace(providerName))
@@ -73,8 +66,7 @@ namespace Sean.Core.DbRepository
                     var type = Type.GetType(map.FactoryTypeAssemblyQualifiedName);
                     if (type != null)
                     {
-                        DbProviderFactory instance = Activator.CreateInstance(type) as DbProviderFactory;
-                        if (instance != null)
+                        if (Activator.CreateInstance(type) is DbProviderFactory instance)
                         {
                             map.ProviderFactory = instance;
                             return map.ProviderFactory;
@@ -85,7 +77,7 @@ namespace Sean.Core.DbRepository
 
 #if NETSTANDARD2_0
             // 注：从.NET Standard 2.1版本开始（.NET Core >= 3.0）才有DbProviderFactories
-            throw new Exception("The System.Data.Common.DbProviderFactories class is not supported, because the version of .NET Standard is less than 2.1 (corresponding to the version of .NET Core less than 3.0), please directly specify the implementation class that inherits the System.Data.Common.DbProviderFactory class, example: MySql.Data.MySqlClient.MySqlClientFactory.Instance");
+            throw new Exception($"The mapping from '{providerName}' to DbProviderFactory is not found.");
 #else
             return DbProviderFactories.GetFactory(providerName);
 #endif

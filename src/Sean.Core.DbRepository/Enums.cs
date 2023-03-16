@@ -26,9 +26,11 @@
         /// </summary>
         SQLite,
         /// <summary>
-        /// Access
+        /// MS Access
+        /// <para>- MS Access 2003 (*.mdb)</para>
+        /// <para>- MS Access 2007+ (*.accdb)</para>
         /// </summary>
-        Access,
+        MsAccess,
         /// <summary>
         /// Firebird
         /// </summary>

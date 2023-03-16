@@ -4,25 +4,31 @@ namespace Sean.Core.DbRepository.Extensions
 {
     public static class DbProviderFactoryExtensions
     {
-        public static DatabaseType GetDatabaseType(this DbProviderFactory providerFactory)
+        public static DatabaseType GetDatabaseType(this DbProviderFactory dbProviderFactory)
         {
-            if (providerFactory == null)
+            if (dbProviderFactory == null)
             {
                 return DatabaseType.Unknown;
             }
 
-            var dbType = DatabaseType.Unknown;
-            var name = providerFactory.GetType().Name;//Connecttion.GetType()
-            if (name.StartsWith("MySql")) dbType = DatabaseType.MySql;
-            else if (name.StartsWith("SqlClient")) dbType = DatabaseType.SqlServer;
-            else if (name.StartsWith("Oracle")) dbType = DatabaseType.Oracle;
-            else if (name.StartsWith("SQLite")) dbType = DatabaseType.SQLite;
-            //else if (dbFactoryName.StartsWith("OleDb")) _dbType = DatabaseType.Access;
-            else if (name.StartsWith("Firebird")) dbType = DatabaseType.Firebird;
-            else if (name.StartsWith("Npgsql")) dbType = DatabaseType.PostgreSql;
-            else if (name.StartsWith("DB2")) dbType = DatabaseType.DB2;
-            else if (name.StartsWith("Ifx")) dbType = DatabaseType.Informix;
-            return dbType;
+            DatabaseType? databaseType = DbContextConfiguration.Options.MapToDatabaseType?.Invoke(dbProviderFactory);
+            if (databaseType.HasValue && databaseType.Value != DatabaseType.Unknown)
+            {
+                return databaseType.Value;
+            }
+
+            var factoryName = dbProviderFactory.GetType().Name;
+            if (factoryName.StartsWith("MySql")) databaseType = DatabaseType.MySql;
+            else if (factoryName.StartsWith("SqlClient")) databaseType = DatabaseType.SqlServer;
+            else if (factoryName.StartsWith("Oracle")) databaseType = DatabaseType.Oracle;
+            else if (factoryName.StartsWith("SQLite")) databaseType = DatabaseType.SQLite;
+            //else if (factoryName.StartsWith("OleDb")) databaseType = DatabaseType.MsAccess;
+            else if (factoryName.StartsWith("Firebird")) databaseType = DatabaseType.Firebird;
+            else if (factoryName.StartsWith("Npgsql")) databaseType = DatabaseType.PostgreSql;
+            else if (factoryName.StartsWith("DB2")) databaseType = DatabaseType.DB2;
+            else if (factoryName.StartsWith("Ifx")) databaseType = DatabaseType.Informix;
+
+            return databaseType ?? DatabaseType.Unknown;
         }
     }
 }

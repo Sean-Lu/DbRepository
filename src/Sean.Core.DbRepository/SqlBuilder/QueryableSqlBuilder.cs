@@ -488,7 +488,7 @@ namespace Sean.Core.DbRepository
                         sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber};";
                         break;
                     case DatabaseType.SqlServer:
-                    case DatabaseType.Access:
+                    case DatabaseType.MsAccess:
                         sql.Sql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql};";
                         break;
                     case DatabaseType.Oracle:
@@ -540,7 +540,7 @@ namespace Sean.Core.DbRepository
                     return GetOffsetQuerySql(selectFields, offset, rows);// SQL Server 2012 ~ +
                 case DatabaseType.DB2:
                     return GetRowNumberQuerySql(selectFields, offset, rows);
-                case DatabaseType.Access:
+                case DatabaseType.MsAccess:
                     return $"SELECT TOP {rows} {selectFields} FROM (SELECT TOP {offset + rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}) t2;";
                 case DatabaseType.Oracle:
                     if (!string.IsNullOrWhiteSpace(OrderBySql))

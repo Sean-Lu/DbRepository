@@ -71,7 +71,7 @@ namespace Sean.Core.DbRepository
                     return "SELECT {0}.CURRVAL AS Id FROM dual;";// {0} => sequence
                 case DatabaseType.SQLite:
                     return "SELECT LAST_INSERT_ROWID() AS Id;";
-                case DatabaseType.Access:
+                case DatabaseType.MsAccess:
                     return "SELECT @@IDENTITY AS Id;";
                 case DatabaseType.PostgreSql:
                     return "SELECT LASTVAL() AS Id;";

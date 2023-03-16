@@ -111,7 +111,7 @@ namespace Sean.Core.DbRepository.Extensions
                     return $"SELECT COUNT(1) FROM user_tables WHERE table_name='{tableName}';";
                 case DatabaseType.SQLite:
                     return $"SELECT COUNT(1) FROM sqlite_master WHERE type = 'table' AND name='{tableName}';";
-                case DatabaseType.Access:
+                case DatabaseType.MsAccess:
                     return $"SELECT COUNT(1) FROM MsysObjects WHERE type = 1 AND name = '{tableName}';";
                 case DatabaseType.PostgreSql:
                     return $"SELECT COUNT(1) FROM pg_class WHERE relname = '{tableName}';";
