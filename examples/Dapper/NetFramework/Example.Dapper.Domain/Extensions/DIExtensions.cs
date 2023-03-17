@@ -52,16 +52,18 @@ namespace Example.Dapper.Domain.Extensions
 
         private static void OnSqlExecuting(SqlExecutingContext context)
         {
-            //Console.WriteLine(context.SqlParameter == null
-            //    ? $"######SQL准备执行: {context.Sql}"
-            //    : $"######SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+            //Console.WriteLine($"######SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
         }
 
         private static void OnSqlExecuted(SqlExecutedContext context)
         {
-            Console.WriteLine(context.SqlParameter == null
-                ? $"######SQL已经执行({context.ExecutionElapsed}ms): {context.Sql}"
-                : $"######SQL已经执行({context.ExecutionElapsed}ms): {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+            if (context.Exception != null)
+            {
+                Console.WriteLine($"######SQL执行异常({context.ExecutionElapsed}ms): {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}{Environment.NewLine}{context.Exception}");
+                return;
+            }
+
+            Console.WriteLine($"######SQL已经执行({context.ExecutionElapsed}ms): {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
         }
     }
 }

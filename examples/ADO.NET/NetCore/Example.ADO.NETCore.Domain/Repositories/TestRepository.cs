@@ -47,6 +47,13 @@ namespace Example.ADO.NETCore.Domain.Repositories
         {
             base.OnSqlExecuted(context);
 
+            if (context.Exception != null)
+            {
+                _logger.LogError($"SQL执行异常({context.ExecutionElapsed}ms): {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}{Environment.NewLine}{context.Exception}");
+                context.Handled = true;
+                return;
+            }
+
             _logger.LogInfo($"SQL已经执行({context.ExecutionElapsed}ms): {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}");
             context.Handled = true;
         }

@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 
 namespace Sean.Core.DbRepository;
 
@@ -23,4 +24,6 @@ public class SqlExecutedContext
     /// Gets the execution elapsed time, in milliseconds.
     /// </summary>
     public long ExecutionElapsed { get; set; }
+
+    public Exception Exception { get; set; }
 }

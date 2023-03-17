@@ -2,7 +2,6 @@
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
-using Sean.Utility.AOP;
 
 namespace Sean.Core.DbRepository.Extensions
 {
@@ -13,9 +12,7 @@ namespace Sean.Core.DbRepository.Extensions
     {
         public static T Execute<T>(this DbCommand command, ISqlMonitor sqlMonitor, Func<DbCommand, T> func)
         {
-            return AspectF.Define
-                .SqlMonitor(sqlMonitor, command)
-                .Return(() => func(command));
+            return sqlMonitor.Execute(command, () => func(command));
         }
         public static int ExecuteNonQuery(this DbCommand command, ISqlMonitor sqlMonitor)
         {
@@ -61,9 +58,7 @@ namespace Sean.Core.DbRepository.Extensions
 
         public static async Task<T> ExecuteAsync<T>(this DbCommand command, ISqlMonitor sqlMonitor, Func<DbCommand, Task<T>> func)
         {
-            return await AspectF.Define
-                .SqlMonitor(sqlMonitor, command)
-                .Return(async () => await func(command));
+            return await sqlMonitor.ExecuteAsync(command, async () => await func(command));
         }
         public static async Task<int> ExecuteNonQueryAsync(this DbCommand command, ISqlMonitor sqlMonitor)
         {
