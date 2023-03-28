@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using EntityFrameworkCore.Jet.Data;
 using EntityFrameworkCore.UseRowNumberForPaging;
 using Example.EF.Core.ConsoleApp.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ namespace Example.EF.Core.ConsoleApp
         {
             base.OnConfiguring(optionsBuilder);
 
+            #region 配置数据库连接
             //// MySQL: CRUD test passed.
             //var connString = "server=127.0.0.1;database=test;user id=root;password=12345!a";
             //optionsBuilder.UseMySQL(connString);
@@ -32,6 +34,14 @@ namespace Example.EF.Core.ConsoleApp
             //var connString = "server=127.0.0.1;database=test;uid=sa;pwd=12345!a;TrustServerCertificate=true";
             ////optionsBuilder.UseSqlServer(connString);// SQL Server 2012 ~ +
             //optionsBuilder.UseSqlServer(connString, c => c.UseRowNumberForPaging());// SQL Server 2005 ~ 2008
+
+            //// MS Access: CRUD test passed.
+            //// 1. 使用 Microsoft.ACE.OLEDB 需要安装：AccessDatabaseEngine.exe（x86\x64）      https://www.microsoft.com/zh-CN/download/details.aspx?id=13255
+            ////var connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=.\\Test.mdb";// MS Access 2003
+            //var connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=.\\Test.mdb";// MS Access 2003
+            ////var connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=.\\Test.accdb";// MS Access 2007+
+            //optionsBuilder.UseJet(connString, DataAccessProviderType.OleDb);
+            #endregion
 
             //// 设置不跟踪所有查询
             //optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);

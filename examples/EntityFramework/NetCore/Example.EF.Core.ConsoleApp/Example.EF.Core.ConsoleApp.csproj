@@ -2,19 +2,30 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net6.0</TargetFramework>
+		<!--<TargetFramework>net6.0</TargetFramework>-->
+		<!--<TargetFramework>net6.0-windows</TargetFramework>-->
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+	<PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+		<TargetFramework>net6.0</TargetFramework>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+		<DefineConstants>WINDOWS</DefineConstants>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<PlatformTarget>x86</PlatformTarget>
+	</PropertyGroup>
+
 	<ItemGroup>
-    <!-- SQL Server 2005 ~ 2008 -->
-    <PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.4.0" />
+		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.0-alpha.1" />
+		<!-- SQL Server 2005 ~ 2008 -->
+		<PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.4.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="MySql.EntityFrameworkCore" Version="7.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />

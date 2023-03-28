@@ -64,7 +64,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.ADO.NETCore.Domain"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.ADO.NETCore.Infrastructure", "examples\ADO.NET\NetCore\Example.ADO.NETCore.Infrastructure\Example.ADO.NETCore.Infrastructure.csproj", "{DD9B60DE-08EC-492F-8242-5C8670C11565}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Common", "examples\Example.Common\Example.Common.csproj", "{19327AA9-5275-48B8-8D3D-F1C31D142D42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Common", "examples\Example.Common\Example.Common.csproj", "{19327AA9-5275-48B8-8D3D-F1C31D142D42}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

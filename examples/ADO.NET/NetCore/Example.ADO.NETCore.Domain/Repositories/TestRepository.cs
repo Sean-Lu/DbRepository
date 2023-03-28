@@ -27,6 +27,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             ) : base(configuration, "test_SQLite")// SQLite: CRUD test passed.
             //) : base(configuration, "test_SqlServer")// SQL Server: CRUD test passed.
             //) : base(configuration, "test_Oracle")// Oracle
+            //) : base(configuration, "test_MsAccess")// MsAccess
             //) : base(configuration, "test_PostgreSql")// PostgreSql
             //) : base(configuration, "test_Firebird")// Firebird
             //) : base(configuration, "test_Informix")// Informix
@@ -72,6 +73,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
                 DatabaseType.MySql => File.ReadAllText(@"./SQL/MySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.SQLite => File.ReadAllText(@"./SQL/SQLite_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.SqlServer => File.ReadAllText(@"./SQL/SQLSever_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.MsAccess => File.ReadAllText(@"./SQL/MsAccess_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()
             };
         }

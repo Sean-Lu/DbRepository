@@ -10,7 +10,7 @@ namespace Sean.Core.DbRepository
 {
     public abstract class CountableSqlBuilder : BaseSqlBuilder
     {
-        public const string SqlTemplate = "SELECT COUNT(1) FROM {0}{1};";
+        public const string SqlTemplate = "SELECT COUNT(*) FROM {0}{1};";
 
         protected CountableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
         {

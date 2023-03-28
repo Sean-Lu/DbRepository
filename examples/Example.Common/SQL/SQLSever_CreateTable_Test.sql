@@ -15,5 +15,5 @@
   [Remark] nvarchar(max) NULL,
   [CreateTime] datetime2 NOT NULL,
   [UpdateTime] datetime2 NULL,
-  CONSTRAINT [PK_Test] PRIMARY KEY ([Id])
+  CONSTRAINT [PK_{$TableName$}] PRIMARY KEY ([Id])
 );

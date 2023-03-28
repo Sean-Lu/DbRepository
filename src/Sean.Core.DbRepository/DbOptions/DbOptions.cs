@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.IO;
 using System.Reflection;
 using System;
+using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository;
 
@@ -36,6 +37,22 @@ public class DbOptions
 
     public Func<DbProviderFactory, DatabaseType> MapToDatabaseType;
     public Func<DatabaseType, DbProviderFactory> MapToDbProviderFactory;
+
+    /// <summary>
+    /// <see cref="DatabaseTypeExtensions.GetSqlForTableExists"/>
+    /// </summary>
+    public Func<DatabaseType, string, string, string> GetSqlForTableExists;
+    /// <summary>
+    /// <see cref="DatabaseTypeExtensions.GetSqlForTableFieldExists"/>
+    /// </summary>
+    public Func<DatabaseType, string, string, string, string> GetSqlForTableFieldExists;
+    /// <summary>
+    /// <see cref="DatabaseTypeExtensions.GetSqlForGetLastIdentityId"/>
+    /// </summary>
+    public Func<DatabaseType, string> GetSqlForGetLastIdentityId;
+
+    public Func<DatabaseType, DbConnection, string, bool?> IsTableExists;
+    public Func<DatabaseType, DbConnection, string, string, bool?> IsTableFieldExists;
 
     public event Action<SqlExecutingContext> SqlExecuting;
     public event Action<SqlExecutedContext> SqlExecuted;

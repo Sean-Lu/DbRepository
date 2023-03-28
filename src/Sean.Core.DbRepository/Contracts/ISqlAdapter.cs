@@ -14,8 +14,6 @@
         string FormatFieldName(string fieldName, string tableName);
 
         string FormatInputParameter(string parameter);
-
-        string GetSqlForSelectLastInsertId();
     }
 }
 

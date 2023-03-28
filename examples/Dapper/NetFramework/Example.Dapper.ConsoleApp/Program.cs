@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Reflection;
 using Example.Dapper.Application.Extensions;
 using Example.Dapper.ConsoleApp.Impls;
 using Example.Dapper.Infrastructure;
+using Example.Dapper.Infrastructure.Helper;
 using Sean.Core.DependencyInjection;
 using Sean.Utility.Contracts;
 
@@ -27,6 +29,15 @@ namespace Example.Dapper.ConsoleApp
                     container.RegisterType(c, c, ServiceLifeStyle.Transient);
                 });
             });
+
+            #region 创建 Access 数据库
+            //var accessConnString = ConfigurationManager.ConnectionStrings["test_MsAccess"]?.ConnectionString;
+            //if (!string.IsNullOrWhiteSpace(accessConnString))
+            //{
+            //    MsAccessHelper.CreateDatabase(accessConnString);
+            //    Console.WriteLine($"Access 数据库已经创建成功：{accessConnString}");
+            //}
+            #endregion
 
             ISimpleDo toDo = DIManager.Resolve<DBTest>();
             toDo.Execute();

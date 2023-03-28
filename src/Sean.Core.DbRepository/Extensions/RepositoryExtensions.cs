@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+#if NETFRAMEWORK
+using System.Data.Odbc;
+using System.Data.OleDb;
+#endif
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -318,7 +322,7 @@ namespace Sean.Core.DbRepository.Extensions
                 return true;
             }
 
-            bool exists;
+            bool? exists = null;
 #if NET45
             using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
 #else
@@ -326,15 +330,32 @@ namespace Sean.Core.DbRepository.Extensions
 #endif
             using (var connection = repository.Factory.OpenNewConnection(connectionString))
             {
-                var sql = SqlUtil.GetSqlForCountTable(repository.DbType, connection.Database, tableName);
-                exists = func(sql, connection);
+                exists = DbContextConfiguration.Options.IsTableExists?.Invoke(repository.DbType, connection, tableName);
+
+                if (!exists.HasValue && repository.DbType == DatabaseType.MsAccess)
+                {
+#if NETFRAMEWORK
+                    exists = connection switch
+                    {
+                        OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
+                        OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
+                        _ => null
+                    };
+#endif
+                }
+
+                if (!exists.HasValue)
+                {
+                    var sql = repository.DbType.GetSqlForTableExists(connection.Database, tableName);
+                    exists = func(sql, connection);
+                }
             }
 
-            if (useCache && exists)
+            if (useCache && exists.GetValueOrDefault())
             {
                 TableInfoCache.AddTable(connectionString, master, tableName);
             }
-            return exists;
+            return exists.GetValueOrDefault();
         }
 
         public static bool IsTableFieldExists(this IBaseRepository repository, string tableName, string fieldName, Func<string, IDbConnection, bool> func, bool master = true, bool useCache = true)
@@ -350,7 +371,7 @@ namespace Sean.Core.DbRepository.Extensions
                 return true;
             }
 
-            bool exists;
+            bool? exists = null;
 #if NET45
             using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
 #else
@@ -358,15 +379,32 @@ namespace Sean.Core.DbRepository.Extensions
 #endif
             using (var connection = repository.Factory.OpenNewConnection(connectionString))
             {
-                var sql = SqlUtil.GetSqlForCountTableField(repository.DbType, connection.Database, tableName, fieldName);
-                exists = func(sql, connection);
+                exists = DbContextConfiguration.Options.IsTableFieldExists?.Invoke(repository.DbType, connection, tableName, fieldName);
+
+                if (!exists.HasValue && repository.DbType == DatabaseType.MsAccess)
+                {
+#if NETFRAMEWORK
+                    exists = connection switch
+                    {
+                        OleDbConnection oleDbConnection => oleDbConnection.IsTableFieldExists(tableName, fieldName),
+                        OdbcConnection odbcConnection => odbcConnection.IsTableFieldExists(tableName, fieldName),
+                        _ => null
+                    };
+#endif
+                }
+
+                if (!exists.HasValue)
+                {
+                    var sql = repository.DbType.GetSqlForTableFieldExists(connection.Database, tableName, fieldName);
+                    exists = func(sql, connection);
+                }
             }
 
-            if (useCache && exists)
+            if (useCache && exists.GetValueOrDefault())
             {
                 TableInfoCache.AddTableField(connectionString, master, tableName, fieldName);
             }
-            return exists;
+            return exists.GetValueOrDefault();
         }
 
         public static async Task<bool> IsTableExistsAsync(this IBaseRepository repository, string tableName, Func<string, IDbConnection, Task<bool>> func, bool master = true, bool useCache = true)
@@ -382,7 +420,7 @@ namespace Sean.Core.DbRepository.Extensions
                 return true;
             }
 
-            bool exists;
+            bool? exists = null;
 #if NET45
             using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
 #else
@@ -390,15 +428,32 @@ namespace Sean.Core.DbRepository.Extensions
 #endif
             using (var connection = repository.Factory.OpenNewConnection(connectionString))
             {
-                var sql = SqlUtil.GetSqlForCountTable(repository.DbType, connection.Database, tableName);
-                exists = await func(sql, connection);
+                exists = DbContextConfiguration.Options.IsTableExists?.Invoke(repository.DbType, connection, tableName);
+
+                if (!exists.HasValue && repository.DbType == DatabaseType.MsAccess)
+                {
+#if NETFRAMEWORK
+                    exists = connection switch
+                    {
+                        OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
+                        OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
+                        _ => null
+                    };
+#endif
+                }
+
+                if (!exists.HasValue)
+                {
+                    var sql = repository.DbType.GetSqlForTableExists(connection.Database, tableName);
+                    exists = await func(sql, connection);
+                }
             }
 
-            if (useCache && exists)
+            if (useCache && exists.GetValueOrDefault())
             {
                 TableInfoCache.AddTable(connectionString, master, tableName);
             }
-            return exists;
+            return exists.GetValueOrDefault();
         }
 
         public static async Task<bool> IsTableFieldExistsAsync(this IBaseRepository repository, string tableName, string fieldName, Func<string, IDbConnection, Task<bool>> func, bool master = true, bool useCache = true)
@@ -414,7 +469,7 @@ namespace Sean.Core.DbRepository.Extensions
                 return true;
             }
 
-            bool exists;
+            bool? exists = null;
 #if NET45
             using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
 #else
@@ -422,15 +477,32 @@ namespace Sean.Core.DbRepository.Extensions
 #endif
             using (var connection = repository.Factory.OpenNewConnection(connectionString))
             {
-                var sql = SqlUtil.GetSqlForCountTableField(repository.DbType, connection.Database, tableName, fieldName);
-                exists = await func(sql, connection);
+                exists = DbContextConfiguration.Options.IsTableFieldExists?.Invoke(repository.DbType, connection, tableName, fieldName);
+
+                if (!exists.HasValue && repository.DbType == DatabaseType.MsAccess)
+                {
+#if NETFRAMEWORK
+                    exists = connection switch
+                    {
+                        OleDbConnection oleDbConnection => oleDbConnection.IsTableFieldExists(tableName, fieldName),
+                        OdbcConnection odbcConnection => odbcConnection.IsTableFieldExists(tableName, fieldName),
+                        _ => null
+                    };
+#endif
+                }
+
+                if (!exists.HasValue)
+                {
+                    var sql = repository.DbType.GetSqlForTableFieldExists(connection.Database, tableName, fieldName);
+                    exists = await func(sql, connection);
+                }
             }
 
-            if (useCache && exists)
+            if (useCache && exists.GetValueOrDefault())
             {
                 TableInfoCache.AddTableField(connectionString, master, tableName, fieldName);
             }
-            return exists;
+            return exists.GetValueOrDefault();
         }
     }
 }

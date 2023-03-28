@@ -94,15 +94,41 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         PropertyInfo keyIdentityProperty;
         if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
         {
-            var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
-            sqlCommandReturnId.Master = true;
-            sqlCommandReturnId.Transaction = transaction;
-            sqlCommandReturnId.CommandTimeout = CommandTimeout;
-            var id = ExecuteScalar<long>(sqlCommandReturnId);
-            if (id < 1) return false;
+            if (DbType == DatabaseType.MsAccess)
+            {
+                var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
+                sqlCommandReturnId.Master = true;
+                sqlCommandReturnId.Transaction = transaction;
+                sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                var addResult = Execute(sqlCommandReturnId) > 0;
+                if (!addResult)
+                {
+                    return false;
+                }
+                var id = ExecuteScalar<long>(DbType.GetSqlForGetLastIdentityId());
+                if (id < 1)
+                {
+                    return false;
+                }
 
-            keyIdentityProperty.SetValue(entity, id, null);
-            return true;
+                keyIdentityProperty.SetValue(entity, id, null);
+                return true;
+            }
+            else
+            {
+                var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
+                sqlCommandReturnId.Master = true;
+                sqlCommandReturnId.Transaction = transaction;
+                sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                var id = ExecuteScalar<long>(sqlCommandReturnId);
+                if (id < 1)
+                {
+                    return false;
+                }
+
+                keyIdentityProperty.SetValue(entity, id, null);
+                return true;
+            }
         }
 
         var sqlCommand = this.GetSqlForAdd(entity, false, fieldExpression);
@@ -530,15 +556,41 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         PropertyInfo keyIdentityProperty;
         if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
         {
-            var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
-            sqlCommandReturnId.Master = true;
-            sqlCommandReturnId.Transaction = transaction;
-            sqlCommandReturnId.CommandTimeout = CommandTimeout;
-            var id = await ExecuteScalarAsync<long>(sqlCommandReturnId);
-            if (id < 1) return false;
+            if (DbType == DatabaseType.MsAccess)
+            {
+                var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
+                sqlCommandReturnId.Master = true;
+                sqlCommandReturnId.Transaction = transaction;
+                sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                var addResult = await ExecuteAsync(sqlCommandReturnId) > 0;
+                if (!addResult)
+                {
+                    return false;
+                }
+                var id = await ExecuteScalarAsync<long>(DbType.GetSqlForGetLastIdentityId());
+                if (id < 1)
+                {
+                    return false;
+                }
 
-            keyIdentityProperty.SetValue(entity, id, null);
-            return true;
+                keyIdentityProperty.SetValue(entity, id, null);
+                return true;
+            }
+            else
+            {
+                var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
+                sqlCommandReturnId.Master = true;
+                sqlCommandReturnId.Transaction = transaction;
+                sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                var id = await ExecuteScalarAsync<long>(sqlCommandReturnId);
+                if (id < 1)
+                {
+                    return false;
+                }
+
+                keyIdentityProperty.SetValue(entity, id, null);
+                return true;
+            }
         }
 
         var sqlCommand = this.GetSqlForAdd(entity, false, fieldExpression);

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data.Common;
-using System.Linq;
 
 namespace Sean.Core.DbRepository.Extensions
 {
@@ -91,6 +90,7 @@ namespace Sean.Core.DbRepository.Extensions
                     return $"[{name}]";
                 case DatabaseType.MySql:
                 case DatabaseType.SQLite:
+                case DatabaseType.MsAccess:
                     return $"`{name}`";
                 case DatabaseType.PostgreSql:
                     return $"\"{name}\"";
@@ -99,45 +99,121 @@ namespace Sean.Core.DbRepository.Extensions
             }
         }
 
-        public static string GetSqlForCountTable(this DatabaseType dbType, string dbName, string tableName)
+        #region SQL
+        public static string GetSqlForTableExists(this DatabaseType dbType, string dbName, string tableName)
         {
+            var sql = DbContextConfiguration.Options.GetSqlForTableExists?.Invoke(dbType, dbName, tableName);
+            if (!string.IsNullOrWhiteSpace(sql))
+            {
+                return sql;
+            }
+
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    return $"SELECT COUNT(1) FROM information_schema.tables WHERE table_schema = '{dbName}' AND table_name = '{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{dbName}' AND table_name = '{tableName}';";
+                    break;
                 case DatabaseType.SqlServer:
-                    return $"SELECT COUNT(1) FROM sys.tables WHERE type = 'u' AND name='{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM sys.tables WHERE type = 'u' AND name='{tableName}';";
+                    break;
                 case DatabaseType.Oracle:
-                    return $"SELECT COUNT(1) FROM user_tables WHERE table_name='{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name='{tableName}';";
+                    break;
                 case DatabaseType.SQLite:
-                    return $"SELECT COUNT(1) FROM sqlite_master WHERE type = 'table' AND name='{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM sqlite_master WHERE type = 'table' AND name='{tableName}';";
+                    break;
                 case DatabaseType.MsAccess:
-                    return $"SELECT COUNT(1) FROM MsysObjects WHERE type = 1 AND name = '{tableName}';";
+                    //sql = $"SELECT COUNT(*) AS TableCount FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='PUBLIC' AND TABLE_NAME='{tableName.ToUpper()}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM MSysObjects WHERE Name='{tableName}' AND Type=1 AND Flags=0;";
+                    break;
+                case DatabaseType.Firebird:
+                    sql = $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$OWNER_NAME = '{dbName}';";
+                    break;
                 case DatabaseType.PostgreSql:
-                    return $"SELECT COUNT(1) FROM pg_class WHERE relname = '{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{dbName}' AND table_name = '{tableName}';";
+                    break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
             }
+            return sql;
         }
 
-        public static string GetSqlForCountTableField(this DatabaseType dbType, string dbName, string tableName, string fieldName)
+        public static string GetSqlForTableFieldExists(this DatabaseType dbType, string dbName, string tableName, string fieldName)
         {
+            var sql = DbContextConfiguration.Options.GetSqlForTableFieldExists?.Invoke(dbType, dbName, tableName, fieldName);
+            if (!string.IsNullOrWhiteSpace(sql))
+            {
+                return sql;
+            }
+
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    return $"SELECT COUNT(1) FROM information_schema.columns WHERE table_schema = '{dbName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{dbName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
+                    break;
                 case DatabaseType.SqlServer:
-                    return $"SELECT COUNT(1) FROM sys.columns WHERE object_id = object_id('{tableName}') AND name='{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM sys.columns WHERE object_id = object_id('{tableName}') AND name='{fieldName}';";
+                    break;
                 case DatabaseType.Oracle:
-                    return $"SELECT COUNT(1) FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}';";
+                    break;
                 case DatabaseType.SQLite:
-                    //return $"PRAGMA table_info('{tableName}');";
-                    return $"SELECT COUNT(1) FROM pragma_table_info('{tableName}') WHERE name='{fieldName}';";
+                    //sql = $"PRAGMA table_info('{tableName}');";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM pragma_table_info('{tableName}') WHERE name='{fieldName}';";
+                    break;
+                case DatabaseType.MsAccess:
+                    //sql = $"SELECT COUNT(*) AS ColumnCount FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='PUBLIC' AND TABLE_NAME='{tableName.ToUpper()}' AND COLUMN_NAME='{fieldName.ToUpper()}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM MSysObjects INNER JOIN MSysColumns ON MSysObjects.Id = MSysColumns.Id WHERE MSysObjects.Name='{tableName}' AND MSysColumns.Name='{fieldName}' AND MSysObjects.Type=1 AND MSysObjects.Flags=0;";
+                    break;
+                case DatabaseType.Firebird:
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$FIELD_NAME = '{fieldName}';";
+                    break;
                 case DatabaseType.PostgreSql:
-                    return $"SELECT COUNT(1) FROM information_schema.columns WHERE table_schema = '{dbName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{dbName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
+                    break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
             }
+            return sql;
         }
+
+        public static string GetSqlForGetLastIdentityId(this DatabaseType dbType)
+        {
+            var sql = DbContextConfiguration.Options.GetSqlForGetLastIdentityId?.Invoke(dbType);
+            if (!string.IsNullOrWhiteSpace(sql))
+            {
+                return sql;
+            }
+
+            switch (dbType)
+            {
+                case DatabaseType.MySql:
+                    sql = "SELECT LAST_INSERT_ID() AS Id;";
+                    break;
+                case DatabaseType.SqlServer:
+                    //sql = "SELECT @@IDENTITY AS Id;";// 返回为当前会话的所有作用域中的任何表最后生成的标识值
+                    sql = "SELECT SCOPE_IDENTITY() AS Id;";// 返回为当前会话和当前作用域中的任何表最后生成的标识值
+                    break;
+                case DatabaseType.Oracle:
+                    sql = "SELECT {0}.CURRVAL AS Id FROM dual;";// {0} => sequence
+                    break;
+                case DatabaseType.SQLite:
+                    sql = "SELECT LAST_INSERT_ROWID() AS Id;";
+                    break;
+                case DatabaseType.MsAccess:
+                    sql = "SELECT @@IDENTITY AS Id;";
+                    break;
+                case DatabaseType.Firebird:
+                    sql = "SELECT LAST_INSERT_ID() AS Id FROM RDB$DATABASE;";
+                    break;
+                case DatabaseType.PostgreSql:
+                    sql = "SELECT LASTVAL() AS Id;";
+                    break;
+                default:
+                    throw new NotSupportedException($"Unsupported database type: {dbType}");
+            }
+            return sql;
+        }
+        #endregion
     }
 }

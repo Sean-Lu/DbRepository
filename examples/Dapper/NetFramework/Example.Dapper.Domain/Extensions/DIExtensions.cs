@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data.Odbc;
+using System.Data.OleDb;
 using System.Data.SqlClient;
 using System.Data.SQLite;
 using System.Reflection;
@@ -32,10 +34,20 @@ namespace Example.Dapper.Domain.Extensions
             //DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", OracleClientFactory.Instance));// Oracle
             DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", SQLiteFactory.Instance));// SQLite
             //DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));// SQLite
+            DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.OleDb", OleDbFactory.Instance));// MsAccess
+            //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("EntityFrameworkCore.Jet.Data", JetFactory.Instance.GetDataAccessProviderFactory(DataAccessProviderType.OleDb)));// MsAccess
             #endregion
 
             DbContextConfiguration.Configure(options =>
             {
+                options.MapToDatabaseType = factory =>
+                {
+                    if (factory is OleDbFactory or OdbcFactory)
+                    {
+                        return DatabaseType.MsAccess;
+                    }
+                    return DatabaseType.Unknown;
+                };
                 options.BulkEntityCount = 200;
                 options.JsonSerializer = NewJsonSerializer.Instance;
                 options.SqlExecuting += OnSqlExecuting;

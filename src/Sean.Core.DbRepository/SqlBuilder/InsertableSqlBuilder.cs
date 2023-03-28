@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DbRepository.Util;
+using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository
 {
@@ -23,7 +24,6 @@ VALUES{2};";
     {
         private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
         private bool _returnLastInsertId;
-        private bool _includeIdentityFields;
         private object _parameter;
 
         private InsertableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
@@ -92,12 +92,6 @@ VALUES{2};";
             return this;
         }
 
-        public virtual IInsertable<TEntity> IncludeIdentityFields(bool includeIdentityFields = true)
-        {
-            _includeIdentityFields = includeIdentityFields;
-            return this;
-        }
-
         public virtual IInsertable<TEntity> SetParameter(object param)
         {
             _parameter = param;
@@ -108,7 +102,7 @@ VALUES{2};";
         {
             CheckIncludeIdentityFields();
 
-            var fields = !_includeIdentityFields ? _includeFieldsList.Where(c => !c.Identity).ToList() : _includeFieldsList;
+            var fields = _includeFieldsList.Where(c => !c.Identity).ToList();
             if (!fields.Any())
                 return default;
 
@@ -194,10 +188,10 @@ VALUES{2};";
                 {
                     case DatabaseType.Oracle:
                         var sequence = typeof(TEntity).GetEntityInfo()?.Sequence;
-                        sb.Append(string.Format(SqlAdapter.GetSqlForSelectLastInsertId(), sequence));
+                        sb.Append(string.Format(SqlAdapter.DbType.GetSqlForGetLastIdentityId(), sequence));
                         break;
                     default:
-                        sb.Append(SqlAdapter.GetSqlForSelectLastInsertId());
+                        sb.Append(SqlAdapter.DbType.GetSqlForGetLastIdentityId());
                         break;
                 }
             }
@@ -212,7 +206,7 @@ VALUES{2};";
 
         private void CheckIncludeIdentityFields()
         {
-            if (!_includeIdentityFields && _parameter != null && _includeFieldsList.Any(c => c.Identity))
+            if (_parameter != null && _includeFieldsList.Any(c => c.Identity))
             {
                 var identityFieldInfos = _includeFieldsList.Where(c => c.Identity);
                 var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
@@ -222,19 +216,13 @@ VALUES{2};";
                     {
                         var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == identityFieldInfo.FieldName);
                         var property = findFieldInfo?.Property;
-                        if (property != null)
+                        if (property != null && entities.Any())
                         {
-                            var type = property.PropertyType;
-                            if (type == typeof(long))
+                            var value = property.GetValue(entities.FirstOrDefault());
+                            var defaultValue = property.PropertyType.GetDefaultValue();
+                            if (!Equals(value, defaultValue))
                             {
-                                if (entities.Any(entity =>
-                                {
-                                    var longValue = (long)property.GetValue(entity);
-                                    return longValue > 0;
-                                }))
-                                {
-                                    identityFieldInfo.Identity = false;
-                                }
+                                identityFieldInfo.Identity = false;
                             }
                         }
                     }
@@ -247,14 +235,11 @@ VALUES{2};";
                         var property = findFieldInfo?.Property;
                         if (property != null)
                         {
-                            var type = property.PropertyType;
-                            if (type == typeof(long))
+                            var value = property.GetValue(_parameter);
+                            var defaultValue = property.PropertyType.GetDefaultValue();
+                            if (!Equals(value, defaultValue))
                             {
-                                var longValue = (long)property.GetValue(_parameter);
-                                if (longValue > 0)
-                                {
-                                    identityFieldInfo.Identity = false;
-                                }
+                                identityFieldInfo.Identity = false;
                             }
                         }
                     }
@@ -322,13 +307,6 @@ VALUES{2};";
         /// <param name="returnAutoIncrementId"></param>
         /// <returns></returns>
         IInsertable<TEntity> ReturnAutoIncrementId(bool returnAutoIncrementId = true);
-
-        /// <summary>
-        /// 是否包含自增字段（默认会忽略自增字段）
-        /// </summary>
-        /// <param name="includeIdentityFields"></param>
-        /// <returns></returns>
-        IInsertable<TEntity> IncludeIdentityFields(bool includeIdentityFields = true);
 
         /// <summary>
         /// 设置SQL入参
