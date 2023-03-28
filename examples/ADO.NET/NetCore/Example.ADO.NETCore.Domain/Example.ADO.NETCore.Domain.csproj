@@ -13,6 +13,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="MySql.Data" Version="8.0.32" />
+		<PackageReference Include="Npgsql" Version="7.0.2" />
 		<PackageReference Include="System.Data.OleDb" Version="6.0.0" />
 		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
 		<!--<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="3.1.1" />-->

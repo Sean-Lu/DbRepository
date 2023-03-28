@@ -41,6 +41,10 @@ namespace Example.EF.Core.ConsoleApp
             //var connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=.\\Test.mdb";// MS Access 2003
             ////var connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=.\\Test.accdb";// MS Access 2007+
             //optionsBuilder.UseJet(connString, DataAccessProviderType.OleDb);
+
+            //// PostgreSql: CRUD test passed.
+            //var connString = "server=192.168.192.128;database=postgres;username=postgres;password=12345!a";
+            //optionsBuilder.UseNpgsql(connString);
             #endregion
 
             //// 设置不跟踪所有查询

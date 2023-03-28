@@ -7,6 +7,9 @@ using Newtonsoft.Json;
 
 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置当前工作目录：@".\"
 
+// 解决 PostgreSQL 在使用 DateTime 类型抛出异常：Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 //var connString = "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a";
 //var optionsBuilder = new DbContextOptionsBuilder<EFDbContext>();
 //optionsBuilder.UseMySQL(connString);

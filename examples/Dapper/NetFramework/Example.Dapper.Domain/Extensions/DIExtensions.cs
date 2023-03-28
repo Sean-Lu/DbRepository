@@ -8,6 +8,7 @@ using Example.Dapper.Infrastructure.Extensions;
 using Example.Dapper.Infrastructure.Impls;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using Npgsql;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DependencyInjection;
@@ -36,7 +37,11 @@ namespace Example.Dapper.Domain.Extensions
             //DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));// SQLite
             DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.OleDb", OleDbFactory.Instance));// MsAccess
             //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("EntityFrameworkCore.Jet.Data", JetFactory.Instance.GetDataAccessProviderFactory(DataAccessProviderType.OleDb)));// MsAccess
+            DatabaseType.PostgreSql.SetDbProviderMap(new DbProviderMap("Npgsql", NpgsqlFactory.Instance));// PostgreSql
             #endregion
+
+            // 解决 PostgreSQL 在使用 DateTime 类型抛出异常：Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported.
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
             DbContextConfiguration.Configure(options =>
             {

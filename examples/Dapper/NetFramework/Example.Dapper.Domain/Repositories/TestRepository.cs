@@ -26,7 +26,7 @@ namespace Example.Dapper.Domain.Repositories
             //) : base("test_SqlServer")// SQL Server: CRUD test passed.
             //) : base("test_Oracle")// Oracle
             //) : base("test_MsAccess")// MsAccess
-            //) : base("test_PostgreSql")// PostgreSql
+            //) : base("test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base("test_Firebird")// Firebird
             //) : base("test_Informix")// Informix
             //) : base("test_DB2")// DB2
@@ -72,6 +72,7 @@ namespace Example.Dapper.Domain.Repositories
                 DatabaseType.SQLite => File.ReadAllText(@"./SQL/SQLite_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.SqlServer => File.ReadAllText(@"./SQL/SQLSever_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.MsAccess => File.ReadAllText(@"./SQL/MsAccess_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.PostgreSql => File.ReadAllText(@"./SQL/PostgreSql_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()
             };
         }
