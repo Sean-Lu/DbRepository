@@ -100,9 +100,9 @@ namespace Sean.Core.DbRepository.Extensions
         }
 
         #region SQL
-        public static string GetSqlForTableExists(this DatabaseType dbType, string dbName, string tableName)
+        public static string GetSqlForTableExists(this DatabaseType dbType, string schemaName, string tableName)
         {
-            var sql = DbContextConfiguration.Options.GetSqlForTableExists?.Invoke(dbType, dbName, tableName);
+            var sql = DbContextConfiguration.Options.GetSqlForTableExists?.Invoke(dbType, schemaName, tableName);
             if (!string.IsNullOrWhiteSpace(sql))
             {
                 return sql;
@@ -111,7 +111,7 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{dbName}' AND table_name = '{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{schemaName}' AND table_name = '{tableName}';";
                     break;
                 case DatabaseType.SqlServer:
                     sql = $"SELECT COUNT(*) AS TableCount FROM sys.tables WHERE type = 'u' AND name='{tableName}';";
@@ -127,10 +127,16 @@ namespace Sean.Core.DbRepository.Extensions
                     sql = $"SELECT COUNT(*) AS TableCount FROM MSysObjects WHERE Name='{tableName}' AND Type=1 AND Flags=0;";
                     break;
                 case DatabaseType.Firebird:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$OWNER_NAME = '{dbName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$OWNER_NAME = '{schemaName}';";
                     break;
                 case DatabaseType.PostgreSql:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{dbName}' AND table_name = '{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{schemaName}' AND table_name = '{tableName}';";
+                    break;
+                case DatabaseType.DB2:
+                    sql = $"SELECT COUNT(*) AS TableCount FROM SYSIBM.SYSTABLES WHERE NAME = '{tableName}' AND CREATOR = '{schemaName}';";
+                    break;
+                case DatabaseType.Informix:
+                    sql = $"SELECT COUNT(*) AS TableCount FROM systables WHERE tabname='{tableName}' AND creator='{schemaName}';";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
@@ -138,9 +144,9 @@ namespace Sean.Core.DbRepository.Extensions
             return sql;
         }
 
-        public static string GetSqlForTableFieldExists(this DatabaseType dbType, string dbName, string tableName, string fieldName)
+        public static string GetSqlForTableFieldExists(this DatabaseType dbType, string schemaName, string tableName, string fieldName)
         {
-            var sql = DbContextConfiguration.Options.GetSqlForTableFieldExists?.Invoke(dbType, dbName, tableName, fieldName);
+            var sql = DbContextConfiguration.Options.GetSqlForTableFieldExists?.Invoke(dbType, schemaName, tableName, fieldName);
             if (!string.IsNullOrWhiteSpace(sql))
             {
                 return sql;
@@ -149,7 +155,7 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{dbName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{schemaName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
                     break;
                 case DatabaseType.SqlServer:
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM sys.columns WHERE object_id = object_id('{tableName}') AND name='{fieldName}';";
@@ -169,7 +175,13 @@ namespace Sean.Core.DbRepository.Extensions
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$FIELD_NAME = '{fieldName}';";
                     break;
                 case DatabaseType.PostgreSql:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{dbName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{schemaName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
+                    break;
+                case DatabaseType.DB2:
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM SYSIBM.SYSCOLUMNS WHERE TBNAME = '{tableName}' AND TBCREATOR = '{schemaName}' AND NAME = '{fieldName}';";
+                    break;
+                case DatabaseType.Informix:
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM syscolumns WHERE tabid=(SELECT tabid FROM systables WHERE tabname='{tableName}' AND creator='{schemaName}') AND colname='{fieldName}';";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
@@ -208,6 +220,12 @@ namespace Sean.Core.DbRepository.Extensions
                     break;
                 case DatabaseType.PostgreSql:
                     sql = "SELECT LASTVAL() AS Id;";
+                    break;
+                case DatabaseType.DB2:
+                    sql = "SELECT IDENTITY_VAL_LOCAL() AS Id FROM SYSIBM.SYSDUMMY1;";
+                    break;
+                case DatabaseType.Informix:
+                    sql = "SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabid=1;";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
