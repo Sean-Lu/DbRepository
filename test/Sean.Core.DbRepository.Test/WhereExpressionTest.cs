@@ -340,7 +340,7 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
-        /// StartsWith
+        /// string.StartsWith()
         /// </summary>
         [TestMethod]
         public void ValidateStartsWith()
@@ -356,7 +356,23 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
-        /// EndsWith
+        /// !string.StartsWith()
+        /// </summary>
+        [TestMethod]
+        public void ValidateNotStartsWith()
+        {
+            Expression<Func<TestEntity, bool>> whereExpression = entity => !entity.Remark.StartsWith("≤‚ ‘");
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Remark", "≤‚ ‘%" }
+            };
+            Assert.AreEqual("`Remark` NOT LIKE @Remark", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// string.EndsWith()
         /// </summary>
         [TestMethod]
         public void ValidateEndsWith()
@@ -372,7 +388,7 @@ namespace Sean.Core.DbRepository.Test
             AssertSqlParameters(expectedParameters, parameters);
         }
         /// <summary>
-        /// EndsWith
+        /// string.EndsWith()
         /// </summary>
         [TestMethod]
         public void ValidateEndsWith2()
@@ -385,6 +401,22 @@ namespace Sean.Core.DbRepository.Test
                 { "Remark", $"%{model.UserName}" }
             };
             Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// !string.EndsWith()
+        /// </summary>
+        [TestMethod]
+        public void ValidateNotEndsWith()
+        {
+            Expression<Func<TestEntity, bool>> whereExpression = entity => !entity.Remark.EndsWith("≤‚ ‘");
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Remark", "%≤‚ ‘" }
+            };
+            Assert.AreEqual("`Remark` NOT LIKE @Remark", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
@@ -451,6 +483,22 @@ namespace Sean.Core.DbRepository.Test
                 { "Remark", "%Te%" }
             };
             Assert.AreEqual("`Remark` LIKE @Remark", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// !string.Contains()
+        /// </summary>
+        [TestMethod]
+        public void ValidateNotStringContains()
+        {
+            Expression<Func<TestEntity, bool>> whereExpression = entity => !entity.Remark.Contains("≤‚ ‘");
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Remark", "%≤‚ ‘%" }
+            };
+            Assert.AreEqual("`Remark` NOT LIKE @Remark", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
@@ -1108,45 +1156,6 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateIsNullOrWhiteSpace()
         {
             Expression<Func<TestEntity, bool>> whereExpression = entity => string.IsNullOrWhiteSpace(entity.Email);
-            Assert.ThrowsException<NotSupportedException>(() =>
-            {
-                var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
-            });
-        }
-
-        /// <summary>
-        /// !StartsWith°æ≤ª÷ß≥÷£¨«Îøº¬« π”√ StartsWith ¥˙ÃÊ°ø
-        /// </summary>
-        [TestMethod]
-        public void ValidateNotStartsWith()
-        {
-            Expression<Func<TestEntity, bool>> whereExpression = entity => !entity.Remark.StartsWith("≤‚ ‘");
-            Assert.ThrowsException<NotSupportedException>(() =>
-            {
-                var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
-            });
-        }
-
-        /// <summary>
-        /// !EndsWith°æ≤ª÷ß≥÷£¨«Îøº¬« π”√ EndsWith ¥˙ÃÊ°ø
-        /// </summary>
-        [TestMethod]
-        public void ValidateNotEndsWith()
-        {
-            Expression<Func<TestEntity, bool>> whereExpression = entity => !entity.Remark.EndsWith("≤‚ ‘");
-            Assert.ThrowsException<NotSupportedException>(() =>
-            {
-                var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
-            });
-        }
-
-        /// <summary>
-        /// !Contains°æ≤ª÷ß≥÷£¨«Îøº¬« π”√ Contains ¥˙ÃÊ°ø
-        /// </summary>
-        [TestMethod]
-        public void ValidateNotContains()
-        {
-            Expression<Func<TestEntity, bool>> whereExpression = entity => !entity.Remark.Contains("≤‚ ‘");
             Assert.ThrowsException<NotSupportedException>(() =>
             {
                 var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
