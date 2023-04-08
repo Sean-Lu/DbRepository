@@ -46,7 +46,11 @@
         /// <summary>
         /// Informix
         /// </summary>
-        Informix
+        Informix,
+        /// <summary>
+        /// ClickHouse
+        /// </summary>
+        ClickHouse
     }
 
     public enum SqlOperation

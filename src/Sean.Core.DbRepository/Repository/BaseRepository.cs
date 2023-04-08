@@ -450,7 +450,7 @@ namespace Sean.Core.DbRepository
                 return;
             }
 
-            Execute($"ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType};", master: master);
+            Execute($"ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType}", master: master);
         }
 
         public virtual int DeleteAll(string tableName, IDbTransaction transaction = null)
@@ -458,7 +458,7 @@ namespace Sean.Core.DbRepository
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
-            return Execute($"DELETE FROM {tableName};", transaction: transaction);
+            return Execute($"DELETE FROM {tableName}", transaction: transaction);
         }
         #endregion
 
@@ -767,7 +767,7 @@ namespace Sean.Core.DbRepository
                 return;
             }
 
-            await ExecuteAsync($"ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType};", master: master);
+            await ExecuteAsync($"ALTER TABLE {tableName} ADD COLUMN {fieldName} {fieldType}", master: master);
         }
 
         public virtual async Task<int> DeleteAllAsync(string tableName, IDbTransaction transaction = null)
@@ -775,7 +775,7 @@ namespace Sean.Core.DbRepository
             if (string.IsNullOrWhiteSpace(tableName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
-            return await ExecuteAsync($"DELETE FROM {tableName};", transaction: transaction);
+            return await ExecuteAsync($"DELETE FROM {tableName}", transaction: transaction);
         }
         #endregion
     }

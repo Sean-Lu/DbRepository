@@ -26,7 +26,7 @@ namespace Example.Dapper.Core.Domain.Repositories
             //) : base(configuration)// MySQL: CRUD test passed.
             ) : base(configuration, "test_SQLite")// SQLite: CRUD test passed.
             //) : base(configuration, "test_SqlServer")// SQL Server: CRUD test passed.
-            //) : base(configuration, "test_Oracle")// Oracle
+            //) : base(configuration, "test_Oracle")// Oracle: CRUD test passed.
             //) : base(configuration, "test_MsAccess")// MsAccess
             //) : base(configuration, "test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base(configuration, "test_Firebird")// Firebird
@@ -71,8 +71,9 @@ namespace Example.Dapper.Core.Domain.Repositories
             return DbType switch
             {
                 DatabaseType.MySql => File.ReadAllText(@"./SQL/MySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.SQLite => File.ReadAllText(@"./SQL/SQLite_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.SqlServer => File.ReadAllText(@"./SQL/SQLSever_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.Oracle => File.ReadAllText(@"./SQL/Oracle11g_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.SQLite => File.ReadAllText(@"./SQL/SQLite_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.MsAccess => File.ReadAllText(@"./SQL/MsAccess_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.PostgreSql => File.ReadAllText(@"./SQL/PostgreSql_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()

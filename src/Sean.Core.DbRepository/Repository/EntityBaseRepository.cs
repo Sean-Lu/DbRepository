@@ -94,40 +94,66 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         PropertyInfo keyIdentityProperty;
         if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
         {
-            if (DbType == DatabaseType.MsAccess)
+            switch (DbType)
             {
-                var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
-                sqlCommandReturnId.Master = true;
-                sqlCommandReturnId.Transaction = transaction;
-                sqlCommandReturnId.CommandTimeout = CommandTimeout;
-                var addResult = Execute(sqlCommandReturnId) > 0;
-                if (!addResult)
-                {
-                    return false;
-                }
-                var id = ExecuteScalar<long>(DbType.GetSqlForGetLastIdentityId());
-                if (id < 1)
-                {
-                    return false;
-                }
+                case DatabaseType.MsAccess:
+                    {
+                        var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
+                        sqlCommandReturnId.Master = true;
+                        sqlCommandReturnId.Transaction = transaction;
+                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                        var addResult = Execute(sqlCommandReturnId) > 0;
+                        if (!addResult)
+                        {
+                            return false;
+                        }
 
-                keyIdentityProperty.SetValue(entity, id, null);
-                return true;
-            }
-            else
-            {
-                var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
-                sqlCommandReturnId.Master = true;
-                sqlCommandReturnId.Transaction = transaction;
-                sqlCommandReturnId.CommandTimeout = CommandTimeout;
-                var id = ExecuteScalar<long>(sqlCommandReturnId);
-                if (id < 1)
-                {
-                    return false;
-                }
+                        var id = ExecuteScalar<long>(DbType.GetSqlForGetLastIdentityId());
+                        if (id < 1)
+                        {
+                            return false;
+                        }
 
-                keyIdentityProperty.SetValue(entity, id, null);
-                return true;
+                        keyIdentityProperty.SetValue(entity, id, null);
+                        return true;
+                    }
+                case DatabaseType.Oracle:
+                    {
+                        var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
+                        sqlCommandReturnId.Master = true;
+                        sqlCommandReturnId.Transaction = transaction;
+                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                        var addResult = Execute(sqlCommandReturnId) > 0;
+                        if (!addResult)
+                        {
+                            return false;
+                        }
+
+                        var sequence = typeof(TEntity).GetEntityInfo()?.Sequence;
+                        var id = ExecuteScalar<long>(string.Format(DbType.GetSqlForGetLastIdentityId(), sequence));
+                        if (id < 1)
+                        {
+                            return false;
+                        }
+
+                        keyIdentityProperty.SetValue(entity, id, null);
+                        return true;
+                    }
+                default:
+                    {
+                        var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
+                        sqlCommandReturnId.Master = true;
+                        sqlCommandReturnId.Transaction = transaction;
+                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                        var id = ExecuteScalar<long>(sqlCommandReturnId);
+                        if (id < 1)
+                        {
+                            return false;
+                        }
+
+                        keyIdentityProperty.SetValue(entity, id, null);
+                        return true;
+                    }
             }
         }
 
@@ -556,40 +582,66 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         PropertyInfo keyIdentityProperty;
         if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
         {
-            if (DbType == DatabaseType.MsAccess)
+            switch (DbType)
             {
-                var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
-                sqlCommandReturnId.Master = true;
-                sqlCommandReturnId.Transaction = transaction;
-                sqlCommandReturnId.CommandTimeout = CommandTimeout;
-                var addResult = await ExecuteAsync(sqlCommandReturnId) > 0;
-                if (!addResult)
-                {
-                    return false;
-                }
-                var id = await ExecuteScalarAsync<long>(DbType.GetSqlForGetLastIdentityId());
-                if (id < 1)
-                {
-                    return false;
-                }
+                case DatabaseType.MsAccess:
+                    {
+                        var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
+                        sqlCommandReturnId.Master = true;
+                        sqlCommandReturnId.Transaction = transaction;
+                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                        var addResult = await ExecuteAsync(sqlCommandReturnId) > 0;
+                        if (!addResult)
+                        {
+                            return false;
+                        }
 
-                keyIdentityProperty.SetValue(entity, id, null);
-                return true;
-            }
-            else
-            {
-                var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
-                sqlCommandReturnId.Master = true;
-                sqlCommandReturnId.Transaction = transaction;
-                sqlCommandReturnId.CommandTimeout = CommandTimeout;
-                var id = await ExecuteScalarAsync<long>(sqlCommandReturnId);
-                if (id < 1)
-                {
-                    return false;
-                }
+                        var id = await ExecuteScalarAsync<long>(DbType.GetSqlForGetLastIdentityId());
+                        if (id < 1)
+                        {
+                            return false;
+                        }
 
-                keyIdentityProperty.SetValue(entity, id, null);
-                return true;
+                        keyIdentityProperty.SetValue(entity, id, null);
+                        return true;
+                    }
+                case DatabaseType.Oracle:
+                    {
+                        var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
+                        sqlCommandReturnId.Master = true;
+                        sqlCommandReturnId.Transaction = transaction;
+                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                        var addResult = await ExecuteAsync(sqlCommandReturnId) > 0;
+                        if (!addResult)
+                        {
+                            return false;
+                        }
+
+                        var sequence = typeof(TEntity).GetEntityInfo()?.Sequence;
+                        var id = await ExecuteScalarAsync<long>(string.Format(DbType.GetSqlForGetLastIdentityId(), sequence));
+                        if (id < 1)
+                        {
+                            return false;
+                        }
+
+                        keyIdentityProperty.SetValue(entity, id, null);
+                        return true;
+                    }
+                default:
+                    {
+                        var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
+                        sqlCommandReturnId.Master = true;
+                        sqlCommandReturnId.Transaction = transaction;
+                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                        var id = await ExecuteScalarAsync<long>(sqlCommandReturnId);
+                        if (id < 1)
+                        {
+                            return false;
+                        }
+
+                        keyIdentityProperty.SetValue(entity, id, null);
+                        return true;
+                    }
             }
         }
 

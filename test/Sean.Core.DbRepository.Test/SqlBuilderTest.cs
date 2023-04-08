@@ -19,7 +19,7 @@ namespace Sean.Core.DbRepository.Test
                 .GroupByField(entity => entity.UserId)
                 .Build();
             var sql = sqlCommand.Sql;
-            var expectedSql = "SELECT `UserId`, MAX(`AccountBalance`) AS MaxValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`;";
+            var expectedSql = "SELECT `UserId`, MAX(`AccountBalance`) AS MaxValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`";
             Assert.IsTrue(expectedSql == sql);
         }
 
@@ -33,7 +33,7 @@ namespace Sean.Core.DbRepository.Test
                 .GroupByField(entity => entity.UserId)
                 .Build();
             var sql = sqlCommand.Sql;
-            var expectedSql = "SELECT `UserId`, MIN(`AccountBalance`) AS MinValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`;";
+            var expectedSql = "SELECT `UserId`, MIN(`AccountBalance`) AS MinValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`";
             Assert.IsTrue(expectedSql == sql);
         }
 
@@ -47,7 +47,7 @@ namespace Sean.Core.DbRepository.Test
                 .GroupByField(entity => entity.UserId)
                 .Build();
             var sql = sqlCommand.Sql;
-            var expectedSql = "SELECT `UserId`, SUM(`AccountBalance`) AS SumValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`;";
+            var expectedSql = "SELECT `UserId`, SUM(`AccountBalance`) AS SumValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`";
             Assert.IsTrue(expectedSql == sql);
         }
 
@@ -62,7 +62,7 @@ namespace Sean.Core.DbRepository.Test
                 .GroupByField(entity => entity.UserId)
                 .Build();
             var sql = sqlCommand.Sql;
-            var expectedSql = "SELECT `UserId`, SUM(`AccountBalance`-`AccountBalance2`) AS SumValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`;";
+            var expectedSql = "SELECT `UserId`, SUM(`AccountBalance`-`AccountBalance2`) AS SumValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`";
             Assert.IsTrue(expectedSql == sql);
         }
 
@@ -76,7 +76,7 @@ namespace Sean.Core.DbRepository.Test
                 .GroupByField(entity => entity.UserId)
                 .Build();
             var sql = sqlCommand.Sql;
-            var expectedSql = "SELECT `UserId`, AVG(`AccountBalance`) AS AvgValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`;";
+            var expectedSql = "SELECT `UserId`, AVG(`AccountBalance`) AS AvgValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`";
             Assert.IsTrue(expectedSql == sql);
         }
 
@@ -90,7 +90,7 @@ namespace Sean.Core.DbRepository.Test
                 .GroupByField(entity => entity.UserId)
                 .Build();
             var sql = sqlCommand.Sql;
-            var expectedSql = "SELECT `UserId`, COUNT(`AccountBalance`) AS CountValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`;";
+            var expectedSql = "SELECT `UserId`, COUNT(`AccountBalance`) AS CountValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`";
             Assert.IsTrue(expectedSql == sql);
         }
 
@@ -102,7 +102,7 @@ namespace Sean.Core.DbRepository.Test
                 .Where(entity => entity.Status == 1)
                 .Build();
             var sql = sqlCommand.Sql;
-            var expectedSql = "SELECT DISTINCT `UserId` FROM `Test` WHERE `Status` = @Status;";
+            var expectedSql = "SELECT DISTINCT `UserId` FROM `Test` WHERE `Status` = @Status";
             Assert.IsTrue(expectedSql == sql);
         }
 
@@ -114,7 +114,7 @@ namespace Sean.Core.DbRepository.Test
                 .Where(entity => entity.Status == 1)
                 .Build();
             var sql = sqlCommand.Sql;
-            var expectedSql = "SELECT COUNT(DISTINCT `UserId`) AS CountDistinctValue FROM `Test` WHERE `Status` = @Status;";
+            var expectedSql = "SELECT COUNT(DISTINCT `UserId`) AS CountDistinctValue FROM `Test` WHERE `Status` = @Status";
             Assert.IsTrue(expectedSql == sql);
         }
     }

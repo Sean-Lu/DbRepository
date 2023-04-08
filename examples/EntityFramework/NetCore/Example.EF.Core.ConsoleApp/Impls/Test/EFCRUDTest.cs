@@ -40,7 +40,7 @@ namespace Example.EF.Core.ConsoleApp.Impls.Test
         {
             using (var db = new EFDbContext())
             {
-                var sql = "INSERT INTO Test(UserId, UserName) VALUES(10001, 'Test01');";
+                var sql = "INSERT INTO Test(UserId, UserName) VALUES(10001, 'Test01')";
                 var success = db.Database.ExecuteSqlRaw(sql) > 0;
             }
         }
@@ -77,7 +77,7 @@ namespace Example.EF.Core.ConsoleApp.Impls.Test
         {
             using (var db = new EFDbContext())
             {
-                var sql = "DELETE FROM Test WHERE Id=1000;";
+                var sql = "DELETE FROM Test WHERE Id=1000";
                 var success = db.Database.ExecuteSqlRaw(sql) > 0;
             }
         }
@@ -116,7 +116,7 @@ namespace Example.EF.Core.ConsoleApp.Impls.Test
         {
             using (var db = new EFDbContext())
             {
-                var sql = "UPDATE Test SET UserName='Test02', Remark='Test' WHERE Id=1000;";
+                var sql = "UPDATE Test SET UserName='Test02', Remark='Test' WHERE Id=1000";
                 var success = db.Database.ExecuteSqlRaw(sql) > 0;
             }
         }
@@ -143,7 +143,7 @@ namespace Example.EF.Core.ConsoleApp.Impls.Test
         {
             using (var db = new EFDbContext())
             {
-                var sql = "SELECT * FROM Test WHERE Id=1000;";
+                var sql = "SELECT * FROM Test WHERE Id=1000";
                 //var result = db.Database.SqlQuery<TestEntity>(sql);
             }
         }

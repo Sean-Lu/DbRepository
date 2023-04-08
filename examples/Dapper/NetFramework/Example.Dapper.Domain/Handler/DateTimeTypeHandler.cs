@@ -2,7 +2,7 @@
 using System.Data;
 using Dapper;
 
-namespace Example.Dapper.Core.Domain.Handler;
+namespace Example.Dapper.Domain.Handler;
 
 public class DateTimeTypeHandler : SqlMapper.TypeHandler<DateTime>
 {

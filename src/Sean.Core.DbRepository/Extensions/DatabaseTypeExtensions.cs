@@ -93,6 +93,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.MsAccess:
                     return $"`{name}`";
                 case DatabaseType.PostgreSql:
+                case DatabaseType.Oracle:
                     return $"\"{name}\"";
                 default:
                     return name;
@@ -111,32 +112,36 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{schemaName}' AND table_name = '{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{schemaName}' AND table_name = '{tableName}'";
                     break;
                 case DatabaseType.SqlServer:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM sys.tables WHERE type = 'u' AND name='{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM sys.tables WHERE type = 'u' AND name='{tableName}'";
                     break;
                 case DatabaseType.Oracle:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name='{tableName}';";
+                    //sql = $"SELECT COUNT(*) AS TableCount FROM all_tables WHERE owner = '{schemaName}' AND table_name = '{tableName}'";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name='{tableName}'";
                     break;
                 case DatabaseType.SQLite:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM sqlite_master WHERE type = 'table' AND name='{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM sqlite_master WHERE type = 'table' AND name='{tableName}'";
                     break;
                 case DatabaseType.MsAccess:
-                    //sql = $"SELECT COUNT(*) AS TableCount FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='PUBLIC' AND TABLE_NAME='{tableName.ToUpper()}';";
-                    sql = $"SELECT COUNT(*) AS TableCount FROM MSysObjects WHERE Name='{tableName}' AND Type=1 AND Flags=0;";
+                    //sql = $"SELECT COUNT(*) AS TableCount FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='PUBLIC' AND TABLE_NAME='{tableName}'";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM MSysObjects WHERE Name='{tableName}' AND Type=1 AND Flags=0";
                     break;
                 case DatabaseType.Firebird:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$OWNER_NAME = '{schemaName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$OWNER_NAME = '{schemaName}'";
                     break;
                 case DatabaseType.PostgreSql:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{schemaName}' AND table_name = '{tableName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{schemaName}' AND table_name = '{tableName}'";
                     break;
                 case DatabaseType.DB2:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM SYSIBM.SYSTABLES WHERE NAME = '{tableName}' AND CREATOR = '{schemaName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM SYSIBM.SYSTABLES WHERE NAME = '{tableName}' AND CREATOR = '{schemaName}'";
                     break;
                 case DatabaseType.Informix:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM systables WHERE tabname='{tableName}' AND creator='{schemaName}';";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM systables WHERE tabname='{tableName}' AND creator='{schemaName}'";
+                    break;
+                case DatabaseType.ClickHouse:
+                    sql = $"SELECT COUNT(*) AS TableCount FROM system.tables WHERE database = '{schemaName}' AND name = '{tableName}'";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
@@ -155,33 +160,37 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{schemaName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{schemaName}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
                     break;
                 case DatabaseType.SqlServer:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM sys.columns WHERE object_id = object_id('{tableName}') AND name='{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM sys.columns WHERE object_id = object_id('{tableName}') AND name='{fieldName}'";
                     break;
                 case DatabaseType.Oracle:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}';";
+                    //sql = $"SELECT COUNT(*) AS ColumnCount FROM all_tab_columns WHERE owner = '{schemaName}' AND table_name='{tableName}' AND column_name='{fieldName}'";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}'";
                     break;
                 case DatabaseType.SQLite:
-                    //sql = $"PRAGMA table_info('{tableName}');";
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM pragma_table_info('{tableName}') WHERE name='{fieldName}';";
+                    //sql = $"PRAGMA table_info('{tableName}')";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM pragma_table_info('{tableName}') WHERE name='{fieldName}'";
                     break;
                 case DatabaseType.MsAccess:
-                    //sql = $"SELECT COUNT(*) AS ColumnCount FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='PUBLIC' AND TABLE_NAME='{tableName.ToUpper()}' AND COLUMN_NAME='{fieldName.ToUpper()}';";
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM MSysObjects INNER JOIN MSysColumns ON MSysObjects.Id = MSysColumns.Id WHERE MSysObjects.Name='{tableName}' AND MSysColumns.Name='{fieldName}' AND MSysObjects.Type=1 AND MSysObjects.Flags=0;";
+                    //sql = $"SELECT COUNT(*) AS ColumnCount FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='PUBLIC' AND TABLE_NAME='{tableName}' AND COLUMN_NAME='{fieldName}'";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM MSysObjects INNER JOIN MSysColumns ON MSysObjects.Id = MSysColumns.Id WHERE MSysObjects.Name='{tableName}' AND MSysColumns.Name='{fieldName}' AND MSysObjects.Type=1 AND MSysObjects.Flags=0";
                     break;
                 case DatabaseType.Firebird:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$FIELD_NAME = '{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$FIELD_NAME = '{fieldName}'";
                     break;
                 case DatabaseType.PostgreSql:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{schemaName}' AND table_name = '{tableName}' AND column_name = '{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{schemaName}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
                     break;
                 case DatabaseType.DB2:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM SYSIBM.SYSCOLUMNS WHERE TBNAME = '{tableName}' AND TBCREATOR = '{schemaName}' AND NAME = '{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM SYSIBM.SYSCOLUMNS WHERE TBNAME = '{tableName}' AND TBCREATOR = '{schemaName}' AND NAME = '{fieldName}'";
                     break;
                 case DatabaseType.Informix:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM syscolumns WHERE tabid=(SELECT tabid FROM systables WHERE tabname='{tableName}' AND creator='{schemaName}') AND colname='{fieldName}';";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM syscolumns WHERE tabid=(SELECT tabid FROM systables WHERE tabname='{tableName}' AND creator='{schemaName}') AND colname='{fieldName}'";
+                    break;
+                case DatabaseType.ClickHouse:
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM system.columns WHERE database = '{schemaName}' AND table = '{tableName}' AND name = '{fieldName}'";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
@@ -200,32 +209,35 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    sql = "SELECT LAST_INSERT_ID() AS Id;";
+                    sql = "SELECT LAST_INSERT_ID() AS Id";
                     break;
                 case DatabaseType.SqlServer:
-                    //sql = "SELECT @@IDENTITY AS Id;";// 返回为当前会话的所有作用域中的任何表最后生成的标识值
-                    sql = "SELECT SCOPE_IDENTITY() AS Id;";// 返回为当前会话和当前作用域中的任何表最后生成的标识值
+                    //sql = "SELECT @@IDENTITY AS Id";// 返回为当前会话的所有作用域中的任何表最后生成的标识值
+                    sql = "SELECT SCOPE_IDENTITY() AS Id";// 返回为当前会话和当前作用域中的任何表最后生成的标识值
                     break;
                 case DatabaseType.Oracle:
-                    sql = "SELECT {0}.CURRVAL AS Id FROM dual;";// {0} => sequence
+                    sql = "SELECT \"{0}\".CURRVAL AS Id FROM dual";// {0} => sequence
                     break;
                 case DatabaseType.SQLite:
-                    sql = "SELECT LAST_INSERT_ROWID() AS Id;";
+                    sql = "SELECT LAST_INSERT_ROWID() AS Id";
                     break;
                 case DatabaseType.MsAccess:
-                    sql = "SELECT @@IDENTITY AS Id;";
+                    sql = "SELECT @@IDENTITY AS Id";
                     break;
                 case DatabaseType.Firebird:
-                    sql = "SELECT LAST_INSERT_ID() AS Id FROM RDB$DATABASE;";
+                    sql = "SELECT LAST_INSERT_ID() AS Id FROM RDB$DATABASE";
                     break;
                 case DatabaseType.PostgreSql:
-                    sql = "SELECT LASTVAL() AS Id;";
+                    sql = "SELECT LASTVAL() AS Id";
                     break;
                 case DatabaseType.DB2:
-                    sql = "SELECT IDENTITY_VAL_LOCAL() AS Id FROM SYSIBM.SYSDUMMY1;";
+                    sql = "SELECT IDENTITY_VAL_LOCAL() AS Id FROM SYSIBM.SYSDUMMY1";
                     break;
                 case DatabaseType.Informix:
-                    sql = "SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabid=1;";
+                    sql = "SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabid=1";
+                    break;
+                case DatabaseType.ClickHouse:
+                    sql = "SELECT lastInsertId()";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");

@@ -1,6 +1,6 @@
 ## 🌈 简介
 
-> `ORM`，支持所有**关系型数据库**（实现`DbProviderFactory`），如：`MySQL`、`SQL Server`、`Oracle`、`SQLite`、`Access`、`Firebird`、`PostgreSql`、`DB2`、`Informix`等
+> `ORM`框架，支持数据库：`MySQL`、`SQL Server`、`Oracle`、`SQLite`、`MS Access`、`Firebird`、`PostgreSql`、`DB2`、`Informix`、`ClickHouse`
 
 - 支持主从库分离（主库：增\删\改，从库：查）
 - 支持分表（自定义表名规则）
@@ -42,9 +42,10 @@ Get<T>()、GetList<T>() 其中 T ：
 | `SQLite`        | ✅         |
 | `MS Access`     | -           |
 | `Firebird`      | -           |
-| `PostgreSql`    | ✅          |
+| `PostgreSql`    | ✅         |
 | `DB2`           | -           |
 | `Informix`      | -           |
+| `ClickHouse`    | -           |
 
 ## 💯 性能测试
 
@@ -157,24 +158,24 @@ var _db = new DbFactory("Database connection string...", MySqlClientFactory.Inst
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
-    <configSections>
-        <section name="dbProviderMap" type="Sean.Core.DbRepository.DbProviderMapSection, Sean.Core.DbRepository" />
-    </configSections>
-    <dbProviderMap>
-        <databases>
-            <!-- Note: Only support relational database -->
-            <database name="MySql" providerInvariantName="MySql.Data.MySqlClient" factoryTypeAssemblyQualifiedName="MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"/>
-            <database name="SqlServer" providerInvariantName="System.Data.SqlClient" factoryTypeAssemblyQualifiedName="System.Data.SqlClient.SqlClientFactory,System.Data"/>
-            <database name="SqlServerCe" providerInvariantName="Microsoft.SqlServerCe.Client" factoryTypeAssemblyQualifiedName="Microsoft.SqlServerCe.Client.SqlCeClientFactory,Microsoft.SqlServerCe.Client"/>
-            <database name="Oracle" providerInvariantName="Oracle.ManagedDataAccess.Client" factoryTypeAssemblyQualifiedName="Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"/>
-            <database name="SQLite" providerInvariantName="System.Data.SQLite" factoryTypeAssemblyQualifiedName="System.Data.SQLite.SQLiteFactory,System.Data.SQLite"/>
-            <database name="Access" providerInvariantName="System.Data.OleDb" factoryTypeAssemblyQualifiedName="System.Data.OleDb.OleDbFactory,System.Data"/>
-            <database name="Firebird" providerInvariantName="FirebirdSql.Data.FirebirdClient" factoryTypeAssemblyQualifiedName="FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"/>
-            <database name="PostgreSql" providerInvariantName="Npgsql" factoryTypeAssemblyQualifiedName="Npgsql.NpgsqlFactory,Npgsql"/>
-            <database name="DB2" providerInvariantName="IBM.Data.DB2" factoryTypeAssemblyQualifiedName="IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"/>
-            <database name="Informix" providerInvariantName="IBM.Data.Informix" factoryTypeAssemblyQualifiedName="IBM.Data.Informix.IfxFactory,IBM.Data.Informix"/>
-        </databases>
-    </dbProviderMap>
+	<configSections>
+		<section name="dbProviderMap" type="Sean.Core.DbRepository.DbProviderMapSection, Sean.Core.DbRepository" />
+	</configSections>
+	<dbProviderMap>
+		<databases>
+			<!-- Supports configuring any database that implements the DbProviderFactory class. -->
+			<database name="MySql" providerInvariantName="MySql.Data.MySqlClient" factoryTypeAssemblyQualifiedName="MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"/>
+			<database name="SqlServer" providerInvariantName="System.Data.SqlClient" factoryTypeAssemblyQualifiedName="System.Data.SqlClient.SqlClientFactory,System.Data"/>
+			<database name="Oracle" providerInvariantName="Oracle.ManagedDataAccess.Client" factoryTypeAssemblyQualifiedName="Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"/>
+			<database name="SQLite" providerInvariantName="System.Data.SQLite" factoryTypeAssemblyQualifiedName="System.Data.SQLite.SQLiteFactory,System.Data.SQLite"/>
+			<database name="MsAccess" providerInvariantName="System.Data.OleDb" factoryTypeAssemblyQualifiedName="System.Data.OleDb.OleDbFactory,System.Data"/>
+			<!--<database name="MsAccess" providerInvariantName="System.Data.Odbc" factoryTypeAssemblyQualifiedName="System.Data.Odbc.OdbcFactory,System.Data"/>-->
+			<database name="Firebird" providerInvariantName="FirebirdSql.Data.FirebirdClient" factoryTypeAssemblyQualifiedName="FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"/>
+			<database name="PostgreSql" providerInvariantName="Npgsql" factoryTypeAssemblyQualifiedName="Npgsql.NpgsqlFactory,Npgsql"/>
+			<database name="DB2" providerInvariantName="IBM.Data.DB2" factoryTypeAssemblyQualifiedName="IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"/>
+			<database name="Informix" providerInvariantName="IBM.Data.Informix" factoryTypeAssemblyQualifiedName="IBM.Data.Informix.IfxFactory,IBM.Data.Informix"/>
+		</databases>
+	</dbProviderMap>
 </configuration>
 ```
 
