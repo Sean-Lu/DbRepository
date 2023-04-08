@@ -5,8 +5,8 @@
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Sean</Authors>
-		<Copyright>Copyright © 2019-2022 Sean</Copyright>
-		<Description>ORM, Support all relational databases.</Description>
+		<Copyright>Copyright © 2019-2023 Sean</Copyright>
+		<Description>ORM framework, support databases: MySQL, SQL Server, Oracle, SQLite, MS Access, Firebird, PostgreSql, DB2, Informix, ClickHouse, ...</Description>
 		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
 		<LangVersion>latest</LangVersion>
 		<Version>2.1.5</Version>

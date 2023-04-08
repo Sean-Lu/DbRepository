@@ -5,7 +5,8 @@
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<Authors>Sean</Authors>
 		<Copyright>Copyright © 2019-2023 Sean</Copyright>
-		<Description>ORM, Support all relational databases.</Description>
+		<Description>ORM framework, support databases: MySQL, SQL Server, Oracle, SQLite, MS Access, Firebird, PostgreSql, DB2, Informix, ClickHouse, ...</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
 		<LangVersion>latest</LangVersion>
 		<Version>2.1.9</Version>
@@ -40,6 +41,10 @@
 
 		<!-- Required if your repository is on GitLab -->
 		<!--<PackageReference Include="Microsoft.SourceLink.GitLab" Version="1.1.1" PrivateAssets="All"/>-->
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\README.md" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
 	<ItemGroup>
