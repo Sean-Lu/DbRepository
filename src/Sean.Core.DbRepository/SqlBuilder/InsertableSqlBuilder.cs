@@ -187,8 +187,8 @@ public class InsertableSqlBuilder<TEntity> : InsertableSqlBuilder, IInsertable<T
             switch (SqlAdapter.DbType)
             {
                 case DatabaseType.Oracle:
-                    var sequence = typeof(TEntity).GetEntityInfo()?.Sequence;
-                    sb.Append($";{string.Format(SqlAdapter.DbType.GetSqlForGetLastIdentityId(), sequence)}");
+                    var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                    sb.Append($";{string.Format(SqlAdapter.DbType.GetSqlForGetLastIdentityId(), sequenceName)}");
                     break;
                 default:
                     sb.Append($";{SqlAdapter.DbType.GetSqlForGetLastIdentityId()}");

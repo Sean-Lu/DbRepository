@@ -129,8 +129,8 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                             return false;
                         }
 
-                        var sequence = typeof(TEntity).GetEntityInfo()?.Sequence;
-                        var id = ExecuteScalar<long>(string.Format(DbType.GetSqlForGetLastIdentityId(), sequence));
+                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                        var id = ExecuteScalar<long>(string.Format(DbType.GetSqlForGetLastIdentityId(), sequenceName));
                         if (id < 1)
                         {
                             return false;
@@ -617,8 +617,8 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                             return false;
                         }
 
-                        var sequence = typeof(TEntity).GetEntityInfo()?.Sequence;
-                        var id = await ExecuteScalarAsync<long>(string.Format(DbType.GetSqlForGetLastIdentityId(), sequence));
+                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                        var id = await ExecuteScalarAsync<long>(string.Format(DbType.GetSqlForGetLastIdentityId(), sequenceName));
                         if (id < 1)
                         {
                             return false;

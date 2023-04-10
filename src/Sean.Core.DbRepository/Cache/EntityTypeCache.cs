@@ -49,7 +49,7 @@ namespace Sean.Core.DbRepository
             }
 
             entityInfo.MainTableName = entityClassType.GetCustomAttributesExt<TableAttribute>(true).FirstOrDefault()?.Name ?? entityClassType.Name;
-            entityInfo.Sequence = entityClassType.GetCustomAttributesExt<SequenceAttribute>(true).FirstOrDefault()?.Name;
+            entityInfo.SequenceName = entityClassType.GetCustomAttributesExt<SequenceAttribute>(true).FirstOrDefault()?.Name;
 
             var propertyInfos = entityClassType.GetProperties();
             foreach (var propertyInfo in propertyInfos)
@@ -84,7 +84,7 @@ namespace Sean.Core.DbRepository
         /// <summary>
         /// 序列
         /// </summary>
-        public string Sequence { get; set; }
+        public string SequenceName { get; set; }
 
         /// <summary>
         /// 所有字段信息
