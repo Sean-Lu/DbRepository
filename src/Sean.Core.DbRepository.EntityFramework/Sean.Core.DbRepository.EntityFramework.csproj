@@ -1,14 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../../config/Common.props" />
 
 	<PropertyGroup>
 		<TargetFrameworks>net45;net46;netstandard2.1;net6</TargetFrameworks>
-		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Authors>Sean</Authors>
-		<Copyright>Copyright © 2019-2023 Sean</Copyright>
 		<Description>ORM framework, support databases: MySQL, SQL Server, Oracle, SQLite, MS Access, Firebird, PostgreSql, DB2, Informix, ClickHouse, ...</Description>
-		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
-		<LangVersion>latest</LangVersion>
 		<Version>2.1.5</Version>
 	</PropertyGroup>
 

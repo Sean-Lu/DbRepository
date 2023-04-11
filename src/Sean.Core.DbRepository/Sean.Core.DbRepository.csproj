@@ -1,46 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../../config/Common.props" />
+
 	<PropertyGroup>
 		<TargetFrameworks>net45;net46;netstandard2;netstandard2.1;net5</TargetFrameworks>
-		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-		<Authors>Sean</Authors>
-		<Copyright>Copyright © 2019-2023 Sean</Copyright>
 		<Description>ORM framework, support databases: MySQL, SQL Server, Oracle, SQLite, MS Access, Firebird, PostgreSql, DB2, Informix, ClickHouse, ...</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
-		<LangVersion>latest</LangVersion>
 		<Version>2.1.9</Version>
-
-		<!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
-		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-
-		<!--<DebugSymbols>true</DebugSymbols>-->
-		<!-- DebugType: portable, embedded, full -->
-		<!--<DebugType>embedded</DebugType>-->
-
-		<!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
-		<!-- You must publish both packages, the package that contains the DLL (.nupkg) and the one that contains the symbols (.snupkg) -->
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-
 	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-
-		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-		<Deterministic>true</Deterministic>
-
-		<!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
-		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<!-- Required if your repository is on GitHub -->
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-
-		<!-- Required if your repository is on GitLab -->
-		<!--<PackageReference Include="Microsoft.SourceLink.GitLab" Version="1.1.1" PrivateAssets="All"/>-->
-	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
 		<Reference Include="System.Configuration" />
