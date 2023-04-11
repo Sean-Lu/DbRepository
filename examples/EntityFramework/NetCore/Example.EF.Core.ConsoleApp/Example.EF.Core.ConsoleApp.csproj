@@ -21,6 +21,7 @@
 		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.0-alpha.1" />
 		<!-- SQL Server 2005 ~ 2008 -->
 		<PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.4.0" />
+		<PackageReference Include="IBM.EntityFrameworkCore" Version="6.0.0.300" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">

@@ -2,6 +2,7 @@
 using EntityFrameworkCore.Jet.Data;
 using EntityFrameworkCore.UseRowNumberForPaging;
 using Example.EF.Core.ConsoleApp.Entities;
+using IBM.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -86,6 +87,17 @@ namespace Example.EF.Core.ConsoleApp
             // PostgreSql: CRUD test passed.
             var connString = "server=127.0.0.1;database=postgres;username=postgres;password=12345!a";
             optionsBuilder.UseNpgsql(connString);
+        }
+
+        private void UseDB2(DbContextOptionsBuilder optionsBuilder)
+        {
+            // DB2 Express-C v11.1.3030
+            var connString = "Server=127.0.0.1;Database=sample;UID=db2admin;PWD=12345!a";
+            optionsBuilder.UseDb2(connString, builder =>
+            {
+                //builder.SetServerInfo(IBMDBServerType.LUW);
+                //builder.UseRowNumberForPaging()
+            });
         }
         #endregion
     }

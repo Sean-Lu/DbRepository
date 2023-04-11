@@ -76,6 +76,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
                 DatabaseType.SQLite => File.ReadAllText(@"./SQL/SQLite_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.MsAccess => File.ReadAllText(@"./SQL/MsAccess_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.PostgreSql => File.ReadAllText(@"./SQL/PostgreSql_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.DB2 => File.ReadAllText(@"./SQL/DB2_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()
             };
         }

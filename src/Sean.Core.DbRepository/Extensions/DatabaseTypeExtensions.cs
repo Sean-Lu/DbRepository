@@ -94,6 +94,7 @@ namespace Sean.Core.DbRepository.Extensions
                     return $"`{name}`";
                 case DatabaseType.PostgreSql:
                 case DatabaseType.Oracle:
+                case DatabaseType.DB2:
                     return $"\"{name}\"";
                 default:
                     return name;

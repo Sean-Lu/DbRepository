@@ -17,6 +17,9 @@
     <None Update="SQL\PostgreSql_CreateTable_Test.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="SQL\DB2_CreateTable_Test.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="SQL\SQLSever_CreateTable_Test.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

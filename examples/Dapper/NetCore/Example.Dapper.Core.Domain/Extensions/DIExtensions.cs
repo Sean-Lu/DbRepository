@@ -7,6 +7,7 @@ using System.Reflection;
 using Example.Dapper.Core.Domain.Handler;
 using Example.Dapper.Core.Infrastructure.Extensions;
 using Example.Dapper.Core.Infrastructure.Impls;
+using IBM.Data.DB2.Core;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -41,6 +42,7 @@ namespace Example.Dapper.Core.Domain.Extensions
             //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.Odbc", OdbcFactory.Instance));// MsAccess
             //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("EntityFrameworkCore.Jet.Data", JetFactory.Instance.GetDataAccessProviderFactory(DataAccessProviderType.OleDb)));// MsAccess
             DatabaseType.PostgreSql.SetDbProviderMap(new DbProviderMap("Npgsql", NpgsqlFactory.Instance));// PostgreSql
+            DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", DB2Factory.Instance));// DB2
             #endregion
 
             // 解决 PostgreSQL 在使用 DateTime 类型抛出异常：Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported.
