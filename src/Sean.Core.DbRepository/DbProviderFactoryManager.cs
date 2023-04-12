@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Utility.Config;
 
@@ -19,11 +20,7 @@ namespace Sean.Core.DbRepository
         {
             DbProviderMapDic = new ConcurrentDictionary<DatabaseType, DbProviderMap>();
 
-#if NETSTANDARD || NET5_0_OR_GREATER
-            LoadFromXmlFile();
-#else
             LoadFromConfigurationFile();
-#endif
         }
 
         public static DbProviderFactory GetDbProviderFactory(DatabaseType type)
@@ -83,49 +80,41 @@ namespace Sean.Core.DbRepository
 #endif
         }
 
-#if NETSTANDARD || NET5_0_OR_GREATER
-        /// <summary>
-        /// 以XML文件的方式读取配置
-        /// </summary>
-        private static void LoadFromXmlFile()
-        {
-            if (!File.Exists(DbContextConfiguration.Options.DbProviderFactoryConfigurationPath))
-            {
-                return;
-            }
-
-            const string xpathTemplate = "/configuration/dbProviderMap/databases/database[@name='{0}']";
-            ((DatabaseType[])Enum.GetValues(typeof(DatabaseType))).ToList().ForEach(dbType =>
-            {
-                var xpath = string.Format(xpathTemplate, dbType.ToString());
-                var xmlNode = XmlHelper.GetXmlNode(DbContextConfiguration.Options.DbProviderFactoryConfigurationPath, xpath);
-                if (xmlNode != null)
-                {
-                    var providerInvariantName = XmlHelper.GetXmlAttributeValue(xmlNode, "providerInvariantName");
-                    var factoryTypeAssemblyQualifiedName = XmlHelper.GetXmlAttributeValue(xmlNode, "factoryTypeAssemblyQualifiedName");
-                    var map = new DbProviderMap(providerInvariantName, factoryTypeAssemblyQualifiedName);
-                    dbType.SetDbProviderMap(map);
-                }
-            });
-        }
-#else
-        /// <summary>
-        /// 以配置文件的方式读取配置
-        /// </summary>
         private static void LoadFromConfigurationFile()
         {
+#if NETSTANDARD || NET5_0_OR_GREATER
+            if (!File.Exists(DbContextConfiguration.Options.DbProviderFactoryConfigurationPath))
+            {
+                //var xpathTemplate = "/configuration/dbProviderMap/databases/database[@name='{0}']";
+                var xpathTemplate = "/configuration/dbProviderMap/databases/database";
+                var xmlNodeList = XmlHelper.GetXmlNodeList(DbContextConfiguration.Options.DbProviderFactoryConfigurationPath, xpathTemplate);
+                if (xmlNodeList != null)
+                {
+                    foreach (XmlNode xmlNode in xmlNodeList)
+                    {
+                        var name = XmlHelper.GetXmlAttributeValue(xmlNode, "name");
+                        if (Enum.TryParse(name, out DatabaseType dbType))
+                        {
+                            var providerInvariantName = XmlHelper.GetXmlAttributeValue(xmlNode, "providerInvariantName");
+                            var factoryTypeAssemblyQualifiedName = XmlHelper.GetXmlAttributeValue(xmlNode, "factoryTypeAssemblyQualifiedName");
+                            var map = new DbProviderMap(providerInvariantName, factoryTypeAssemblyQualifiedName);
+                            dbType.SetDbProviderMap(map);
+                        }
+                    }
+                }
+            }
+#else
             var section = ConfigBuilder.GetDbProviderMapSection();
             if (section == null)
             {
-                #region 设置默认的数据库驱动配置
+                #region Set default configuration.
                 //section = new DbProviderMapSection();
                 //section.Databases.Clear();
                 //section.Databases.Add(new DatabaseElement(DatabaseType.MySql, "MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));
                 //section.Databases.Add(new DatabaseElement(DatabaseType.SqlServer, "System.Data.SqlClient", "System.Data.SqlClient.SqlClientFactory,System.Data"));
-                //section.Databases.Add(new DatabaseElement(DatabaseType.SqlServerCe, "Microsoft.SqlServerCe.Client", "Microsoft.SqlServerCe.Client.SqlCeClientFactory,Microsoft.SqlServerCe.Client"));
                 //section.Databases.Add(new DatabaseElement(DatabaseType.Oracle, "Oracle.ManagedDataAccess.Client", "Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"));
                 //section.Databases.Add(new DatabaseElement(DatabaseType.SQLite, "System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));
-                //section.Databases.Add(new DatabaseElement(DatabaseType.Access, "System.Data.OleDb", "System.Data.OleDb.OleDbFactory,System.Data"));
+                //section.Databases.Add(new DatabaseElement(DatabaseType.MsAccess, "System.Data.OleDb", "System.Data.OleDb.OleDbFactory,System.Data"));
                 //section.Databases.Add(new DatabaseElement(DatabaseType.Firebird, "FirebirdSql.Data.FirebirdClient", "FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"));
                 //section.Databases.Add(new DatabaseElement(DatabaseType.PostgreSql, "Npgsql", "Npgsql.NpgsqlFactory,Npgsql"));
                 //section.Databases.Add(new DatabaseElement(DatabaseType.DB2, "IBM.Data.DB2", "IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"));
@@ -134,16 +123,16 @@ namespace Sean.Core.DbRepository
             }
 
             var databases = section?.Databases?.OfType<DatabaseElement>().ToList();
-            ((DatabaseType[])Enum.GetValues(typeof(DatabaseType))).ToList().ForEach(dbType =>
+            databases?.ForEach(element =>
             {
-                var element = databases?.FirstOrDefault(c => dbType == c.Name);
-                if (element != null)
+                if (element.DbType.HasValue)
                 {
+                    var dbType = element.DbType.Value;
                     var map = new DbProviderMap(element.ProviderInvariantName, element.FactoryTypeAssemblyQualifiedName);
                     dbType.SetDbProviderMap(map);
                 }
             });
-        }
 #endif
+        }
     }
 }

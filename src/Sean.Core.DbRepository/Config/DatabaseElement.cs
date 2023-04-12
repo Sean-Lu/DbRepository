@@ -1,4 +1,5 @@
 ﻿#if NETFRAMEWORK
+using System;
 using System.Configuration;
 
 namespace Sean.Core.DbRepository
@@ -26,44 +27,22 @@ namespace Sean.Core.DbRepository
             _customSetPropertyValue = true;
         }
 
+        public DatabaseType? DbType => _customSetPropertyValue ? _name : Enum.TryParse(Name, out DatabaseType result) ? result : null;
+
         /// <summary>
         /// The name of the database
         /// </summary>
         [ConfigurationProperty(PropertyName, IsRequired = true, IsKey = true)]
-        public DatabaseType Name
-        {
-            get
-            {
-                if (_customSetPropertyValue)
-                    return _name;
-                return (DatabaseType)this[PropertyName];
-            }
-        }
+        public string Name => (string)this[PropertyName];
 
         [ConfigurationProperty(PropertyProviderInvariantName, IsRequired = true)]
-        public string ProviderInvariantName
-        {
-            get
-            {
-                if (_customSetPropertyValue)
-                    return _providerInvariantName;
-                return (string)this[PropertyProviderInvariantName];
-            }
-        }
+        public string ProviderInvariantName => _customSetPropertyValue ? _providerInvariantName : (string)this[PropertyProviderInvariantName];
 
         /// <summary>
         /// FactoryType, AssemblyQualifiedName
         /// </summary>
-        [ConfigurationProperty(PropertyFactoryTypeAssemblyQualifiedName, IsRequired = false)]
-        public string FactoryTypeAssemblyQualifiedName
-        {
-            get
-            {
-                if (_customSetPropertyValue)
-                    return _factoryTypeAssemblyQualifiedName;
-                return (string)this[PropertyFactoryTypeAssemblyQualifiedName];
-            }
-        }
+        [ConfigurationProperty(PropertyFactoryTypeAssemblyQualifiedName, IsRequired = true)]
+        public string FactoryTypeAssemblyQualifiedName => _customSetPropertyValue ? _factoryTypeAssemblyQualifiedName : (string)this[PropertyFactoryTypeAssemblyQualifiedName];
     }
 }
 #endif
