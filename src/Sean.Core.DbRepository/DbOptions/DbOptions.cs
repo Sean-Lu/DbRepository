@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.IO;
 using System.Reflection;
 using System;
+using System.Data;
 using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository;
@@ -35,24 +36,26 @@ public class DbOptions
 
     public IJsonSerializer JsonSerializer { get; set; } = JsonHelper.Serializer;
 
-    public Func<DbProviderFactory, DatabaseType> MapToDatabaseType;
-    public Func<DatabaseType, DbProviderFactory> MapToDbProviderFactory;
+    public Action<IDbCommand> SetDbCommand { get; set; }
+
+    public Func<DbProviderFactory, DatabaseType> MapToDatabaseType { get; set; }
+    public Func<DatabaseType, DbProviderFactory> MapToDbProviderFactory { get; set; }
 
     /// <summary>
     /// <see cref="DatabaseTypeExtensions.GetSqlForTableExists"/>
     /// </summary>
-    public Func<DatabaseType, string, string, string> GetSqlForTableExists;
+    public Func<DatabaseType, string, string, string> GetSqlForTableExists { get; set; }
     /// <summary>
     /// <see cref="DatabaseTypeExtensions.GetSqlForTableFieldExists"/>
     /// </summary>
-    public Func<DatabaseType, string, string, string, string> GetSqlForTableFieldExists;
+    public Func<DatabaseType, string, string, string, string> GetSqlForTableFieldExists { get; set; }
     /// <summary>
     /// <see cref="DatabaseTypeExtensions.GetSqlForGetLastIdentityId"/>
     /// </summary>
-    public Func<DatabaseType, string> GetSqlForGetLastIdentityId;
+    public Func<DatabaseType, string> GetSqlForGetLastIdentityId { get; set; }
 
-    public Func<DatabaseType, DbConnection, string, bool?> IsTableExists;
-    public Func<DatabaseType, DbConnection, string, string, bool?> IsTableFieldExists;
+    public Func<DatabaseType, DbConnection, string, bool?> IsTableExists { get; set; }
+    public Func<DatabaseType, DbConnection, string, string, bool?> IsTableFieldExists { get; set; }
 
     public event Action<SqlExecutingContext> SqlExecuting;
     public event Action<SqlExecutedContext> SqlExecuted;

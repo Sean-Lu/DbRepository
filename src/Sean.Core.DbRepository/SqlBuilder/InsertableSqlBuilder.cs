@@ -190,6 +190,9 @@ public class InsertableSqlBuilder<TEntity> : InsertableSqlBuilder, IInsertable<T
                     var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
                     sb.Append($";{string.Format(SqlAdapter.DbType.GetSqlForGetLastIdentityId(), sequenceName)}");
                     break;
+                case DatabaseType.Firebird:
+                    sb.Append($" RETURNING \"{_includeFieldsList.FirstOrDefault(c => c.Identity).FieldName}\"");
+                    break;
                 default:
                     sb.Append($";{SqlAdapter.DbType.GetSqlForGetLastIdentityId()}");
                     break;

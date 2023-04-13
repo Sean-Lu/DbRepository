@@ -3,10 +3,12 @@ using System.Data.Odbc;
 using System.Data.OleDb;
 using System.Data.SqlClient;
 using System.Data.SQLite;
+using System.IO;
 using System.Reflection;
 using Example.Dapper.Core.Domain.Handler;
 using Example.Dapper.Core.Infrastructure.Extensions;
 using Example.Dapper.Core.Infrastructure.Impls;
+using FirebirdSql.Data.FirebirdClient;
 using IBM.Data.DB2.Core;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
@@ -41,8 +43,26 @@ namespace Example.Dapper.Core.Domain.Extensions
             DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.OleDb", OleDbFactory.Instance));// MsAccess
             //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.Odbc", OdbcFactory.Instance));// MsAccess
             //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("EntityFrameworkCore.Jet.Data", JetFactory.Instance.GetDataAccessProviderFactory(DataAccessProviderType.OleDb)));// MsAccess
+            DatabaseType.Firebird.SetDbProviderMap(new DbProviderMap("FirebirdSql.Data.FirebirdClient", FirebirdClientFactory.Instance));// Firebird
             DatabaseType.PostgreSql.SetDbProviderMap(new DbProviderMap("Npgsql", NpgsqlFactory.Instance));// PostgreSql
             DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", DB2Factory.Instance));// DB2
+            #endregion
+
+            #region 创建 Firebird 数据库
+            var dbPath = @".\test.fdb";
+            if (!File.Exists(dbPath))
+            {
+                FbConnectionStringBuilder sb = new FbConnectionStringBuilder
+                {
+                    Database = dbPath,
+                    UserID = "sysdba",
+                    //Password = "masterkey",
+                    Pooling = true,
+                    ServerType = FbServerType.Embedded,
+                    ClientLibrary = "fbclient.dll"
+                };
+                FbConnection.CreateDatabase(sb.ConnectionString, forcedWrites: false);
+            }
             #endregion
 
             // 解决 PostgreSQL 在使用 DateTime 类型抛出异常：Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported.
@@ -57,6 +77,16 @@ namespace Example.Dapper.Core.Domain.Extensions
                         return DatabaseType.MsAccess;
                     }
                     return DatabaseType.Unknown;
+                };
+                options.SetDbCommand = command =>
+                {
+                    if (command is OracleCommand oracleCommand)
+                    {
+                        // Oracle的sql参数顺序问题有以下2种解决方案：
+                        // 解决方案1：把sql参数按照在sql中出现的顺序排序
+                        // 解决方案2：设置 OracleCommand 按照变量名绑定参数
+                        oracleCommand.BindByName = true;// default value: false
+                    }
                 };
                 options.BulkEntityCount = 200;
                 options.JsonSerializer = NewJsonSerializer.Instance;

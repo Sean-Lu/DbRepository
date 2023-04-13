@@ -95,6 +95,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.PostgreSql:
                 case DatabaseType.Oracle:
                 case DatabaseType.DB2:
+                case DatabaseType.Firebird:
                     return $"\"{name}\"";
                 default:
                     return name;
@@ -130,7 +131,7 @@ namespace Sean.Core.DbRepository.Extensions
                     sql = $"SELECT COUNT(*) AS TableCount FROM MSysObjects WHERE Name='{tableName}' AND Type=1 AND Flags=0";
                     break;
                 case DatabaseType.Firebird:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$OWNER_NAME = '{schemaName}'";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$VIEW_SOURCE IS NULL";
                     break;
                 case DatabaseType.PostgreSql:
                     sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{schemaName}' AND table_name = '{tableName}'";

@@ -83,7 +83,7 @@ namespace Sean.Core.DbRepository
         private static void LoadFromConfigurationFile()
         {
 #if NETSTANDARD || NET5_0_OR_GREATER
-            if (!File.Exists(DbContextConfiguration.Options.DbProviderFactoryConfigurationPath))
+            if (File.Exists(DbContextConfiguration.Options.DbProviderFactoryConfigurationPath))
             {
                 //var xpathTemplate = "/configuration/dbProviderMap/databases/database[@name='{0}']";
                 var xpathTemplate = "/configuration/dbProviderMap/databases/database";

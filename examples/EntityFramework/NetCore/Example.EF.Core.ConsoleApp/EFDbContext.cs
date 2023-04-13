@@ -2,6 +2,7 @@
 using EntityFrameworkCore.Jet.Data;
 using EntityFrameworkCore.UseRowNumberForPaging;
 using Example.EF.Core.ConsoleApp.Entities;
+using FirebirdSql.Data.FirebirdClient;
 using IBM.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,8 @@ namespace Example.EF.Core.ConsoleApp
 {
     public class EFDbContext : DbContext
     {
+        //private static readonly ILoggerFactory _LoggerFactory = LoggerFactory.Create(builder => { builder.AddConsole(); });
+
         public EFDbContext()
         {
         }
@@ -30,12 +33,40 @@ namespace Example.EF.Core.ConsoleApp
             // 启用敏感数据日志记录
             optionsBuilder.EnableSensitiveDataLogging();
 
+            //optionsBuilder.UseLoggerFactory(_LoggerFactory);
+
             // 记录日志，包含生成的sql
             optionsBuilder.LogTo(msg =>
             {
                 Debug.WriteLine(msg);// 输出调试窗口消息
                 Console.WriteLine(msg);// 输出控制台窗口消息
             }, LogLevel.Information);
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            //modelBuilder.Entity<TestEntity>(c =>
+            //{
+            //    c.Property(x => x.Id).HasColumnName("Id");
+            //    c.Property(x => x.UserId).HasColumnName("UserId");
+            //    c.Property(x => x.UserName).HasColumnName("UserName");
+            //    c.Property(x => x.Age).HasColumnName("Age");
+            //    c.Property(x => x.Sex).HasColumnName("Sex");
+            //    c.Property(x => x.PhoneNumber).HasColumnName("PhoneNumber");
+            //    c.Property(x => x.Email).HasColumnName("Email");
+            //    c.Property(x => x.IsVip).HasColumnName("IsVip");
+            //    c.Property(x => x.IsBlack).HasColumnName("IsBlack");
+            //    c.Property(x => x.Country).HasColumnName("Country");
+            //    c.Property(x => x.AccountBalance).HasColumnName("AccountBalance");
+            //    c.Property(x => x.AccountBalance2).HasColumnName("AccountBalance2");
+            //    c.Property(x => x.Status).HasColumnName("Status");
+            //    c.Property(x => x.Remark).HasColumnName("Remark");
+            //    c.Property(x => x.CreateTime).HasColumnName("CreateTime");
+            //    c.Property(x => x.UpdateTime).HasColumnName("UpdateTime");
+            //    c.ToTable("Test");
+            //});
         }
 
         public DbSet<TestEntity> TestEntities { get; set; }
@@ -80,6 +111,63 @@ namespace Example.EF.Core.ConsoleApp
             var connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=.\\Test.mdb";// MS Access 2003
             //var connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=.\\Test.accdb";// MS Access 2007+
             optionsBuilder.UseJet(connString, DataAccessProviderType.OleDb);
+        }
+
+        private void UseFirebird(DbContextOptionsBuilder optionsBuilder)
+        {
+            // Firebird 提供多种服务器环境版本：服务器版本（Classic\SuperClassic\SuperServer）、嵌入式版本（Embedded）
+
+            // Embedded Firebird:
+            // 
+            // 1. Download Server Package from https://firebirdsql.org/
+            // 2. Copying files:
+            // 
+            // Firebird-4.0.2.2816-0-x64.zip
+            // |--intl
+            // |  |--fbintl.conf
+            // |  \--fbintl.dll
+            // |--plugins
+            // |  |--udr
+            // |     |--udf_compat.dll
+            // |     |--UdfBackwardCompatibility.sql
+            // |     \--udrcpp_example.dll
+            // |  |--chacha.dll
+            // |  |--engine13.dll
+            // |  |--fbtrace.dll
+            // |  |--legacy_auth.dll
+            // |  |--legacy_usermanager.dll
+            // |  |--srp.dll
+            // |  |--udr_engine.conf
+            // |  \--udr_engine.dll
+            // |--fbclient.dll
+            // |--ib_util.dll
+            // |--icudt63.dll
+            // |--icuin63.dll
+            // |--icuuc63.dll
+            // |--msvcp140.dll
+            // |--vcruntime140.dll
+            // \--zlib1.dll
+
+            // Firebird(Embedded version): CRUD test passed.
+            var sb = new FbConnectionStringBuilder
+            {
+                //Database = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.fdb"),
+                Database = @".\test.fdb",
+                UserID = "sysdba",
+                //Password = "masterkey",
+                Pooling = true,
+                ServerType = FbServerType.Embedded,
+                ClientLibrary = "fbclient.dll"
+            };
+            optionsBuilder.UseFirebird(sb.ToString());
+
+            //// Firebird(Embedded version): CRUD test passed.
+            //var connString = "initial catalog=.\\test.fdb;user id=sysdba;pooling=True;server type=Embedded;client library=fbclient.dll";
+            //optionsBuilder.UseFirebird(connString);
+
+            //// Firebird(Server version): CRUD test passed.
+            //var connString = "database=localhost:demo.fdb;user=sysdba;password=masterkey";
+            //optionsBuilder.UseFirebird(connString);
         }
 
         private void UsePostgreSql(DbContextOptionsBuilder optionsBuilder)

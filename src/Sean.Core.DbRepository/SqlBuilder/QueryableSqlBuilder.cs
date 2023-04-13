@@ -491,6 +491,9 @@ public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEnt
                 case DatabaseType.MsAccess:
                     sql.Sql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     break;
+                case DatabaseType.Firebird:
+                    sql.Sql = $"SELECT FIRST {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+                    break;
                 case DatabaseType.Oracle:
                     var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {_topNumber}" : $"{WhereSql} AND ROWNUM <= {_topNumber}";
                     sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql}";
@@ -542,6 +545,8 @@ public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEnt
                 return GetRowNumberQuerySql(selectFields, offset, rows);
             case DatabaseType.MsAccess:
                 return $"SELECT TOP {rows} {selectFields} FROM (SELECT TOP {offset + rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}) t2";
+            case DatabaseType.Firebird:
+                return $"SELECT FIRST {rows} SKIP {offset} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
             case DatabaseType.Oracle:
                 if (!string.IsNullOrWhiteSpace(OrderBySql))
                 {

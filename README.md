@@ -38,7 +38,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | --------------- | ----------- |
 | `MySQL`         | ✅         |
 | `SQL Server`    | ✅         |
-| `Oracle`        | -           |
+| `Oracle`        | ✅         |
 | `SQLite`        | ✅         |
 | `MS Access`     | -           |
 | `Firebird`      | -           |
