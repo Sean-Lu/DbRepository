@@ -27,7 +27,7 @@ namespace Example.Dapper.Domain.Repositories
             //) : base("test_Oracle")// Oracle: CRUD test passed.
             //) : base("test_MsAccess")// MsAccess
             //) : base("test_PostgreSql")// PostgreSql: CRUD test passed.
-            //) : base("test_Firebird")// Firebird
+            //) : base("test_Firebird")// Firebird: CRUD test passed.
             //) : base("test_Informix")// Informix
             //) : base("test_DB2")// DB2
         {

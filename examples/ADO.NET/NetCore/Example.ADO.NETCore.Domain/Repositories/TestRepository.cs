@@ -29,7 +29,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             //) : base(configuration, "test_Oracle")// Oracle: CRUD test passed.
             //) : base(configuration, "test_MsAccess")// MsAccess
             //) : base(configuration, "test_PostgreSql")// PostgreSql: CRUD test passed.
-            //) : base(configuration, "test_Firebird")// Firebird
+            //) : base(configuration, "test_Firebird")// Firebird: CRUD test passed.
             //) : base(configuration, "test_Informix")// Informix
             //) : base(configuration, "test_DB2")// DB2
         {

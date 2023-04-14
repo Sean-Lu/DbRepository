@@ -41,7 +41,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | `Oracle`        | ✅         |
 | `SQLite`        | ✅         |
 | `MS Access`     | -           |
-| `Firebird`      | -           |
+| `Firebird`      | ✅         |
 | `PostgreSql`    | ✅         |
 | `DB2`           | -           |
 | `Informix`      | -           |

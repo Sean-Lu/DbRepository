@@ -48,20 +48,19 @@ namespace Example.ADO.NETCore.Domain.Extensions
             DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", DB2Factory.Instance));// DB2
             #endregion
 
-            #region 创建 Firebird 数据库
-            var dbPath = @".\test.fdb";
-            if (!File.Exists(dbPath))
+            #region 自动创建 Firebird 数据库
+            FbConnectionStringBuilder sb = new FbConnectionStringBuilder
             {
-                FbConnectionStringBuilder sb = new FbConnectionStringBuilder
-                {
-                    Database = dbPath,
-                    UserID = "sysdba",
-                    //Password = "masterkey",
-                    Pooling = true,
-                    ServerType = FbServerType.Embedded,
-                    ClientLibrary = "fbclient.dll"
-                };
-                FbConnection.CreateDatabase(sb.ConnectionString, forcedWrites: false);
+                Database = @".\test.fdb",
+                UserID = "sysdba",
+                //Password = "masterkey",
+                Pooling = true,
+                ServerType = FbServerType.Embedded,
+                ClientLibrary = "fbclient.dll"
+            };
+            if (!File.Exists(sb.Database) && File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, sb.ClientLibrary)))
+            {
+                FbConnection.CreateDatabase(sb.ConnectionString);
             }
             #endregion
 
