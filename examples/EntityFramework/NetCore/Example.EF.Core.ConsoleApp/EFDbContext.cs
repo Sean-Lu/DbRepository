@@ -184,7 +184,7 @@ namespace Example.EF.Core.ConsoleApp
             optionsBuilder.UseDb2(connString, builder =>
             {
                 //builder.SetServerInfo(IBMDBServerType.LUW);
-                //builder.UseRowNumberForPaging()
+                //builder.UseRowNumberForPaging();
             });
         }
         #endregion

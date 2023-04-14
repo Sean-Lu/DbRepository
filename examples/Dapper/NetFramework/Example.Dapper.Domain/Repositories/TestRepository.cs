@@ -29,7 +29,7 @@ namespace Example.Dapper.Domain.Repositories
             //) : base("test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base("test_Firebird")// Firebird: CRUD test passed.
             //) : base("test_Informix")// Informix
-            //) : base("test_DB2")// DB2
+            //) : base("test_DB2")// DB2: CRUD test passed.
         {
             _logger = logger;
         }
@@ -126,6 +126,7 @@ namespace Example.Dapper.Domain.Repositories
 
             var sqlCommand = this.CreateQueryableBuilder(true)
                 .Where(entity => entity.Age >= 18 && entity.IsVip)
+                .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
                 .Page(1, 3)
                 .Build();
             var executeDataTableResult = await ExecuteDataTableAsync(sqlCommand);

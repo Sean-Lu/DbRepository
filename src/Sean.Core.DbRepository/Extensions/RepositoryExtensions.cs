@@ -346,7 +346,7 @@ namespace Sean.Core.DbRepository.Extensions
 
                 if (!exists.HasValue)
                 {
-                    var sql = repository.DbType.GetSqlForTableExists(connection.Database, tableName);
+                    var sql = repository.DbType.GetSqlForTableExists(connection, tableName);
                     exists = func(sql, connection);
                 }
             }
@@ -395,7 +395,7 @@ namespace Sean.Core.DbRepository.Extensions
 
                 if (!exists.HasValue)
                 {
-                    var sql = repository.DbType.GetSqlForTableFieldExists(connection.Database, tableName, fieldName);
+                    var sql = repository.DbType.GetSqlForTableFieldExists(connection, tableName, fieldName);
                     exists = func(sql, connection);
                 }
             }
@@ -444,7 +444,7 @@ namespace Sean.Core.DbRepository.Extensions
 
                 if (!exists.HasValue)
                 {
-                    var sql = repository.DbType.GetSqlForTableExists(connection.Database, tableName);
+                    var sql = repository.DbType.GetSqlForTableExists(connection, tableName);
                     exists = await func(sql, connection);
                 }
             }
@@ -493,7 +493,7 @@ namespace Sean.Core.DbRepository.Extensions
 
                 if (!exists.HasValue)
                 {
-                    var sql = repository.DbType.GetSqlForTableFieldExists(connection.Database, tableName, fieldName);
+                    var sql = repository.DbType.GetSqlForTableFieldExists(connection, tableName, fieldName);
                     exists = await func(sql, connection);
                 }
             }

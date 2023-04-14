@@ -103,9 +103,9 @@ namespace Sean.Core.DbRepository.Extensions
         }
 
         #region SQL
-        public static string GetSqlForTableExists(this DatabaseType dbType, string schemaName, string tableName)
+        public static string GetSqlForTableExists(this DatabaseType dbType, DbConnection connection, string tableName)
         {
-            var sql = DbContextConfiguration.Options.GetSqlForTableExists?.Invoke(dbType, schemaName, tableName);
+            var sql = DbContextConfiguration.Options.GetSqlForTableExists?.Invoke(dbType, connection, tableName);
             if (!string.IsNullOrWhiteSpace(sql))
             {
                 return sql;
@@ -114,13 +114,13 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{schemaName}' AND table_name = '{tableName}'";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}'";
                     break;
                 case DatabaseType.SqlServer:
                     sql = $"SELECT COUNT(*) AS TableCount FROM sys.tables WHERE type = 'u' AND name='{tableName}'";
                     break;
                 case DatabaseType.Oracle:
-                    //sql = $"SELECT COUNT(*) AS TableCount FROM all_tables WHERE owner = '{schemaName}' AND table_name = '{tableName}'";
+                    //sql = $"SELECT COUNT(*) AS TableCount FROM all_tables WHERE owner = '{connection.Database}' AND table_name = '{tableName}'";
                     sql = $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name='{tableName}'";
                     break;
                 case DatabaseType.SQLite:
@@ -134,16 +134,30 @@ namespace Sean.Core.DbRepository.Extensions
                     sql = $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$VIEW_SOURCE IS NULL";
                     break;
                 case DatabaseType.PostgreSql:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{schemaName}' AND table_name = '{tableName}'";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}'";
                     break;
                 case DatabaseType.DB2:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM SYSIBM.SYSTABLES WHERE NAME = '{tableName}' AND CREATOR = '{schemaName}'";
-                    break;
+                    {
+                        var connectionType = connection.GetType();
+                        var property = connectionType.GetProperty("UserId");
+                        if (property != null)
+                        {
+                            var schema = property.GetValue(connection, null) as string;
+                            if (!string.IsNullOrEmpty(schema))
+                            {
+                                sql = $"SELECT COUNT(*) AS TableCount FROM SYSCAT.TABLES WHERE TABNAME='{tableName}' AND TABSCHEMA='{schema.ToUpper()}'";
+                                break;
+                            }
+                        }
+
+                        sql = $"SELECT COUNT(*) AS TableCount FROM SYSCAT.TABLES WHERE TABNAME='{tableName}'";
+                        break;
+                    }
                 case DatabaseType.Informix:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM systables WHERE tabname='{tableName}' AND creator='{schemaName}'";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM systables WHERE tabname='{tableName}' AND creator='{connection.Database}'";
                     break;
                 case DatabaseType.ClickHouse:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM system.tables WHERE database = '{schemaName}' AND name = '{tableName}'";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM system.tables WHERE database = '{connection.Database}' AND name = '{tableName}'";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
@@ -151,9 +165,9 @@ namespace Sean.Core.DbRepository.Extensions
             return sql;
         }
 
-        public static string GetSqlForTableFieldExists(this DatabaseType dbType, string schemaName, string tableName, string fieldName)
+        public static string GetSqlForTableFieldExists(this DatabaseType dbType, DbConnection connection, string tableName, string fieldName)
         {
-            var sql = DbContextConfiguration.Options.GetSqlForTableFieldExists?.Invoke(dbType, schemaName, tableName, fieldName);
+            var sql = DbContextConfiguration.Options.GetSqlForTableFieldExists?.Invoke(dbType, connection, tableName, fieldName);
             if (!string.IsNullOrWhiteSpace(sql))
             {
                 return sql;
@@ -162,13 +176,13 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{schemaName}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
                     break;
                 case DatabaseType.SqlServer:
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM sys.columns WHERE object_id = object_id('{tableName}') AND name='{fieldName}'";
                     break;
                 case DatabaseType.Oracle:
-                    //sql = $"SELECT COUNT(*) AS ColumnCount FROM all_tab_columns WHERE owner = '{schemaName}' AND table_name='{tableName}' AND column_name='{fieldName}'";
+                    //sql = $"SELECT COUNT(*) AS ColumnCount FROM all_tab_columns WHERE owner = '{connection.Database}' AND table_name='{tableName}' AND column_name='{fieldName}'";
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}'";
                     break;
                 case DatabaseType.SQLite:
@@ -183,16 +197,30 @@ namespace Sean.Core.DbRepository.Extensions
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$FIELD_NAME = '{fieldName}'";
                     break;
                 case DatabaseType.PostgreSql:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{schemaName}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
                     break;
                 case DatabaseType.DB2:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM SYSIBM.SYSCOLUMNS WHERE TBNAME = '{tableName}' AND TBCREATOR = '{schemaName}' AND NAME = '{fieldName}'";
-                    break;
+                    {
+                        var connectionType = connection.GetType();
+                        var property = connectionType.GetProperty("UserId");
+                        if (property != null)
+                        {
+                            var schema = property.GetValue(connection, null) as string;
+                            if (!string.IsNullOrEmpty(schema))
+                            {
+                                sql = $"SELECT COUNT(*) AS ColumnCount FROM SYSCAT.COLUMNS WHERE TABNAME='{tableName}' AND COLNAME='{fieldName}' AND TABSCHEMA='{schema.ToUpper()}'";
+                                break;
+                            }
+                        }
+
+                        sql = $"SELECT COUNT(*) AS ColumnCount FROM SYSCAT.COLUMNS WHERE TABNAME='{tableName}' AND COLNAME='{fieldName}'";
+                        break;
+                    }
                 case DatabaseType.Informix:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM syscolumns WHERE tabid=(SELECT tabid FROM systables WHERE tabname='{tableName}' AND creator='{schemaName}') AND colname='{fieldName}'";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM syscolumns WHERE tabid=(SELECT tabid FROM systables WHERE tabname='{tableName}' AND creator='{connection.Database}') AND colname='{fieldName}'";
                     break;
                 case DatabaseType.ClickHouse:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM system.columns WHERE database = '{schemaName}' AND table = '{tableName}' AND name = '{fieldName}'";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM system.columns WHERE database = '{connection.Database}' AND table = '{tableName}' AND name = '{fieldName}'";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");

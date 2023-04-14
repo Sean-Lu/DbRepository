@@ -44,11 +44,11 @@ public class DbOptions
     /// <summary>
     /// <see cref="DatabaseTypeExtensions.GetSqlForTableExists"/>
     /// </summary>
-    public Func<DatabaseType, string, string, string> GetSqlForTableExists { get; set; }
+    public Func<DatabaseType, DbConnection, string, string> GetSqlForTableExists { get; set; }
     /// <summary>
     /// <see cref="DatabaseTypeExtensions.GetSqlForTableFieldExists"/>
     /// </summary>
-    public Func<DatabaseType, string, string, string, string> GetSqlForTableFieldExists { get; set; }
+    public Func<DatabaseType, DbConnection, string, string, string> GetSqlForTableFieldExists { get; set; }
     /// <summary>
     /// <see cref="DatabaseTypeExtensions.GetSqlForGetLastIdentityId"/>
     /// </summary>

@@ -105,9 +105,9 @@ namespace Example.Dapper.Domain.Extensions
             global::Dapper.SqlMapper.AddTypeHandler<DateTime>(new DateTimeTypeHandler());
             global::Dapper.SqlMapper.AddTypeHandler<DateTime?>(new DateTimeNullableTypeHandler());
 
-            // 解决使用Dapper操作Oracle数据库时使用bool类型的属性会报错的问题【ORA-03115: 不支持的网络数据类型或表示法】
-            global::Dapper.SqlMapper.RemoveTypeMap(typeof(bool));
-            global::Dapper.SqlMapper.AddTypeHandler<bool>(new BoolTypeHandler());
+            //// 解决使用Dapper操作Oracle数据库时使用bool类型的属性会报错的问题【ORA-03115: 不支持的网络数据类型或表示法】
+            //global::Dapper.SqlMapper.RemoveTypeMap(typeof(bool));
+            //global::Dapper.SqlMapper.AddTypeHandler<bool>(new BoolTypeHandler());
             #endregion
         }
 

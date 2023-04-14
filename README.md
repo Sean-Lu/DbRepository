@@ -43,7 +43,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | `MS Access`     | -           |
 | `Firebird`      | ✅         |
 | `PostgreSql`    | ✅         |
-| `DB2`           | -           |
+| `DB2`           | ✅         |
 | `Informix`      | -           |
 | `ClickHouse`    | -           |
 

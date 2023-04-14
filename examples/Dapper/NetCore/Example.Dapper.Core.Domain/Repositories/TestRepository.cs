@@ -31,7 +31,7 @@ namespace Example.Dapper.Core.Domain.Repositories
             //) : base(configuration, "test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base(configuration, "test_Firebird")// Firebird: CRUD test passed.
             //) : base(configuration, "test_Informix")// Informix
-            //) : base(configuration, "test_DB2")// DB2
+            //) : base(configuration, "test_DB2")// DB2: CRUD test passed.
         {
             _logger = logger;
         }
@@ -128,6 +128,7 @@ namespace Example.Dapper.Core.Domain.Repositories
 
             var sqlCommand = this.CreateQueryableBuilder(true)
                 .Where(entity => entity.Age >= 18 && entity.IsVip)
+                .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
                 .Page(1, 3)
                 .Build();
             var executeDataTableResult = await ExecuteDataTableAsync(sqlCommand);

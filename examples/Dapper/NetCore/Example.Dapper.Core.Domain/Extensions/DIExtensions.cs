@@ -87,6 +87,19 @@ namespace Example.Dapper.Core.Domain.Extensions
                         oracleCommand.BindByName = true;// default value: false
                     }
                 };
+                options.IsTableExists = (dbType, connection, tableName) =>
+                {
+                    if (dbType == DatabaseType.MsAccess)
+                    {
+                        return connection switch
+                        {
+                            OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
+                            OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
+                            _ => null
+                        };
+                    }
+                    return null;
+                };
                 options.BulkEntityCount = 200;
                 options.JsonSerializer = NewJsonSerializer.Instance;
                 options.SqlExecuting += OnSqlExecuting;
@@ -105,9 +118,9 @@ namespace Example.Dapper.Core.Domain.Extensions
             global::Dapper.SqlMapper.AddTypeHandler<DateTime>(new DateTimeTypeHandler());
             global::Dapper.SqlMapper.AddTypeHandler<DateTime?>(new DateTimeNullableTypeHandler());
 
-            // 解决使用Dapper操作Oracle数据库时使用bool类型的属性会报错的问题【ORA-03115: 不支持的网络数据类型或表示法】
-            global::Dapper.SqlMapper.RemoveTypeMap(typeof(bool));
-            global::Dapper.SqlMapper.AddTypeHandler<bool>(new BoolTypeHandler());
+            //// 解决使用Dapper操作Oracle数据库时使用bool类型的属性会报错的问题【ORA-03115: 不支持的网络数据类型或表示法】
+            //global::Dapper.SqlMapper.RemoveTypeMap(typeof(bool));
+            //global::Dapper.SqlMapper.AddTypeHandler<bool>(new BoolTypeHandler());
             #endregion
         }
 

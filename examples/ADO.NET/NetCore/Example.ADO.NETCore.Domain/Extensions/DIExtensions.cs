@@ -87,6 +87,19 @@ namespace Example.ADO.NETCore.Domain.Extensions
                         oracleCommand.BindByName = true;// default value: false
                     }
                 };
+                options.IsTableExists = (dbType, connection, tableName) =>
+                {
+                    if (dbType == DatabaseType.MsAccess)
+                    {
+                        return connection switch
+                        {
+                            OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
+                            OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
+                            _ => null
+                        };
+                    }
+                    return null;
+                };
                 options.BulkEntityCount = 200;
                 options.JsonSerializer = NewJsonSerializer.Instance;
                 options.SqlExecuting += OnSqlExecuting;
