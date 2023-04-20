@@ -8,17 +8,10 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public abstract class QueryableSqlBuilder : BaseSqlBuilder
+public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
 {
-    public const string SqlTemplate = "SELECT {1} FROM {0}{2}";
+    //private const string SqlTemplate = "SELECT {1} FROM {0}{2}";
 
-    protected QueryableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
-    {
-    }
-}
-
-public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEntity>
-{
     private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
 
     private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
@@ -175,7 +168,7 @@ public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEnt
     }
     #endregion
 
-    #region [Join] 表关联
+    #region [Join Table]
     public virtual IQueryable<TEntity> InnerJoin(string joinTableSql)
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
@@ -320,7 +313,7 @@ public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEnt
     /// <summary>
     /// GROUP BY column_name
     /// </summary>
-    /// <param name="groupBy">不包含关键字：GROUP BY</param>
+    /// <param name="groupBy">The [GROUP BY] keyword is not included.</param>
     /// <returns></returns>
     public virtual IQueryable<TEntity> GroupBy(string groupBy)
     {
@@ -353,7 +346,7 @@ public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEnt
     /// <summary>
     /// HAVING aggregate_function(column_name) operator value
     /// </summary>
-    /// <param name="having">不包含关键字：HAVING</param>
+    /// <param name="having">The [HAVING] keyword is not included.</param>
     /// <returns></returns>
     public virtual IQueryable<TEntity> Having(string having)
     {
@@ -370,7 +363,7 @@ public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEnt
     /// <summary>
     /// ORDER BY column_name,column_name ASC|DESC;
     /// </summary>
-    /// <param name="orderBy">不包含关键字：ORDER BY</param>
+    /// <param name="orderBy">The [ORDER BY] keyword is not included.</param>
     /// <returns></returns>
     public virtual IQueryable<TEntity> OrderBy(string orderBy)
     {
@@ -440,7 +433,7 @@ public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEnt
         return this;
     }
 
-    public virtual ISqlCommand Build()
+    protected override ISqlCommand BuildSqlCommand()
     {
         if (MultiTable)
         {
@@ -451,32 +444,22 @@ public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEnt
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
         var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldInfo =>
         {
-            if (!fieldInfo.FieldNameFormatted)
+            if (fieldInfo.FieldNameFormatted)
             {
-                if (!string.IsNullOrWhiteSpace(fieldInfo.AliasName))
-                {
-                    return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)} AS {fieldInfo.AliasName}";
-                }
-
-                var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
-                if (findFieldInfo != null && findFieldInfo.Property.Name != fieldInfo.FieldName)
-                {
-                    return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)} AS {findFieldInfo.Property.Name}"; // SELECT column_name AS alias_name
-                }
-
-                return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}";
+                return !string.IsNullOrWhiteSpace(fieldInfo.AliasName) ? $"{fieldInfo.FieldName} AS {fieldInfo.AliasName}" : $"{fieldInfo.FieldName}";
             }
-            else
+
+            if (!string.IsNullOrWhiteSpace(fieldInfo.AliasName))
             {
-                if (!string.IsNullOrWhiteSpace(fieldInfo.AliasName))
-                {
-                    return $"{fieldInfo.FieldName} AS {fieldInfo.AliasName}";
-                }
-
-                return $"{fieldInfo.FieldName}";
+                return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)} AS {fieldInfo.AliasName}";
             }
+
+            var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
+            return findFieldInfo != null && findFieldInfo.Property.Name != fieldInfo.FieldName
+                ? $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)} AS {findFieldInfo.Property.Name}"
+                : $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}";
         })) : "*";
-        //const string rowNumAlias = "ROW_NUM";
+
         if (_topNumber.HasValue)
         {
             // 查询前几行
@@ -535,26 +518,40 @@ public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEnt
             case DatabaseType.PostgreSql:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {rows} OFFSET {offset}";
             case DatabaseType.SqlServer:
-                if (DbContextConfiguration.SqlServerOptions is { UseRowNumberForPaging: true })
                 {
-                    return GetRowNumberQuerySql(selectFields, offset, rows);// SQL Server 2005 ~ 2008
-                }
+                    if (DbContextConfiguration.SqlServerOptions is { UseRowNumberForPaging: true })
+                    {
+                        return GetRowNumberQuerySql(selectFields, offset, rows);// SQL Server 2005 ~ 2008
+                    }
 
-                return GetOffsetQuerySql(selectFields, offset, rows);// SQL Server 2012 ~ +
+                    return GetOffsetQuerySql(selectFields, offset, rows);// SQL Server 2012 ~ +
+                }
             case DatabaseType.DB2:
                 return GetRowNumberQuerySql(selectFields, offset, rows);
             case DatabaseType.MsAccess:
-                return $"SELECT TOP {rows} {selectFields} FROM (SELECT TOP {offset + rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}) t2";
+                {
+                    if (offset == 0)
+                    {
+                        return $"SELECT TOP {rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+                    }
+
+                    var keyFieldName = typeof(TEntity).GetPrimaryKeys()?.FirstOrDefault();
+                    var keyFilterSql = $"SELECT TOP {offset} {SqlAdapter.FormatFieldName(keyFieldName)} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+                    var sqlWhere = $"{(!string.IsNullOrEmpty(WhereSql) ? $"{WhereSql} AND" : " WHERE")} {SqlAdapter.FormatFieldName(keyFieldName)} NOT IN ({keyFilterSql})";
+                    return $"SELECT TOP {rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql}";
+                }
             case DatabaseType.Firebird:
                 return $"SELECT FIRST {rows} SKIP {offset} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
             case DatabaseType.Oracle:
-                if (!string.IsNullOrWhiteSpace(OrderBySql))
                 {
-                    return GetRowNumberQuerySql(selectFields, offset, rows);
-                }
+                    if (!string.IsNullOrWhiteSpace(OrderBySql))
+                    {
+                        return GetRowNumberQuerySql(selectFields, offset, rows);
+                    }
 
-                var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {offset + rows}" : $"{WhereSql} AND ROWNUM <= {offset + rows}";
-                return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset}";
+                    var sqlWhere = $"{(!string.IsNullOrEmpty(WhereSql) ? $"{WhereSql} AND" : " WHERE")} ROWNUM <= {offset + rows}";
+                    return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset}";
+                }
             default:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows}";
         }
@@ -580,305 +577,4 @@ public class QueryableSqlBuilder<TEntity> : QueryableSqlBuilder, IQueryable<TEnt
 
         return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{orderBy} OFFSET {offset} ROWS FETCH NEXT {rows} ROWS ONLY";
     }
-}
-
-public interface IQueryable
-{
-    ISqlAdapter SqlAdapter { get; }
-
-    /// <summary>
-    /// 创建查询数据的SQL：<see cref="QueryableSqlBuilder.SqlTemplate"/>
-    /// </summary>
-    /// <returns></returns>
-    ISqlCommand Build();
-}
-
-public interface IQueryable<TEntity> : IQueryable
-{
-    #region [Field]
-    /// <summary>
-    /// 包含字段
-    /// </summary>
-    /// <param name="fields">字段名称</param>
-    /// <returns></returns>
-    IQueryable<TEntity> IncludeFields(params string[] fields);
-    /// <summary>
-    /// 忽略字段
-    /// </summary>
-    /// <param name="fields">字段名称</param>
-    /// <returns></returns>
-    IQueryable<TEntity> IgnoreFields(params string[] fields);
-
-    /// <summary>
-    /// MAX() - 返回最大值
-    /// </summary>
-    /// <param name="fieldName">字段名称</param>
-    /// <param name="aliasName">别名</param>
-    /// <param name="fieldNameFormatted"><paramref name="fieldName"/> 是否已经被格式化处理</param>
-    /// <returns></returns>
-    IQueryable<TEntity> MaxField(string fieldName, string aliasName = null, bool fieldNameFormatted = false);
-    /// <summary>
-    /// MIN() - 返回最小值
-    /// </summary>
-    /// <param name="fieldName">字段名称</param>
-    /// <param name="aliasName">别名</param>
-    /// <param name="fieldNameFormatted"><paramref name="fieldName"/> 是否已经被格式化处理</param>
-    /// <returns></returns>
-    IQueryable<TEntity> MinField(string fieldName, string aliasName = null, bool fieldNameFormatted = false);
-    /// <summary>
-    /// SUM() - 返回总和
-    /// </summary>
-    /// <param name="fieldName">字段名称</param>
-    /// <param name="aliasName">别名</param>
-    /// <param name="fieldNameFormatted"><paramref name="fieldName"/> 是否已经被格式化处理</param>
-    /// <returns></returns>
-    IQueryable<TEntity> SumField(string fieldName, string aliasName = null, bool fieldNameFormatted = false);
-    /// <summary>
-    /// AVG() - 返回平均值
-    /// </summary>
-    /// <param name="fieldName">字段名称</param>
-    /// <param name="aliasName">别名</param>
-    /// <param name="fieldNameFormatted"><paramref name="fieldName"/> 是否已经被格式化处理</param>
-    /// <returns></returns>
-    IQueryable<TEntity> AvgField(string fieldName, string aliasName = null, bool fieldNameFormatted = false);
-    /// <summary>
-    /// COUNT() - 返回行数
-    /// </summary>
-    /// <param name="fieldName">字段名称</param>
-    /// <param name="aliasName">别名</param>
-    /// <param name="fieldNameFormatted"><paramref name="fieldName"/> 是否已经被格式化处理</param>
-    /// <returns></returns>
-    IQueryable<TEntity> CountField(string fieldName, string aliasName = null, bool fieldNameFormatted = false);
-    /// <summary>
-    /// SELECT COUNT(DISTINCT field_name) FROM table_name;
-    /// </summary>
-    /// <param name="fieldName">字段名称</param>
-    /// <param name="aliasName">别名</param>
-    /// <returns></returns>
-    IQueryable<TEntity> CountDistinctField(string fieldName, string aliasName = null);
-    /// <summary>
-    /// SELECT DISTINCT field_name1,field_name2 FROM table_name;
-    /// </summary>
-    /// <param name="fields">字段名称</param>
-    /// <returns></returns>
-    IQueryable<TEntity> DistinctFields(params string[] fields);
-
-    /// <summary>
-    /// 包含字段
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <returns></returns>
-    IQueryable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression);
-    /// <summary>
-    /// 忽略字段
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <returns></returns>
-    IQueryable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression);
-
-    /// <summary>
-    /// MAX() - 返回最大值
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="aliasName">别名</param>
-    /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
-    /// <returns></returns>
-    IQueryable<TEntity> MaxField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
-    /// <summary>
-    /// MIN() - 返回最小值
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="aliasName">别名</param>
-    /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
-    /// <returns></returns>
-    IQueryable<TEntity> MinField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
-    /// <summary>
-    /// SUM() - 返回总和
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="aliasName">别名</param>
-    /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
-    /// <returns></returns>
-    IQueryable<TEntity> SumField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
-    /// <summary>
-    /// AVG() - 返回平均值
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="aliasName">别名</param>
-    /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
-    /// <returns></returns>
-    IQueryable<TEntity> AvgField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
-    /// <summary>
-    /// COUNT() - 返回行数
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="aliasName">别名</param>
-    /// <param name="fieldNameFormatted">fieldName 是否已经被格式化处理</param>
-    /// <returns></returns>
-    IQueryable<TEntity> CountField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false);
-    /// <summary>
-    /// SELECT COUNT(DISTINCT field_name) FROM table_name;
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="aliasName">别名</param>
-    /// <returns></returns>
-    IQueryable<TEntity> CountDistinctField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null);
-    /// <summary>
-    /// SELECT DISTINCT field_name1,field_name2 FROM table_name;
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <returns></returns>
-    IQueryable<TEntity> DistinctFields(Expression<Func<TEntity, object>> fieldExpression);
-    #endregion
-
-    #region [Join] 表关联
-    /// <summary>
-    /// INNER JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：INNER JOIN</param>
-    /// <returns></returns>
-    IQueryable<TEntity> InnerJoin(string joinTableSql);
-    /// <summary>
-    /// LEFT JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：LEFT JOIN</param>
-    /// <returns></returns>
-    IQueryable<TEntity> LeftJoin(string joinTableSql);
-    /// <summary>
-    /// RIGHT JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：RIGHT JOIN</param>
-    /// <returns></returns>
-    IQueryable<TEntity> RightJoin(string joinTableSql);
-    /// <summary>
-    /// FULL JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：FULL JOIN</param>
-    /// <returns></returns>
-    IQueryable<TEntity> FullJoin(string joinTableSql);
-
-    /// <summary>
-    /// INNER JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IQueryable<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// LEFT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IQueryable<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// RIGHT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IQueryable<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// FULL JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IQueryable<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    #endregion
-
-    #region [WHERE]
-    /// <summary>
-    /// WHERE column_name operator value
-    /// </summary>
-    /// <param name="where">不包含关键字：WHERE</param>
-    /// <returns></returns>
-    IQueryable<TEntity> Where(string where);
-    /// <summary>
-    /// 解析WHERE过滤条件
-    /// </summary>
-    /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
-    /// <returns></returns>
-    IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression);
-    IQueryable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
-
-    /// <summary>
-    /// WHERE column_name operator value
-    /// </summary>
-    /// <param name="fieldName">字段名称</param>
-    /// <param name="operation"></param>
-    /// <param name="keyword"></param>
-    /// <param name="include"></param>
-    /// <param name="paramName">参数名称，默认同 <paramref name="fieldName"/></param>
-    /// <returns></returns>
-    IQueryable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null);
-    IQueryable<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null);
-
-    IQueryable<TEntity> AndWhere(string where);
-    IQueryable<TEntity> AndWhere(Expression<Func<TEntity, bool>> whereExpression);
-    IQueryable<TEntity> AndWhere<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
-    #endregion
-
-    #region [GROUP BY]
-    /// <summary>
-    /// GROUP BY column_name
-    /// </summary>
-    /// <param name="groupBy">不包含关键字：GROUP BY</param>
-    /// <returns></returns>
-    IQueryable<TEntity> GroupBy(string groupBy);
-    IQueryable<TEntity> GroupByField(params string[] fieldNames);
-    IQueryable<TEntity> GroupByField(Expression<Func<TEntity, object>> fieldExpression);
-    #endregion
-
-    #region [HAVING]
-    /// <summary>
-    /// HAVING aggregate_function(column_name) operator value
-    /// </summary>
-    /// <param name="having">不包含关键字：HAVING</param>
-    /// <returns></returns>
-    IQueryable<TEntity> Having(string having);
-    #endregion
-
-    #region [ORDER BY]
-    /// <summary>
-    /// ORDER BY column_name,column_name ASC|DESC;
-    /// </summary>
-    /// <param name="orderBy">不包含关键字：ORDER BY</param>
-    /// <returns></returns>
-    IQueryable<TEntity> OrderBy(string orderBy);
-    IQueryable<TEntity> OrderBy(OrderByCondition orderBy);
-    IQueryable<TEntity> OrderByField(OrderByType type, params string[] fieldNames);
-    IQueryable<TEntity> OrderByField(OrderByType type, Expression<Func<TEntity, object>> fieldExpression);
-    #endregion
-
-    /// <summary>
-    /// 设置 TOP 查询参数
-    /// <para>SELECT TOP {<paramref name="top"/>}</para>
-    /// </summary>
-    /// <param name="top"></param>
-    /// <returns></returns>
-    IQueryable<TEntity> Top(int? top);
-    /// <summary>
-    /// 设置分页查询参数
-    /// <para>LIMIT {(<paramref name="pageIndex"/> - 1) * <paramref name="pageSize"/>},{<paramref name="pageSize"/>}</para>
-    /// </summary>
-    /// <param name="pageIndex">The current page index for paging query, the minimum value is 1.</param>
-    /// <param name="pageSize">The page size for paging query.</param>
-    /// <returns></returns>
-    IQueryable<TEntity> Page(int? pageIndex, int? pageSize);
-    /// <summary>
-    /// 设置偏移量查询参数
-    /// <para>LIMIT {<paramref name="offset"/>},{<paramref name="rows"/>}</para>
-    /// </summary>
-    /// <param name="offset">Offset to use for this query.</param>
-    /// <param name="rows">The number of rows queried.</param>
-    /// <returns></returns>
-    IQueryable<TEntity> Offset(int? offset, int? rows);
-
-    /// <summary>
-    /// 设置SQL入参
-    /// </summary>
-    /// <param name="param"></param>
-    /// <returns></returns>
-    IQueryable<TEntity> SetParameter(object param);
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -9,17 +8,10 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public abstract class UpdateableSqlBuilder : BaseSqlBuilder
+public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity>
 {
-    public const string SqlTemplate = "UPDATE {0} SET {1}{2}";
+    private const string SqlTemplate = "UPDATE {0} SET {1}{2}";
 
-    protected UpdateableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
-    {
-    }
-}
-
-public class UpdateableSqlBuilder<TEntity> : UpdateableSqlBuilder, IUpdateable<TEntity>
-{
     private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
 
     private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
@@ -110,19 +102,19 @@ public class UpdateableSqlBuilder<TEntity> : UpdateableSqlBuilder, IUpdateable<T
         return PrimaryKeyFields(fields);
     }
 
-    public virtual IUpdateable<TEntity> IncrFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
+    public virtual IUpdateable<TEntity> IncrementFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
         SqlBuilderUtil.IncrFields(SqlAdapter, _includeFieldsList, fieldExpression, value);
         return this;
     }
-    public virtual IUpdateable<TEntity> DecrFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
+    public virtual IUpdateable<TEntity> DecrementFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
         SqlBuilderUtil.DecrFields(SqlAdapter, _includeFieldsList, fieldExpression, value);
         return this;
     }
     #endregion
 
-    #region [Join] 表关联
+    #region [Join Table]
     public virtual IUpdateable<TEntity> InnerJoin(string joinTableSql)
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
@@ -275,12 +267,12 @@ public class UpdateableSqlBuilder<TEntity> : UpdateableSqlBuilder, IUpdateable<T
         return this;
     }
 
-    public virtual ISqlCommand Build()
+    protected override ISqlCommand BuildSqlCommand()
     {
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
         if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
         {
-            #region 设置默认过滤条件为主键字段
+            #region Set the primary key field to the [where] filtering condition.
             if (_includeFieldsList.Any(c => c.PrimaryKey))
             {
                 foreach (var pks in _includeFieldsList.Where(c => c.PrimaryKey))
@@ -338,181 +330,4 @@ public class UpdateableSqlBuilder<TEntity> : UpdateableSqlBuilder, IUpdateable<T
         };
         return sql;
     }
-}
-
-public interface IUpdateable
-{
-    ISqlAdapter SqlAdapter { get; }
-
-    /// <summary>
-    /// 创建更新数据的SQL：<see cref="UpdateableSqlBuilder.SqlTemplate"/>
-    /// <para>1. 为了防止误更新，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="IUpdateable{TEntity}.AllowEmptyWhereClause"/> 设置允许空 WHERE 子句</para>
-    /// <para>2. 如果没有指定WHERE过滤条件，且没有设置 <see cref="IUpdateable{TEntity}.AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段</para>
-    /// </summary>
-    /// <returns></returns>
-    ISqlCommand Build();
-}
-
-public interface IUpdateable<TEntity> : IUpdateable
-{
-    #region [Field]
-    /// <summary>
-    /// 包含字段
-    /// </summary>
-    /// <param name="fields">字段名称</param>
-    /// <returns></returns>
-    IUpdateable<TEntity> IncludeFields(params string[] fields);
-    /// <summary>
-    /// 忽略字段
-    /// </summary>
-    /// <param name="fields">字段名称</param>
-    /// <returns></returns>
-    IUpdateable<TEntity> IgnoreFields(params string[] fields);
-    /// <summary>
-    /// 主键字段
-    /// </summary>
-    /// <param name="fields">字段名称</param>
-    /// <returns></returns>
-    IUpdateable<TEntity> PrimaryKeyFields(params string[] fields);
-
-    /// <summary>
-    /// 包含字段
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="entity"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression, TEntity entity = default);
-    /// <summary>
-    /// 忽略字段
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression);
-    /// <summary>
-    /// 主键字段
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> PrimaryKeyFields(Expression<Func<TEntity, object>> fieldExpression);
-
-    /// <summary>
-    /// 递增字段
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="fieldExpression"></param>
-    /// <param name="value"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> IncrFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct;
-    /// <summary>
-    /// 递减字段
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="fieldExpression"></param>
-    /// <param name="value"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> DecrFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct;
-    #endregion
-
-    #region [Join] 表关联
-    /// <summary>
-    /// INNER JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：INNER JOIN</param>
-    /// <returns></returns>
-    IUpdateable<TEntity> InnerJoin(string joinTableSql);
-    /// <summary>
-    /// LEFT JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：LEFT JOIN</param>
-    /// <returns></returns>
-    IUpdateable<TEntity> LeftJoin(string joinTableSql);
-    /// <summary>
-    /// RIGHT JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：RIGHT JOIN</param>
-    /// <returns></returns>
-    IUpdateable<TEntity> RightJoin(string joinTableSql);
-    /// <summary>
-    /// FULL JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：FULL JOIN</param>
-    /// <returns></returns>
-    IUpdateable<TEntity> FullJoin(string joinTableSql);
-
-    /// <summary>
-    /// INNER JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// LEFT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// RIGHT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// FULL JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    #endregion
-
-    #region [WHERE]
-    /// <summary>
-    /// WHERE column_name operator value
-    /// </summary>
-    /// <param name="where">不包含关键字：WHERE</param>
-    /// <returns></returns>
-    IUpdateable<TEntity> Where(string where);
-    /// <summary>
-    /// 解析WHERE过滤条件
-    /// </summary>
-    /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
-    /// <returns></returns>
-    IUpdateable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression);
-    IUpdateable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
-
-    /// <summary>
-    /// WHERE column_name operator value
-    /// </summary>
-    /// <param name="fieldName">字段名称</param>
-    /// <param name="operation"></param>
-    /// <param name="keyword"></param>
-    /// <param name="include"></param>
-    /// <param name="paramName">参数名称，默认同 <paramref name="fieldName"/></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null);
-    IUpdateable<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null);
-
-    IUpdateable<TEntity> AndWhere(string where);
-    IUpdateable<TEntity> AndWhere(Expression<Func<TEntity, bool>> whereExpression);
-    IUpdateable<TEntity> AndWhere<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
-    #endregion
-
-    /// <summary>
-    /// 是否允许空的 WHERE 子句
-    /// <para>注：为了防止执行错误的SQL导致不可逆的结果，默认不允许空的WHERE子句</para>
-    /// </summary>
-    /// <param name="allowEmptyWhereClause"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> AllowEmptyWhereClause(bool allowEmptyWhereClause = true);
-
-    /// <summary>
-    /// 设置SQL入参
-    /// </summary>
-    /// <param name="param"></param>
-    /// <returns></returns>
-    IUpdateable<TEntity> SetParameter(object param);
 }

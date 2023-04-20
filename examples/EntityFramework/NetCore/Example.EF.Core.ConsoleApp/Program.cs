@@ -22,8 +22,20 @@ using (var db = new EFDbContext())
         Console.WriteLine("数据库创建并初始化完成...");
     }
 
-    ////var queryResult = db.TestEntities.Where(entity => entity.Age >= 18 && entity.IsVip).OrderBy(entity => entity.UserId).ThenBy(entity => entity.Id).Skip(0).Take(3).ToList();// 有 ORDER BY
-    //var queryResult = db.TestEntities.Where(entity => entity.Age >= 18 && entity.IsVip).Skip(0).Take(3).ToList();// 无 ORDER BY
+    //var pageQueryResult = db.TestEntities
+    //    .Where(entity => entity.Age >= 18 && entity.IsVip)
+    //    .OrderBy(entity => entity.UserId)
+    //    .ThenBy(entity => entity.Id)
+    //    .Skip(0)
+    //    .Take(3)
+    //    .ToList();
+    //Console.WriteLine($"#################### 分页查询执行结果（有ORDER BY）：{JsonConvert.SerializeObject(pageQueryResult, Formatting.Indented)}");
+    //var pageQueryResultWithoutOrderBy = db.TestEntities
+    //    .Where(entity => entity.Age >= 18 && entity.IsVip)
+    //    .Skip(0)
+    //    .Take(3)
+    //    .ToList();
+    //Console.WriteLine($"#################### 分页查询执行结果（无ORDER BY）：{JsonConvert.SerializeObject(pageQueryResultWithoutOrderBy, Formatting.Indented)}");
 
     ////var countResult = db.TestEntities.Count();
     //var countResult = db.Set<TestEntity>().Count();

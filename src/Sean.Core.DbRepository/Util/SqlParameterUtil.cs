@@ -33,14 +33,35 @@ internal static class SqlParameterUtil
         var dicParameters = ConvertToDicParameter(parameter);
         if (dicParameters != null)
         {
-            RemoveUnusedParameters(dicParameters, sql);
-
-            foreach (var keyValuePair in dicParameters)
+            if (dbType == DatabaseType.MsAccess)
             {
-                var sqlParameter = dbParameterFactory();
-                sqlParameter.ParameterName = keyValuePair.Key;
-                sqlParameter.SetParameterTypeAndValue(keyValuePair.Value, dbType);
-                result.Add(sqlParameter);
+                var orderSqlParameters = ParseSqlParameters(sql);
+
+                foreach (var keyValuePair in orderSqlParameters)
+                {
+                    var paraName = keyValuePair.Key;
+                    if (!dicParameters.ContainsKey(paraName))
+                    {
+                        continue;
+                    }
+
+                    var sqlParameter = dbParameterFactory();
+                    sqlParameter.ParameterName = paraName;
+                    sqlParameter.SetParameterTypeAndValue(dicParameters[paraName], dbType);
+                    result.Add(sqlParameter);
+                }
+            }
+            else
+            {
+                RemoveUnusedParameters(dicParameters, sql);
+
+                foreach (var keyValuePair in dicParameters)
+                {
+                    var sqlParameter = dbParameterFactory();
+                    sqlParameter.ParameterName = keyValuePair.Key;
+                    sqlParameter.SetParameterTypeAndValue(keyValuePair.Value, dbType);
+                    result.Add(sqlParameter);
+                }
             }
         }
         return result;
@@ -68,10 +89,11 @@ internal static class SqlParameterUtil
     }
     public static void RemoveUnusedParameters(Dictionary<string, object> parameters, string sql)
     {
-        foreach (var p in parameters)
+        for (var i = 0; i < parameters.Count; i++)
         {
-            if (!Regex.IsMatch(sql, $@"[?@:]{p.Key}([^\p{{L}}\p{{N}}_]+|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant))
-                parameters.Remove(p.Key);
+            var item = parameters.ElementAt(i);
+            if (!Regex.IsMatch(sql, $@"[?@:]{item.Key}([^\p{{L}}\p{{N}}_]+|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant))
+                parameters.Remove(item.Key);
         }
     }
 

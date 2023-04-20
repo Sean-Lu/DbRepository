@@ -26,7 +26,7 @@ public abstract class BaseRepository : IBaseRepository
 
     public ISqlMonitor SqlMonitor => Factory.SqlMonitor;
 
-    public int? BulkCountLimit { get; set; }
+    public int? BulkEntityCount { get; set; }
 
     public int? CommandTimeout
     {
@@ -36,17 +36,17 @@ public abstract class BaseRepository : IBaseRepository
 
     #region Constructors
 #if NETSTANDARD || NET5_0_OR_GREATER
-        /// <summary>
-        /// Single or clustered database.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="configName">Configuration ConnectionStrings name</param>
-        protected BaseRepository(IConfiguration configuration, string configName = Constants.Master)
-        {
-            Factory = new DbFactory(configuration, configName);
-            Factory.SqlMonitor.SqlExecuting += OnSqlExecuting;
-            Factory.SqlMonitor.SqlExecuted += OnSqlExecuted;
-        }
+    /// <summary>
+    /// Single or clustered database.
+    /// </summary>
+    /// <param name="configuration">Configuration</param>
+    /// <param name="configName">Configuration ConnectionStrings name</param>
+    protected BaseRepository(IConfiguration configuration, string configName = Constants.Master)
+    {
+        Factory = new DbFactory(configuration, configName);
+        Factory.SqlMonitor.SqlExecuting += OnSqlExecuting;
+        Factory.SqlMonitor.SqlExecuted += OnSqlExecuted;
+    }
 #else
     /// <summary>
     /// Single or clustered database.
@@ -121,7 +121,7 @@ public abstract class BaseRepository : IBaseRepository
 #if NET45
                 using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
 #else
-                    using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+                using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
 #endif
                 {
                     Execute(sql, master: true);
@@ -351,16 +351,9 @@ public abstract class BaseRepository : IBaseRepository
             return func(transaction);
         }
 
-        var isInternalConnection = false;
-        try
+        return Execute(conn =>
         {
-            if (connection == null)
-            {
-                connection = OpenNewConnection(true);
-                isInternalConnection = true;
-            }
-
-            using (var trans = connection.BeginTransaction())
+            using (var trans = conn.BeginTransaction())
             {
                 try
                 {
@@ -372,14 +365,7 @@ public abstract class BaseRepository : IBaseRepository
                     throw;
                 }
             }
-        }
-        finally
-        {
-            if (isInternalConnection)
-            {
-                connection?.Dispose();
-            }
-        }
+        }, true, connection: connection);
     }
     public virtual bool ExecuteAutoTransaction(Func<IDbTransaction, bool> func, IDbTransaction transaction = null, IDbConnection connection = null)
     {
@@ -390,16 +376,9 @@ public abstract class BaseRepository : IBaseRepository
             return func(transaction);
         }
 
-        var isInternalConnection = false;
-        try
+        return Execute(conn =>
         {
-            if (connection == null)
-            {
-                connection = OpenNewConnection(true);
-                isInternalConnection = true;
-            }
-
-            using (var trans = connection.BeginTransaction())
+            using (var trans = conn.BeginTransaction())
             {
                 try
                 {
@@ -418,14 +397,7 @@ public abstract class BaseRepository : IBaseRepository
                     throw;
                 }
             }
-        }
-        finally
-        {
-            if (isInternalConnection)
-            {
-                connection?.Dispose();
-            }
-        }
+        }, true, connection: connection);
     }
 
     public virtual bool IsTableExists(string tableName, bool master = true, bool useCache = true)
@@ -668,16 +640,9 @@ public abstract class BaseRepository : IBaseRepository
             return await func(transaction);
         }
 
-        var isInternalConnection = false;
-        try
+        return await ExecuteAsync(async conn =>
         {
-            if (connection == null)
-            {
-                connection = OpenNewConnection(true);
-                isInternalConnection = true;
-            }
-
-            using (var trans = connection.BeginTransaction())
+            using (var trans = conn.BeginTransaction())
             {
                 try
                 {
@@ -689,14 +654,7 @@ public abstract class BaseRepository : IBaseRepository
                     throw;
                 }
             }
-        }
-        finally
-        {
-            if (isInternalConnection)
-            {
-                connection?.Dispose();
-            }
-        }
+        }, true, connection: connection);
     }
     public virtual async Task<bool> ExecuteAutoTransactionAsync(Func<IDbTransaction, Task<bool>> func, IDbTransaction transaction = null, IDbConnection connection = null)
     {
@@ -707,16 +665,9 @@ public abstract class BaseRepository : IBaseRepository
             return await func(transaction);
         }
 
-        var isInternalConnection = false;
-        try
+        return await ExecuteAsync(async conn =>
         {
-            if (connection == null)
-            {
-                connection = OpenNewConnection(true);
-                isInternalConnection = true;
-            }
-
-            using (var trans = connection.BeginTransaction())
+            using (var trans = conn.BeginTransaction())
             {
                 try
                 {
@@ -735,14 +686,7 @@ public abstract class BaseRepository : IBaseRepository
                     throw;
                 }
             }
-        }
-        finally
-        {
-            if (isInternalConnection)
-            {
-                connection?.Dispose();
-            }
-        }
+        }, true, connection: connection);
     }
 
     public virtual async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)

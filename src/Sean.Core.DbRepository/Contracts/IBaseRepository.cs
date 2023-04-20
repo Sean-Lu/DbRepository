@@ -27,7 +27,7 @@ public interface IBaseRepository
     /// <summary>
     /// The limit on the number of entities when executing database bulk operations.
     /// </summary>
-    int? BulkCountLimit { get; set; }
+    int? BulkEntityCount { get; set; }
 
     /// <summary>
     /// Number of seconds before command execution timeout.

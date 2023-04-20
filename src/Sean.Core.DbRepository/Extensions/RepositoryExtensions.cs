@@ -250,14 +250,14 @@ namespace Sean.Core.DbRepository.Extensions
         public static ISqlCommand GetSqlForIncr<TEntity, TValue>(this IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression) where TValue : struct
         {
             return repository.CreateUpdateableBuilder<TEntity>(false)
-                .IncrFields(fieldExpression, value)
+                .IncrementFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
         }
         public static ISqlCommand GetSqlForDecr<TEntity, TValue>(this IBaseRepository repository, TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression) where TValue : struct
         {
             return repository.CreateUpdateableBuilder<TEntity>(false)
-                .DecrFields(fieldExpression, value)
+                .DecrementFields(fieldExpression, value)
                 .Where(whereExpression)
                 .Build();
         }

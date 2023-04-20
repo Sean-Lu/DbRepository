@@ -27,13 +27,15 @@ namespace Example.ADO.NETCore.Domain.Repositories
             ) : base(configuration, "test_SQLite")// SQLite: CRUD test passed.
             //) : base(configuration, "test_SqlServer")// SQL Server: CRUD test passed.
             //) : base(configuration, "test_Oracle")// Oracle: CRUD test passed.
-            //) : base(configuration, "test_MsAccess")// MsAccess
+            //) : base(configuration, "test_MsAccess")// MS Access: CRUD test passed.
             //) : base(configuration, "test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base(configuration, "test_Firebird")// Firebird: CRUD test passed.
             //) : base(configuration, "test_Informix")// Informix
             //) : base(configuration, "test_DB2")// DB2: CRUD test passed.
         {
             _logger = logger;
+
+            _logger.LogDebug($"######Current database type: {DbType}");
         }
 
         protected override void OnSqlExecuting(SqlExecutingContext context)

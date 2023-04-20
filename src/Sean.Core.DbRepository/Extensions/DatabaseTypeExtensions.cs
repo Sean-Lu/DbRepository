@@ -87,10 +87,10 @@ namespace Sean.Core.DbRepository.Extensions
             switch (databaseType)
             {
                 case DatabaseType.SqlServer:
+                case DatabaseType.MsAccess:
                     return $"[{name}]";
                 case DatabaseType.MySql:
                 case DatabaseType.SQLite:
-                case DatabaseType.MsAccess:
                     return $"`{name}`";
                 case DatabaseType.PostgreSql:
                 case DatabaseType.Oracle:

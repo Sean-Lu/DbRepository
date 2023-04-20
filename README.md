@@ -40,7 +40,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | `SQL Server`    | ✅         |
 | `Oracle`        | ✅         |
 | `SQLite`        | ✅         |
-| `MS Access`     | -           |
+| `MS Access`     | ✅         |
 | `Firebird`      | ✅         |
 | `PostgreSql`    | ✅         |
 | `DB2`           | ✅         |

@@ -1,29 +1,42 @@
 ﻿using System;
 
-namespace Sean.Core.DbRepository
+namespace Sean.Core.DbRepository;
+
+public abstract class BaseSqlBuilder : IBaseSqlBuilder
 {
-    public abstract class BaseSqlBuilder
+    /// <summary>
+    /// SQL adapter.
+    /// </summary>
+    public ISqlAdapter SqlAdapter { get; }
+    /// <summary>
+    /// Whether the SQL is indent. The default value is false.
+    /// </summary>
+    public bool SqlIndented { get; } = false;
+    /// <summary>
+    /// Whether the SQL is parameterized. The default value is true.
+    /// </summary>
+    public bool SqlParameterized { get; } = true;
+
+    protected BaseSqlBuilder(DatabaseType dbType, string tableName)
     {
-        /// <summary>
-        /// SQL是否缩进格式化处理，默认值：false
-        /// </summary>
-        public static bool SqlIndented = false;
-        /// <summary>
-        /// SQL是否参数化处理，默认值：true
-        /// </summary>
-        public static bool SqlParameterized = true;
+        if (string.IsNullOrWhiteSpace(tableName))
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
-        /// <summary>
-        /// SQL适配器
-        /// </summary>
-        public ISqlAdapter SqlAdapter { get; }
+        SqlAdapter = new DefaultSqlAdapter(dbType, tableName);
+    }
 
-        protected BaseSqlBuilder(DatabaseType dbType, string tableName)
+    public ISqlCommand Build()
+    {
+        var sql = BuildSqlCommand();
+        if (sql?.Parameter != null && SqlAdapter.DbType == DatabaseType.MsAccess)
         {
-            if (string.IsNullOrWhiteSpace(tableName))
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
-
-            SqlAdapter = new DefaultSqlAdapter(dbType, tableName);
+            sql.ConvertParameterToDictionary(BindSqlParameterType.BindByPosition);
         }
+        return sql;
+    }
+
+    protected virtual ISqlCommand BuildSqlCommand()
+    {
+        return null;
     }
 }

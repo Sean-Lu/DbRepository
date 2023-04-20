@@ -244,7 +244,7 @@ internal static class SqlBuilderUtil
     }
     #endregion
 
-    #region [Join] 表关联
+    #region [Join Table]
     public static string GetJoinFields<TEntity, TEntity2>(ISqlAdapter sqlAdapter, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string joinTableName)
     {
         var fields = fieldExpression.GetFieldNames();

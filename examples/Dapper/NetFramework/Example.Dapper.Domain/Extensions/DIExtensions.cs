@@ -101,11 +101,17 @@ namespace Example.Dapper.Domain.Extensions
             #endregion
 
             #region Dapper配置
-            // 从数据库返回的时间字段设置默认的 DateTimeKind 属性
-            global::Dapper.SqlMapper.AddTypeHandler<DateTime>(new DateTimeTypeHandler());
-            global::Dapper.SqlMapper.AddTypeHandler<DateTime?>(new DateTimeNullableTypeHandler());
+            //// 从数据库返回的 DateTime 设置默认的 DateTimeKind 属性
+            //global::Dapper.SqlMapper.AddTypeHandler<DateTime>(new DateTimeTypeHandler());
+            //global::Dapper.SqlMapper.AddTypeHandler<DateTime?>(new DateTimeNullableTypeHandler());
 
-            //// 解决使用Dapper操作Oracle数据库时使用bool类型的属性会报错的问题【ORA-03115: 不支持的网络数据类型或表示法】
+            //// 解决 MS Access 数据库实体类使用 DateTime 类型的属性会报错的问题【OleDbException: 标准表达式中数据类型不匹配。】
+            //global::Dapper.SqlMapper.RemoveTypeMap(typeof(DateTime));
+            //global::Dapper.SqlMapper.AddTypeHandler<DateTime>(new AccessDateTimeHandler());
+            //global::Dapper.SqlMapper.RemoveTypeMap(typeof(DateTime?));
+            //global::Dapper.SqlMapper.AddTypeHandler<DateTime?>(new AccessDateTimeNullableHandler());
+
+            //// 解决 Oracle 数据库实体类使用 bool 类型的属性会报错的问题【ORA-03115: 不支持的网络数据类型或表示法】
             //global::Dapper.SqlMapper.RemoveTypeMap(typeof(bool));
             //global::Dapper.SqlMapper.AddTypeHandler<bool>(new BoolTypeHandler());
             #endregion

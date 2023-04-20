@@ -732,7 +732,7 @@ public class DbFactory
     /// <returns></returns>
     public DbDataReader ExecuteReader(ISqlCommand sqlCommand)
     {
-        return ExecuteSqlCommand(sqlCommand, (command, isInternalConnection) => command.ExecuteReader(isInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor), false);
+        return ExecuteSqlCommand(sqlCommand, (command, useInternalConnection) => command.ExecuteReader(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor), false);
     }
 
     /// <summary>   
@@ -812,7 +812,7 @@ public class DbFactory
     /// <returns></returns>
     public async Task<DbDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand)
     {
-        return await ExecuteSqlCommandAsync(sqlCommand, async (command, isInternalConnection) => await command.ExecuteReaderAsync(isInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor), false);
+        return await ExecuteSqlCommandAsync(sqlCommand, async (command, useInternalConnection) => await command.ExecuteReaderAsync(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor), false);
     }
     #endregion
 
@@ -1205,9 +1205,9 @@ public class DbFactory
         //var table = ExecuteDataTable(sqlCommand);
         //return table?.ToList<T>(CaseSensitive);
 
-        return ExecuteSqlCommand(sqlCommand, (command, isInternalConnection) =>
+        return ExecuteSqlCommand(sqlCommand, (command, useInternalConnection) =>
         {
-            using (var dataReader = command.ExecuteReader(isInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
+            using (var dataReader = command.ExecuteReader(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
             {
                 return dataReader.GetList<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
@@ -1300,9 +1300,9 @@ public class DbFactory
         //var table = await ExecuteDataTableAsync(sqlCommand);
         //return table?.ToList<T>(CaseSensitive);
 
-        return await ExecuteSqlCommandAsync(sqlCommand, async (command, isInternalConnection) =>
+        return await ExecuteSqlCommandAsync(sqlCommand, async (command, useInternalConnection) =>
         {
-            using (var dataReader = await command.ExecuteReaderAsync(isInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
+            using (var dataReader = await command.ExecuteReaderAsync(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
             {
                 return await dataReader.GetListAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
@@ -1388,9 +1388,9 @@ public class DbFactory
     /// <returns>Returns a single entity after query.</returns>
     public T Get<T>(ISqlCommand sqlCommand)
     {
-        return ExecuteSqlCommand(sqlCommand, (command, isInternalConnection) =>
+        return ExecuteSqlCommand(sqlCommand, (command, useInternalConnection) =>
         {
-            using (var dataReader = command.ExecuteReader(isInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
+            using (var dataReader = command.ExecuteReader(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
             {
                 return dataReader.Get<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }
@@ -1474,9 +1474,9 @@ public class DbFactory
     /// <returns>Returns a single entity after query.</returns>
     public async Task<T> GetAsync<T>(ISqlCommand sqlCommand)
     {
-        return await ExecuteSqlCommandAsync(sqlCommand, async (command, isInternalConnection) =>
+        return await ExecuteSqlCommandAsync(sqlCommand, async (command, useInternalConnection) =>
         {
-            using (var dataReader = await command.ExecuteReaderAsync(isInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
+            using (var dataReader = await command.ExecuteReaderAsync(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
             {
                 return await dataReader.GetAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
             }

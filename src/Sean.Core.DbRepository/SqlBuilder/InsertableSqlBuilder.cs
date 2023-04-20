@@ -9,19 +9,12 @@ using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository;
 
-public abstract class InsertableSqlBuilder : BaseSqlBuilder
+public class InsertableSqlBuilder<TEntity> : BaseSqlBuilder, IInsertable<TEntity>
 {
-    public const string SqlTemplate = "INSERT INTO {0}({1}) VALUES{2}";
-    public const string SqlIndentedTemplate = @"INSERT INTO {0}({1}) 
+    private const string SqlTemplate = "INSERT INTO {0}({1}) VALUES{2}";
+    private const string SqlIndentedTemplate = @"INSERT INTO {0}({1}) 
 VALUES{2}";
 
-    protected InsertableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
-    {
-    }
-}
-
-public class InsertableSqlBuilder<TEntity> : InsertableSqlBuilder, IInsertable<TEntity>
-{
     private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
     private bool _returnLastInsertId;
     private object _parameter;
@@ -98,7 +91,7 @@ public class InsertableSqlBuilder<TEntity> : InsertableSqlBuilder, IInsertable<T
         return this;
     }
 
-    public virtual ISqlCommand Build()
+    protected override ISqlCommand BuildSqlCommand()
     {
         CheckIncludeIdentityFields();
 
@@ -128,7 +121,7 @@ public class InsertableSqlBuilder<TEntity> : InsertableSqlBuilder, IInsertable<T
                         throw new InvalidOperationException($"Table [{field.TableName}] field [{field.FieldName}] not found in [{typeof(TEntity).FullName}].");
                     }
 
-                    if (!BaseSqlBuilder.SqlParameterized)
+                    if (!SqlParameterized)
                     {
                         var property = findFieldInfo.Property;
                         if (property != null)
@@ -150,11 +143,11 @@ public class InsertableSqlBuilder<TEntity> : InsertableSqlBuilder, IInsertable<T
                 insertValueParams.Add($"({string.Join(", ", formatParameterNames)})");
             }
 
-            var bulkInsertValuesString = string.Join($", {(BaseSqlBuilder.SqlIndented ? Environment.NewLine : string.Empty)}", insertValueParams);
+            var bulkInsertValuesString = string.Join($", {(SqlIndented ? Environment.NewLine : string.Empty)}", insertValueParams);
             SetParameter(paramDic);
             #endregion
 
-            sb.Append(string.Format(BaseSqlBuilder.SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
+            sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
         }
         else
         {
@@ -162,7 +155,7 @@ public class InsertableSqlBuilder<TEntity> : InsertableSqlBuilder, IInsertable<T
             {
                 var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
 
-                if (!BaseSqlBuilder.SqlParameterized)
+                if (!SqlParameterized)
                 {
                     var property = findFieldInfo?.Property;
                     if (property != null)
@@ -179,7 +172,7 @@ public class InsertableSqlBuilder<TEntity> : InsertableSqlBuilder, IInsertable<T
                 var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
                 return SqlAdapter.FormatInputParameter(parameterName);
             });
-            sb.Append(string.Format(BaseSqlBuilder.SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
+            sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
         }
 
         if (_returnLastInsertId)
@@ -249,72 +242,4 @@ public class InsertableSqlBuilder<TEntity> : InsertableSqlBuilder, IInsertable<T
             }
         }
     }
-}
-
-public interface IInsertable
-{
-    ISqlAdapter SqlAdapter { get; }
-
-    /// <summary>
-    /// 创建新增数据的SQL：<see cref="InsertableSqlBuilder.SqlTemplate"/>
-    /// </summary>
-    /// <returns></returns>
-    ISqlCommand Build();
-}
-
-public interface IInsertable<TEntity> : IInsertable
-{
-    #region [Field]
-    /// <summary>
-    /// 包含字段
-    /// </summary>
-    /// <param name="fields">字段名称</param>
-    /// <returns></returns>
-    IInsertable<TEntity> IncludeFields(params string[] fields);
-    /// <summary>
-    /// 忽略字段
-    /// </summary>
-    /// <param name="fields">字段名称</param>
-    /// <returns></returns>
-    IInsertable<TEntity> IgnoreFields(params string[] fields);
-    /// <summary>
-    /// 自增字段
-    /// </summary>
-    /// <param name="fields">字段名称</param>
-    /// <returns></returns>
-    IInsertable<TEntity> IdentityFields(params string[] fields);
-
-    /// <summary>
-    /// 包含字段
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <returns></returns>
-    IInsertable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression);
-    /// <summary>
-    /// 忽略字段
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <returns></returns>
-    IInsertable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression);
-    /// <summary>
-    /// 自增字段
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <returns></returns>
-    IInsertable<TEntity> IdentityFields(Expression<Func<TEntity, object>> fieldExpression);
-    #endregion
-
-    /// <summary>
-    /// 返回自增id
-    /// </summary>
-    /// <param name="returnAutoIncrementId"></param>
-    /// <returns></returns>
-    IInsertable<TEntity> ReturnAutoIncrementId(bool returnAutoIncrementId = true);
-
-    /// <summary>
-    /// 设置SQL入参
-    /// </summary>
-    /// <param name="param"></param>
-    /// <returns></returns>
-    IInsertable<TEntity> SetParameter(object param);
 }

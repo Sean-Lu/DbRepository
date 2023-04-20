@@ -130,4 +130,10 @@
         Modified = 2,
         Deleted = 3
     }
+
+    public enum BindSqlParameterType
+    {
+        BindByName = 0,
+        BindByPosition = 1
+    }
 }

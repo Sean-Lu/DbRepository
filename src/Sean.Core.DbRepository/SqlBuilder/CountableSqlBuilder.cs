@@ -6,17 +6,10 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public abstract class CountableSqlBuilder : BaseSqlBuilder
+public class CountableSqlBuilder<TEntity> : BaseSqlBuilder, ICountable<TEntity>
 {
-    public const string SqlTemplate = "SELECT COUNT(*) FROM {0}{1}";
+    private const string SqlTemplate = "SELECT COUNT(*) FROM {0}{1}";
 
-    protected CountableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
-    {
-    }
-}
-
-public class CountableSqlBuilder<TEntity> : CountableSqlBuilder, ICountable<TEntity>
-{
     private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
     private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
 
@@ -43,7 +36,7 @@ public class CountableSqlBuilder<TEntity> : CountableSqlBuilder, ICountable<TEnt
         return sqlBuilder;
     }
 
-    #region [Join] 表关联
+    #region [Join Table]
     public virtual ICountable<TEntity> InnerJoin(string joinTableSql)
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
@@ -190,7 +183,7 @@ public class CountableSqlBuilder<TEntity> : CountableSqlBuilder, ICountable<TEnt
         return this;
     }
 
-    public virtual ISqlCommand Build()
+    protected override ISqlCommand BuildSqlCommand()
     {
         var sb = new StringBuilder();
         sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", WhereSql));
@@ -202,113 +195,4 @@ public class CountableSqlBuilder<TEntity> : CountableSqlBuilder, ICountable<TEnt
         };
         return sql;
     }
-}
-
-public interface ICountable
-{
-    ISqlAdapter SqlAdapter { get; }
-
-    /// <summary>
-    /// 创建统计数量的SQL：<see cref="CountableSqlBuilder.SqlTemplate"/>
-    /// </summary>
-    /// <returns></returns>
-    ISqlCommand Build();
-}
-
-public interface ICountable<TEntity> : ICountable
-{
-    #region [Join] 表关联
-    /// <summary>
-    /// INNER JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：INNER JOIN</param>
-    /// <returns></returns>
-    ICountable<TEntity> InnerJoin(string joinTableSql);
-    /// <summary>
-    /// LEFT JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：LEFT JOIN</param>
-    /// <returns></returns>
-    ICountable<TEntity> LeftJoin(string joinTableSql);
-    /// <summary>
-    /// RIGHT JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：RIGHT JOIN</param>
-    /// <returns></returns>
-    ICountable<TEntity> RightJoin(string joinTableSql);
-    /// <summary>
-    /// FULL JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：FULL JOIN</param>
-    /// <returns></returns>
-    ICountable<TEntity> FullJoin(string joinTableSql);
-
-    /// <summary>
-    /// INNER JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    ICountable<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// LEFT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    ICountable<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// RIGHT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    ICountable<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// FULL JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    ICountable<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    #endregion
-
-    #region [WHERE]
-    /// <summary>
-    /// WHERE column_name operator value
-    /// </summary>
-    /// <param name="where">不包含关键字：WHERE</param>
-    /// <returns></returns>
-    ICountable<TEntity> Where(string where);
-    /// <summary>
-    /// 解析WHERE过滤条件
-    /// </summary>
-    /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
-    /// <returns></returns>
-    ICountable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression);
-    ICountable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
-
-    /// <summary>
-    /// WHERE column_name operator value
-    /// </summary>
-    /// <param name="fieldName">字段名称</param>
-    /// <param name="operation"></param>
-    /// <param name="keyword"></param>
-    /// <param name="include"></param>
-    /// <param name="paramName">参数名称，默认同 <paramref name="fieldName"/></param>
-    /// <returns></returns>
-    ICountable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null);
-    ICountable<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null);
-
-    ICountable<TEntity> AndWhere(string where);
-    ICountable<TEntity> AndWhere(Expression<Func<TEntity, bool>> whereExpression);
-    ICountable<TEntity> AndWhere<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
-    #endregion
-
-    /// <summary>
-    /// 设置SQL入参
-    /// </summary>
-    /// <param name="param"></param>
-    /// <returns></returns>
-    ICountable<TEntity> SetParameter(object param);
 }

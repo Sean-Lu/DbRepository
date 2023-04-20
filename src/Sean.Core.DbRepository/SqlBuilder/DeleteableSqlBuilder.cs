@@ -9,17 +9,10 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public abstract class DeleteableSqlBuilder : BaseSqlBuilder
+public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity>
 {
-    public const string SqlTemplate = "DELETE FROM {0}{1}";
+    private const string SqlTemplate = "DELETE FROM {0}{1}";
 
-    protected DeleteableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
-    {
-    }
-}
-
-public class DeleteableSqlBuilder<TEntity> : DeleteableSqlBuilder, IDeleteable<TEntity>
-{
     private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
     private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
 
@@ -47,7 +40,7 @@ public class DeleteableSqlBuilder<TEntity> : DeleteableSqlBuilder, IDeleteable<T
         return sqlBuilder;
     }
 
-    #region [Join] 表关联
+    #region [Join Table]
     public virtual IDeleteable<TEntity> InnerJoin(string joinTableSql)
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
@@ -200,11 +193,11 @@ public class DeleteableSqlBuilder<TEntity> : DeleteableSqlBuilder, IDeleteable<T
         return this;
     }
 
-    public virtual ISqlCommand Build()
+    protected override ISqlCommand BuildSqlCommand()
     {
         if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
         {
-            #region 设置默认过滤条件为主键字段
+            #region Set the primary key field to the [where] filtering condition.
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             typeof(TEntity).GetPrimaryKeys().ForEach(fieldName =>
             {
@@ -228,123 +221,4 @@ public class DeleteableSqlBuilder<TEntity> : DeleteableSqlBuilder, IDeleteable<T
         };
         return sql;
     }
-}
-
-public interface IDeleteable
-{
-    ISqlAdapter SqlAdapter { get; }
-
-    /// <summary>
-    /// 创建删除数据的SQL：<see cref="DeleteableSqlBuilder.SqlTemplate"/>
-    /// <para>1. 为了防止误删除，需要指定WHERE过滤条件，否则会抛出异常，可以通过 <see cref="IDeleteable{TEntity}.AllowEmptyWhereClause"/> 设置允许空 WHERE 子句</para>
-    /// <para>2. 如果没有指定WHERE过滤条件，且没有设置 <see cref="IDeleteable{TEntity}.AllowEmptyWhereClause"/> 为true，则过滤条件默认使用 <see cref="KeyAttribute"/> 主键字段</para>
-    /// </summary>
-    /// <returns></returns>
-    ISqlCommand Build();
-}
-
-public interface IDeleteable<TEntity> : IDeleteable
-{
-    #region [Join] 表关联
-    /// <summary>
-    /// INNER JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：INNER JOIN</param>
-    /// <returns></returns>
-    IDeleteable<TEntity> InnerJoin(string joinTableSql);
-    /// <summary>
-    /// LEFT JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：LEFT JOIN</param>
-    /// <returns></returns>
-    IDeleteable<TEntity> LeftJoin(string joinTableSql);
-    /// <summary>
-    /// RIGHT JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：RIGHT JOIN</param>
-    /// <returns></returns>
-    IDeleteable<TEntity> RightJoin(string joinTableSql);
-    /// <summary>
-    /// FULL JOIN
-    /// </summary>
-    /// <param name="joinTableSql">不包含关键字：FULL JOIN</param>
-    /// <returns></returns>
-    IDeleteable<TEntity> FullJoin(string joinTableSql);
-
-    /// <summary>
-    /// INNER JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IDeleteable<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// LEFT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IDeleteable<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// RIGHT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IDeleteable<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    /// <summary>
-    /// FULL JOIN table_name2 ON table_name1.column_name=table_name2.column_name
-    /// </summary>
-    /// <param name="fieldExpression"></param>
-    /// <param name="fieldExpression2"></param>
-    /// <returns></returns>
-    IDeleteable<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
-    #endregion
-
-    #region [WHERE]
-    /// <summary>
-    /// WHERE column_name operator value
-    /// </summary>
-    /// <param name="where">不包含关键字：WHERE</param>
-    /// <returns></returns>
-    IDeleteable<TEntity> Where(string where);
-    /// <summary>
-    /// 解析WHERE过滤条件
-    /// </summary>
-    /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
-    /// <returns></returns>
-    IDeleteable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression);
-    IDeleteable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
-
-    /// <summary>
-    /// WHERE column_name operator value
-    /// </summary>
-    /// <param name="fieldName">字段名称</param>
-    /// <param name="operation"></param>
-    /// <param name="keyword"></param>
-    /// <param name="include"></param>
-    /// <param name="paramName">参数名称，默认同 <paramref name="fieldName"/></param>
-    /// <returns></returns>
-    IDeleteable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null);
-    IDeleteable<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null);
-
-    IDeleteable<TEntity> AndWhere(string where);
-    IDeleteable<TEntity> AndWhere(Expression<Func<TEntity, bool>> whereExpression);
-    IDeleteable<TEntity> AndWhere<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
-    #endregion
-
-    /// <summary>
-    /// 是否允许空的 WHERE 子句
-    /// <para>注：为了防止执行错误的SQL导致不可逆的结果，默认不允许空的WHERE子句</para>
-    /// </summary>
-    /// <param name="allowEmptyWhereClause"></param>
-    /// <returns></returns>
-    IDeleteable<TEntity> AllowEmptyWhereClause(bool allowEmptyWhereClause = true);
-
-    /// <summary>
-    /// 设置SQL入参
-    /// </summary>
-    /// <param name="param"></param>
-    /// <returns></returns>
-    IDeleteable<TEntity> SetParameter(object param);
 }

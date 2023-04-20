@@ -11,17 +11,17 @@
 	<PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
 		<TargetFramework>net6.0</TargetFramework>
 	</PropertyGroup>
-	<PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+	<PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
 		<DefineConstants>WINDOWS</DefineConstants>
 		<TargetFramework>net6.0-windows</TargetFramework>
 		<PlatformTarget>x64</PlatformTarget>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.0-alpha.1" />
+		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.0-beta.1" />
 		<!-- SQL Server 2005 ~ 2008 -->
 		<PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.4.0" />
-    <PackageReference Include="FirebirdSql.EntityFrameworkCore.Firebird" Version="9.1.1" />
+		<PackageReference Include="FirebirdSql.EntityFrameworkCore.Firebird" Version="9.1.1" />
 		<PackageReference Include="IBM.EntityFrameworkCore" Version="6.0.0.300" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />

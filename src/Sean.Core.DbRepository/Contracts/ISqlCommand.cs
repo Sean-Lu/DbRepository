@@ -32,6 +32,8 @@ public interface ISqlCommand
     /// Command type
     /// </summary>
     CommandType CommandType { get; set; }
+
+    void ConvertParameterToDictionary(BindSqlParameterType bindSqlParameterType, bool removeUnusedParameter = true);
 }
 
 public interface ISqlCommand<T> : ISqlCommand

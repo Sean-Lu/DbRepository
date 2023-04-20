@@ -98,24 +98,34 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             {
                 case DatabaseType.MsAccess:
                     {
-                        var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
-                        sqlCommandReturnId.Master = true;
-                        sqlCommandReturnId.Transaction = transaction;
-                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
-                        var addResult = Execute(sqlCommandReturnId) > 0;
-                        if (!addResult)
+                        return Execute(connection =>
                         {
-                            return false;
-                        }
+                            var sqlCommandInsert = this.GetSqlForAdd(entity, false, fieldExpression);
+                            sqlCommandInsert.Connection = connection;
+                            sqlCommandInsert.Transaction = transaction;
+                            sqlCommandInsert.CommandTimeout = CommandTimeout;
+                            var addResult = Execute(sqlCommandInsert) > 0;
+                            if (!addResult)
+                            {
+                                return false;
+                            }
 
-                        var id = ExecuteScalar<long>(DbType.GetSqlForGetLastIdentityId());
-                        if (id < 1)
-                        {
-                            return false;
-                        }
+                            var sqlCommandReturnId = new DefaultSqlCommand
+                            {
+                                Sql = DbType.GetSqlForGetLastIdentityId(),
+                                Connection = connection,
+                                Transaction = transaction,
+                                CommandTimeout = CommandTimeout
+                            };
+                            var id = ExecuteScalar<long>(sqlCommandReturnId);
+                            if (id < 1)
+                            {
+                                return false;
+                            }
 
-                        keyIdentityProperty.SetValue(entity, id, null);
-                        return true;
+                            keyIdentityProperty.SetValue(entity, id, null);
+                            return true;
+                        }, true, transaction);
                     }
                 case DatabaseType.Oracle:
                     {
@@ -195,7 +205,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             return true;
         }
 
-        var bulkCountLimit = BulkCountLimit ?? DbContextConfiguration.Options.BulkEntityCount;
+        var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
         if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
         {
             return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
@@ -264,7 +274,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
                 {
-                    var bulkCountLimit = BulkCountLimit ?? DbContextConfiguration.Options.BulkEntityCount;
+                    var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
                     if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
                     {
                         return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
@@ -586,24 +596,34 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             {
                 case DatabaseType.MsAccess:
                     {
-                        var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
-                        sqlCommandReturnId.Master = true;
-                        sqlCommandReturnId.Transaction = transaction;
-                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
-                        var addResult = await ExecuteAsync(sqlCommandReturnId) > 0;
-                        if (!addResult)
+                        return await ExecuteAsync(async connection =>
                         {
-                            return false;
-                        }
+                            var sqlCommandInsert = this.GetSqlForAdd(entity, false, fieldExpression);
+                            sqlCommandInsert.Connection = connection;
+                            sqlCommandInsert.Transaction = transaction;
+                            sqlCommandInsert.CommandTimeout = CommandTimeout;
+                            var addResult = await ExecuteAsync(sqlCommandInsert) > 0;
+                            if (!addResult)
+                            {
+                                return false;
+                            }
 
-                        var id = await ExecuteScalarAsync<long>(DbType.GetSqlForGetLastIdentityId());
-                        if (id < 1)
-                        {
-                            return false;
-                        }
+                            var sqlCommandReturnId = new DefaultSqlCommand
+                            {
+                                Sql = DbType.GetSqlForGetLastIdentityId(),
+                                Connection = connection,
+                                Transaction = transaction,
+                                CommandTimeout = CommandTimeout
+                            };
+                            var id = await ExecuteScalarAsync<long>(sqlCommandReturnId);
+                            if (id < 1)
+                            {
+                                return false;
+                            }
 
-                        keyIdentityProperty.SetValue(entity, id, null);
-                        return true;
+                            keyIdentityProperty.SetValue(entity, id, null);
+                            return true;
+                        }, true, transaction);
                     }
                 case DatabaseType.Oracle:
                     {
@@ -683,7 +703,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             return true;
         }
 
-        var bulkCountLimit = BulkCountLimit ?? DbContextConfiguration.Options.BulkEntityCount;
+        var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
         if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
         {
             return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
@@ -752,7 +772,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.MySql:
             case DatabaseType.SQLite:
                 {
-                    var bulkCountLimit = BulkCountLimit ?? DbContextConfiguration.Options.BulkEntityCount;
+                    var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
                     if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
                     {
                         return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
