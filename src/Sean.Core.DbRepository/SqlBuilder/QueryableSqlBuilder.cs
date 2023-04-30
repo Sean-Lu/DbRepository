@@ -475,6 +475,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                     sql.Sql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     break;
                 case DatabaseType.Firebird:
+                case DatabaseType.Informix:
                     sql.Sql = $"SELECT FIRST {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     break;
                 case DatabaseType.Oracle:
@@ -542,6 +543,8 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                 }
             case DatabaseType.Firebird:
                 return $"SELECT FIRST {rows} SKIP {offset} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+            case DatabaseType.Informix:
+                return $"SELECT SKIP {offset} FIRST {rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
             case DatabaseType.Oracle:
                 {
                     if (!string.IsNullOrWhiteSpace(OrderBySql))

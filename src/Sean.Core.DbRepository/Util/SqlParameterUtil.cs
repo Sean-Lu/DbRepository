@@ -53,7 +53,10 @@ internal static class SqlParameterUtil
             }
             else
             {
-                RemoveUnusedParameters(dicParameters, sql);
+                if (dbType != DatabaseType.Informix)
+                {
+                    RemoveUnusedParameters(dicParameters, sql);
+                }
 
                 foreach (var keyValuePair in dicParameters)
                 {
@@ -111,6 +114,12 @@ internal static class SqlParameterUtil
             }
         }
         return dict;
+    }
+
+    public static string UseQuestionMarkParameter(string sql)
+    {
+        var regex = new Regex(@"[?@:](\w+)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
+        return regex.Replace(sql, "?");
     }
 
     internal static Dictionary<string, object> ConvertToDicParameter(object instance, IEnumerable<string> fields = null)

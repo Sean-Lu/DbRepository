@@ -24,4 +24,10 @@
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Reference Include="Informix.Net.Core">
+	    <HintPath>C:\Program Files\IBM Informix Client-SDK\bin\Informix.Net.Core.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+
 </Project>

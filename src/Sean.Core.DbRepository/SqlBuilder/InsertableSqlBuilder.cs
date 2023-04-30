@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -179,16 +180,70 @@ VALUES{2}";
         {
             switch (SqlAdapter.DbType)
             {
+                case DatabaseType.MySql:
+                    {
+                        var returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.SqlServer:
+                    {
+                        //var returnIdSql = "SELECT @@IDENTITY AS Id";// 返回为当前会话的所有作用域中的任何表最后生成的标识值
+                        var returnIdSql = "SELECT SCOPE_IDENTITY() AS Id"; // 返回为当前会话和当前作用域中的任何表最后生成的标识值
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
                 case DatabaseType.Oracle:
-                    var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                    sb.Append($";{string.Format(SqlAdapter.DbType.GetSqlForGetLastIdentityId(), sequenceName)}");
-                    break;
+                    {
+                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                        var returnIdSql = $"SELECT {SqlAdapter.FormatFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.SQLite:
+                    {
+                        var returnIdSql = "SELECT LAST_INSERT_ROWID() AS Id";
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.MsAccess:
+                    {
+                        var returnIdSql = "SELECT @@IDENTITY AS Id";
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
                 case DatabaseType.Firebird:
-                    sb.Append($" RETURNING \"{_includeFieldsList.FirstOrDefault(c => c.Identity).FieldName}\"");
-                    break;
+                    {
+                        var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(_includeFieldsList.FirstOrDefault(c => c.Identity).FieldName)}";
+                        sb.Append($" {returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.PostgreSql:
+                    {
+                        var returnIdSql = "SELECT LASTVAL() AS Id";
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.DB2:
+                    {
+                        var returnIdSql = "SELECT IDENTITY_VAL_LOCAL() AS Id FROM SYSIBM.SYSDUMMY1";
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.Informix:
+                    {
+                        var returnIdSql = $"SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabname='{SqlAdapter.TableName}' AND tabtype='T'";
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.ClickHouse:
+                    {
+                        var returnIdSql = "SELECT lastInsertId()";
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
                 default:
-                    sb.Append($";{SqlAdapter.DbType.GetSqlForGetLastIdentityId()}");
-                    break;
+                    throw new NotSupportedException($"Unsupported database type: {SqlAdapter.DbType}");
             }
         }
 

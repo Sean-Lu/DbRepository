@@ -49,10 +49,6 @@ public class DbOptions
     /// <see cref="DatabaseTypeExtensions.GetSqlForTableFieldExists"/>
     /// </summary>
     public Func<DatabaseType, DbConnection, string, string, string> GetSqlForTableFieldExists { get; set; }
-    /// <summary>
-    /// <see cref="DatabaseTypeExtensions.GetSqlForGetLastIdentityId"/>
-    /// </summary>
-    public Func<DatabaseType, string> GetSqlForGetLastIdentityId { get; set; }
 
     public Func<DatabaseType, DbConnection, string, bool?> IsTableExists { get; set; }
     public Func<DatabaseType, DbConnection, string, string, bool?> IsTableFieldExists { get; set; }

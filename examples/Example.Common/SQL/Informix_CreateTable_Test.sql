@@ -1,0 +1,21 @@
+﻿CREATE TABLE "{$TableName$}" (
+    "Id" SERIAL NOT NULL,
+    "UserId" BIGINT NOT NULL,
+    "UserName" VARCHAR(20),
+    "Age" INTEGER NOT NULL DEFAULT 0,
+    "Sex" INTEGER NOT NULL DEFAULT 0,
+    "PhoneNumber" VARCHAR(20),
+    "Email" VARCHAR(50),
+    --"IsVip" SMALLINT NOT NULL DEFAULT 0,
+    "IsVip" BOOLEAN NOT NULL DEFAULT 'f',
+    --"IsBlack" SMALLINT NOT NULL DEFAULT 0,
+    "IsBlack" BOOLEAN NOT NULL DEFAULT 'f',
+    "Country" INTEGER NOT NULL DEFAULT 0,
+    "AccountBalance" DECIMAL(18,2) NOT NULL DEFAULT 0,
+    "AccountBalance2" DECIMAL(18,2) NOT NULL DEFAULT 0,
+    "Status" INTEGER NOT NULL DEFAULT 0,
+    "Remark" VARCHAR(255),
+    "CreateTime" DATETIME YEAR TO FRACTION(5) NOT NULL,
+    "UpdateTime" DATETIME YEAR TO FRACTION(5),
+    PRIMARY KEY ("Id")
+);

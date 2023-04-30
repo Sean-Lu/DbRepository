@@ -46,6 +46,8 @@ namespace Example.Dapper.Domain.Extensions
             DatabaseType.Firebird.SetDbProviderMap(new DbProviderMap("FirebirdSql.Data.FirebirdClient", FirebirdClientFactory.Instance));// Firebird
             DatabaseType.PostgreSql.SetDbProviderMap(new DbProviderMap("Npgsql", NpgsqlFactory.Instance));// PostgreSql
             DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", DB2Factory.Instance));// DB2
+            DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", IBM.Data.Informix.IfxFactory.Instance));// Informix
+            //DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", "IBM.Data.Informix.IfxFactory,IBM.Data.Informix"));// Informix
             #endregion
 
             #region 自动创建 Firebird 数据库

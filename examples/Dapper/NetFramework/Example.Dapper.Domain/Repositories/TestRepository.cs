@@ -22,14 +22,14 @@ namespace Example.Dapper.Domain.Repositories
         public TestRepository(
             ILogger<TestRepository> logger
             //) : base()// MySQL: CRUD test passed.
-            ) : base("test_SQLite")// SQLite: CRUD test passed.
             //) : base("test_SqlServer")// SQL Server: CRUD test passed.
             //) : base("test_Oracle")// Oracle: CRUD test passed.
+            ) : base("test_SQLite")// SQLite: CRUD test passed.
             //) : base("test_MsAccess")// MS Access: CRUD test passed.
-            //) : base("test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base("test_Firebird")// Firebird: CRUD test passed.
-            //) : base("test_Informix")// Informix
+            //) : base("test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base("test_DB2")// DB2: CRUD test passed.
+            //) : base("test_Informix")// Informix: CRUD test passed.
         {
             _logger = logger;
 
@@ -78,6 +78,7 @@ namespace Example.Dapper.Domain.Repositories
                 DatabaseType.Firebird => File.ReadAllText(@"./SQL/Firebird_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.PostgreSql => File.ReadAllText(@"./SQL/PostgreSql_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.DB2 => File.ReadAllText(@"./SQL/DB2_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.Informix => File.ReadAllText(@"./SQL/Informix_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()
             };
         }

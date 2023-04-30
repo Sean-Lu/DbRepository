@@ -97,6 +97,8 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             switch (DbType)
             {
                 case DatabaseType.MsAccess:
+                case DatabaseType.Oracle:
+                case DatabaseType.Informix:
                     {
                         return Execute(connection =>
                         {
@@ -110,9 +112,30 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                 return false;
                             }
 
+                            string returnIdSql = null;
+                            switch (DbType)
+                            {
+                                case DatabaseType.MsAccess:
+                                    {
+                                        returnIdSql = "SELECT @@IDENTITY AS Id";
+                                        break;
+                                    }
+                                case DatabaseType.Oracle:
+                                    {
+                                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                                        returnIdSql = $"SELECT {DatabaseType.Oracle.MarkAsTableOrFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
+                                        break;
+                                    }
+                                case DatabaseType.Informix:
+                                    {
+                                        returnIdSql = $"SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabname='{TableName()}' AND tabtype='T'";
+                                        break;
+                                    }
+                            }
+
                             var sqlCommandReturnId = new DefaultSqlCommand
                             {
-                                Sql = DbType.GetSqlForGetLastIdentityId(),
+                                Sql = returnIdSql,
                                 Connection = connection,
                                 Transaction = transaction,
                                 CommandTimeout = CommandTimeout
@@ -126,28 +149,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                             keyIdentityProperty.SetValue(entity, id, null);
                             return true;
                         }, true, transaction);
-                    }
-                case DatabaseType.Oracle:
-                    {
-                        var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
-                        sqlCommandReturnId.Master = true;
-                        sqlCommandReturnId.Transaction = transaction;
-                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
-                        var addResult = Execute(sqlCommandReturnId) > 0;
-                        if (!addResult)
-                        {
-                            return false;
-                        }
-
-                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                        var id = ExecuteScalar<long>(string.Format(DbType.GetSqlForGetLastIdentityId(), sequenceName));
-                        if (id < 1)
-                        {
-                            return false;
-                        }
-
-                        keyIdentityProperty.SetValue(entity, id, null);
-                        return true;
                     }
                 default:
                     {
@@ -595,6 +596,8 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             switch (DbType)
             {
                 case DatabaseType.MsAccess:
+                case DatabaseType.Oracle:
+                case DatabaseType.Informix:
                     {
                         return await ExecuteAsync(async connection =>
                         {
@@ -608,9 +611,30 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                 return false;
                             }
 
+                            string returnIdSql = null;
+                            switch (DbType)
+                            {
+                                case DatabaseType.MsAccess:
+                                    {
+                                        returnIdSql = "SELECT @@IDENTITY AS Id";
+                                        break;
+                                    }
+                                case DatabaseType.Oracle:
+                                    {
+                                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                                        returnIdSql = $"SELECT {DatabaseType.Oracle.MarkAsTableOrFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
+                                        break;
+                                    }
+                                case DatabaseType.Informix:
+                                    {
+                                        returnIdSql = $"SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabname='{TableName()}' AND tabtype='T'";
+                                        break;
+                                    }
+                            }
+
                             var sqlCommandReturnId = new DefaultSqlCommand
                             {
-                                Sql = DbType.GetSqlForGetLastIdentityId(),
+                                Sql = returnIdSql,
                                 Connection = connection,
                                 Transaction = transaction,
                                 CommandTimeout = CommandTimeout
@@ -624,28 +648,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                             keyIdentityProperty.SetValue(entity, id, null);
                             return true;
                         }, true, transaction);
-                    }
-                case DatabaseType.Oracle:
-                    {
-                        var sqlCommandReturnId = this.GetSqlForAdd(entity, false, fieldExpression);
-                        sqlCommandReturnId.Master = true;
-                        sqlCommandReturnId.Transaction = transaction;
-                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
-                        var addResult = await ExecuteAsync(sqlCommandReturnId) > 0;
-                        if (!addResult)
-                        {
-                            return false;
-                        }
-
-                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                        var id = await ExecuteScalarAsync<long>(string.Format(DbType.GetSqlForGetLastIdentityId(), sequenceName));
-                        if (id < 1)
-                        {
-                            return false;
-                        }
-
-                        keyIdentityProperty.SetValue(entity, id, null);
-                        return true;
                     }
                 default:
                     {

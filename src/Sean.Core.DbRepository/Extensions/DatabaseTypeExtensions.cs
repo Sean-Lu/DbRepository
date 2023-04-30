@@ -96,6 +96,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.Oracle:
                 case DatabaseType.DB2:
                 case DatabaseType.Firebird:
+                case DatabaseType.Informix:
                     return $"\"{name}\"";
                 default:
                     return name;
@@ -154,7 +155,7 @@ namespace Sean.Core.DbRepository.Extensions
                         break;
                     }
                 case DatabaseType.Informix:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM systables WHERE tabname='{tableName}' AND creator='{connection.Database}'";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM systables WHERE tabname='{tableName}' AND tabtype='T'";
                     break;
                 case DatabaseType.ClickHouse:
                     sql = $"SELECT COUNT(*) AS TableCount FROM system.tables WHERE database = '{connection.Database}' AND name = '{tableName}'";
@@ -217,57 +218,10 @@ namespace Sean.Core.DbRepository.Extensions
                         break;
                     }
                 case DatabaseType.Informix:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM syscolumns WHERE tabid=(SELECT tabid FROM systables WHERE tabname='{tableName}' AND creator='{connection.Database}') AND colname='{fieldName}'";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM syscolumns WHERE tabid=(SELECT tabid FROM systables WHERE tabname='{tableName}' AND tabtype='T') AND colname='{fieldName}'";
                     break;
                 case DatabaseType.ClickHouse:
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM system.columns WHERE database = '{connection.Database}' AND table = '{tableName}' AND name = '{fieldName}'";
-                    break;
-                default:
-                    throw new NotSupportedException($"Unsupported database type: {dbType}");
-            }
-            return sql;
-        }
-
-        public static string GetSqlForGetLastIdentityId(this DatabaseType dbType)
-        {
-            var sql = DbContextConfiguration.Options.GetSqlForGetLastIdentityId?.Invoke(dbType);
-            if (!string.IsNullOrWhiteSpace(sql))
-            {
-                return sql;
-            }
-
-            switch (dbType)
-            {
-                case DatabaseType.MySql:
-                    sql = "SELECT LAST_INSERT_ID() AS Id";
-                    break;
-                case DatabaseType.SqlServer:
-                    //sql = "SELECT @@IDENTITY AS Id";// 返回为当前会话的所有作用域中的任何表最后生成的标识值
-                    sql = "SELECT SCOPE_IDENTITY() AS Id";// 返回为当前会话和当前作用域中的任何表最后生成的标识值
-                    break;
-                case DatabaseType.Oracle:
-                    sql = "SELECT \"{0}\".CURRVAL AS Id FROM dual";// {0} => sequence
-                    break;
-                case DatabaseType.SQLite:
-                    sql = "SELECT LAST_INSERT_ROWID() AS Id";
-                    break;
-                case DatabaseType.MsAccess:
-                    sql = "SELECT @@IDENTITY AS Id";
-                    break;
-                case DatabaseType.Firebird:
-                    sql = "SELECT LAST_INSERT_ID() AS Id FROM RDB$DATABASE";
-                    break;
-                case DatabaseType.PostgreSql:
-                    sql = "SELECT LASTVAL() AS Id";
-                    break;
-                case DatabaseType.DB2:
-                    sql = "SELECT IDENTITY_VAL_LOCAL() AS Id FROM SYSIBM.SYSDUMMY1";
-                    break;
-                case DatabaseType.Informix:
-                    sql = "SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabid=1";
-                    break;
-                case DatabaseType.ClickHouse:
-                    sql = "SELECT lastInsertId()";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");

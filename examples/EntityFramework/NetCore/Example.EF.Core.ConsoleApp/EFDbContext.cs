@@ -3,6 +3,7 @@ using EntityFrameworkCore.Jet.Data;
 using EntityFrameworkCore.UseRowNumberForPaging;
 using Example.EF.Core.ConsoleApp.Entities;
 using FirebirdSql.Data.FirebirdClient;
+using IBM.Data.Db2;
 using IBM.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -69,6 +70,7 @@ namespace Example.EF.Core.ConsoleApp
             //});
         }
 
+        //public DbSet<TestUpperEntity> TestEntities { get; set; }
         public DbSet<TestEntity> TestEntities { get; set; }
 
         #region 配置数据库连接
@@ -179,11 +181,40 @@ namespace Example.EF.Core.ConsoleApp
 
         private void UseDB2(DbContextOptionsBuilder optionsBuilder)
         {
-            // DB2 Express-C v11.1.3030
+            // DB2 Express-C v11.1.3030: CRUD test passed.
+            //var sb = new DB2ConnectionStringBuilder
+            //{
+            //    Server = "127.0.0.1",
+            //    Database = "sample",
+            //    UserID = "db2admin",
+            //    Password = "12345!a"
+            //};
             var connString = "Server=127.0.0.1;Database=sample;UID=db2admin;PWD=12345!a";
             optionsBuilder.UseDb2(connString, builder =>
             {
-                //builder.SetServerInfo(IBMDBServerType.LUW);
+                builder.SetServerInfo(IBMDBServerType.LUW);
+                //builder.UseRowNumberForPaging();
+            });
+        }
+
+        private void UseInformix(DbContextOptionsBuilder optionsBuilder)
+        {
+            // Informix
+            // 
+            // https://www.ibm.com/cn-zh/products/informix/editions
+            // 
+            // 用于开发和测试的免费版本：
+            // 1. Informix Developer Edition
+            // 2. Informix Innovator-C Edition
+            // 
+            // 安装数据库后设置账号\密码：
+            // 1. informix\12345!a
+            // 2. ifxjson\12345!a
+
+            var connString = "Server=127.0.0.1:9088;Database=Test;UserID=informix;Password=12345!a";
+            optionsBuilder.UseDb2(connString, builder =>
+            {
+                builder.SetServerInfo(IBMDBServerType.IDS);// IBM Informix Dynamic Server
                 //builder.UseRowNumberForPaging();
             });
         }

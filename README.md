@@ -44,7 +44,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | `Firebird`      | ✅         |
 | `PostgreSql`    | ✅         |
 | `DB2`           | ✅         |
-| `Informix`      | -           |
+| `Informix`      | ✅         |
 | `ClickHouse`    | -           |
 
 ## 💯 性能测试

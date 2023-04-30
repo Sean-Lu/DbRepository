@@ -28,9 +28,10 @@ public abstract class BaseSqlBuilder : IBaseSqlBuilder
     public ISqlCommand Build()
     {
         var sql = BuildSqlCommand();
-        if (sql?.Parameter != null && SqlAdapter.DbType == DatabaseType.MsAccess)
+        if (sql?.Parameter != null && SqlAdapter.DbType is DatabaseType.MsAccess or DatabaseType.Informix)
         {
-            sql.ConvertParameterToDictionary(BindSqlParameterType.BindByPosition);
+            sql.BindSqlParameterType = BindSqlParameterType.BindByPosition;
+            sql.ConvertParameterToDictionary(useQuestionMarkParameter: SqlAdapter.DbType == DatabaseType.Informix);
         }
         return sql;
     }
