@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Sean.Core.DbRepository.Extensions;
 
@@ -17,55 +19,76 @@ internal static class SqlParameterUtil
         return ConvertToDicParameter(entity, fields);
     }
 
-    public static IEnumerable<DbParameter> ConvertToDbParameters(DatabaseType dbType, string sql, object parameter, Func<DbParameter> dbParameterFactory)
+    public static IEnumerable<DbParameter> ConvertToDbParameters(DatabaseType dbType, ISqlCommand sqlCommand, Func<DbParameter> dbParameterFactory)
     {
-        if (parameter == null)
+        if (sqlCommand?.Parameter == null)
         {
             return null;
         }
+
+        var sql = sqlCommand.Sql;
+        var parameter = sqlCommand.Parameter;
 
         if (parameter is IEnumerable<DbParameter> listDbParameters)
         {
             return listDbParameters;
         }
 
-        var result = new List<DbParameter>();
         var dicParameters = ConvertToDicParameter(parameter);
-        if (dicParameters != null)
+        if (dicParameters == null)
         {
-            if (dbType == DatabaseType.MsAccess)
+            return new List<DbParameter>();
+        }
+
+        if (sqlCommand.UseQuestionMarkParameter)
+        {
+            return ConvertToDbParameters(dbType, dicParameters, dbParameterFactory);
+        }
+
+        if (dbType == DatabaseType.MsAccess)
+        {
+            if (sqlCommand.SqlParameterSorted && sqlCommand.UnusedSqlParameterRemoved)
             {
-                var orderSqlParameters = ParseSqlParameters(sql);
-
-                foreach (var keyValuePair in orderSqlParameters)
-                {
-                    var paraName = keyValuePair.Key;
-                    if (!dicParameters.ContainsKey(paraName))
-                    {
-                        continue;
-                    }
-
-                    var sqlParameter = dbParameterFactory();
-                    sqlParameter.ParameterName = paraName;
-                    sqlParameter.SetParameterTypeAndValue(dicParameters[paraName], dbType);
-                    result.Add(sqlParameter);
-                }
+                return ConvertToDbParameters(dbType, dicParameters, dbParameterFactory);
             }
-            else
+
+            var sortedSqlParameters = ParseSqlParameters(sql);
+            var newDicParameters = new Dictionary<string, object>();
+            foreach (var keyValuePair in sortedSqlParameters)
             {
-                if (dbType != DatabaseType.Informix)
+                var paraName = keyValuePair.Key;
+                if (!dicParameters.ContainsKey(paraName))
                 {
-                    RemoveUnusedParameters(dicParameters, sql);
+                    throw new InvalidOperationException($"The sql parameter [{paraName}] does not exist.");
                 }
 
-                foreach (var keyValuePair in dicParameters)
-                {
-                    var sqlParameter = dbParameterFactory();
-                    sqlParameter.ParameterName = keyValuePair.Key;
-                    sqlParameter.SetParameterTypeAndValue(keyValuePair.Value, dbType);
-                    result.Add(sqlParameter);
-                }
+                newDicParameters.Add(paraName, dicParameters[paraName]);
             }
+            return ConvertToDbParameters(dbType, newDicParameters, dbParameterFactory);
+        }
+
+        if (!sqlCommand.UnusedSqlParameterRemoved)
+        {
+            RemoveUnusedParameters(dicParameters, sql);
+        }
+
+        return ConvertToDbParameters(dbType, dicParameters, dbParameterFactory);
+    }
+
+    public static List<DbParameter> ConvertToDbParameters(DatabaseType dbType, Dictionary<string, object> dicParameters, Func<DbParameter> dbParameterFactory)
+    {
+        var result = new List<DbParameter>();
+        if (dicParameters == null)
+        {
+            return result;
+        }
+
+        foreach (var keyValuePair in dicParameters)
+        {
+            var sqlParameter = dbParameterFactory();
+            sqlParameter.ParameterName = keyValuePair.Key;
+            sqlParameter.SetParameterTypeAndValue(keyValuePair.Value, dbType);
+            result.Add(sqlParameter);
         }
         return result;
     }

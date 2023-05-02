@@ -2,12 +2,21 @@
 using Sean.Core.DbRepository.Util;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 
 namespace Sean.Core.DbRepository;
 
 public class DefaultSqlCommand : ISqlCommand
 {
+    public DefaultSqlCommand()
+    {
+    }
+    public DefaultSqlCommand(string sql, object parameter = null, bool useQuestionMarkParameter = false)
+    {
+        Sql = sql;
+        Parameter = parameter;
+        _useQuestionMarkParameter = useQuestionMarkParameter;
+    }
+
     public string Sql { get; set; }
     public object Parameter { get; set; }
     public bool Master { get; set; } = true;
@@ -15,18 +24,22 @@ public class DefaultSqlCommand : ISqlCommand
     public IDbConnection Connection { get; set; }
     public int? CommandTimeout { get; set; }
     public CommandType CommandType { get; set; } = CommandType.Text;
+
     public BindSqlParameterType BindSqlParameterType { get; set; } = BindSqlParameterType.BindByName;
 
-    public void ConvertParameterToDictionary(bool removeUnusedParameter = true, bool useQuestionMarkParameter = false)
+    public bool UnusedSqlParameterRemoved => _unusedSqlParameterRemoved;
+    public bool SqlParameterSorted => _sqlParameterSorted;
+    public bool UseQuestionMarkParameter => _useQuestionMarkParameter;
+
+    private bool _unusedSqlParameterRemoved;
+    private bool _sqlParameterSorted;
+    private bool _useQuestionMarkParameter;
+
+    public void ConvertParameterToDictionary(bool removeUnusedParameter = true)
     {
         if (Parameter == null)
         {
             return;
-        }
-
-        if (useQuestionMarkParameter && BindSqlParameterType != BindSqlParameterType.BindByPosition)
-        {
-            BindSqlParameterType = BindSqlParameterType.BindByPosition;
         }
 
         switch (BindSqlParameterType)
@@ -34,9 +47,11 @@ public class DefaultSqlCommand : ISqlCommand
             case BindSqlParameterType.BindByName:
                 {
                     var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
-                    if (removeUnusedParameter)
+                    if (removeUnusedParameter && !_unusedSqlParameterRemoved && !_useQuestionMarkParameter)
                     {
                         SqlParameterUtil.RemoveUnusedParameters(dicParameters, Sql);
+
+                        _unusedSqlParameterRemoved = true;
                     }
 
                     Parameter = dicParameters;
@@ -46,29 +61,33 @@ public class DefaultSqlCommand : ISqlCommand
                 {
                     var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
 
+                    if (_useQuestionMarkParameter)
+                    {
+                        Parameter = dicParameters;
+                        break;
+                    }
+
                     var dic = new Dictionary<string, object>();
                     if (dicParameters != null)
                     {
-                        var orderSqlParameters = SqlParameterUtil.ParseSqlParameters(Sql);
-                        if (orderSqlParameters != null)
+                        var sortedSqlParameters = SqlParameterUtil.ParseSqlParameters(Sql);
+                        if (sortedSqlParameters != null)
                         {
-                            foreach (var keyValuePair in orderSqlParameters)
+                            foreach (var keyValuePair in sortedSqlParameters)
                             {
                                 var paraName = keyValuePair.Key;
                                 if (!dicParameters.ContainsKey(paraName))
                                 {
-                                    continue;
+                                    throw new InvalidOperationException($"The sql parameter [{paraName}] does not exist.");
                                 }
 
                                 dic.Add(paraName, dicParameters[paraName]);
                             }
-
-                            if (useQuestionMarkParameter && orderSqlParameters.Any())
-                            {
-                                Sql = SqlParameterUtil.UseQuestionMarkParameter(Sql);
-                            }
                         }
                     }
+
+                    _unusedSqlParameterRemoved = true;
+                    _sqlParameterSorted = true;
 
                     Parameter = dic;
                     break;
@@ -76,6 +95,23 @@ public class DefaultSqlCommand : ISqlCommand
             default:
                 throw new NotSupportedException($"Unsupported {nameof(BindSqlParameterType)}: {BindSqlParameterType}");
         }
+    }
+
+    public void ConvertSqlToUseQuestionMarkParameter()
+    {
+        if (_useQuestionMarkParameter)
+        {
+            return;
+        }
+
+        Sql = SqlParameterUtil.UseQuestionMarkParameter(Sql);
+
+        if (BindSqlParameterType != BindSqlParameterType.BindByPosition)
+        {
+            BindSqlParameterType = BindSqlParameterType.BindByPosition;
+        }
+
+        _useQuestionMarkParameter = true;
     }
 }
 

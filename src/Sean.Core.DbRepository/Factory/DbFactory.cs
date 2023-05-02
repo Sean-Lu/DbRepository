@@ -1589,7 +1589,7 @@ public class DbFactory
     #region Private method
     private DbCommand CreateDbCommand(ISqlCommand sqlCommand)
     {
-        return CreateDbCommand(sqlCommand.Transaction, sqlCommand.Connection, sqlCommand.CommandType, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(DbType, sqlCommand.Sql, sqlCommand.Parameter, _providerFactory.CreateParameter), sqlCommand.CommandTimeout);
+        return CreateDbCommand(sqlCommand.Transaction, sqlCommand.Connection, sqlCommand.CommandType, sqlCommand.Sql, SqlParameterUtil.ConvertToDbParameters(DbType, sqlCommand, _providerFactory.CreateParameter), sqlCommand.CommandTimeout);
     }
     private DbCommand CreateDbCommand(IDbTransaction transaction, IDbConnection connection, CommandType commandType, string commandText, IEnumerable<DbParameter> parameters, int? commandTimeout = null)
     {

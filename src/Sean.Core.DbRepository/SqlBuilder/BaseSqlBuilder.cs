@@ -27,13 +27,17 @@ public abstract class BaseSqlBuilder : IBaseSqlBuilder
 
     public ISqlCommand Build()
     {
-        var sql = BuildSqlCommand();
-        if (sql?.Parameter != null && SqlAdapter.DbType is DatabaseType.MsAccess or DatabaseType.Informix)
+        var sqlCommand = BuildSqlCommand();
+        if (sqlCommand?.Parameter != null && SqlAdapter.DbType is DatabaseType.MsAccess or DatabaseType.Informix)
         {
-            sql.BindSqlParameterType = BindSqlParameterType.BindByPosition;
-            sql.ConvertParameterToDictionary(useQuestionMarkParameter: SqlAdapter.DbType == DatabaseType.Informix);
+            sqlCommand.BindSqlParameterType = BindSqlParameterType.BindByPosition;
+            sqlCommand.ConvertParameterToDictionary();
+            if (SqlAdapter.DbType is DatabaseType.Informix)// Informix ODBC Driver.
+            {
+                sqlCommand.ConvertSqlToUseQuestionMarkParameter();
+            }
         }
-        return sql;
+        return sqlCommand;
     }
 
     protected virtual ISqlCommand BuildSqlCommand()
