@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Xml;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Utility.Config;
@@ -63,11 +64,26 @@ namespace Sean.Core.DbRepository
                     var type = Type.GetType(map.FactoryTypeAssemblyQualifiedName);
                     if (type != null)
                     {
+                        #region 1. Try to get an instance of the DbProviderFactory by reflection.
+                        var dbProvideFactoryInstanceFieldInfo = type.GetField("Instance", BindingFlags.Public | BindingFlags.Static);
+                        if (dbProvideFactoryInstanceFieldInfo != null)
+                        {
+                            var dbProvideFactoryInstanceValue = dbProvideFactoryInstanceFieldInfo.GetValue(type);
+                            if (dbProvideFactoryInstanceValue is DbProviderFactory dbProviderFactory)
+                            {
+                                map.ProviderFactory = dbProviderFactory;
+                                return map.ProviderFactory;
+                            }
+                        }
+                        #endregion
+
+                        #region 2. Try to get an instance of the DbProviderFactory by the default parameterless constructor.
                         if (Activator.CreateInstance(type) is DbProviderFactory instance)
                         {
                             map.ProviderFactory = instance;
                             return map.ProviderFactory;
                         }
+                        #endregion
                     }
                 }
             }

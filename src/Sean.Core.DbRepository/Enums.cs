@@ -14,6 +14,10 @@
         /// </summary>
         MySql,
         /// <summary>
+        /// MariaDB
+        /// </summary>
+        MariaDB,
+        /// <summary>
         /// SQL Server
         /// </summary>
         SqlServer,

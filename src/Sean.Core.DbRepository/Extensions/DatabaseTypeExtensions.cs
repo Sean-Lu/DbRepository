@@ -90,6 +90,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.MsAccess:
                     return $"[{name}]";
                 case DatabaseType.MySql:
+                case DatabaseType.MariaDB:
                 case DatabaseType.SQLite:
                     return $"`{name}`";
                 case DatabaseType.PostgreSql:
@@ -115,6 +116,7 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
+                case DatabaseType.MariaDB:
                     sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}'";
                     break;
                 case DatabaseType.SqlServer:
@@ -177,6 +179,7 @@ namespace Sean.Core.DbRepository.Extensions
             switch (dbType)
             {
                 case DatabaseType.MySql:
+                case DatabaseType.MariaDB:
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
                     break;
                 case DatabaseType.SqlServer:

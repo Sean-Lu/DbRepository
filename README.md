@@ -1,6 +1,6 @@
 ## 🌈 简介
 
-> `ORM`框架，支持数据库：`MySQL`、`SQL Server`、`Oracle`、`SQLite`、`MS Access`、`Firebird`、`PostgreSql`、`DB2`、`Informix`、`ClickHouse`
+> `ORM`框架，支持数据库：`MySQL`、`MariaDB`、`SQL Server`、`Oracle`、`SQLite`、`MS Access`、`Firebird`、`PostgreSql`、`DB2`、`Informix`、`ClickHouse`
 
 - 支持主从库分离（主库：增\删\改，从库：查）
 - 支持分表（自定义表名规则）
@@ -37,6 +37,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | Database        | Test result |
 | --------------- | ----------- |
 | `MySQL`         | ✅         |
+| `MariaDB`       | ✅         |
 | `SQL Server`    | ✅         |
 | `Oracle`        | ✅         |
 | `SQLite`        | ✅         |

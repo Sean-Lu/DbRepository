@@ -81,6 +81,14 @@ namespace Example.EF.Core.ConsoleApp
             optionsBuilder.UseMySQL(connString);
         }
 
+        private void UseMariaDB(DbContextOptionsBuilder optionsBuilder)
+        {
+            // MariaDB: CRUD test passed.
+            // var connString = "server=127.0.0.1;port=3306;database=test;user=root;password=12345!a";// √
+            var connString = "server=127.0.0.1;database=test;user id=root;password=12345!a";// √
+            optionsBuilder.UseMySql(connString, ServerVersion.AutoDetect(connString));
+        }
+
         private void UseSqlServer(DbContextOptionsBuilder optionsBuilder)
         {
             // SQL Server: CRUD test passed.

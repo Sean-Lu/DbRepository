@@ -181,6 +181,7 @@ VALUES{2}";
             switch (SqlAdapter.DbType)
             {
                 case DatabaseType.MySql:
+                case DatabaseType.MariaDB:
                     {
                         var returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
                         sb.Append($";{returnIdSql}");

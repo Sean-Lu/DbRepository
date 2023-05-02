@@ -24,6 +24,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             IConfiguration configuration,
             ISimpleLogger<TestRepository> logger
             //) : base(configuration)// MySQL: CRUD test passed.
+            //) : base(configuration, "test_MariaDB")// MariaDB: CRUD test passed.
             //) : base(configuration, "test_SqlServer")// SQL Server: CRUD test passed.
             //) : base(configuration, "test_Oracle")// Oracle: CRUD test passed.
             ) : base(configuration, "test_SQLite")// SQLite: CRUD test passed.
@@ -34,6 +35,8 @@ namespace Example.ADO.NETCore.Domain.Repositories
             //) : base(configuration, "test_Informix")// Informix: CRUD test passed.
         {
             _logger = logger;
+
+            //DbType = DatabaseType.MariaDB;
 
             _logger.LogDebug($"######Current database type: {DbType}");
         }
@@ -73,6 +76,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             return DbType switch
             {
                 DatabaseType.MySql => File.ReadAllText(@"./SQL/MySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.MariaDB => File.ReadAllText(@"./SQL/MariaDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.SqlServer => File.ReadAllText(@"./SQL/SQLSever_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Oracle => File.ReadAllText(@"./SQL/Oracle11g_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.SQLite => File.ReadAllText(@"./SQL/SQLite_CreateTable_Test.sql").Replace("{$TableName$}", tableName),

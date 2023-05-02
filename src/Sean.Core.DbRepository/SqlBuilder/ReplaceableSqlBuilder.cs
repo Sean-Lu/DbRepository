@@ -83,6 +83,7 @@ VALUES{2}";
         switch (SqlAdapter.DbType)
         {
             case DatabaseType.MySql:
+            case DatabaseType.MariaDB:
             case DatabaseType.SQLite:
                 if (_parameter is IEnumerable<TEntity> entities)// BulkInsertOrUpdate
                 {

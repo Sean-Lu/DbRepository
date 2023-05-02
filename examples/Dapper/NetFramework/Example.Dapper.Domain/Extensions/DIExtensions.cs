@@ -11,6 +11,7 @@ using Example.Dapper.Infrastructure.Impls;
 using FirebirdSql.Data.FirebirdClient;
 using IBM.Data.DB2.Core;
 using MySql.Data.MySqlClient;
+using MySqlConnector;
 using Newtonsoft.Json;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
@@ -36,6 +37,7 @@ namespace Example.Dapper.Domain.Extensions
 
             #region 配置数据库和数据库提供者工厂之间的映射关系
             DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", MySqlClientFactory.Instance));// MySql
+            DatabaseType.MariaDB.SetDbProviderMap(new DbProviderMap("MySqlConnector.MariaDB", MySqlConnectorFactory.Instance));// MariaDB
             DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", SqlClientFactory.Instance));// Microsoft SQL Server
             DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", OracleClientFactory.Instance));// Oracle
             DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", SQLiteFactory.Instance));// SQLite
@@ -46,8 +48,8 @@ namespace Example.Dapper.Domain.Extensions
             DatabaseType.Firebird.SetDbProviderMap(new DbProviderMap("FirebirdSql.Data.FirebirdClient", FirebirdClientFactory.Instance));// Firebird
             DatabaseType.PostgreSql.SetDbProviderMap(new DbProviderMap("Npgsql", NpgsqlFactory.Instance));// PostgreSql
             DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", DB2Factory.Instance));// DB2
-            DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", IBM.Data.Informix.IfxFactory.Instance));// Informix
-            //DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", "IBM.Data.Informix.IfxFactory,IBM.Data.Informix"));// Informix
+            //DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", IBM.Data.Informix.IfxFactory.Instance));// Informix
+            DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", "IBM.Data.Informix.IfxFactory,IBM.Data.Informix"));// Informix
             #endregion
 
             #region 自动创建 Firebird 数据库
@@ -73,11 +75,11 @@ namespace Example.Dapper.Domain.Extensions
             {
                 options.MapToDatabaseType = factory =>
                 {
-                    if (factory is OleDbFactory or OdbcFactory)
+                    return factory switch
                     {
-                        return DatabaseType.MsAccess;
-                    }
-                    return DatabaseType.Unknown;
+                        OleDbFactory or OdbcFactory => DatabaseType.MsAccess,
+                        _ => DatabaseType.Unknown
+                    };
                 };
                 options.SetDbCommand = command =>
                 {

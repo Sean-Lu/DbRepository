@@ -233,6 +233,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         switch (DbType)
         {
             case DatabaseType.MySql:
+            case DatabaseType.MariaDB:
             case DatabaseType.SQLite:
                 {
                     var sqlCommand = this.GetSqlForAddOrUpdate(entity, fieldExpression);
@@ -273,6 +274,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         switch (DbType)
         {
             case DatabaseType.MySql:
+            case DatabaseType.MariaDB:
             case DatabaseType.SQLite:
                 {
                     var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
@@ -732,6 +734,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         switch (DbType)
         {
             case DatabaseType.MySql:
+            case DatabaseType.MariaDB:
             case DatabaseType.SQLite:
                 {
                     var sqlCommand = this.GetSqlForAddOrUpdate(entity, fieldExpression);
@@ -772,6 +775,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         switch (DbType)
         {
             case DatabaseType.MySql:
+            case DatabaseType.MariaDB:
             case DatabaseType.SQLite:
                 {
                     var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;

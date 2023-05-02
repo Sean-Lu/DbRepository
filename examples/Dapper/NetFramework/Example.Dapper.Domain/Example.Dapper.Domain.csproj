@@ -33,9 +33,9 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="IBM.Data.Informix">
+    <!--<Reference Include="IBM.Data.Informix">
       <HintPath>C:\Program Files\IBM Informix Client-SDK\bin\netf40\IBM.Data.Informix.dll</HintPath>
-    </Reference>
+    </Reference>-->
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -89,7 +89,10 @@
       <Version>2.2.0.200</Version>
     </PackageReference>
     <PackageReference Include="MySql.Data">
-      <Version>8.0.32</Version>
+      <Version>8.0.33</Version>
+    </PackageReference>
+    <PackageReference Include="MySqlConnector">
+      <Version>2.2.5</Version>
     </PackageReference>
     <PackageReference Include="Npgsql">
       <Version>7.0.2</Version>
