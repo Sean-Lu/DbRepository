@@ -11,11 +11,11 @@ public abstract class BaseSqlBuilder : IBaseSqlBuilder
     /// <summary>
     /// Whether the SQL is indent. The default value is false.
     /// </summary>
-    public bool SqlIndented { get; } = false;
+    public bool SqlIndented { get; set; } = DbContextConfiguration.Options.SqlIndented;
     /// <summary>
     /// Whether the SQL is parameterized. The default value is true.
     /// </summary>
-    public bool SqlParameterized { get; } = true;
+    public bool SqlParameterized { get; set; } = DbContextConfiguration.Options.SqlParameterized;
 
     protected BaseSqlBuilder(DatabaseType dbType, string tableName)
     {

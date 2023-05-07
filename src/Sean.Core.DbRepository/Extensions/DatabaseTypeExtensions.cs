@@ -92,6 +92,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.MySql:
                 case DatabaseType.MariaDB:
                 case DatabaseType.SQLite:
+                case DatabaseType.ClickHouse:
                     return $"`{name}`";
                 case DatabaseType.PostgreSql:
                 case DatabaseType.Oracle:

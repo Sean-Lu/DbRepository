@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using ClickHouse.Client.ADO;
+using ClickHouse.EntityFrameworkCore.Extensions;
 using EntityFrameworkCore.Jet.Data;
 using EntityFrameworkCore.UseRowNumberForPaging;
 using Example.EF.Core.ConsoleApp.Entities;
@@ -225,6 +227,20 @@ namespace Example.EF.Core.ConsoleApp
                 builder.SetServerInfo(IBMDBServerType.IDS);// IBM Informix Dynamic Server
                 //builder.UseRowNumberForPaging();
             });
+        }
+
+        private void UseClickHouse(DbContextOptionsBuilder optionsBuilder)
+        {
+            // ClickHouse: CRUD test passed.
+            var sb = new ClickHouseConnectionStringBuilder
+            {
+                Host = "localhost",
+                Port = 8123,
+                Database = "default",
+            };
+            var connString = sb.ConnectionString;
+            //var connString = "Host=localhost;Port=8123;Database=default;User=default;Password=";
+            optionsBuilder.UseClickHouse(connString);
         }
         #endregion
     }

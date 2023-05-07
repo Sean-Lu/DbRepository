@@ -237,14 +237,8 @@ VALUES{2}";
                         sb.Append($";{returnIdSql}");
                         break;
                     }
-                case DatabaseType.ClickHouse:
-                    {
-                        var returnIdSql = "SELECT lastInsertId()";
-                        sb.Append($";{returnIdSql}");
-                        break;
-                    }
                 default:
-                    throw new NotSupportedException($"Unsupported database type: {SqlAdapter.DbType}");
+                    throw new NotSupportedException($"[returnLastInsertId] Unsupported database type: {SqlAdapter.DbType}");
             }
         }
 

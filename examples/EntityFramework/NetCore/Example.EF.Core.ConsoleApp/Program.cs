@@ -33,6 +33,7 @@ using (var db = new EFDbContext())
         //var testModel = new TestUpperEntity
         var testModel = new TestEntity
         {
+            //Id = 1,
             UserId = 10001,
             UserName = "Test",
             Age = 18,
@@ -40,6 +41,7 @@ using (var db = new EFDbContext())
             IsVip = true,
             Sex = SexType.Male,
             CreateTime = DateTime.Now,
+            UpdateTime = DateTime.Now,
             AccountBalance = 99.5M
         };
 
@@ -86,6 +88,7 @@ using (var db = new EFDbContext())
         //var testModel = new TestUpperEntity
         var testModel = new TestEntity
         {
+            //Id = 1,
             UserId = 10001,
             UserName = "Test",
             Age = 18,
@@ -93,6 +96,7 @@ using (var db = new EFDbContext())
             IsVip = true,
             Sex = SexType.Male,
             CreateTime = DateTime.Now,
+            UpdateTime = DateTime.Now,
             AccountBalance = 99.5M
         };
 

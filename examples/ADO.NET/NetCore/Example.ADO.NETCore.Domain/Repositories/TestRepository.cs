@@ -33,6 +33,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             //) : base(configuration, "test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base(configuration, "test_DB2")// DB2: CRUD test passed.
             //) : base(configuration, "test_Informix")// Informix: CRUD test passed.
+            //) : base(configuration, "test_ClickHouse")// ClickHouse
         {
             _logger = logger;
 
@@ -85,6 +86,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
                 DatabaseType.PostgreSql => File.ReadAllText(@"./SQL/PostgreSql_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.DB2 => File.ReadAllText(@"./SQL/DB2_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Informix => File.ReadAllText(@"./SQL/Informix_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.ClickHouse => File.ReadAllText(@"./SQL/ClickHouse_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()
             };
         }
@@ -93,6 +95,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
         {
             var testModel = new TestEntity
             {
+                //Id = 1,
                 UserId = 10001,
                 UserName = "Test01",
                 Age = 18,

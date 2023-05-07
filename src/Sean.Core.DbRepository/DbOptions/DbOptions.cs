@@ -53,6 +53,15 @@ public class DbOptions
     public Func<DatabaseType, DbConnection, string, bool?> IsTableExists { get; set; }
     public Func<DatabaseType, DbConnection, string, string, bool?> IsTableFieldExists { get; set; }
 
+    /// <summary>
+    /// Whether the SQL is indent. The default value is false.
+    /// </summary>
+    public bool SqlIndented { get; set; } = false;
+    /// <summary>
+    /// Whether the SQL is parameterized. The default value is true.
+    /// </summary>
+    public bool SqlParameterized { get; set; } = true;
+
     public event Action<SqlExecutingContext> SqlExecuting;
     public event Action<SqlExecutedContext> SqlExecuted;
 

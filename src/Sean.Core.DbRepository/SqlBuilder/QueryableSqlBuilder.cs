@@ -469,6 +469,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                 case DatabaseType.MariaDB:
                 case DatabaseType.SQLite:
                 case DatabaseType.PostgreSql:
+                case DatabaseType.ClickHouse:
                     sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber}";
                     break;
                 case DatabaseType.SqlServer:
@@ -517,6 +518,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
             case DatabaseType.MySql:
             case DatabaseType.MariaDB:
             case DatabaseType.SQLite:
+            case DatabaseType.ClickHouse:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows}";
             case DatabaseType.PostgreSql:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {rows} OFFSET {offset}";

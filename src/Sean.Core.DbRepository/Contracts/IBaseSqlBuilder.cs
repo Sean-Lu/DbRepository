@@ -3,8 +3,8 @@
 public interface IBaseSqlBuilder
 {
     ISqlAdapter SqlAdapter { get; }
-    bool SqlIndented { get; }
-    bool SqlParameterized { get; }
+    bool SqlIndented { get; set; }
+    bool SqlParameterized { get; set; }
 
     ISqlCommand Build();
 }

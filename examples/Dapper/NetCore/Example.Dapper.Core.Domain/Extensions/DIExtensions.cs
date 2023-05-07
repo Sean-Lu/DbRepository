@@ -50,6 +50,7 @@ namespace Example.Dapper.Core.Domain.Extensions
             DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", DB2Factory.Instance));// DB2
             //DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", Informix.Net.Core.InformixClientFactory.Instance));// Informix
             DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", "Informix.Net.Core.InformixClientFactory,Informix.Net.Core"));// Informix
+            DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", new ClickHouse.Client.ADO.ClickHouseConnectionFactory()));// ClickHouse
             #endregion
 
             #region 自动创建 Firebird 数据库
