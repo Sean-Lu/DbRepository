@@ -34,6 +34,8 @@ Get<T>()、GetList<T>() 其中 T ：
 
 ## 🍉 CRUD Test
 
+> `TestRepository`
+
 | Database        | Test result |
 | --------------- | ----------- |
 | `MySQL`         | ✅         |

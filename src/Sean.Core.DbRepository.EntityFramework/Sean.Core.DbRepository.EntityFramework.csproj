@@ -3,7 +3,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net45;net46;netstandard2.1;net6</TargetFrameworks>
-		<Description>ORM framework, support databases: MySQL, SQL Server, Oracle, SQLite, MS Access, Firebird, PostgreSql, DB2, Informix, ClickHouse, ...</Description>
+		<Description>ORM framework, support databases: MySQL, MariaDB, SQL Server, Oracle, SQLite, MS Access, Firebird, PostgreSql, DB2, Informix, ClickHouse, ...</Description>
 		<Version>2.1.5</Version>
 	</PropertyGroup>
 
@@ -12,7 +12,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6'">
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.3" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.5" />
 	</ItemGroup>
 
 	<ItemGroup>
