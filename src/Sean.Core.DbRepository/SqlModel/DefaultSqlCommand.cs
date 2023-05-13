@@ -2,6 +2,8 @@
 using Sean.Core.DbRepository.Util;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Sean.Core.DbRepository;
 
@@ -116,7 +118,45 @@ public class DefaultSqlCommand : ISqlCommand
 
     public void ConvertSqlToNonParameter()
     {
+        if (_useQuestionMarkParameter)
+        {
+            var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
+            if (dicParameters != null && dicParameters.Any())
+            {
+                var index = 0;
+                Sql = Regex.Replace(Sql, @"\?", match =>
+                {
+                    if (index >= dicParameters.Count)
+                    {
+                        throw new Exception("Not enough sql parameters passed.");
+                    }
 
+                    var sqlParameter = dicParameters.ElementAt(index++);
+                    var convertResult = SqlBuilderUtil.ConvertToSqlString(sqlParameter.Value, out var convertible);
+                    return convertible ? convertResult : throw new Exception($"The sql parameter [{sqlParameter.Key}] cannot be converted to a string value.");
+                });
+            }
+        }
+        else
+        {
+            var sortedSqlParameters = SqlParameterUtil.ParseSqlParameters(Sql);
+            var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
+            if (sortedSqlParameters != null && sortedSqlParameters.Any() && dicParameters != null && dicParameters.Any())
+            {
+                foreach (var keyValuePair in sortedSqlParameters)
+                {
+                    var paraName = keyValuePair.Key;
+                    if (dicParameters.ContainsKey(paraName))
+                    {
+                        var convertResult = SqlBuilderUtil.ConvertToSqlString(dicParameters[paraName], out var convertible);
+                        if (convertible)
+                        {
+                            Sql = SqlParameterUtil.ReplaceParameter(Sql, paraName, convertResult);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

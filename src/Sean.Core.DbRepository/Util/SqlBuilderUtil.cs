@@ -342,10 +342,9 @@ internal static class SqlBuilderUtil
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <param name="type"></param>
     /// <param name="convertible">Indicates whether <paramref name="value"/> is convertible.</param>
     /// <returns></returns>
-    public static string ConvertToSqlString(object value, Type type, out bool convertible)
+    public static string ConvertToSqlString(object value, out bool convertible)
     {
         convertible = true;
         if (value == null)
@@ -353,7 +352,7 @@ internal static class SqlBuilderUtil
             return "null";
         }
 
-        //var valueType = Nullable.GetUnderlyingType(value.GetType()) ?? value.GetType();
+        var type = value.GetType();
         var valueType = Nullable.GetUnderlyingType(type) ?? type;
         if (valueType == typeof(string))
         {

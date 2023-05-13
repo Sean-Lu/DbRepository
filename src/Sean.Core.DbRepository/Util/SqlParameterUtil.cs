@@ -115,7 +115,7 @@ internal static class SqlParameterUtil
     }
     public static void RemoveUnusedParameters(Dictionary<string, object> parameters, string sql)
     {
-        for (var i = 0; i < parameters.Count; i++)
+        for (var i = parameters.Count - 1; i >= 0; i--)
         {
             var item = parameters.ElementAt(i);
             if (!Regex.IsMatch(sql, $@"[?@:]{item.Key}([^\p{{L}}\p{{N}}_]+|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant))
@@ -143,6 +143,12 @@ internal static class SqlParameterUtil
     {
         var regex = new Regex(@"[?@:](\w+)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
         return regex.Replace(sql, "?");
+    }
+
+    public static string ReplaceParameter(string sql, string paraName, string replace)
+    {
+        var regex = new Regex($@"[?@:]({paraName})", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
+        return regex.IsMatch(sql) ? regex.Replace(sql, replace) : sql;
     }
 
     internal static Dictionary<string, object> ConvertToDicParameter(object instance, IEnumerable<string> fields = null)

@@ -110,7 +110,7 @@ VALUES{2}";
                                 if (property != null)
                                 {
                                     var value = property.GetValue(entity);
-                                    var convertResult = SqlBuilderUtil.ConvertToSqlString(value, property.PropertyType, out var convertible);
+                                    var convertResult = SqlBuilderUtil.ConvertToSqlString(value, out var convertible);
                                     if (convertible)
                                     {
                                         formatParameterNames.Add(convertResult);
@@ -144,7 +144,7 @@ VALUES{2}";
                             if (property != null)
                             {
                                 var value = property.GetValue(_parameter);
-                                var convertResult = SqlBuilderUtil.ConvertToSqlString(value, property.PropertyType, out var convertible);
+                                var convertResult = SqlBuilderUtil.ConvertToSqlString(value, out var convertible);
                                 if (convertible)
                                 {
                                     return convertResult;
