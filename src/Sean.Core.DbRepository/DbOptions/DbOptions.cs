@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.IO;
 using System.Reflection;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using Sean.Core.DbRepository.Extensions;
 
@@ -65,6 +66,8 @@ public class DbOptions
     public event Action<SqlExecutingContext> SqlExecuting;
     public event Action<SqlExecutedContext> SqlExecuted;
 
+    private static readonly Dictionary<Type, ITypeHandler> _typeHandlers = new();
+
     internal void TriggerSqlExecuting(SqlExecutingContext context)
     {
         SqlExecuting?.Invoke(context);
@@ -72,5 +75,36 @@ public class DbOptions
     internal void TriggerSqlExecuted(SqlExecutedContext context)
     {
         SqlExecuted?.Invoke(context);
+    }
+
+    public void AddTypeHandler(Type type, ITypeHandler typeHandler)
+    {
+        if (!ContainsTypeHandler(type))
+        {
+            _typeHandlers.Add(type, typeHandler);
+        }
+        else
+        {
+            if (_typeHandlers.TryGetValue(type, out var handler) && typeHandler == handler)
+            {
+                return;
+            }
+
+            RemoveTypeHandler(type);
+            _typeHandlers.Add(type, typeHandler);
+        }
+    }
+    public bool RemoveTypeHandler(Type type)
+    {
+        return _typeHandlers.Remove(type);
+    }
+    public bool ContainsTypeHandler(Type type)
+    {
+        return _typeHandlers.ContainsKey(type);
+    }
+    public ITypeHandler GetTypeHandler(Type type)
+    {
+        _typeHandlers.TryGetValue(type, out var handler);
+        return handler;
     }
 }

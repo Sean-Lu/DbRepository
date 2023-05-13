@@ -38,5 +38,15 @@ internal static class DbParameterExtensions
             sqlParameter.Value = ObjectConvert.ChangeType<byte>(parameterValue);// Oracle: bool -> byte
         else
             sqlParameter.Value = parameterValue ?? DBNull.Value;
+
+        if (parameterValue != null)
+        {
+            var parameterType = parameterValue.GetType();
+            if (DbContextConfiguration.Options.ContainsTypeHandler(parameterType))
+            {
+                var typeHandler = DbContextConfiguration.Options.GetTypeHandler(parameterType);
+                typeHandler?.Set(sqlParameter, parameterValue, dbType);
+            }
+        }
     }
 }
