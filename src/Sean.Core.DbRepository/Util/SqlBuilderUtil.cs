@@ -343,11 +343,11 @@ internal static class SqlBuilderUtil
     /// </summary>
     /// <param name="value"></param>
     /// <param name="type"></param>
-    /// <param name="convertable">如果返回false，则必须参数化处理</param>
+    /// <param name="convertible">Indicates whether <paramref name="value"/> is convertible.</param>
     /// <returns></returns>
-    public static string ConvertToSqlString(object value, Type type, out bool convertable)
+    public static string ConvertToSqlString(object value, Type type, out bool convertible)
     {
-        convertable = true;
+        convertible = true;
         if (value == null)
         {
             return "null";
@@ -388,7 +388,7 @@ internal static class SqlBuilderUtil
         }
         if (valueType.IsArray)
         {
-            convertable = false;
+            convertible = false;
             return null;
         }
 

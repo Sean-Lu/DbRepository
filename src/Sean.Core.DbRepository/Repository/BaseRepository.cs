@@ -165,7 +165,12 @@ public abstract class BaseRepository : IBaseRepository
     {
         if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-        return Factory.ExecuteNonQuery(sqlCommand);
+        var result = Factory.ExecuteNonQuery(sqlCommand);
+        if (DbType == DatabaseType.ClickHouse && result < 1)
+        {
+            return 1;// ClickHouse: Asynchronous execution
+        }
+        return result;
     }
 
     public virtual IEnumerable<T> Query<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
@@ -454,7 +459,12 @@ public abstract class BaseRepository : IBaseRepository
     {
         if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-        return await Factory.ExecuteNonQueryAsync(sqlCommand);
+        var result = await Factory.ExecuteNonQueryAsync(sqlCommand);
+        if (DbType == DatabaseType.ClickHouse && result < 1)
+        {
+            return 1;// ClickHouse: Asynchronous execution
+        }
+        return result;
     }
 
     public virtual async Task<IEnumerable<T>> QueryAsync<T>(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)

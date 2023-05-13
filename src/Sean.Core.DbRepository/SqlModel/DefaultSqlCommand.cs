@@ -113,6 +113,11 @@ public class DefaultSqlCommand : ISqlCommand
 
         _useQuestionMarkParameter = true;
     }
+
+    public void ConvertSqlToNonParameter()
+    {
+
+    }
 }
 
 public class DefaultSqlCommand<T> : DefaultSqlCommand, ISqlCommand<T>

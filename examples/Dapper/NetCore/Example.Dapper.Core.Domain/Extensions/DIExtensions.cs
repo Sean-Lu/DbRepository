@@ -109,6 +109,7 @@ namespace Example.Dapper.Core.Domain.Extensions
                 options.JsonSerializer = NewJsonSerializer.Instance;
                 options.SqlExecuting += OnSqlExecuting;
                 options.SqlExecuted += OnSqlExecuted;
+                //options.SqlParameterized = false;// ClickHouse
             });
 
             //DbContextConfiguration.ConfigureSqlServer(options =>

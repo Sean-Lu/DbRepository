@@ -11,6 +11,7 @@ namespace Sean.Core.DbRepository;
 public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity>
 {
     private const string SqlTemplate = "UPDATE {0} SET {1}{2}";
+    private const string SqlTemplateForClickHouse = "ALTER TABLE {0} UPDATE {1}{2}";
 
     private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
 
@@ -321,7 +322,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
         });
 
         var sb = new StringBuilder();
-        sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", string.Join(", ", sets), WhereSql));
+        sb.Append(string.Format(SqlAdapter.DbType == DatabaseType.ClickHouse ? SqlTemplateForClickHouse : SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", string.Join(", ", sets), WhereSql));
 
         var sql = new DefaultSqlCommand
         {

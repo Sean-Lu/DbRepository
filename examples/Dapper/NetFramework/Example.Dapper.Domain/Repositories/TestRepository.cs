@@ -31,7 +31,7 @@ namespace Example.Dapper.Domain.Repositories
             //) : base("test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base("test_DB2")// DB2: CRUD test passed.
             //) : base("test_Informix")// Informix: CRUD test passed.
-            //) : base("test_ClickHouse")// ClickHouse
+            //) : base("test_ClickHouse")// ClickHouse: CRUD test passed.
         {
             _logger = logger;
 

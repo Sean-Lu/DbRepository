@@ -18,14 +18,14 @@ public abstract class BaseRepository<TEntity> : EntityBaseRepository<TEntity> wh
 {
     #region Constructors
 #if NETSTANDARD || NET5_0_OR_GREATER
-        /// <summary>
-        /// Single or clustered database.
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="configName">Configuration ConnectionStrings name</param>
-        protected BaseRepository(IConfiguration configuration, string configName = Constants.Master) : base(configuration, configName)
-        {
-        }
+    /// <summary>
+    /// Single or clustered database.
+    /// </summary>
+    /// <param name="configuration"></param>
+    /// <param name="configName">Configuration ConnectionStrings name</param>
+    protected BaseRepository(IConfiguration configuration, string configName = Constants.Master) : base(configuration, configName)
+    {
+    }
 #else
     /// <summary>
     /// Single or clustered database.
@@ -76,7 +76,12 @@ public abstract class BaseRepository<TEntity> : EntityBaseRepository<TEntity> wh
     {
         if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-        return Execute(connection => connection.Execute(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        var result = Execute(connection => connection.Execute(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        if (DbType == DatabaseType.ClickHouse && result < 1)
+        {
+            return 1;// ClickHouse: Asynchronous execution
+        }
+        return result;
     }
     public override IEnumerable<T> Query<T>(ISqlCommand sqlCommand)
     {
@@ -127,7 +132,12 @@ public abstract class BaseRepository<TEntity> : EntityBaseRepository<TEntity> wh
     {
         if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-        return await ExecuteAsync(async connection => await connection.ExecuteAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        var result = await ExecuteAsync(async connection => await connection.ExecuteAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        if (DbType == DatabaseType.ClickHouse && result < 1)
+        {
+            return 1;// ClickHouse: Asynchronous execution
+        }
+        return result;
     }
     public override async Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand)
     {

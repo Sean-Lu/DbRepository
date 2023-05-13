@@ -48,7 +48,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | `PostgreSql`    | ✅         |
 | `DB2`           | ✅         |
 | `Informix`      | ✅         |
-| `ClickHouse`    | -           |
+| `ClickHouse`    | ✅         |
 
 ## 💯 性能测试
 

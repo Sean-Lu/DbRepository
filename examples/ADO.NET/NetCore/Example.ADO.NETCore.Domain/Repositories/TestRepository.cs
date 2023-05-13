@@ -33,7 +33,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             //) : base(configuration, "test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base(configuration, "test_DB2")// DB2: CRUD test passed.
             //) : base(configuration, "test_Informix")// Informix: CRUD test passed.
-            //) : base(configuration, "test_ClickHouse")// ClickHouse
+            //) : base(configuration, "test_ClickHouse")// ClickHouse: CRUD test passed.
         {
             _logger = logger;
 

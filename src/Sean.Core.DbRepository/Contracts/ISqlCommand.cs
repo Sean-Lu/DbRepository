@@ -41,6 +41,7 @@ public interface ISqlCommand
 
     void ConvertParameterToDictionary(bool removeUnusedParameter = true);
     void ConvertSqlToUseQuestionMarkParameter();
+    void ConvertSqlToNonParameter();
 }
 
 public interface ISqlCommand<T> : ISqlCommand

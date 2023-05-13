@@ -28,6 +28,12 @@ public abstract class BaseSqlBuilder : IBaseSqlBuilder
     public ISqlCommand Build()
     {
         var sqlCommand = BuildSqlCommand();
+
+        if (sqlCommand?.Parameter != null && !SqlParameterized)
+        {
+            sqlCommand.ConvertSqlToNonParameter();
+        }
+
         if (sqlCommand?.Parameter != null && SqlAdapter.DbType is DatabaseType.MsAccess or DatabaseType.Informix)
         {
             sqlCommand.BindSqlParameterType = BindSqlParameterType.BindByPosition;
@@ -37,6 +43,7 @@ public abstract class BaseSqlBuilder : IBaseSqlBuilder
                 sqlCommand.ConvertSqlToUseQuestionMarkParameter();
             }
         }
+
         return sqlCommand;
     }
 
