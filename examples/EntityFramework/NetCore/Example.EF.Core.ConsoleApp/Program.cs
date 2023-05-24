@@ -25,6 +25,8 @@ using (var db = new EFDbContext())
         Console.WriteLine("数据库创建并初始化完成...");
     }
 
+    //db.Database.Migrate();
+
     var useRepository = false;
 
     if (!useRepository)

@@ -18,6 +18,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="dmdbms.Microsoft.EntityFrameworkCore.Dm" Version="6.0.16.16649" />
 		<PackageReference Include="EntityFrameworkCore.ClickHouse.6.0" Version="1.0.0" />
 		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.0-beta.1" />
 		<!-- SQL Server 2005 ~ 2008 -->

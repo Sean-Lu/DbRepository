@@ -54,7 +54,11 @@
         /// <summary>
         /// ClickHouse
         /// </summary>
-        ClickHouse
+        ClickHouse,
+        /// <summary>
+        /// DM（达梦）
+        /// </summary>
+        DM
     }
 
     public enum SqlOperation

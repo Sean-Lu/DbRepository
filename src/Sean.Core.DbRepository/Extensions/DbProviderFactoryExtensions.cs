@@ -28,6 +28,7 @@ namespace Sean.Core.DbRepository.Extensions
             else if (factoryName.StartsWith("DB2")) databaseType = DatabaseType.DB2;
             else if (factoryName.StartsWith("Ifx")) databaseType = DatabaseType.Informix;
             else if (factoryName.StartsWith("ClickHouse")) databaseType = DatabaseType.ClickHouse;
+            else if (factoryName.StartsWith("DmClient")) databaseType = DatabaseType.DM;
 
             return databaseType ?? DatabaseType.Unknown;
         }

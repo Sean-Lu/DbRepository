@@ -48,28 +48,30 @@ namespace Example.EF.Core.ConsoleApp
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            //modelBuilder.Entity<TestEntity>();
 
             //modelBuilder.Entity<TestEntity>(c =>
             //{
             //    c.Property(x => x.Id).HasColumnName("Id");
             //    c.Property(x => x.UserId).HasColumnName("UserId");
-            //    c.Property(x => x.UserName).HasColumnName("UserName");
+            //    c.Property(x => x.UserName).HasColumnName("UserName").HasMaxLength(20);
             //    c.Property(x => x.Age).HasColumnName("Age");
             //    c.Property(x => x.Sex).HasColumnName("Sex");
             //    c.Property(x => x.PhoneNumber).HasColumnName("PhoneNumber");
-            //    c.Property(x => x.Email).HasColumnName("Email");
+            //    c.Property(x => x.Email).HasColumnName("Email").HasMaxLength(50);
             //    c.Property(x => x.IsVip).HasColumnName("IsVip");
             //    c.Property(x => x.IsBlack).HasColumnName("IsBlack");
             //    c.Property(x => x.Country).HasColumnName("Country");
             //    c.Property(x => x.AccountBalance).HasColumnName("AccountBalance");
             //    c.Property(x => x.AccountBalance2).HasColumnName("AccountBalance2");
             //    c.Property(x => x.Status).HasColumnName("Status");
-            //    c.Property(x => x.Remark).HasColumnName("Remark");
+            //    c.Property(x => x.Remark).HasColumnName("Remark").HasMaxLength(255);
             //    c.Property(x => x.CreateTime).HasColumnName("CreateTime");
             //    c.Property(x => x.UpdateTime).HasColumnName("UpdateTime");
             //    c.ToTable("Test");
             //});
+
+            base.OnModelCreating(modelBuilder);
         }
 
         //public DbSet<TestUpperEntity> TestEntities { get; set; }
@@ -241,6 +243,13 @@ namespace Example.EF.Core.ConsoleApp
             var connString = sb.ConnectionString;
             //var connString = "Host=localhost;Port=8123;Database=default;User=default;Password=";
             optionsBuilder.UseClickHouse(connString);
+        }
+
+        private void UseDm(DbContextOptionsBuilder optionsBuilder)
+        {
+            // DM（达梦）: CRUD test passed.
+            var connString = "SERVER=127.0.0.1;PORT=5236;USER=SYSDBA;PASSWORD=SYSDBA";
+            optionsBuilder.UseDm(connString);
         }
         #endregion
     }

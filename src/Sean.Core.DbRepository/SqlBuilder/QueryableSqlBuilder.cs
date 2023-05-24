@@ -474,6 +474,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                     break;
                 case DatabaseType.SqlServer:
                 case DatabaseType.MsAccess:
+                case DatabaseType.DM:
                     sql.Sql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     break;
                 case DatabaseType.Firebird:
@@ -531,6 +532,8 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
 
                     return GetOffsetQuerySql(selectFields, offset, rows);// SQL Server 2012 ~ +
                 }
+            case DatabaseType.DM:
+                return GetOffsetQuerySql(selectFields, offset, rows, false);
             case DatabaseType.DB2:
                 return GetRowNumberQuerySql(selectFields, offset, rows);
             case DatabaseType.MsAccess:
@@ -574,10 +577,10 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
 
         return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({orderBy}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {offset + rows}";
     }
-    private string GetOffsetQuerySql(string selectFields, int offset, int rows)
+    private string GetOffsetQuerySql(string selectFields, int offset, int rows, bool setDefaultOrderByIfNull = true)
     {
         var orderBy = OrderBySql;
-        if (string.IsNullOrWhiteSpace(orderBy))
+        if (setDefaultOrderByIfNull && string.IsNullOrWhiteSpace(orderBy))
         {
             orderBy = " ORDER BY (SELECT 1)";
         }

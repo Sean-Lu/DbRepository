@@ -56,6 +56,7 @@ namespace Sean.Core.DbRepository.Extensions
             switch (databaseType)
             {
                 case DatabaseType.Oracle:
+                case DatabaseType.DM:
                     return $":{parameter}";
                 default:
                     return $"@{parameter}";
@@ -99,6 +100,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.DB2:
                 case DatabaseType.Firebird:
                 case DatabaseType.Informix:
+                case DatabaseType.DM:
                     return $"\"{name}\"";
                 default:
                     return name;
@@ -163,6 +165,9 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.ClickHouse:
                     sql = $"SELECT COUNT(*) AS TableCount FROM system.tables WHERE database = '{connection.Database}' AND name = '{tableName}'";
                     break;
+                case DatabaseType.DM:
+                    sql = $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name = '{tableName}'";
+                    break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
             }
@@ -226,6 +231,9 @@ namespace Sean.Core.DbRepository.Extensions
                     break;
                 case DatabaseType.ClickHouse:
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM system.columns WHERE database = '{connection.Database}' AND table = '{tableName}' AND name = '{fieldName}'";
+                    break;
+                case DatabaseType.DM:
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name = '{tableName}' AND column_name = '{fieldName}'";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");

@@ -51,6 +51,7 @@ namespace Example.ADO.NETCore.Domain.Extensions
             //DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", Informix.Net.Core.InformixClientFactory.Instance));// Informix
             DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", "Informix.Net.Core.InformixClientFactory,Informix.Net.Core"));// Informix
             DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", new ClickHouse.Client.ADO.ClickHouseConnectionFactory()));// ClickHouse
+            DatabaseType.DM.SetDbProviderMap(new DbProviderMap("DM", Dm.DmClientFactory.Instance));// DM（达梦）
             #endregion
 
             #region 自动创建 Firebird 数据库
