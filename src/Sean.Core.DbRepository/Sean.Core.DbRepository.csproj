@@ -3,7 +3,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net45;net46;netstandard2;netstandard2.1;net5</TargetFrameworks>
-		<Description>ORM framework, support databases: MySQL, MariaDB, SQL Server, Oracle, SQLite, MS Access, Firebird, PostgreSql, DB2, Informix, ClickHouse, ...</Description>
+		<Description>ORM framework, support databases: MySQL, MariaDB, SQL Server, Oracle, SQLite, MS Access, Firebird, PostgreSql, DB2, Informix, ClickHouse, DM(达梦), ...</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Version>2.1.10</Version>
 	</PropertyGroup>
