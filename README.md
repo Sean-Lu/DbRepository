@@ -232,10 +232,10 @@ _testRepository.Update(entities);
 _testRepository.Update(entities, fieldExpression: entity => new { entity.Status, entity.UpdateTime });
 
 // 数值字段递增：
-_testRepository.Incr(10.0M, fieldExpression: entity => entity.AccountBalance, whereExpression: entity => entity.Id == 10001);
+_testRepository.Increment(10.0M, fieldExpression: entity => entity.AccountBalance, whereExpression: entity => entity.Id == 10001);
 
 // 数值字段递减：
-_testRepository.Decr(10.0M, fieldExpression: entity => entity.AccountBalance, whereExpression: entity => entity.Id == 10001);
+_testRepository.Decrement(10.0M, fieldExpression: entity => entity.AccountBalance, whereExpression: entity => entity.Id == 10001);
 
 // 查询数据：分页 + 排序
 int pageIndex = 1;// 当前页号（最小值为1）
