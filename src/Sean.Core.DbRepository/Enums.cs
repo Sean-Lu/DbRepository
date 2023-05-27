@@ -58,7 +58,11 @@
         /// <summary>
         /// DM（达梦）
         /// </summary>
-        DM
+        DM,
+        /// <summary>
+        /// KingbaseES（人大金仓）
+        /// </summary>
+        KingbaseES
     }
 
     public enum SqlOperation

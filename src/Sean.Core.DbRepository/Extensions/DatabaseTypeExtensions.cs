@@ -101,6 +101,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.Firebird:
                 case DatabaseType.Informix:
                 case DatabaseType.DM:
+                case DatabaseType.KingbaseES:
                     return $"\"{name}\"";
                 default:
                     return name;
@@ -168,6 +169,10 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.DM:
                     sql = $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name = '{tableName}'";
                     break;
+                case DatabaseType.KingbaseES:
+                    //sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{tableName}'";
+                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_name = '{tableName}'";
+                    break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
             }
@@ -234,6 +239,10 @@ namespace Sean.Core.DbRepository.Extensions
                     break;
                 case DatabaseType.DM:
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name = '{tableName}' AND column_name = '{fieldName}'";
+                    break;
+                case DatabaseType.KingbaseES:
+                    //sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
+                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_name = '{tableName}' AND column_name = '{fieldName}'";
                     break;
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");

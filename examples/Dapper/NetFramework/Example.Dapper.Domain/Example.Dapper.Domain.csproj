@@ -92,6 +92,9 @@
     <PackageReference Include="FirebirdSql.Data.FirebirdClient">
       <Version>9.1.1</Version>
     </PackageReference>
+    <PackageReference Include="FreeSql.Provider.KingbaseES">
+      <Version>3.2.695</Version>
+    </PackageReference>
     <PackageReference Include="IBM.Data.DB2.Core">
       <Version>2.2.0.200</Version>
     </PackageReference>

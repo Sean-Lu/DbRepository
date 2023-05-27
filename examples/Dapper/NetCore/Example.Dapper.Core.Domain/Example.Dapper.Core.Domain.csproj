@@ -15,10 +15,12 @@
     <PackageReference Include="ClickHouse.Client" Version="6.6.0" />
     <PackageReference Include="dmdbms.DmProvider" Version="1.1.0.16649" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
+    <PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.695" />
 		<PackageReference Include="IBM.Data.DB2.Core" Version="3.1.0.600" />
 		<PackageReference Include="MySql.Data" Version="8.0.33" />
 		<PackageReference Include="MySqlConnector" Version="2.2.5" />
 		<PackageReference Include="Npgsql" Version="7.0.2" />
+    <!--<PackageReference Include="SqlSugarCore.Kdbndp" Version="7.3.0" />-->
 		<PackageReference Include="System.Data.OleDb" Version="6.0.0" />
 		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
 		<!--<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="3.1.1" />-->

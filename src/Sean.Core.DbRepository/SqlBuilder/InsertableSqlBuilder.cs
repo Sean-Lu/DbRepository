@@ -243,6 +243,14 @@ VALUES{2}";
                         sb.Append($";{returnIdSql}");
                         break;
                     }
+                case DatabaseType.KingbaseES:
+                    {
+                        //var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(_includeFieldsList.FirstOrDefault(c => c.Identity).FieldName)}";// √
+                        //sb.Append($" {returnIdSql}");
+                        var returnIdSql = "SELECT LASTVAL() AS Id";// √
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
                 default:
                     throw new NotSupportedException($"[returnLastInsertId] Unsupported database type: {SqlAdapter.DbType}");
             }

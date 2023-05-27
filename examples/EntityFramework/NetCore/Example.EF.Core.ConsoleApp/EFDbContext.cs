@@ -251,6 +251,16 @@ namespace Example.EF.Core.ConsoleApp
             var connString = "SERVER=127.0.0.1;PORT=5236;USER=SYSDBA;PASSWORD=SYSDBA";
             optionsBuilder.UseDm(connString);
         }
+
+        private void UseKingbaseES(DbContextOptionsBuilder optionsBuilder)
+        {
+            // KingbaseES（人大金仓）: CRUD test passed.
+            // 
+            // 数据库兼容模式：
+            // Oracle[ ]       PG[√]
+            var connString = "Server=127.0.0.1;port=54321;Database=test;UID=system;password=12345!a";
+            optionsBuilder.UseKdbndp(connString);
+        }
         #endregion
     }
 }
