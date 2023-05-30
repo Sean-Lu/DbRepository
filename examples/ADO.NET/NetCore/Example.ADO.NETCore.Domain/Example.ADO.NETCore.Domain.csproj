@@ -1,38 +1,66 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj" />
-    <ProjectReference Include="..\..\..\Example.Common\Example.Common.csproj" />
-    <ProjectReference Include="..\Example.ADO.NETCore.Infrastructure\Example.ADO.NETCore.Infrastructure.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<!-- 根据定义的常量动态引用不同数据库的nuget包 -->
+		<DefineConstants>
+			<!--UseMySQL;UseMariaDB;UseSqlServer;UseOracle;-->UseSqlite<!--;UseMsAccess;UseFirebird;UsePostgreSql;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
+		</DefineConstants>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="ClickHouse.Client" Version="6.6.0" />
-    <PackageReference Include="dmdbms.DmProvider" Version="1.1.0.16649" />
-    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
-    <PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.695" />
-    <PackageReference Include="IBM.Data.DB2.Core" Version="3.1.0.600" />
-    <PackageReference Include="MySql.Data" Version="8.0.33" />
-    <PackageReference Include="MySqlConnector" Version="2.2.5" />
-    <PackageReference Include="Npgsql" Version="7.0.2" />
-    <!--<PackageReference Include="SqlSugarCore.Kdbndp" Version="7.3.0" />-->
-    <PackageReference Include="System.Data.OleDb" Version="6.0.0" />
-    <PackageReference Include="System.Data.Odbc" Version="6.0.0" />
-    <!--<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="3.1.1" />-->
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.90" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
-  </ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseMySQL'))">
+		<PackageReference Include="MySql.Data" Version="8.0.33" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseMariaDB'))">
+		<PackageReference Include="MySqlConnector" Version="2.2.5" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlServer'))">
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseOracle'))">
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.90" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlite'))">
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseMsAccess'))">
+		<PackageReference Include="System.Data.OleDb" Version="6.0.0" />
+		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
+		<!--<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="3.1.1" />-->
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseFirebird'))">
+		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UsePostgreSql'))">
+		<PackageReference Include="Npgsql" Version="7.0.2" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseDB2'))">
+		<PackageReference Include="IBM.Data.DB2.Core" Version="3.1.0.600" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseInformix'))">
+		<Reference Include="Informix.Net.Core">
+			<HintPath>C:\Program Files\IBM Informix Client-SDK\bin\Informix.Net.Core.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseClickHouse'))">
+		<PackageReference Include="ClickHouse.Client" Version="6.6.0" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseDm'))">
+		<PackageReference Include="dmdbms.DmProvider" Version="1.1.0.16649" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseKingbaseES'))">
+		<PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.695" />
+		<!--<PackageReference Include="SqlSugarCore.Kdbndp" Version="7.3.0" />-->
+	</ItemGroup>
 
-  <!--<ItemGroup>
-    <Reference Include="Informix.Net.Core">
-      <HintPath>C:\Program Files\IBM Informix Client-SDK\bin\Informix.Net.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>-->
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\src\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj" />
+		<ProjectReference Include="..\..\..\Example.Common\Example.Common.csproj" />
+		<ProjectReference Include="..\Example.ADO.NETCore.Infrastructure\Example.ADO.NETCore.Infrastructure.csproj" />
+	</ItemGroup>
 
 </Project>

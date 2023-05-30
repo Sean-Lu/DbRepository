@@ -2,17 +2,13 @@
 	<Import Project="../../config/Common.props" />
 
 	<PropertyGroup>
-		<TargetFrameworks>net45;net46;netstandard2.1;net6</TargetFrameworks>
-    <Description>ORM framework, support databases: MySQL, MariaDB, SQL Server, Oracle, SQLite, MS Access, Firebird, PostgreSql, DB2, Informix, ClickHouse, DM(达梦), KingbaseES(人大金仓), ...</Description>
-		<Version>2.1.5</Version>
+		<TargetFrameworks>net45;net46;netstandard2.1</TargetFrameworks>
+		<Description>ORM framework: EntityFramework</Description>
+		<Version>2.1.10</Version>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' != 'net6'">
+	<ItemGroup>
 		<PackageReference Include="EntityFramework" Version="6.4.4" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net6'">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.5" />
 	</ItemGroup>
 
 	<ItemGroup>

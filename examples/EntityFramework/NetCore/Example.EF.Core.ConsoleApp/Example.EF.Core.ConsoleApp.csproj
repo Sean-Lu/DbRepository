@@ -2,8 +2,6 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<!--<TargetFramework>net6.0</TargetFramework>-->
-		<!--<TargetFramework>net6.0-windows</TargetFramework>-->
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
@@ -12,31 +10,62 @@
 		<TargetFramework>net6.0</TargetFramework>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
-		<DefineConstants>WINDOWS</DefineConstants>
 		<TargetFramework>net6.0-windows</TargetFramework>
 		<PlatformTarget>x64</PlatformTarget>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="dmdbms.Microsoft.EntityFrameworkCore.Dm" Version="6.0.16.16649" />
-		<PackageReference Include="EntityFrameworkCore.ClickHouse.6.0" Version="1.0.0" />
-		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.0-beta.1" />
-		<!-- SQL Server 2005 ~ 2008 -->
-		<PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.4.0" />
-		<PackageReference Include="FirebirdSql.EntityFrameworkCore.Firebird" Version="9.1.1" />
-		<PackageReference Include="IBM.EntityFrameworkCore" Version="7.0.0.200" />
-		<PackageReference Include="KingbaseES.EntityFrameworkCore" Version="6.0.7" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
+	<PropertyGroup>
+		<!-- 根据定义的常量动态引用不同数据库的nuget包 -->
+		<DefineConstants>
+			<!--UseMySQL;UseMariaDB;UseSqlServer;UseOracle;-->UseSqlite<!--;UseMsAccess;UseFirebird;UsePostgreSql;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
+		</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup Condition="$(DefineConstants.Contains('UseMySQL'))">
+		<PackageReference Include="MySql.EntityFrameworkCore" Version="7.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseMariaDB'))">
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlServer'))">
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">
+		<!-- SQL Server 2005 ~ 2008: UseRowNumberForPaging -->
+		<PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.4.0" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseOracle'))">
+		<PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.9" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlite'))">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseMsAccess'))">
+		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.0-beta.1" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseFirebird'))">
+		<PackageReference Include="FirebirdSql.EntityFrameworkCore.Firebird" Version="9.1.1" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UsePostgreSql'))">
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseDB2')) OR $(DefineConstants.Contains('UseInformix'))">
+		<PackageReference Include="IBM.EntityFrameworkCore" Version="7.0.0.200" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseClickHouse'))">
+		<PackageReference Include="EntityFrameworkCore.ClickHouse.6.0" Version="1.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseDm'))">
+		<PackageReference Include="dmdbms.Microsoft.EntityFrameworkCore.Dm" Version="6.0.16.16649" />
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseKingbaseES'))">
+		<PackageReference Include="KingbaseES.EntityFrameworkCore" Version="6.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!--<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="MySql.EntityFrameworkCore" Version="7.0.0" />
+		</PackageReference>-->
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0" />
-		<PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.9" />
-		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

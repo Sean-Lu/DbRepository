@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if UseMsAccess
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Odbc;
 
@@ -49,3 +50,4 @@ namespace Example.ADO.NETCore.Domain.Extensions
         }
     }
 }
+#endif

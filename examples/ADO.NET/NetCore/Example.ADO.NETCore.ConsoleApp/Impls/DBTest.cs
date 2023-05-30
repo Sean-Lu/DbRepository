@@ -13,7 +13,8 @@ namespace Example.ADO.NETCore.ConsoleApp.Impls
         public DBTest(
             ISimpleLogger<DBTest> logger,
             IConfiguration configuration,
-            ITestService testService)
+            ITestService testService
+            )
         {
             _logger = logger;
             _configuration = configuration;

@@ -1,14 +1,29 @@
 ﻿using System.Diagnostics;
-using ClickHouse.Client.ADO;
-using ClickHouse.EntityFrameworkCore.Extensions;
-using EntityFrameworkCore.Jet.Data;
-using EntityFrameworkCore.UseRowNumberForPaging;
 using Example.EF.Core.ConsoleApp.Entities;
-using FirebirdSql.Data.FirebirdClient;
-using IBM.Data.Db2;
-using IBM.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+#if UseSqlServer
+using EntityFrameworkCore.UseRowNumberForPaging;
+#endif
+
+#if UseMsAccess
+using EntityFrameworkCore.Jet.Data;
+#endif
+
+#if UseFirebird
+using FirebirdSql.Data.FirebirdClient;
+#endif
+
+#if UseDB2 || UseInformix
+using IBM.Data.Db2;
+using IBM.EntityFrameworkCore;
+#endif
+
+#if UseClickHouse
+using ClickHouse.Client.ADO;
+using ClickHouse.EntityFrameworkCore.Extensions;
+#endif
 
 namespace Example.EF.Core.ConsoleApp
 {
@@ -52,8 +67,9 @@ namespace Example.EF.Core.ConsoleApp
 
             //modelBuilder.Entity<TestEntity>(c =>
             //{
+            //    c.HasKey(x => x.Id);
             //    c.Property(x => x.Id).HasColumnName("Id");
-            //    c.Property(x => x.UserId).HasColumnName("UserId");
+            //    c.Property(x => x.UserId).HasColumnName("UserId").IsRequired();
             //    c.Property(x => x.UserName).HasColumnName("UserName").HasMaxLength(20);
             //    c.Property(x => x.Age).HasColumnName("Age");
             //    c.Property(x => x.Sex).HasColumnName("Sex");
@@ -78,13 +94,16 @@ namespace Example.EF.Core.ConsoleApp
         public DbSet<TestEntity> TestEntities { get; set; }
 
         #region 配置数据库连接
+#if UseMySQL
         private void UseMySQL(DbContextOptionsBuilder optionsBuilder)
         {
             // MySQL: CRUD test passed.
             var connString = "server=127.0.0.1;database=test;user id=root;password=12345!a";
             optionsBuilder.UseMySQL(connString);
         }
+#endif
 
+#if UseMariaDB
         private void UseMariaDB(DbContextOptionsBuilder optionsBuilder)
         {
             // MariaDB: CRUD test passed.
@@ -92,7 +111,9 @@ namespace Example.EF.Core.ConsoleApp
             var connString = "server=127.0.0.1;database=test;user id=root;password=12345!a";// √
             optionsBuilder.UseMySql(connString, ServerVersion.AutoDetect(connString));
         }
+#endif
 
+#if UseSqlServer
         private void UseSqlServer(DbContextOptionsBuilder optionsBuilder)
         {
             // SQL Server: CRUD test passed.
@@ -100,7 +121,9 @@ namespace Example.EF.Core.ConsoleApp
             //optionsBuilder.UseSqlServer(connString);// SQL Server 2012 ~ +
             optionsBuilder.UseSqlServer(connString, c => c.UseRowNumberForPaging());// SQL Server 2005 ~ 2008
         }
+#endif
 
+#if UseOracle
         private void UseOracle(DbContextOptionsBuilder optionsBuilder)
         {
             // Oracle: CRUD test passed.
@@ -109,14 +132,18 @@ namespace Example.EF.Core.ConsoleApp
             optionsBuilder.UseOracle(connString, builder => builder.UseOracleSQLCompatibility("11"));// 指定数据库版本：Oracle Database 11g
             //optionsBuilder.UseOracle(connString, builder => builder.UseOracleSQLCompatibility("12"));// 指定数据库版本：Oracle Database 12c
         }
+#endif
 
+#if UseSqlite
         private void UseSqlite(DbContextOptionsBuilder optionsBuilder)
         {
             // SQLite: CRUD test passed.
             var connString = "data source=.\\test.db";
             optionsBuilder.UseSqlite(connString);
         }
+#endif
 
+#if UseMsAccess
         private void UseMsAccess(DbContextOptionsBuilder optionsBuilder)
         {
             // MS Access: CRUD test passed.
@@ -126,7 +153,9 @@ namespace Example.EF.Core.ConsoleApp
             //var connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=.\\Test.accdb";// MS Access 2007+
             optionsBuilder.UseJet(connString, DataAccessProviderType.OleDb);
         }
+#endif
 
+#if UseFirebird
         private void UseFirebird(DbContextOptionsBuilder optionsBuilder)
         {
             // Firebird 提供多种服务器环境版本：服务器版本（Classic\SuperClassic\SuperServer）、嵌入式版本（Embedded）
@@ -183,14 +212,18 @@ namespace Example.EF.Core.ConsoleApp
             //var connString = "database=localhost:demo.fdb;user=sysdba;password=masterkey";
             //optionsBuilder.UseFirebird(connString);
         }
+#endif
 
+#if UsePostgreSql
         private void UsePostgreSql(DbContextOptionsBuilder optionsBuilder)
         {
             // PostgreSql: CRUD test passed.
             var connString = "server=127.0.0.1;database=postgres;username=postgres;password=12345!a";
             optionsBuilder.UseNpgsql(connString);
         }
+#endif
 
+#if UseDB2
         private void UseDB2(DbContextOptionsBuilder optionsBuilder)
         {
             // DB2 Express-C v11.1.3030: CRUD test passed.
@@ -208,7 +241,9 @@ namespace Example.EF.Core.ConsoleApp
                 //builder.UseRowNumberForPaging();
             });
         }
+#endif
 
+#if UseInformix
         private void UseInformix(DbContextOptionsBuilder optionsBuilder)
         {
             // Informix
@@ -230,7 +265,9 @@ namespace Example.EF.Core.ConsoleApp
                 //builder.UseRowNumberForPaging();
             });
         }
+#endif
 
+#if UseClickHouse
         private void UseClickHouse(DbContextOptionsBuilder optionsBuilder)
         {
             // ClickHouse: CRUD test passed.
@@ -244,14 +281,18 @@ namespace Example.EF.Core.ConsoleApp
             //var connString = "Host=localhost;Port=8123;Database=default;User=default;Password=";
             optionsBuilder.UseClickHouse(connString);
         }
+#endif
 
+#if UseDm
         private void UseDm(DbContextOptionsBuilder optionsBuilder)
         {
             // DM（达梦）: CRUD test passed.
             var connString = "SERVER=127.0.0.1;PORT=5236;USER=SYSDBA;PASSWORD=SYSDBA";
             optionsBuilder.UseDm(connString);
         }
+#endif
 
+#if UseKingbaseES
         private void UseKingbaseES(DbContextOptionsBuilder optionsBuilder)
         {
             // KingbaseES（人大金仓）: CRUD test passed.
@@ -261,6 +302,7 @@ namespace Example.EF.Core.ConsoleApp
             var connString = "Server=127.0.0.1;port=54321;Database=test;UID=system;password=12345!a";
             optionsBuilder.UseKdbndp(connString);
         }
-        #endregion
+#endif
+#endregion
     }
 }
