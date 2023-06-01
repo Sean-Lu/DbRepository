@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using Example.Dapper.Core.Domain.Handler;
+using Example.Dapper.Core.Domain.Repositories;
 using Example.Dapper.Core.Infrastructure.Extensions;
 using Example.Dapper.Core.Infrastructure.Impls;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,8 @@ namespace Example.Dapper.Core.Domain.Extensions
             services.AddInfrastructureDI();
 
             services.RegisterByAssemblyInterface(Assembly.GetExecutingAssembly(), "Repository", ServiceLifetime.Transient);
+
+            services.AddTransient(typeof(CommonRepository<>));// 注册通用仓储
 
             #region Database configuration.
 

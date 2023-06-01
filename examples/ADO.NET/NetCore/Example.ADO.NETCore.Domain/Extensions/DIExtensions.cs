@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using Example.ADO.NETCore.Domain.Repositories;
 using Example.ADO.NETCore.Infrastructure.Converter;
 using Example.ADO.NETCore.Infrastructure.Extensions;
 using Example.ADO.NETCore.Infrastructure.Impls;
@@ -22,6 +23,8 @@ namespace Example.ADO.NETCore.Domain.Extensions
             services.AddInfrastructureDI();
 
             services.RegisterByAssemblyInterface(Assembly.GetExecutingAssembly(), "Repository", ServiceLifetime.Transient);
+
+            services.AddTransient(typeof(CommonRepository<>));// 注册通用仓储
 
             #region Database configuration.
 

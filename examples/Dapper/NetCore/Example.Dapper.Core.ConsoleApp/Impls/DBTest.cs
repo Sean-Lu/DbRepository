@@ -9,22 +9,27 @@ namespace Example.Dapper.Core.ConsoleApp.Impls
         private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
         private readonly ITestService _testService;
+        private readonly ITestSimpleService _testSimpleService;
 
         public DBTest(
             ISimpleLogger<DBTest> logger,
             IConfiguration configuration,
-            ITestService testService
+            ITestService testService,
+            ITestSimpleService testSimpleService
             )
         {
             _logger = logger;
             _configuration = configuration;
             _testService = testService;
+            _testSimpleService = testSimpleService;
         }
 
         public void Execute()
         {
             _testService.TestCRUDAsync().Wait();
             //_testService.TestCRUDWithTransactionAsync().Wait();
+
+            //_testSimpleService.TestCRUDAsync().Wait();
         }
     }
 }

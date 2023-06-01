@@ -49,6 +49,7 @@
     <Compile Include="Handler\JsonTypeHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\CheckInLogRepository.cs" />
+    <Compile Include="Repositories\CommonRepository.cs" />
     <Compile Include="Repositories\TestRepository.cs" />
   </ItemGroup>
   <ItemGroup>

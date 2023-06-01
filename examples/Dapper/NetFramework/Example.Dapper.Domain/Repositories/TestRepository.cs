@@ -38,8 +38,6 @@ namespace Example.Dapper.Domain.Repositories
             _logger = logger;
 
             //DbType = DatabaseType.MariaDB;
-
-            _logger.LogDebug($"######Current database type: {DbType}");
         }
 
         protected override void OnSqlExecuting(SqlExecutingContext context)
@@ -95,6 +93,8 @@ namespace Example.Dapper.Domain.Repositories
 
         public async Task<bool> TestCRUDAsync(IDbTransaction trans = null)
         {
+            _logger.LogDebug($"######Current database type: {DbType}");
+
             var testModel = new TestEntity
             {
                 //Id = 1,

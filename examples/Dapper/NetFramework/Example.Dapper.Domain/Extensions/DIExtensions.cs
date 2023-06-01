@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using Example.Dapper.Domain.Handler;
+using Example.Dapper.Domain.Repositories;
 using Example.Dapper.Infrastructure.Extensions;
 using Example.Dapper.Infrastructure.Impls;
 using Newtonsoft.Json;
@@ -22,6 +23,8 @@ namespace Example.Dapper.Domain.Extensions
             container.AddInfrastructureDI();
 
             container.RegisterAssemblyByInterfaceSuffix(Assembly.GetExecutingAssembly(), "Repository", ServiceLifeStyle.Transient);
+
+            container.RegisterType(typeof(CommonRepository<>), typeof(CommonRepository<>), ServiceLifeStyle.Transient);// 注册通用仓储
 
             #region Database configuration.
 

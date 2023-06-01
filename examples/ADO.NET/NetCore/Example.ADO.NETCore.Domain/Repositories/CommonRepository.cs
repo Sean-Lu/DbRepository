@@ -1,0 +1,62 @@
+﻿using System;
+using Example.ADO.NETCore.Infrastructure.Converter;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Sean.Core.DbRepository;
+using Sean.Utility.Contracts;
+
+namespace Example.ADO.NETCore.Domain.Repositories
+{
+    /// <summary>
+    /// 通用仓储
+    /// </summary>
+    public class CommonRepository<TEntity> : EntityBaseRepository<TEntity> where TEntity : class
+    {
+        private readonly ILogger _logger;
+
+        public CommonRepository(
+            IConfiguration configuration,
+            ISimpleLogger<CommonRepository<TEntity>> logger
+            //) : base(configuration)// MySQL: CRUD test passed.
+            //) : base(configuration, "test_MariaDB")// MariaDB: CRUD test passed.
+            //) : base(configuration, "test_SqlServer")// SQL Server: CRUD test passed.
+            //) : base(configuration, "test_Oracle")// Oracle: CRUD test passed.
+            ) : base(configuration, "test_SQLite")// SQLite: CRUD test passed.
+            //) : base(configuration, "test_MsAccess")// MS Access: CRUD test passed.
+            //) : base(configuration, "test_Firebird")// Firebird: CRUD test passed.
+            //) : base(configuration, "test_PostgreSql")// PostgreSql: CRUD test passed.
+            //) : base(configuration, "test_DB2")// DB2: CRUD test passed.
+            //) : base(configuration, "test_Informix")// Informix: CRUD test passed.
+            //) : base(configuration, "test_ClickHouse")// ClickHouse: CRUD test passed.
+            //) : base(configuration, "test_DM")// DM（达梦）: CRUD test passed.
+            //) : base(configuration, "test_KingbaseES")// KingbaseES（人大金仓）: CRUD test passed.
+        {
+            _logger = logger;
+
+            //DbType = DatabaseType.MariaDB;
+        }
+
+        protected override void OnSqlExecuting(SqlExecutingContext context)
+        {
+            base.OnSqlExecuting(context);
+
+            //_logger.LogInfo($"SQL准备执行: {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented)}");
+            //context.Handled = true;
+        }
+
+        protected override void OnSqlExecuted(SqlExecutedContext context)
+        {
+            base.OnSqlExecuted(context);
+
+            if (context.Exception != null)
+            {
+                _logger.LogError($"SQL执行异常({context.ExecutionElapsed}ms): {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}{Environment.NewLine}{context.Exception}");
+                context.Handled = true;
+                return;
+            }
+
+            _logger.LogInfo($"SQL已经执行({context.ExecutionElapsed}ms): {context.Sql}{Environment.NewLine}参数：{JsonConvert.SerializeObject(context.SqlParameter, Formatting.Indented, new DbParameterCollectionConverter())}");
+            context.Handled = true;
+        }
+    }
+}
