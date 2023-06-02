@@ -182,6 +182,7 @@ VALUES{2}";
             {
                 case DatabaseType.MySql:
                 case DatabaseType.MariaDB:
+                case DatabaseType.TiDB:
                     {
                         var returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
                         sb.Append($";{returnIdSql}");

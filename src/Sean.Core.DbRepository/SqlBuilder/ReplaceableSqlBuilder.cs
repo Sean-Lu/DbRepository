@@ -84,6 +84,7 @@ VALUES{2}";
         {
             case DatabaseType.MySql:
             case DatabaseType.MariaDB:
+            case DatabaseType.TiDB:
             case DatabaseType.SQLite:
                 if (_parameter is IEnumerable<TEntity> entities)// BulkInsertOrUpdate
                 {

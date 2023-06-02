@@ -18,6 +18,10 @@
         /// </summary>
         MariaDB,
         /// <summary>
+        /// TiDB
+        /// </summary>
+        TiDB,
+        /// <summary>
         /// SQL Server
         /// </summary>
         SqlServer,

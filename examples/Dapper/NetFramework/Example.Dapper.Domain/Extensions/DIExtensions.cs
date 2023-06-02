@@ -31,6 +31,7 @@ namespace Example.Dapper.Domain.Extensions
             #region 配置数据库和数据库提供者工厂之间的映射关系
             //DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", MySql.Data.MySqlClient.MySqlClientFactory.Instance));// MySql
             //DatabaseType.MariaDB.SetDbProviderMap(new DbProviderMap("MySqlConnector.MariaDB", MySqlConnector.MySqlConnectorFactory.Instance));// MariaDB
+            //DatabaseType.TiDB.SetDbProviderMap(new DbProviderMap("TiDB", MySql.Data.MySqlClient.MySqlClientFactory.Instance));// TiDB
             //DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance));// Microsoft SQL Server
             //DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance));// Oracle
             //DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", System.Data.SQLite.SQLiteFactory.Instance));// SQLite
@@ -47,6 +48,7 @@ namespace Example.Dapper.Domain.Extensions
 
             DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));// MySql
             DatabaseType.MariaDB.SetDbProviderMap(new DbProviderMap("MySqlConnector.MariaDB", "MySqlConnector.MySqlConnectorFactory,MySqlConnector"));// MariaDB
+            DatabaseType.TiDB.SetDbProviderMap(new DbProviderMap("TiDB", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));// TiDB
             DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", "System.Data.SqlClient.SqlClientFactory,System.Data.SqlClient"));// Microsoft SQL Server
             DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", "Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"));// Oracle
             DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));// SQLite

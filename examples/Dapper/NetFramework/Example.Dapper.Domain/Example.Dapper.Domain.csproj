@@ -83,7 +83,7 @@
     </PackageReference>
   </ItemGroup>
   <Choose>
-    <When Condition="$(DefineConstants.Contains('UseMySQL'))">
+    <When Condition="$(DefineConstants.Contains('UseMySQL')) OR $(DefineConstants.Contains('UseTiDB'))">
       <ItemGroup>
         <PackageReference Include="MySql.Data">
           <Version>8.0.33</Version>

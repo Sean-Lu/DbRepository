@@ -113,6 +113,15 @@ namespace Example.EF.Core.ConsoleApp
         }
 #endif
 
+#if UseTiDB
+        private void UseTiDB(DbContextOptionsBuilder optionsBuilder)
+        {
+            // TiDB: CRUD test passed.
+            var connString = "server=127.0.0.1;port=4000;database=test;user id=root;password=";
+            optionsBuilder.UseMySQL(connString);
+        }
+#endif
+
 #if UseSqlServer
         private void UseSqlServer(DbContextOptionsBuilder optionsBuilder)
         {
@@ -303,6 +312,6 @@ namespace Example.EF.Core.ConsoleApp
             optionsBuilder.UseKdbndp(connString);
         }
 #endif
-#endregion
+        #endregion
     }
 }

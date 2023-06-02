@@ -92,6 +92,7 @@ namespace Sean.Core.DbRepository.Extensions
                     return $"[{name}]";
                 case DatabaseType.MySql:
                 case DatabaseType.MariaDB:
+                case DatabaseType.TiDB:
                 case DatabaseType.SQLite:
                 case DatabaseType.ClickHouse:
                     return $"`{name}`";
@@ -121,6 +122,7 @@ namespace Sean.Core.DbRepository.Extensions
             {
                 case DatabaseType.MySql:
                 case DatabaseType.MariaDB:
+                case DatabaseType.TiDB:
                     sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}'";
                     break;
                 case DatabaseType.SqlServer:
@@ -191,6 +193,7 @@ namespace Sean.Core.DbRepository.Extensions
             {
                 case DatabaseType.MySql:
                 case DatabaseType.MariaDB:
+                case DatabaseType.TiDB:
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
                     break;
                 case DatabaseType.SqlServer:
