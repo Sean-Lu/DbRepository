@@ -123,6 +123,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.MySql:
                 case DatabaseType.MariaDB:
                 case DatabaseType.TiDB:
+                case DatabaseType.PostgreSql:
                     sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}'";
                     break;
                 case DatabaseType.SqlServer:
@@ -141,9 +142,6 @@ namespace Sean.Core.DbRepository.Extensions
                     break;
                 case DatabaseType.Firebird:
                     sql = $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$VIEW_SOURCE IS NULL";
-                    break;
-                case DatabaseType.PostgreSql:
-                    sql = $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}'";
                     break;
                 case DatabaseType.DB2:
                     {
@@ -194,6 +192,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.MySql:
                 case DatabaseType.MariaDB:
                 case DatabaseType.TiDB:
+                case DatabaseType.PostgreSql:
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
                     break;
                 case DatabaseType.SqlServer:
@@ -213,9 +212,6 @@ namespace Sean.Core.DbRepository.Extensions
                     break;
                 case DatabaseType.Firebird:
                     sql = $"SELECT COUNT(*) AS ColumnCount FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$FIELD_NAME = '{fieldName}'";
-                    break;
-                case DatabaseType.PostgreSql:
-                    sql = $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
                     break;
                 case DatabaseType.DB2:
                     {
