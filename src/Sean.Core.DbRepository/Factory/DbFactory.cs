@@ -64,20 +64,20 @@ public class DbFactory
 
     #region Constructors
 #if NETSTANDARD || NET5_0_OR_GREATER
-        /// <summary>
-        /// Single or clustered database.
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="configName">Configuration ConnectionStrings name</param>
-        public DbFactory(IConfiguration configuration, string configName = Constants.Master)
-        {
-            if (string.IsNullOrWhiteSpace(configName))
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(configName));
+    /// <summary>
+    /// Single or clustered database.
+    /// </summary>
+    /// <param name="configuration"></param>
+    /// <param name="configName">Configuration ConnectionStrings name</param>
+    public DbFactory(IConfiguration configuration, string configName = Constants.Master)
+    {
+        if (string.IsNullOrWhiteSpace(configName))
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(configName));
 
-            ConnectionSettings = new MultiConnectionSettings(configuration, configName);
+        ConnectionSettings = new MultiConnectionSettings(configuration, configName);
 
-            SqlMonitor = new DefaultSqlMonitor();
-        }
+        SqlMonitor = new DefaultSqlMonitor();
+    }
 #else
     /// <summary>
     /// Single or clustered database.
@@ -1695,21 +1695,14 @@ public class DbFactory
 
     private void OnDbProviderFactoryChanged(DbProviderFactory providerFactory)
     {
-        if (_providerFactory == providerFactory)
-        {
-            return;
-        }
-
         _providerFactory = providerFactory;
-        _dbType = _providerFactory.GetDatabaseType();
+        if (_dbType == DatabaseType.Unknown)
+        {
+            _dbType = _providerFactory.GetDatabaseType();
+        }
     }
     private void OnDatabaseTypeChanged(DatabaseType dbType)
     {
-        if (_dbType == dbType)
-        {
-            return;
-        }
-
         _dbType = dbType;
         _providerFactory = _dbType.GetDbProviderFactory();
     }
@@ -1721,31 +1714,50 @@ public class DbFactory
         {
             _dbType = DatabaseType.Unknown;
             _providerFactory = null;
+            return;
         }
-        else
+
+        var connectionStringOptions = _connectionSettings.ConnectionStrings.First();
+
+        #region 1. 优先使用 DbProviderFactory
+        if (connectionStringOptions.ProviderFactory != null)
         {
-            var providerFactory = _connectionSettings.ConnectionStrings.FirstOrDefault(c => c.ProviderFactory != null)?.ProviderFactory;
-            if (providerFactory != null)// 1. 直接使用 DbProviderFactory
+            _providerFactory = connectionStringOptions.ProviderFactory;
+            if (connectionStringOptions.DbType != DatabaseType.Unknown)
             {
-                ProviderFactory = providerFactory;
+                _dbType = connectionStringOptions.DbType;
+            }
+            else if (!string.IsNullOrWhiteSpace(connectionStringOptions.ProviderName))
+            {
+                var dbType = DbProviderFactoryManager.GetDbTypeByProviderName(connectionStringOptions.ProviderName);
+                _dbType = dbType != DatabaseType.Unknown ? dbType : _providerFactory.GetDatabaseType();
             }
             else
             {
-                var dbType = _connectionSettings.ConnectionStrings.FirstOrDefault(c => c.DbType != DatabaseType.Unknown)?.DbType;
-                if (dbType.HasValue && dbType.Value != DatabaseType.Unknown)// 2. 尝试通过 DatabaseType 获取 DbProviderFactory
-                {
-                    DbType = dbType.Value;
-                }
-                else
-                {
-                    var providerName = _connectionSettings.ConnectionStrings.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.ProviderName))?.ProviderName;
-                    if (!string.IsNullOrWhiteSpace(providerName))// 3. 尝试通过 ProviderName 获取 DbProviderFactory
-                    {
-                        ProviderFactory = DbProviderFactoryManager.GetDbProviderFactory(providerName);
-                    }
-                }
+                _dbType = _providerFactory.GetDatabaseType();
             }
+            return;
         }
+        #endregion
+
+        #region 2. 尝试通过 DatabaseType 获取 DbProviderFactory
+        if (connectionStringOptions.DbType != DatabaseType.Unknown)
+        {
+            _dbType = connectionStringOptions.DbType;
+            _providerFactory = _dbType.GetDbProviderFactory();
+            return;
+        }
+        #endregion
+
+        #region 3. 尝试通过 ProviderName 获取 DbProviderFactory
+        if (!string.IsNullOrWhiteSpace(connectionStringOptions.ProviderName))
+        {
+            _providerFactory = DbProviderFactoryManager.GetDbProviderFactory(connectionStringOptions.ProviderName);
+            var dbType = DbProviderFactoryManager.GetDbTypeByProviderName(connectionStringOptions.ProviderName);
+            _dbType = dbType != DatabaseType.Unknown ? dbType : _providerFactory.GetDatabaseType();
+            return;
+        }
+        #endregion
     }
     #endregion
 }

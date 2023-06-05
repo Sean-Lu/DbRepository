@@ -72,41 +72,14 @@
     public enum SqlOperation
     {
         None,
-        /// <summary>
-        /// 等于
-        /// </summary>
         Equal,
-        /// <summary>
-        /// 不等于
-        /// </summary>
         NotEqual,
-        /// <summary>
-        /// 小于
-        /// </summary>
         Less,
-        /// <summary>
-        /// 小于等于
-        /// </summary>
         LessOrEqual,
-        /// <summary>
-        /// 大于
-        /// </summary>
         Greater,
-        /// <summary>
-        /// 大于等于
-        /// </summary>
         GreaterOrEqual,
-        /// <summary>
-        /// IN
-        /// </summary>
         In,
-        /// <summary>
-        /// NOT IN
-        /// </summary>
         NotIn,
-        /// <summary>
-        /// LIKE
-        /// </summary>
         Like,
     }
 
@@ -117,19 +90,10 @@
         Or,
     }
 
-    /// <summary>
-    /// 括号
-    /// </summary>
     public enum Include
     {
         None,
-        /// <summary>
-        /// 左括号：(
-        /// </summary>
         Left,
-        /// <summary>
-        /// 右括号：)
-        /// </summary>
         Right
     }
 

@@ -95,6 +95,15 @@ namespace Sean.Core.DbRepository
             return DbProviderFactories.GetFactory(providerName);
 #endif
         }
+        public static DatabaseType GetDbTypeByProviderName(string providerName)
+        {
+            if (string.IsNullOrWhiteSpace(providerName))
+            {
+                return DatabaseType.Unknown;
+            }
+
+            return DbProviderMapDic.FirstOrDefault(c => c.Value?.ProviderInvariantName == providerName).Key;
+        }
 
         private static void LoadFromConfigurationFile()
         {
