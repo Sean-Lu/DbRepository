@@ -98,6 +98,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             {
                 case DatabaseType.MsAccess:
                 case DatabaseType.Oracle:
+                case DatabaseType.DuckDB:
                 case DatabaseType.Informix:
                     {
                         return Execute(connection =>
@@ -124,6 +125,12 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                     {
                                         var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
                                         returnIdSql = $"SELECT {DatabaseType.Oracle.MarkAsTableOrFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
+                                        break;
+                                    }
+                                case DatabaseType.DuckDB:
+                                    {
+                                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                                        returnIdSql = $"SELECT CURRVAL('{sequenceName}')";
                                         break;
                                     }
                                 case DatabaseType.Informix:
@@ -601,6 +608,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             {
                 case DatabaseType.MsAccess:
                 case DatabaseType.Oracle:
+                case DatabaseType.DuckDB:
                 case DatabaseType.Informix:
                     {
                         return await ExecuteAsync(async connection =>
@@ -627,6 +635,12 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                     {
                                         var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
                                         returnIdSql = $"SELECT {DatabaseType.Oracle.MarkAsTableOrFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
+                                        break;
+                                    }
+                                case DatabaseType.DuckDB:
+                                    {
+                                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                                        returnIdSql = $"SELECT CURRVAL('{sequenceName}')";
                                         break;
                                     }
                                 case DatabaseType.Informix:

@@ -64,30 +64,3 @@ public class DateTimeNullableTypeHandler : SqlMapper.TypeHandler<DateTime?>
         return result.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(result, DateTimeKind.Local) : result;
     }
 }
-
-public class AccessDateTimeHandler : SqlMapper.TypeHandler<DateTime>
-{
-    public override void SetValue(IDbDataParameter parameter, DateTime value)
-    {
-        parameter.Value = value.ToString("yyyy-MM-dd HH:mm:ss");
-    }
-
-    public override DateTime Parse(object value)
-    {
-        return value != null ? Convert.ToDateTime(value) : default;
-    }
-}
-
-
-public class AccessDateTimeNullableHandler : SqlMapper.TypeHandler<DateTime?>
-{
-    public override void SetValue(IDbDataParameter parameter, DateTime? value)
-    {
-        parameter.Value = value?.ToString("yyyy-MM-dd HH:mm:ss");
-    }
-
-    public override DateTime? Parse(object value)
-    {
-        return value != null ? Convert.ToDateTime(value) : default;
-    }
-}

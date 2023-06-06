@@ -44,8 +44,10 @@
     <Compile Include="Contracts\ICheckInLogRepository.cs" />
     <Compile Include="Contracts\ITestRepository.cs" />
     <Compile Include="Extensions\DIExtensions.cs" />
-    <Compile Include="Handler\BoolTypeHandler.cs" />
+    <Compile Include="Handler\MsAccessDateTimeHandler.cs" />
+    <Compile Include="Handler\OracleBoolTypeHandler.cs" />
     <Compile Include="Handler\DateTimeTypeHandler.cs" />
+    <Compile Include="Handler\DuckDBDecimalTypeHandler.cs" />
     <Compile Include="Handler\JsonTypeHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\CheckInLogRepository.cs" />
@@ -114,6 +116,15 @@
       <ItemGroup>
         <PackageReference Include="System.Data.SQLite.Core">
           <Version>1.0.117</Version>
+        </PackageReference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(DefineConstants.Contains('UseDuckDB'))">
+      <ItemGroup>
+        <PackageReference Include="DuckDB.NET.Data.Full">
+          <Version>0.8.0</Version>
         </PackageReference>
       </ItemGroup>
     </When>

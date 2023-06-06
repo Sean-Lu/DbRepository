@@ -1,6 +1,6 @@
 ## 🌈 简介
 
-> `ORM`框架，支持数据库：`MySQL`、`MariaDB`、`TiDB`、`SQL Server`、`Oracle`、`SQLite`、`MS Access`、`Firebird`、`PostgreSql`、`DB2`、`Informix`、`ClickHouse`、`DM（达梦）`、`KingbaseES（人大金仓）`
+> `ORM`框架，支持数据库：`MySQL`、`MariaDB`、`TiDB`、`SQL Server`、`Oracle`、`SQLite`、`DuckDB`、`MS Access`、`Firebird`、`PostgreSql`、`DB2`、`Informix`、`ClickHouse`、`DM（达梦）`、`KingbaseES（人大金仓）`
 
 - 支持主从库分离（主库：增\删\改，从库：查）
 - 支持分表（自定义表名规则）
@@ -44,6 +44,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | `SQL Server`             | ✅         |
 | `Oracle`                 | ✅         |
 | `SQLite`                 | ✅         |
+| `DuckDB`                 | ✅         |
 | `MS Access`              | ✅         |
 | `Firebird`               | ✅         |
 | `PostgreSql`             | ✅         |
@@ -176,6 +177,7 @@ var _db = new DbFactory("Database connection string...", MySqlClientFactory.Inst
       <database name="SqlServer" providerInvariantName="System.Data.SqlClient" factoryTypeAssemblyQualifiedName="System.Data.SqlClient.SqlClientFactory,System.Data"/>
       <database name="Oracle" providerInvariantName="Oracle.ManagedDataAccess.Client" factoryTypeAssemblyQualifiedName="Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"/>
       <database name="SQLite" providerInvariantName="System.Data.SQLite" factoryTypeAssemblyQualifiedName="System.Data.SQLite.SQLiteFactory,System.Data.SQLite"/>
+      <database name="DuckDB" providerInvariantName="DuckDB.NET.Data" factoryTypeAssemblyQualifiedName="DuckDB.NET.Data.DuckDBClientFactory,DuckDB.NET.Data"/>
       <database name="MsAccess" providerInvariantName="System.Data.OleDb" factoryTypeAssemblyQualifiedName="System.Data.OleDb.OleDbFactory,System.Data"/>
       <!--<database name="MsAccess" providerInvariantName="System.Data.Odbc" factoryTypeAssemblyQualifiedName="System.Data.Odbc.OdbcFactory,System.Data"/>-->
       <database name="Firebird" providerInvariantName="FirebirdSql.Data.FirebirdClient" factoryTypeAssemblyQualifiedName="FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"/>

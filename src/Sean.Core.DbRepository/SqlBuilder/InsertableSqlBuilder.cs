@@ -208,6 +208,13 @@ VALUES{2}";
                         sb.Append($";{returnIdSql}");
                         break;
                     }
+                case DatabaseType.DuckDB:
+                    {
+                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                        var returnIdSql = $"SELECT CURRVAL('{sequenceName}')";
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
                 case DatabaseType.MsAccess:
                     {
                         var returnIdSql = "SELECT @@IDENTITY AS Id";

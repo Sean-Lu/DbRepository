@@ -4,7 +4,7 @@ using System.Data;
 
 namespace Example.Dapper.Core.Domain.Handler;
 
-public class BoolTypeHandler : SqlMapper.TypeHandler<bool>
+public class OracleBoolTypeHandler : SqlMapper.TypeHandler<bool>
 {
     public override void SetValue(IDbDataParameter parameter, bool value)
     {

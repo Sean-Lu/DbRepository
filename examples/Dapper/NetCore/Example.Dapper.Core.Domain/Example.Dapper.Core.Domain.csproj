@@ -8,7 +8,7 @@
 	<PropertyGroup>
 		<!-- 根据定义的常量动态引用不同数据库的nuget包 -->
 		<DefineConstants>
-			<!--UseMySQL;UseMariaDB;UseTiDB;UseSqlServer;UseOracle;-->UseSqlite<!--;UseMsAccess;UseFirebird;UsePostgreSql;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
+			<!--UseMySQL;UseMariaDB;UseTiDB;UseSqlServer;UseOracle;-->UseSqlite<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
 		</DefineConstants>
 	</PropertyGroup>
 
@@ -55,6 +55,9 @@
 	<ItemGroup Condition="$(DefineConstants.Contains('UseKingbaseES'))">
 		<PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.695" />
 		<!--<PackageReference Include="SqlSugarCore.Kdbndp" Version="7.3.0" />-->
+	</ItemGroup>
+	<ItemGroup Condition="$(DefineConstants.Contains('UseDuckDB'))">
+	  <PackageReference Include="DuckDB.NET.Data.Full" Version="0.8.0" />
 	</ItemGroup>
 
 	<ItemGroup>

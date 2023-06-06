@@ -27,6 +27,7 @@ namespace Example.Dapper.Domain.Repositories
             //) : base("test_SqlServer")// SQL Server: CRUD test passed.
             //) : base("test_Oracle")// Oracle: CRUD test passed.
             ) : base("test_SQLite")// SQLite: CRUD test passed.
+            //) : base("test_DuckDB")// DuckDB: CRUD test passed.
             //) : base("test_MsAccess")// MS Access: CRUD test passed.
             //) : base("test_Firebird")// Firebird: CRUD test passed.
             //) : base("test_PostgreSql")// PostgreSql: CRUD test passed.
@@ -81,6 +82,7 @@ namespace Example.Dapper.Domain.Repositories
                 DatabaseType.SqlServer => File.ReadAllText(@"./SQL/SQLSever_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Oracle => File.ReadAllText(@"./SQL/Oracle11g_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.SQLite => File.ReadAllText(@"./SQL/SQLite_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.DuckDB => File.ReadAllText(@"./SQL/DuckDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.MsAccess => File.ReadAllText(@"./SQL/MsAccess_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Firebird => File.ReadAllText(@"./SQL/Firebird_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.PostgreSql => File.ReadAllText(@"./SQL/PostgreSql_CreateTable_Test.sql").Replace("{$TableName$}", tableName),

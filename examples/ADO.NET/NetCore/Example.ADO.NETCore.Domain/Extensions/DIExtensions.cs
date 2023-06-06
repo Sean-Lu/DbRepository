@@ -35,6 +35,7 @@ namespace Example.ADO.NETCore.Domain.Extensions
             //DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance));// Microsoft SQL Server
             //DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance));// Oracle
             //DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", System.Data.SQLite.SQLiteFactory.Instance));// SQLite
+            //DatabaseType.DuckDB.SetDbProviderMap(new DbProviderMap("DuckDB.NET.Data", DuckDB.NET.Data.DuckDBClientFactory.Instance));// DuckDB
             //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance));// MsAccess
             ////DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance));// MsAccess
             ////DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("EntityFrameworkCore.Jet.Data", JetFactory.Instance.GetDataAccessProviderFactory(DataAccessProviderType.OleDb)));// MsAccess
@@ -52,6 +53,7 @@ namespace Example.ADO.NETCore.Domain.Extensions
             DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", "System.Data.SqlClient.SqlClientFactory,System.Data.SqlClient"));// Microsoft SQL Server
             DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", "Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"));// Oracle
             DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));// SQLite
+            DatabaseType.DuckDB.SetDbProviderMap(new DbProviderMap("DuckDB.NET.Data", "DuckDB.NET.Data.DuckDBClientFactory,DuckDB.NET.Data"));// DuckDB
             DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.OleDb", "System.Data.OleDb.OleDbFactory,System.Data"));// MsAccess
             //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.Odbc", "System.Data.Odbc.OdbcFactory,System.Data"));// MsAccess
             DatabaseType.Firebird.SetDbProviderMap(new DbProviderMap("FirebirdSql.Data.FirebirdClient", "FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"));// Firebird

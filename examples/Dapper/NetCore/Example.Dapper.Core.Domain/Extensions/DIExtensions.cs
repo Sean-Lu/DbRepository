@@ -35,6 +35,7 @@ namespace Example.Dapper.Core.Domain.Extensions
             //DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance));// Microsoft SQL Server
             //DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance));// Oracle
             //DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", System.Data.SQLite.SQLiteFactory.Instance));// SQLite
+            //DatabaseType.DuckDB.SetDbProviderMap(new DbProviderMap("DuckDB.NET.Data", DuckDB.NET.Data.DuckDBClientFactory.Instance));// DuckDB
             //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.OleDb", System.Data.OleDb.OleDbFactory.Instance));// MsAccess
             ////DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.Odbc", System.Data.Odbc.OdbcFactory.Instance));// MsAccess
             ////DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("EntityFrameworkCore.Jet.Data", JetFactory.Instance.GetDataAccessProviderFactory(DataAccessProviderType.OleDb)));// MsAccess
@@ -52,6 +53,7 @@ namespace Example.Dapper.Core.Domain.Extensions
             DatabaseType.SqlServer.SetDbProviderMap(new DbProviderMap("System.Data.SqlClient", "System.Data.SqlClient.SqlClientFactory,System.Data.SqlClient"));// Microsoft SQL Server
             DatabaseType.Oracle.SetDbProviderMap(new DbProviderMap("Oracle.ManagedDataAccess.Client", "Oracle.ManagedDataAccess.Client.OracleClientFactory,Oracle.ManagedDataAccess"));// Oracle
             DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "System.Data.SQLite.SQLiteFactory,System.Data.SQLite"));// SQLite
+            DatabaseType.DuckDB.SetDbProviderMap(new DbProviderMap("DuckDB.NET.Data", "DuckDB.NET.Data.DuckDBClientFactory,DuckDB.NET.Data"));// DuckDB
             DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.OleDb", "System.Data.OleDb.OleDbFactory,System.Data"));// MsAccess
             //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.Odbc", "System.Data.Odbc.OdbcFactory,System.Data"));// MsAccess
             DatabaseType.Firebird.SetDbProviderMap(new DbProviderMap("FirebirdSql.Data.FirebirdClient", "FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"));// Firebird
@@ -149,15 +151,21 @@ namespace Example.Dapper.Core.Domain.Extensions
 #if UseMsAccess
             // 解决 MS Access 数据库实体类使用 DateTime 类型的属性会报错的问题【OleDbException: 标准表达式中数据类型不匹配。】
             global::Dapper.SqlMapper.RemoveTypeMap(typeof(DateTime));
-            global::Dapper.SqlMapper.AddTypeHandler<DateTime>(new AccessDateTimeHandler());
+            global::Dapper.SqlMapper.AddTypeHandler<DateTime>(new MsAccessDateTimeHandler());
             global::Dapper.SqlMapper.RemoveTypeMap(typeof(DateTime?));
-            global::Dapper.SqlMapper.AddTypeHandler<DateTime?>(new AccessDateTimeNullableHandler());
+            global::Dapper.SqlMapper.AddTypeHandler<DateTime?>(new MsAccessDateTimeNullableHandler());
 #endif
 
 #if UseOracle
             // 解决 Oracle 数据库实体类使用 bool 类型的属性会报错的问题【ORA-03115: 不支持的网络数据类型或表示法】
             global::Dapper.SqlMapper.RemoveTypeMap(typeof(bool));
-            global::Dapper.SqlMapper.AddTypeHandler<bool>(new BoolTypeHandler());
+            global::Dapper.SqlMapper.AddTypeHandler<bool>(new OracleBoolTypeHandler());
+#endif
+
+#if UseDuckDB
+            // 解决 DuckDB 数据库实体类使用 decimal 类型的属性会报错的问题
+            global::Dapper.SqlMapper.RemoveTypeMap(typeof(decimal));
+            global::Dapper.SqlMapper.AddTypeHandler<decimal>(new DuckDBDecimalTypeHandler());
 #endif
             #endregion
         }
