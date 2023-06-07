@@ -23,6 +23,9 @@
     <None Update="SQL\OceanBase_CreateTable_Test.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="SQL\OpenGauss_CreateTable_Test.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="SQL\TiDB_CreateTable_Test.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

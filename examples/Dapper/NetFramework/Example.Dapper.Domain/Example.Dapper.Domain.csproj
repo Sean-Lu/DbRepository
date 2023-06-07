@@ -148,6 +148,15 @@
     </When>
   </Choose>
   <Choose>
+    <When Condition="$(DefineConstants.Contains('UseOpenGauss'))">
+      <ItemGroup>
+        <PackageReference Include="OpenGauss.NET">
+          <Version>6.0.3</Version>
+        </PackageReference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
     <When Condition="$(DefineConstants.Contains('UseDB2'))">
       <ItemGroup>
         <PackageReference Include="IBM.Data.DB2.Core">

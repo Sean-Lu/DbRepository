@@ -8,7 +8,7 @@
 	<PropertyGroup>
 		<!-- 根据定义的常量动态引用不同数据库的nuget包 -->
 		<DefineConstants>
-			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
+			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite;UseOpenGauss<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
 		</DefineConstants>
 	</PropertyGroup>
 
@@ -38,6 +38,9 @@
 	<ItemGroup Condition="$(DefineConstants.Contains('UsePostgreSql'))">
 		<PackageReference Include="Npgsql" Version="7.0.2" />
 	</ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('UseOpenGauss'))">
+    <PackageReference Include="OpenGauss.NET" Version="6.0.3" />
+  </ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseDB2'))">
 		<PackageReference Include="IBM.Data.DB2.Core" Version="3.1.0.600" />
 	</ItemGroup>

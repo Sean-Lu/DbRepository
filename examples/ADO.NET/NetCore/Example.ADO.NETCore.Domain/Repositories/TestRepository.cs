@@ -34,6 +34,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             //) : base(configuration, "test_MsAccess")// MS Access: CRUD test passed.
             //) : base(configuration, "test_Firebird")// Firebird: CRUD test passed.
             //) : base(configuration, "test_PostgreSql")// PostgreSql: CRUD test passed.
+            //) : base(configuration, "test_OpenGauss")// OpenGauss: CRUD test passed.
             //) : base(configuration, "test_DB2")// DB2: CRUD test passed.
             //) : base(configuration, "test_Informix")// Informix: CRUD test passed.
             //) : base(configuration, "test_ClickHouse")// ClickHouse: CRUD test passed.
@@ -90,6 +91,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
                 DatabaseType.MsAccess => File.ReadAllText(@"./SQL/MsAccess_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Firebird => File.ReadAllText(@"./SQL/Firebird_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.PostgreSql => File.ReadAllText(@"./SQL/PostgreSql_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.OpenGauss => File.ReadAllText(@"./SQL/OpenGauss_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.DB2 => File.ReadAllText(@"./SQL/DB2_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Informix => File.ReadAllText(@"./SQL/Informix_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.ClickHouse => File.ReadAllText(@"./SQL/ClickHouse_CreateTable_Test.sql").Replace("{$TableName$}", tableName),

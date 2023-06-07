@@ -229,6 +229,7 @@ VALUES{2}";
                         break;
                     }
                 case DatabaseType.PostgreSql:
+                case DatabaseType.OpenGauss:
                     {
                         var returnIdSql = "SELECT LASTVAL() AS Id";
                         sb.Append($";{returnIdSql}");

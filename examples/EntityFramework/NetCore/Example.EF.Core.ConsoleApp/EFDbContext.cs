@@ -241,6 +241,15 @@ namespace Example.EF.Core.ConsoleApp
         }
 #endif
 
+#if UseOpenGauss
+        private void UseOpenGauss(DbContextOptionsBuilder optionsBuilder)
+        {
+            // OpenGauss: CRUD test failed.
+            var connString = "server=127.0.0.1;port=15432;database=postgres;username=gaussdb;password=Enmo@123";
+            optionsBuilder.UseNpgsql(connString);
+        }
+#endif
+
 #if UseDB2
         private void UseDB2(DbContextOptionsBuilder optionsBuilder)
         {

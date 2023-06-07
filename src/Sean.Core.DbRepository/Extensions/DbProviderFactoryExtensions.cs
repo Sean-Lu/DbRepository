@@ -42,6 +42,9 @@ namespace Sean.Core.DbRepository.Extensions
                 case "NpgsqlFactory":
                     databaseType = DatabaseType.PostgreSql;
                     break;
+                case "OpenGaussFactory":
+                    databaseType = DatabaseType.OpenGauss;
+                    break;
                 case "DB2Factory":
                     databaseType = DatabaseType.DB2;
                     break;

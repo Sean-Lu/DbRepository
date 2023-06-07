@@ -472,6 +472,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                 case DatabaseType.SQLite:
                 case DatabaseType.DuckDB:
                 case DatabaseType.PostgreSql:
+                case DatabaseType.OpenGauss:
                 case DatabaseType.ClickHouse:
                 case DatabaseType.KingbaseES:
                     sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber}";
@@ -528,6 +529,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
             case DatabaseType.ClickHouse:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows}";
             case DatabaseType.PostgreSql:
+            case DatabaseType.OpenGauss:
             case DatabaseType.KingbaseES:
             case DatabaseType.DuckDB:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {rows} OFFSET {offset}";

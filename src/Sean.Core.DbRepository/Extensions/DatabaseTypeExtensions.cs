@@ -98,6 +98,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.ClickHouse:
                     return $"`{name}`";
                 case DatabaseType.PostgreSql:
+                case DatabaseType.OpenGauss:
                 case DatabaseType.Oracle:
                 case DatabaseType.DB2:
                 case DatabaseType.Firebird:
@@ -127,20 +128,27 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.TiDB:
                 case DatabaseType.OceanBase:
                 case DatabaseType.PostgreSql:
-                    return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}'";
+                    return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema='{connection.Database}' AND table_name='{tableName}'";
+                case DatabaseType.OpenGauss:
+                    {
+                        var connectionType = connection.GetType();
+                        var property = connectionType.GetProperty("UserName");
+                        var userName = property.GetValue(connection, null) as string;
+                        return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_catalog='{connection.Database}' AND table_schema='{userName}' AND table_name='{tableName}'";
+                    }
                 case DatabaseType.SqlServer:
-                    return $"SELECT COUNT(*) AS TableCount FROM sys.tables WHERE type = 'u' AND name='{tableName}'";
+                    return $"SELECT COUNT(*) AS TableCount FROM sys.tables WHERE type='u' AND name='{tableName}'";
                 case DatabaseType.Oracle:
-                    //return $"SELECT COUNT(*) AS TableCount FROM all_tables WHERE owner = '{connection.Database}' AND table_name = '{tableName}'";
+                    //return $"SELECT COUNT(*) AS TableCount FROM all_tables WHERE owner='{connection.Database}' AND table_name='{tableName}'";
                     return $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name='{tableName}'";
                 case DatabaseType.SQLite:
                 case DatabaseType.DuckDB:
-                    return $"SELECT COUNT(*) AS TableCount FROM sqlite_master WHERE type = 'table' AND name='{tableName}'";
+                    return $"SELECT COUNT(*) AS TableCount FROM sqlite_master WHERE type='table' AND name='{tableName}'";
                 case DatabaseType.MsAccess:
                     //return $"SELECT COUNT(*) AS TableCount FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='PUBLIC' AND TABLE_NAME='{tableName}'";
                     return $"SELECT COUNT(*) AS TableCount FROM MSysObjects WHERE Name='{tableName}' AND Type=1 AND Flags=0";
                 case DatabaseType.Firebird:
-                    return $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$VIEW_SOURCE IS NULL";
+                    return $"SELECT COUNT(*) AS TableCount FROM RDB$RELATIONS WHERE RDB$RELATION_NAME='{tableName}' AND RDB$VIEW_SOURCE IS NULL";
                 case DatabaseType.DB2:
                     {
                         var connectionType = connection.GetType();
@@ -159,12 +167,12 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.Informix:
                     return $"SELECT COUNT(*) AS TableCount FROM systables WHERE tabname='{tableName}' AND tabtype='T'";
                 case DatabaseType.ClickHouse:
-                    return $"SELECT COUNT(*) AS TableCount FROM system.tables WHERE database = '{connection.Database}' AND name = '{tableName}'";
+                    return $"SELECT COUNT(*) AS TableCount FROM system.tables WHERE database='{connection.Database}' AND name='{tableName}'";
                 case DatabaseType.DM:
-                    return $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name = '{tableName}'";
+                    return $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name='{tableName}'";
                 case DatabaseType.KingbaseES:
-                    //return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{tableName}'";
-                    return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_name = '{tableName}'";
+                    //return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema='public' AND table_name='{tableName}'";
+                    return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_name='{tableName}'";
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
             }
@@ -185,11 +193,18 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.TiDB:
                 case DatabaseType.OceanBase:
                 case DatabaseType.PostgreSql:
-                    return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
+                    return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema='{connection.Database}' AND table_name='{tableName}' AND column_name='{fieldName}'";
+                case DatabaseType.OpenGauss:
+                    {
+                        var connectionType = connection.GetType();
+                        var property = connectionType.GetProperty("UserName");
+                        var userName = property.GetValue(connection, null) as string;
+                        return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_catalog='{connection.Database}' AND table_schema='{userName}' AND table_name='{tableName}' AND column_name='{fieldName}'";
+                    }
                 case DatabaseType.SqlServer:
-                    return $"SELECT COUNT(*) AS ColumnCount FROM sys.columns WHERE object_id = object_id('{tableName}') AND name='{fieldName}'";
+                    return $"SELECT COUNT(*) AS ColumnCount FROM sys.columns WHERE object_id=object_id('{tableName}') AND name='{fieldName}'";
                 case DatabaseType.Oracle:
-                    //return $"SELECT COUNT(*) AS ColumnCount FROM all_tab_columns WHERE owner = '{connection.Database}' AND table_name='{tableName}' AND column_name='{fieldName}'";
+                    //return $"SELECT COUNT(*) AS ColumnCount FROM all_tab_columns WHERE owner='{connection.Database}' AND table_name='{tableName}' AND column_name='{fieldName}'";
                     return $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}'";
                 case DatabaseType.SQLite:
                 case DatabaseType.DuckDB:
@@ -197,9 +212,9 @@ namespace Sean.Core.DbRepository.Extensions
                     return $"SELECT COUNT(*) AS ColumnCount FROM pragma_table_info('{tableName}') WHERE name='{fieldName}'";
                 case DatabaseType.MsAccess:
                     //return $"SELECT COUNT(*) AS ColumnCount FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='PUBLIC' AND TABLE_NAME='{tableName}' AND COLUMN_NAME='{fieldName}'";
-                    return $"SELECT COUNT(*) AS ColumnCount FROM MSysObjects INNER JOIN MSysColumns ON MSysObjects.Id = MSysColumns.Id WHERE MSysObjects.Name='{tableName}' AND MSysColumns.Name='{fieldName}' AND MSysObjects.Type=1 AND MSysObjects.Flags=0";
+                    return $"SELECT COUNT(*) AS ColumnCount FROM MSysObjects INNER JOIN MSysColumns ON MSysObjects.Id=MSysColumns.Id WHERE MSysObjects.Name='{tableName}' AND MSysColumns.Name='{fieldName}' AND MSysObjects.Type=1 AND MSysObjects.Flags=0";
                 case DatabaseType.Firebird:
-                    return $"SELECT COUNT(*) AS ColumnCount FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = '{tableName}' AND RDB$FIELD_NAME = '{fieldName}'";
+                    return $"SELECT COUNT(*) AS ColumnCount FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME='{tableName}' AND RDB$FIELD_NAME='{fieldName}'";
                 case DatabaseType.DB2:
                     {
                         var connectionType = connection.GetType();
@@ -218,12 +233,12 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.Informix:
                     return $"SELECT COUNT(*) AS ColumnCount FROM syscolumns WHERE tabid=(SELECT tabid FROM systables WHERE tabname='{tableName}' AND tabtype='T') AND colname='{fieldName}'";
                 case DatabaseType.ClickHouse:
-                    return $"SELECT COUNT(*) AS ColumnCount FROM system.columns WHERE database = '{connection.Database}' AND table = '{tableName}' AND name = '{fieldName}'";
+                    return $"SELECT COUNT(*) AS ColumnCount FROM system.columns WHERE database='{connection.Database}' AND table='{tableName}' AND name='{fieldName}'";
                 case DatabaseType.DM:
-                    return $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name = '{tableName}' AND column_name = '{fieldName}'";
+                    return $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}'";
                 case DatabaseType.KingbaseES:
-                    //return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '{tableName}' AND column_name = '{fieldName}'";
-                    return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_name = '{tableName}' AND column_name = '{fieldName}'";
+                    //return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema='public' AND table_name='{tableName}' AND column_name='{fieldName}'";
+                    return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_name='{tableName}' AND column_name='{fieldName}'";
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
             }

@@ -42,6 +42,7 @@ namespace Example.ADO.NETCore.Domain.Extensions
             ////DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("EntityFrameworkCore.Jet.Data", JetFactory.Instance.GetDataAccessProviderFactory(DataAccessProviderType.OleDb)));// MsAccess
             //DatabaseType.Firebird.SetDbProviderMap(new DbProviderMap("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance));// Firebird
             //DatabaseType.PostgreSql.SetDbProviderMap(new DbProviderMap("Npgsql", Npgsql.NpgsqlFactory.Instance));// PostgreSql
+            //DatabaseType.OpenGauss.SetDbProviderMap(new DbProviderMap("OpenGauss", OpenGauss.NET.OpenGaussFactory.Instance));// OpenGauss
             //DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", IBM.Data.DB2.Core.DB2Factory.Instance));// DB2
             //DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", Informix.Net.Core.InformixClientFactory.Instance));// Informix
             //DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", new ClickHouse.Client.ADO.ClickHouseConnectionFactory()));// ClickHouse
@@ -60,6 +61,7 @@ namespace Example.ADO.NETCore.Domain.Extensions
             //DatabaseType.MsAccess.SetDbProviderMap(new DbProviderMap("System.Data.Odbc", "System.Data.Odbc.OdbcFactory,System.Data"));// MsAccess
             DatabaseType.Firebird.SetDbProviderMap(new DbProviderMap("FirebirdSql.Data.FirebirdClient", "FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"));// Firebird
             DatabaseType.PostgreSql.SetDbProviderMap(new DbProviderMap("Npgsql", "Npgsql.NpgsqlFactory,Npgsql"));// PostgreSql
+            DatabaseType.OpenGauss.SetDbProviderMap(new DbProviderMap("OpenGauss", "OpenGauss.NET.OpenGaussFactory,OpenGauss.NET"));// OpenGauss
             DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", "IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"));// DB2
             DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", "Informix.Net.Core.InformixClientFactory,Informix.Net.Core"));// Informix
             DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", "ClickHouse.Client.ADO.ClickHouseConnectionFactory,ClickHouse.Client"));// ClickHouse
@@ -87,7 +89,12 @@ namespace Example.ADO.NETCore.Domain.Extensions
 
 #if UsePostgreSql
             // 解决 PostgreSQL 在使用 DateTime 类型抛出异常：Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported.
-            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+            //AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+#endif
+
+#if UseOpenGauss
+            // 解决 OpenGauss 在使用 DateTime 类型抛出异常：Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported.
+            AppContext.SetSwitch("OpenGauss.NET.EnableLegacyTimestampBehavior", true);
 #endif
 
             DbContextConfiguration.Configure(options =>

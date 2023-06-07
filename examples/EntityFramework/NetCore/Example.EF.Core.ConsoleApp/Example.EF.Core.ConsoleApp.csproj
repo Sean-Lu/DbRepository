@@ -17,7 +17,7 @@
 	<PropertyGroup>
 		<!-- 根据定义的常量动态引用不同数据库的nuget包 -->
 		<DefineConstants>
-			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseMsAccess;UseFirebird;UsePostgreSql;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
+			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseMsAccess;UseFirebird;UsePostgreSql;UseOpenGauss;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
 		</DefineConstants>
 	</PropertyGroup>
 
@@ -44,7 +44,7 @@
 	<ItemGroup Condition="$(DefineConstants.Contains('UseFirebird'))">
 		<PackageReference Include="FirebirdSql.EntityFrameworkCore.Firebird" Version="9.1.1" />
 	</ItemGroup>
-	<ItemGroup Condition="$(DefineConstants.Contains('UsePostgreSql'))">
+	<ItemGroup Condition="$(DefineConstants.Contains('UsePostgreSql')) OR $(DefineConstants.Contains('UseOpenGauss'))">
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseDB2')) OR $(DefineConstants.Contains('UseInformix'))">

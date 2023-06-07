@@ -67,6 +67,11 @@
         /// </summary>
         PostgreSql,
         /// <summary>
+        /// OpenGauss
+        /// <para>https://opengauss.org/</para>
+        /// </summary>
+        OpenGauss,
+        /// <summary>
         /// DB2
         /// <para>https://www.ibm.com/</para>
         /// </summary>
