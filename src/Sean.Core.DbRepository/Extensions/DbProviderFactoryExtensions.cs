@@ -18,18 +18,50 @@ namespace Sean.Core.DbRepository.Extensions
             }
 
             var factoryName = dbProviderFactory.GetType().Name;
-            if (factoryName.StartsWith("MySql")) databaseType = DatabaseType.MySql;
-            else if (factoryName.StartsWith("SqlClient")) databaseType = DatabaseType.SqlServer;
-            else if (factoryName.StartsWith("Oracle")) databaseType = DatabaseType.Oracle;
-            else if (factoryName.StartsWith("SQLite")) databaseType = DatabaseType.SQLite;
-            //else if (factoryName.StartsWith("OleDb")) databaseType = DatabaseType.MsAccess;
-            else if (factoryName.StartsWith("Firebird")) databaseType = DatabaseType.Firebird;
-            else if (factoryName.StartsWith("Npgsql")) databaseType = DatabaseType.PostgreSql;
-            else if (factoryName.StartsWith("DB2")) databaseType = DatabaseType.DB2;
-            else if (factoryName.StartsWith("Ifx")) databaseType = DatabaseType.Informix;
-            else if (factoryName.StartsWith("ClickHouse")) databaseType = DatabaseType.ClickHouse;
-            else if (factoryName.StartsWith("DmClient")) databaseType = DatabaseType.DM;
-            else if (factoryName.StartsWith("Kdbndp")) databaseType = DatabaseType.KingbaseES;
+            switch (factoryName)
+            {
+                case "MySqlClientFactory":
+                case "MySqlConnectorFactory":
+                    databaseType = DatabaseType.MySql;
+                    break;
+                case "SqlClientFactory":
+                    databaseType = DatabaseType.SqlServer;
+                    break;
+                case "OracleClientFactory":
+                    databaseType = DatabaseType.Oracle;
+                    break;
+                case "SQLiteFactory":
+                    databaseType = DatabaseType.SQLite;
+                    break;
+                case "DuckDBClientFactory":
+                    databaseType = DatabaseType.DuckDB;
+                    break;
+                case "FirebirdClientFactory":
+                    databaseType = DatabaseType.Firebird;
+                    break;
+                case "NpgsqlFactory":
+                    databaseType = DatabaseType.PostgreSql;
+                    break;
+                case "DB2Factory":
+                    databaseType = DatabaseType.DB2;
+                    break;
+                case "IfxFactory":
+                case "InformixClientFactory":
+                    databaseType = DatabaseType.Informix;
+                    break;
+                case "ClickHouseConnectionFactory":
+                    databaseType = DatabaseType.ClickHouse;
+                    break;
+                case "DmClientFactory":
+                    databaseType = DatabaseType.DM;
+                    break;
+                case "KdbndpFactory":
+                    databaseType = DatabaseType.KingbaseES;
+                    break;
+                default:
+                    databaseType = DatabaseType.Unknown;
+                    break;
+            }
 
             return databaseType ?? DatabaseType.Unknown;
         }
