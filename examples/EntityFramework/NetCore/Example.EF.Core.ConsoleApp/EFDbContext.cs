@@ -122,6 +122,15 @@ namespace Example.EF.Core.ConsoleApp
         }
 #endif
 
+#if UseOceanBase
+        private void UseOceanBase(DbContextOptionsBuilder optionsBuilder)
+        {
+            // OceanBase: CRUD test passed.
+            var connString = "server=127.0.0.1;port=2881;database=test;user id=root@sys;password=";
+            optionsBuilder.UseMySQL(connString);
+        }
+#endif
+
 #if UseSqlServer
         private void UseSqlServer(DbContextOptionsBuilder optionsBuilder)
         {

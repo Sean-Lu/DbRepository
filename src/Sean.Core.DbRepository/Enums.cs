@@ -25,6 +25,11 @@
         /// </summary>
         TiDB,
         /// <summary>
+        /// OceanBase
+        /// <para>https://open.oceanbase.com/</para>
+        /// </summary>
+        OceanBase,
+        /// <summary>
         /// SQL Server
         /// <para>https://www.microsoft.com/</para>
         /// </summary>

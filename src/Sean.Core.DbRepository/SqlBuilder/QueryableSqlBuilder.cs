@@ -468,6 +468,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                 case DatabaseType.MySql:
                 case DatabaseType.MariaDB:
                 case DatabaseType.TiDB:
+                case DatabaseType.OceanBase:
                 case DatabaseType.SQLite:
                 case DatabaseType.DuckDB:
                 case DatabaseType.PostgreSql:
@@ -522,6 +523,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
             case DatabaseType.MySql:
             case DatabaseType.MariaDB:
             case DatabaseType.TiDB:
+            case DatabaseType.OceanBase:
             case DatabaseType.SQLite:
             case DatabaseType.ClickHouse:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows}";

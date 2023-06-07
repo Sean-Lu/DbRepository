@@ -117,6 +117,15 @@ namespace Example.Dapper.Core.Application.Services
                 return false;
             }
 
+            testModel.AccountBalance++;
+            testModel.Age++;
+            var addOrUpdateResult = await _testRepository.AddOrUpdateAsync(testModel, transaction: trans);
+            _logger.LogDebug($"######AddOrUpdate result: {addOrUpdateResult}");
+            if (!addOrUpdateResult)
+            {
+                return false;
+            }
+
             var incrResult = await _testRepository.IncrementAsync(1, entity => entity.AccountBalance, entity => entity.Id == testModel.Id, transaction: trans);
             _logger.LogDebug($"######Increment result: {incrResult}");
             if (!incrResult)

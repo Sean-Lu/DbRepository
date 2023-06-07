@@ -26,6 +26,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             //) : base(configuration)// MySQL: CRUD test passed.
             //) : base(configuration, "test_MariaDB")// MariaDB: CRUD test passed.
             //) : base(configuration, "test_TiDB")// TiDB: CRUD test passed.
+            //) : base(configuration, "test_OceanBase")// OceanBase: CRUD test passed.
             //) : base(configuration, "test_SqlServer")// SQL Server: CRUD test passed.
             //) : base(configuration, "test_Oracle")// Oracle: CRUD test passed.
             ) : base(configuration, "test_SQLite")// SQLite: CRUD test passed.
@@ -81,6 +82,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
                 DatabaseType.MySql => File.ReadAllText(@"./SQL/MySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.MariaDB => File.ReadAllText(@"./SQL/MariaDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.TiDB => File.ReadAllText(@"./SQL/TiDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.OceanBase => File.ReadAllText(@"./SQL/OceanBase_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.SqlServer => File.ReadAllText(@"./SQL/SQLSever_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Oracle => File.ReadAllText(@"./SQL/Oracle11g_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.SQLite => File.ReadAllText(@"./SQL/SQLite_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
@@ -125,6 +127,15 @@ namespace Example.ADO.NETCore.Domain.Repositories
             var updateResult = await UpdateAsync(testModel, entity => new { entity.AccountBalance, entity.Age }, transaction: trans) > 0;
             _logger.LogDebug($"######Update result: {updateResult}");
             if (!updateResult)
+            {
+                return false;
+            }
+
+            testModel.AccountBalance++;
+            testModel.Age++;
+            var addOrUpdateResult = await AddOrUpdateAsync(testModel, transaction: trans);
+            _logger.LogDebug($"######AddOrUpdate result: {addOrUpdateResult}");
+            if (!addOrUpdateResult)
             {
                 return false;
             }

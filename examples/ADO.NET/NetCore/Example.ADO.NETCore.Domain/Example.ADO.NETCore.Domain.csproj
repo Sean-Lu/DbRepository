@@ -8,11 +8,11 @@
 	<PropertyGroup>
 		<!-- 根据定义的常量动态引用不同数据库的nuget包 -->
 		<DefineConstants>
-			<!--UseMySQL;UseMariaDB;UseTiDB;UseSqlServer;UseOracle;-->UseSqlite<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
+			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
 		</DefineConstants>
 	</PropertyGroup>
 
-	<ItemGroup Condition="$(DefineConstants.Contains('UseMySQL')) OR $(DefineConstants.Contains('UseTiDB'))">
+	<ItemGroup Condition="$(DefineConstants.Contains('UseMySQL')) OR $(DefineConstants.Contains('UseTiDB')) OR $(DefineConstants.Contains('UseOceanBase'))">
 		<PackageReference Include="MySql.Data" Version="8.0.33" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMariaDB'))">
