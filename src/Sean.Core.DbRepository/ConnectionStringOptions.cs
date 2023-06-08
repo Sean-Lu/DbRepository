@@ -145,7 +145,9 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public static ConnectionStringOptions CreateFromConnectionName(IConfiguration configuration, string connectionName, bool master = true)
         {
-            if (connectionName == null) throw new ArgumentNullException(nameof(connectionName));
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            if (string.IsNullOrWhiteSpace(connectionName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionName));
 
             var result = new ConnectionStringOptions
             {
@@ -165,7 +167,9 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         public static List<ConnectionStringOptions> CreateMultiFromConnectionName(IConfiguration configuration, string connectionName)
         {
-            if (connectionName == null) throw new ArgumentNullException(nameof(connectionName));
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            if (string.IsNullOrWhiteSpace(connectionName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionName));
 
             var result = new List<ConnectionStringOptions>();
 
@@ -222,7 +226,9 @@ namespace Sean.Core.DbRepository
         /// <returns></returns>
         private static List<ConnectionStringOptions> CreateMultiFromConnectionName(IConfiguration configuration, string connectionName, bool master, int maxCount = 10)
         {
-            if (connectionName == null) throw new ArgumentNullException(nameof(connectionName));
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            if (string.IsNullOrWhiteSpace(connectionName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionName));
 
             var result = new List<ConnectionStringOptions>();
             var connectionString = configuration.GetConnectionString(connectionName);

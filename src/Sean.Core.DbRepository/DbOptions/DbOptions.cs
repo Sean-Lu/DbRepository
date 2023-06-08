@@ -7,6 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using Sean.Core.DbRepository.Extensions;
+#if NETSTANDARD || NET5_0_OR_GREATER
+using Microsoft.Extensions.Configuration;
+#endif
 
 namespace Sean.Core.DbRepository;
 
@@ -41,6 +44,13 @@ public class DbOptions
 
     public Func<DbProviderFactory, DatabaseType> MapToDatabaseType { get; set; }
     public Func<DatabaseType, DbProviderFactory> MapToDbProviderFactory { get; set; }
+
+#if NETSTANDARD || NET5_0_OR_GREATER
+    /// <summary>
+    /// Custom get database connection configuration.
+    /// </summary>
+    public Func<IConfiguration, string, List<ConnectionStringOptions>> GetConnectionStringOptions { get; set; }
+#endif
 
     /// <summary>
     /// <see cref="DatabaseTypeExtensions.GetSqlForTableExists"/>

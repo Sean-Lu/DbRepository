@@ -42,14 +42,22 @@ namespace Sean.Core.DbRepository
 
             _connectionStrings = new List<ConnectionStringOptions>();
 
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            //_configuration = configuration ?? new ConfigurationBuilder()
-            //    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-            //    .AddJsonFile("appsettings.json", true, true)
-            //    .AddEnvironmentVariables()
-            //    .Build();
+            if (DbContextConfiguration.Options.GetConnectionStringOptions != null)
+            {
+                _configuration = configuration;
+                DbContextConfiguration.Options.GetConnectionStringOptions(configuration, configName)?.ForEach(Add);
+            }
+            else
+            {
+                _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+                //_configuration = configuration ?? new ConfigurationBuilder()
+                //    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                //    .AddJsonFile("appsettings.json", true, true)
+                //    .AddEnvironmentVariables()
+                //    .Build();
 
-            ConnectionStringOptions.CreateMultiFromConnectionName(_configuration, configName)?.ForEach(Add);
+                ConnectionStringOptions.CreateMultiFromConnectionName(_configuration, configName)?.ForEach(Add);
+            }
         }
 #else
         /// <summary>
