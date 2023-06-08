@@ -100,6 +100,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                 case DatabaseType.Oracle:
                 case DatabaseType.DuckDB:
                 case DatabaseType.Informix:
+                case DatabaseType.ShenTong:
                     {
                         return Execute(connection =>
                         {
@@ -136,6 +137,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                 case DatabaseType.Informix:
                                     {
                                         returnIdSql = $"SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabname='{TableName()}' AND tabtype='T'";
+                                        break;
+                                    }
+                                case DatabaseType.ShenTong:
+                                    {
+                                        returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
                                         break;
                                     }
                             }
@@ -612,6 +618,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                 case DatabaseType.Oracle:
                 case DatabaseType.DuckDB:
                 case DatabaseType.Informix:
+                case DatabaseType.ShenTong:
                     {
                         return await ExecuteAsync(async connection =>
                         {
@@ -648,6 +655,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                 case DatabaseType.Informix:
                                     {
                                         returnIdSql = $"SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabname='{TableName()}' AND tabtype='T'";
+                                        break;
+                                    }
+                                case DatabaseType.ShenTong:
+                                    {
+                                        returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
                                         break;
                                     }
                             }

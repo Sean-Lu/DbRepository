@@ -330,6 +330,15 @@ namespace Example.EF.Core.ConsoleApp
             optionsBuilder.UseKdbndp(connString);
         }
 #endif
+
+#if UseShenTong
+        private void UseShenTong(DbContextOptionsBuilder optionsBuilder)
+        {
+            // ShenTong（神通数据库）: CRUD test passed.
+            var connString = "Host=127.0.0.1;Port=2003;Database=OSRDB;UserName=sysdba;Password=szoscar55";
+            optionsBuilder.UseSql(connString);
+        }
+#endif
         #endregion
     }
 }

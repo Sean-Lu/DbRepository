@@ -95,7 +95,12 @@
         /// KingbaseES（人大金仓）
         /// <para>https://www.kingbase.com.cn/</para>
         /// </summary>
-        KingbaseES
+        KingbaseES,
+        /// <summary>
+        /// 神通数据库
+        /// <para>http://www.shentongdata.com/</para>
+        /// </summary>
+        ShenTong
     }
 
     public enum SqlOperation

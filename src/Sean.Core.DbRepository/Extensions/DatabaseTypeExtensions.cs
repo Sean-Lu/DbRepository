@@ -105,6 +105,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.Informix:
                 case DatabaseType.DM:
                 case DatabaseType.KingbaseES:
+                case DatabaseType.ShenTong:
                 case DatabaseType.DuckDB:
                     return $"\"{name}\"";
                 default:
@@ -135,6 +136,13 @@ namespace Sean.Core.DbRepository.Extensions
                         var property = connectionType.GetProperty("UserName");
                         var userName = property.GetValue(connection, null) as string;
                         return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_catalog='{connection.Database}' AND table_schema='{userName}' AND table_name='{tableName}'";
+                    }
+                case DatabaseType.ShenTong:
+                    {
+                        var connectionType = connection.GetType();
+                        var property = connectionType.GetProperty("UserID");
+                        var userName = property.GetValue(connection, null) as string;
+                        return $"SELECT COUNT(*) AS TableCount FROM INFO_SCHEM.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_CAT='{connection.Database}' AND TABLE_SCHEM='{userName.ToUpper()}' AND TABLE_NAME='{tableName}'";
                     }
                 case DatabaseType.SqlServer:
                     return $"SELECT COUNT(*) AS TableCount FROM sys.tables WHERE type='u' AND name='{tableName}'";
@@ -200,6 +208,13 @@ namespace Sean.Core.DbRepository.Extensions
                         var property = connectionType.GetProperty("UserName");
                         var userName = property.GetValue(connection, null) as string;
                         return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_catalog='{connection.Database}' AND table_schema='{userName}' AND table_name='{tableName}' AND column_name='{fieldName}'";
+                    }
+                case DatabaseType.ShenTong:
+                    {
+                        var connectionType = connection.GetType();
+                        var property = connectionType.GetProperty("UserID");
+                        var userName = property.GetValue(connection, null) as string;
+                        return $"SELECT COUNT(*) AS ColumnCount FROM INFO_SCHEM.\"COLUMNS\" WHERE TABLE_CAT='{connection.Database}' AND TABLE_SCHEM='{userName.ToUpper()}' AND TABLE_NAME='{tableName}' AND COLUMN_NAME='{fieldName}'";
                     }
                 case DatabaseType.SqlServer:
                     return $"SELECT COUNT(*) AS ColumnCount FROM sys.columns WHERE object_id=object_id('{tableName}') AND name='{fieldName}'";

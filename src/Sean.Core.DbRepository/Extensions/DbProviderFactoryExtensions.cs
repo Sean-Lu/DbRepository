@@ -61,6 +61,9 @@ namespace Sean.Core.DbRepository.Extensions
                 case "KdbndpFactory":
                     databaseType = DatabaseType.KingbaseES;
                     break;
+                case "OscarFactory":
+                    databaseType = DatabaseType.ShenTong;
+                    break;
                 default:
                     databaseType = DatabaseType.Unknown;
                     break;

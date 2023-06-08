@@ -201,5 +201,14 @@
       </ItemGroup>
     </When>
   </Choose>
+  <Choose>
+    <When Condition="$(DefineConstants.Contains('UseShenTong'))">
+      <ItemGroup>
+        <PackageReference Include="Oscar.Data.SqlClient">
+          <Version>4.2.0</Version>
+        </PackageReference>
+      </ItemGroup>
+    </When>
+  </Choose>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

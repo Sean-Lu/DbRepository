@@ -8,7 +8,7 @@
 	<PropertyGroup>
 		<!-- 根据定义的常量动态引用不同数据库的nuget包 -->
 		<DefineConstants>
-			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseOpenGauss;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES-->
+			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseOpenGauss;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES;UseShenTong-->
 		</DefineConstants>
 	</PropertyGroup>
 
@@ -27,6 +27,9 @@
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlite'))">
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
 	</ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('UseDuckDB'))">
+    <PackageReference Include="DuckDB.NET.Data.Full" Version="0.8.0" />
+  </ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMsAccess'))">
 		<PackageReference Include="System.Data.OleDb" Version="6.0.0" />
 		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
@@ -59,11 +62,12 @@
 		<PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.695" />
 		<!--<PackageReference Include="SqlSugarCore.Kdbndp" Version="7.3.0" />-->
 	</ItemGroup>
-	<ItemGroup Condition="$(DefineConstants.Contains('UseDuckDB'))">
-	  <PackageReference Include="DuckDB.NET.Data.Full" Version="0.8.0" />
-	</ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('UseShenTong'))">
+    <PackageReference Include="Oscar.Data.SqlClient" Version="4.2.0" />
+    <!--<PackageReference Include="FreeSql.Provider.ShenTong" Version="3.2.697" />-->
+  </ItemGroup>
 
-	<ItemGroup>
+  <ItemGroup>
 		<ProjectReference Include="..\..\..\..\src\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj" />
 		<ProjectReference Include="..\..\..\Example.Common\Example.Common.csproj" />
 		<ProjectReference Include="..\Example.ADO.NETCore.Infrastructure\Example.ADO.NETCore.Infrastructure.csproj" />

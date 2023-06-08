@@ -48,6 +48,7 @@ namespace Example.Dapper.Core.Domain.Extensions
             //DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", new ClickHouse.Client.ADO.ClickHouseConnectionFactory()));// ClickHouse
             //DatabaseType.DM.SetDbProviderMap(new DbProviderMap("DM", Dm.DmClientFactory.Instance));// DM（达梦）
             //DatabaseType.KingbaseES.SetDbProviderMap(new DbProviderMap("Kdbndp", Kdbndp.KdbndpFactory.Instance));// KingbaseES（人大金仓）
+            //DatabaseType.ShenTong.SetDbProviderMap(new DbProviderMap("ShenTong", System.Data.OscarClient.OscarFactory.Instance));// ShenTong（神通数据库）
 
             DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));// MySql
             DatabaseType.MariaDB.SetDbProviderMap(new DbProviderMap("MySqlConnector.MariaDB", "MySqlConnector.MySqlConnectorFactory,MySqlConnector"));// MariaDB
@@ -67,6 +68,7 @@ namespace Example.Dapper.Core.Domain.Extensions
             DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", "ClickHouse.Client.ADO.ClickHouseConnectionFactory,ClickHouse.Client"));// ClickHouse
             DatabaseType.DM.SetDbProviderMap(new DbProviderMap("DM", "Dm.DmClientFactory,DmProvider"));// DM（达梦）
             DatabaseType.KingbaseES.SetDbProviderMap(new DbProviderMap("Kdbndp", "Kdbndp.KdbndpFactory,Kdbndp"));// KingbaseES（人大金仓）
+            DatabaseType.ShenTong.SetDbProviderMap(new DbProviderMap("ShenTong", "System.Data.OscarClient.OscarFactory,Oscar.Data.SqlClient"));// ShenTong（神通数据库）
             #endregion
 
 #if UseFirebird

@@ -38,6 +38,7 @@ namespace Example.Dapper.Domain.Repositories
             //) : base("test_ClickHouse")// ClickHouse: CRUD test passed.
             //) : base("test_DM")// DM（达梦）: CRUD test passed.
             //) : base("test_KingbaseES")// KingbaseES（人大金仓）: CRUD test passed.
+            //) : base("test_ShenTong")// ShenTong（神通数据库）: CRUD test passed.
         {
             _logger = logger;
 
@@ -95,6 +96,7 @@ namespace Example.Dapper.Domain.Repositories
                 DatabaseType.ClickHouse => File.ReadAllText(@"./SQL/ClickHouse_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.DM => File.ReadAllText(@"./SQL/DM_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.KingbaseES => File.ReadAllText(@"./SQL/KingbaseES_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.ShenTong => File.ReadAllText(@"./SQL/ShenTong_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()
             };
         }

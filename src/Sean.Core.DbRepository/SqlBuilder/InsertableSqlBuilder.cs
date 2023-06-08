@@ -184,6 +184,8 @@ VALUES{2}";
                 case DatabaseType.MariaDB:
                 case DatabaseType.TiDB:
                 case DatabaseType.OceanBase:
+                case DatabaseType.DM:
+                case DatabaseType.ShenTong:
                     {
                         var returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
                         sb.Append($";{returnIdSql}");
@@ -230,6 +232,7 @@ VALUES{2}";
                     }
                 case DatabaseType.PostgreSql:
                 case DatabaseType.OpenGauss:
+                case DatabaseType.KingbaseES:
                     {
                         var returnIdSql = "SELECT LASTVAL() AS Id";
                         sb.Append($";{returnIdSql}");
@@ -247,22 +250,8 @@ VALUES{2}";
                         sb.Append($";{returnIdSql}");
                         break;
                     }
-                case DatabaseType.DM:
-                    {
-                        var returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
-                        sb.Append($";{returnIdSql}");
-                        break;
-                    }
-                case DatabaseType.KingbaseES:
-                    {
-                        //var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(_includeFieldsList.FirstOrDefault(c => c.Identity).FieldName)}";// √
-                        //sb.Append($" {returnIdSql}");
-                        var returnIdSql = "SELECT LASTVAL() AS Id";// √
-                        sb.Append($";{returnIdSql}");
-                        break;
-                    }
                 default:
-                    throw new NotSupportedException($"[returnLastInsertId] Unsupported database type: {SqlAdapter.DbType}");
+                    throw new NotSupportedException($"[ReturnLastInsertId] Unsupported database type: {SqlAdapter.DbType}");
             }
         }
 
