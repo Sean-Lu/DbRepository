@@ -250,6 +250,15 @@ namespace Example.EF.Core.ConsoleApp
         }
 #endif
 
+#if UseIvorySQL
+        private void UseIvorySQL(DbContextOptionsBuilder optionsBuilder)
+        {
+            // IvorySQL: CRUD test passed.
+            var connString = "server=127.0.0.1;port=5333;database=postgres;username=ivorysql;password=666666";
+            optionsBuilder.UseNpgsql(connString);
+        }
+#endif
+
 #if UseDB2
         private void UseDB2(DbContextOptionsBuilder optionsBuilder)
         {

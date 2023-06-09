@@ -12,21 +12,25 @@
         /// <summary>
         /// MySQL
         /// <para>https://www.mysql.com/</para>
+        /// <para>https://github.com/mysql/mysql-server</para>
         /// </summary>
         MySql,
         /// <summary>
         /// MariaDB
         /// <para>https://mariadb.org/</para>
+        /// <para>https://github.com/MariaDB/server</para>
         /// </summary>
         MariaDB,
         /// <summary>
         /// TiDB
-        /// <para>https://cn.pingcap.com/</para>
+        /// <para>https://pingcap.com/</para>
+        /// <para>https://github.com/pingcap/tidb</para>
         /// </summary>
         TiDB,
         /// <summary>
         /// OceanBase
         /// <para>https://open.oceanbase.com/</para>
+        /// <para>https://github.com/oceanbase/oceanbase</para>
         /// </summary>
         OceanBase,
         /// <summary>
@@ -42,11 +46,13 @@
         /// <summary>
         /// SQLite
         /// <para>https://www.sqlite.org/</para>
+        /// <para>https://github.com/sqlite/sqlite</para>
         /// </summary>
         SQLite,
         /// <summary>
         /// DuckDB
         /// <para>https://duckdb.org/</para>
+        /// <para>https://github.com/duckdb/duckdb</para>
         /// </summary>
         DuckDB,
         /// <summary>
@@ -59,18 +65,27 @@
         /// <summary>
         /// Firebird
         /// <para>https://www.firebirdsql.org/</para>
+        /// <para>https://github.com/FirebirdSQL/firebird</para>
         /// </summary>
         Firebird,
         /// <summary>
         /// PostgreSql
         /// <para>https://www.postgresql.org/</para>
+        /// <para>https://github.com/postgres/postgres</para>
         /// </summary>
         PostgreSql,
         /// <summary>
         /// OpenGauss
         /// <para>https://opengauss.org/</para>
+        /// <para>https://github.com/opengauss-mirror/openGauss-server</para>
         /// </summary>
         OpenGauss,
+        /// <summary>
+        /// IvorySQL
+        /// <para>https://ivorysql.org/</para>
+        /// <para>https://github.com/IvorySQL/IvorySQL</para>
+        /// </summary>
+        IvorySQL,
         /// <summary>
         /// DB2
         /// <para>https://www.ibm.com/</para>
@@ -97,7 +112,7 @@
         /// </summary>
         KingbaseES,
         /// <summary>
-        /// 神通数据库
+        /// ShenTong（神通数据库）
         /// <para>http://www.shentongdata.com/</para>
         /// </summary>
         ShenTong

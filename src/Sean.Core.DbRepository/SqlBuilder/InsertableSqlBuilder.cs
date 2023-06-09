@@ -232,6 +232,7 @@ VALUES{2}";
                     }
                 case DatabaseType.PostgreSql:
                 case DatabaseType.OpenGauss:
+                case DatabaseType.IvorySQL:
                 case DatabaseType.KingbaseES:
                     {
                         var returnIdSql = "SELECT LASTVAL() AS Id";

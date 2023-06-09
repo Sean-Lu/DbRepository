@@ -43,6 +43,7 @@ namespace Example.Dapper.Domain.Extensions
             //DatabaseType.Firebird.SetDbProviderMap(new DbProviderMap("FirebirdSql.Data.FirebirdClient", FirebirdSql.Data.FirebirdClient.FirebirdClientFactory.Instance));// Firebird
             //DatabaseType.PostgreSql.SetDbProviderMap(new DbProviderMap("Npgsql", Npgsql.NpgsqlFactory.Instance));// PostgreSql
             //DatabaseType.OpenGauss.SetDbProviderMap(new DbProviderMap("OpenGauss", OpenGauss.NET.OpenGaussFactory.Instance));// OpenGauss
+            //DatabaseType.IvorySQL.SetDbProviderMap(new DbProviderMap("IvorySQL", Npgsql.NpgsqlFactory.Instance));// IvorySQL
             //DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", IBM.Data.DB2.Core.DB2Factory.Instance));// DB2
             //DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", IBM.Data.Informix.IfxFactory.Instance));// Informix
             //DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", new ClickHouse.Client.ADO.ClickHouseConnectionFactory()));// ClickHouse
@@ -63,6 +64,7 @@ namespace Example.Dapper.Domain.Extensions
             DatabaseType.Firebird.SetDbProviderMap(new DbProviderMap("FirebirdSql.Data.FirebirdClient", "FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"));// Firebird
             DatabaseType.PostgreSql.SetDbProviderMap(new DbProviderMap("Npgsql", "Npgsql.NpgsqlFactory,Npgsql"));// PostgreSql
             DatabaseType.OpenGauss.SetDbProviderMap(new DbProviderMap("OpenGauss", "OpenGauss.NET.OpenGaussFactory,OpenGauss.NET"));// OpenGauss
+            DatabaseType.IvorySQL.SetDbProviderMap(new DbProviderMap("IvorySQL", "Npgsql.NpgsqlFactory,Npgsql"));// IvorySQL
             DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", "IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"));// DB2
             DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", "IBM.Data.Informix.IfxFactory,IBM.Data.Informix"));// Informix
             DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", "ClickHouse.Client.ADO.ClickHouseConnectionFactory,ClickHouse.Client"));// ClickHouse
@@ -89,7 +91,7 @@ namespace Example.Dapper.Domain.Extensions
             #endregion
 #endif
 
-#if UsePostgreSql
+#if UsePostgreSql || UseIvorySQL
             // 解决 PostgreSQL 在使用 DateTime 类型抛出异常：Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported.
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 #endif

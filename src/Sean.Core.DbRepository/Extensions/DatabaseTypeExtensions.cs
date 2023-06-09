@@ -99,6 +99,7 @@ namespace Sean.Core.DbRepository.Extensions
                     return $"`{name}`";
                 case DatabaseType.PostgreSql:
                 case DatabaseType.OpenGauss:
+                case DatabaseType.IvorySQL:
                 case DatabaseType.Oracle:
                 case DatabaseType.DB2:
                 case DatabaseType.Firebird:
@@ -137,6 +138,8 @@ namespace Sean.Core.DbRepository.Extensions
                         var userName = property.GetValue(connection, null) as string;
                         return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_catalog='{connection.Database}' AND table_schema='{userName}' AND table_name='{tableName}'";
                     }
+                case DatabaseType.IvorySQL:
+                    return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_type='BASE TABLE' AND  table_catalog='{connection.Database}' AND table_name='{tableName}'";
                 case DatabaseType.ShenTong:
                     {
                         var connectionType = connection.GetType();
@@ -209,6 +212,8 @@ namespace Sean.Core.DbRepository.Extensions
                         var userName = property.GetValue(connection, null) as string;
                         return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_catalog='{connection.Database}' AND table_schema='{userName}' AND table_name='{tableName}' AND column_name='{fieldName}'";
                     }
+                case DatabaseType.IvorySQL:
+                    return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_catalog='{connection.Database}' AND table_name='{tableName}' AND column_name='{fieldName}'";
                 case DatabaseType.ShenTong:
                     {
                         var connectionType = connection.GetType();
