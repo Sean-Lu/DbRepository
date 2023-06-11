@@ -251,6 +251,7 @@ VALUES{2}";
                         sb.Append($";{returnIdSql}");
                         break;
                     }
+                case DatabaseType.Xugu:
                 default:
                     throw new NotSupportedException($"[ReturnLastInsertId] Unsupported database type: {SqlAdapter.DbType}");
             }

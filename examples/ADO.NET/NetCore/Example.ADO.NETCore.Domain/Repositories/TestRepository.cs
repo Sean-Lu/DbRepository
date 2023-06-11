@@ -42,6 +42,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             //) : base(configuration, "test_DM")// DM（达梦）: CRUD test passed.
             //) : base(configuration, "test_KingbaseES")// KingbaseES（人大金仓）: CRUD test passed.
             //) : base(configuration, "test_ShenTong")// ShenTong（神通数据库）: CRUD test passed.
+            //) : base(configuration, "test_Xugu")// Xugu（虚谷数据库）: CRUD test passed.
         {
             _logger = logger;
 
@@ -101,6 +102,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
                 DatabaseType.DM => File.ReadAllText(@"./SQL/DM_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.KingbaseES => File.ReadAllText(@"./SQL/KingbaseES_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.ShenTong => File.ReadAllText(@"./SQL/ShenTong_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.Xugu => File.ReadAllText(@"./SQL/Xugu_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()
             };
         }

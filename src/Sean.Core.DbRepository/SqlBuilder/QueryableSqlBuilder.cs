@@ -477,6 +477,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                 case DatabaseType.ClickHouse:
                 case DatabaseType.KingbaseES:
                 case DatabaseType.ShenTong:
+                case DatabaseType.Xugu:
                     sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber}";
                     break;
                 case DatabaseType.SqlServer:
@@ -535,6 +536,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
             case DatabaseType.IvorySQL:
             case DatabaseType.KingbaseES:
             case DatabaseType.ShenTong:
+            case DatabaseType.Xugu:
             case DatabaseType.DuckDB:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {rows} OFFSET {offset}";
             case DatabaseType.SqlServer:

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using Example.ADO.NETCore.Domain.Handler;
 using Example.ADO.NETCore.Domain.Repositories;
 using Example.ADO.NETCore.Infrastructure.Converter;
 using Example.ADO.NETCore.Infrastructure.Extensions;
@@ -50,6 +51,7 @@ namespace Example.ADO.NETCore.Domain.Extensions
             //DatabaseType.DM.SetDbProviderMap(new DbProviderMap("DM", Dm.DmClientFactory.Instance));// DM（达梦）
             //DatabaseType.KingbaseES.SetDbProviderMap(new DbProviderMap("Kdbndp", Kdbndp.KdbndpFactory.Instance));// KingbaseES（人大金仓）
             //DatabaseType.ShenTong.SetDbProviderMap(new DbProviderMap("ShenTong", System.Data.OscarClient.OscarFactory.Instance));// ShenTong（神通数据库）
+            //DatabaseType.Xugu.SetDbProviderMap(new DbProviderMap("Xugu", new XuguClient.XGProviderFactory(null)));// Xugu（虚谷数据库）
 
             DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));// MySql
             DatabaseType.MariaDB.SetDbProviderMap(new DbProviderMap("MySqlConnector.MariaDB", "MySqlConnector.MySqlConnectorFactory,MySqlConnector"));// MariaDB
@@ -71,6 +73,7 @@ namespace Example.ADO.NETCore.Domain.Extensions
             DatabaseType.DM.SetDbProviderMap(new DbProviderMap("DM", "Dm.DmClientFactory,DmProvider"));// DM（达梦）
             DatabaseType.KingbaseES.SetDbProviderMap(new DbProviderMap("Kdbndp", "Kdbndp.KdbndpFactory,Kdbndp"));// KingbaseES（人大金仓）
             DatabaseType.ShenTong.SetDbProviderMap(new DbProviderMap("ShenTong", "System.Data.OscarClient.OscarFactory,Oscar.Data.SqlClient"));// ShenTong（神通数据库）
+            DatabaseType.Xugu.SetDbProviderMap(new DbProviderMap("Xugu", "XuguClient.XGProviderFactory,XuguClient"));// Xugu（虚谷数据库）
             #endregion
 
 #if UseFirebird
@@ -140,6 +143,9 @@ namespace Example.ADO.NETCore.Domain.Extensions
                     }
                     return null;
                 };
+#if UseXugu
+                options.AddTypeHandler(typeof(decimal), new XuguDecimalTypeHandler());
+#endif
                 options.BulkEntityCount = 200;
                 options.JsonSerializer = NewJsonSerializer.Instance;
                 options.SqlExecuting += OnSqlExecuting;

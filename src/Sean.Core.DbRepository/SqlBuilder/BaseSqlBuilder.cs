@@ -34,12 +34,12 @@ public abstract class BaseSqlBuilder : IBaseSqlBuilder
             sqlCommand.ConvertSqlToNonParameter();
         }
 
-        if (sqlCommand?.Parameter != null && SqlAdapter.DbType is DatabaseType.MsAccess or DatabaseType.Informix or DatabaseType.DuckDB)
+        if (sqlCommand?.Parameter != null && SqlAdapter.DbType is DatabaseType.MsAccess or DatabaseType.Informix or DatabaseType.DuckDB or DatabaseType.Xugu)
         {
             sqlCommand.BindSqlParameterType = BindSqlParameterType.BindByPosition;
             sqlCommand.ConvertParameterToDictionary();
             // Informix ODBC Driver.
-            if (SqlAdapter.DbType is DatabaseType.Informix or DatabaseType.DuckDB)
+            if (SqlAdapter.DbType is DatabaseType.Informix or DatabaseType.DuckDB or DatabaseType.Xugu)
             {
                 sqlCommand.ConvertSqlToUseQuestionMarkParameter();
             }

@@ -115,7 +115,13 @@
         /// ShenTong（神通数据库）
         /// <para>http://www.shentongdata.com/</para>
         /// </summary>
-        ShenTong
+        ShenTong,
+        /// <summary>
+        /// Xugu（虚谷数据库）
+        /// <para>http://www.xugucn.com/</para>
+        /// <para>https://gitee.com/XuguDB</para>
+        /// </summary>
+        Xugu
     }
 
     public enum SqlOperation

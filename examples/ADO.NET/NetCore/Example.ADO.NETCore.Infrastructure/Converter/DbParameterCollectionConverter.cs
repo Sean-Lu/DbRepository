@@ -15,11 +15,14 @@ namespace Example.ADO.NETCore.Infrastructure.Converter
             }
 
             var dic = new Dictionary<string, object>();
-            foreach (DbParameter dbParameter in value)
+            if (value.Count > 0)
             {
-                dic.Add(dbParameter.ParameterName, dbParameter.Value);
+                for (var i = 0; i < value.Count; i++)
+                {
+                    var dbParameter = value[i];
+                    dic.Add(dbParameter.ParameterName, dbParameter.Value);
+                }
             }
-
             serializer.Serialize(writer, dic);
         }
 

@@ -8,7 +8,7 @@
 	<PropertyGroup>
 		<!-- 根据定义的常量动态引用不同数据库的nuget包 -->
 		<DefineConstants>
-			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseOpenGauss;UseIvorySQL;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES;UseShenTong-->
+			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseOpenGauss;UseIvorySQL;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES;UseShenTong;UseXugu-->
 		</DefineConstants>
 	</PropertyGroup>
 
@@ -65,6 +65,12 @@
   <ItemGroup Condition="$(DefineConstants.Contains('UseShenTong'))">
     <PackageReference Include="Oscar.Data.SqlClient" Version="4.2.0" />
     <!--<PackageReference Include="FreeSql.Provider.ShenTong" Version="3.2.697" />-->
+  </ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('UseXugu'))">
+    <!-- 注意：XuguClient.dll 依赖 XGCSQL.dll（非.NET程序，运行时没有这个文件会报错） -->
+    <Reference Include="XuguClient">
+      <HintPath>D:\Sean\Dev\DB\Xugu\xugu-CSharp-demo-master\Debug\XuguClient.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

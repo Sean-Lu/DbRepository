@@ -50,6 +50,7 @@ namespace Example.Dapper.Domain.Extensions
             //DatabaseType.DM.SetDbProviderMap(new DbProviderMap("DM", Dm.DmClientFactory.Instance));// DM（达梦）
             //DatabaseType.KingbaseES.SetDbProviderMap(new DbProviderMap("Kdbndp", Kdbndp.KdbndpFactory.Instance));// KingbaseES（人大金仓）
             //DatabaseType.ShenTong.SetDbProviderMap(new DbProviderMap("ShenTong", System.Data.OscarClient.OscarFactory.Instance));// ShenTong（神通数据库）
+            //DatabaseType.Xugu.SetDbProviderMap(new DbProviderMap("Xugu", new XuguClient.XGProviderFactory(null)));// Xugu（虚谷数据库）
 
             DatabaseType.MySql.SetDbProviderMap(new DbProviderMap("MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data"));// MySql
             DatabaseType.MariaDB.SetDbProviderMap(new DbProviderMap("MySqlConnector.MariaDB", "MySqlConnector.MySqlConnectorFactory,MySqlConnector"));// MariaDB
@@ -71,6 +72,7 @@ namespace Example.Dapper.Domain.Extensions
             DatabaseType.DM.SetDbProviderMap(new DbProviderMap("DM", "Dm.DmClientFactory,DmProvider"));// DM（达梦）
             DatabaseType.KingbaseES.SetDbProviderMap(new DbProviderMap("Kdbndp", "Kdbndp.KdbndpFactory,Kdbndp"));// KingbaseES（人大金仓）
             DatabaseType.ShenTong.SetDbProviderMap(new DbProviderMap("ShenTong", "System.Data.OscarClient.OscarFactory,Oscar.Data.SqlClient"));// ShenTong（神通数据库）
+            DatabaseType.Xugu.SetDbProviderMap(new DbProviderMap("Xugu", "XuguClient.XGProviderFactory,XuguClient"));// Xugu（虚谷数据库）
             #endregion
 
 #if UseFirebird
@@ -160,7 +162,7 @@ namespace Example.Dapper.Domain.Extensions
             global::Dapper.SqlMapper.AddTypeHandler<bool>(new OracleBoolTypeHandler());
 #endif
 
-#if UseDuckDB
+#if UseDuckDB || UseXugu
             // 解决 DuckDB 数据库实体类使用 decimal 类型的属性会报错的问题
             global::Dapper.SqlMapper.RemoveTypeMap(typeof(decimal));
             global::Dapper.SqlMapper.AddTypeHandler<decimal>(new DuckDBDecimalTypeHandler());

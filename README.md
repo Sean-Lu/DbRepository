@@ -1,6 +1,6 @@
 ## 🌈 简介
 
-> `ORM`框架，支持数据库：`MySQL`、`MariaDB`、`TiDB`、`OceanBase`、`SQL Server`、`Oracle`、`SQLite`、`DuckDB`、`MS Access`、`Firebird`、`PostgreSql`、`OpenGauss`、`IvorySQL`、`DB2`、`Informix`、`ClickHouse`、`DM（达梦）`、`KingbaseES（人大金仓）`、`ShenTong（神通数据库）`
+> `ORM`框架，支持数据库：`MySQL`、`MariaDB`、`TiDB`、`OceanBase`、`SQL Server`、`Oracle`、`SQLite`、`DuckDB`、`MS Access`、`Firebird`、`PostgreSql`、`OpenGauss`、`IvorySQL`、`DB2`、`Informix`、`ClickHouse`、`DM（达梦）`、`KingbaseES（人大金仓）`、`ShenTong（神通）`、`Xugu（虚谷）`
 
 - 支持主从库分离（主库：增\删\改，从库：查）
 - 支持分表（自定义表名规则）
@@ -56,7 +56,8 @@ Get<T>()、GetList<T>() 其中 T ：
 | `ClickHouse`             | ✅         |
 | `DM（达梦）`             | ✅         |
 | `KingbaseES（人大金仓）` | ✅         |
-| `ShenTong（神通数据库）` | ✅         |
+| `ShenTong（神通）`       | ✅         |
+| `Xugu（虚谷）`           | ✅         |
 
 ## 💯 性能测试
 
@@ -195,6 +196,7 @@ var _db = new DbFactory("Database connection string...", MySqlClientFactory.Inst
       <database name="DM" providerInvariantName="DM" factoryTypeAssemblyQualifiedName="Dm.DmClientFactory,DmProvider"/>
       <database name="KingbaseES" providerInvariantName="Kdbndp" factoryTypeAssemblyQualifiedName="Kdbndp.KdbndpFactory,Kdbndp"/>
       <database name="ShenTong" providerInvariantName="ShenTong" factoryTypeAssemblyQualifiedName="System.Data.OscarClient.OscarFactory,Oscar.Data.SqlClient"/>
+      <database name="Xugu" providerInvariantName="Xugu" factoryTypeAssemblyQualifiedName="XuguClient.XGProviderFactory,XuguClient"/>
     </databases>
   </dbProviderMap>
 </configuration>

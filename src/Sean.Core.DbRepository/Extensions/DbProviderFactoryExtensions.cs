@@ -64,6 +64,9 @@ namespace Sean.Core.DbRepository.Extensions
                 case "OscarFactory":
                     databaseType = DatabaseType.ShenTong;
                     break;
+                case "XGProviderFactory":
+                    databaseType = DatabaseType.Xugu;
+                    break;
                 default:
                     databaseType = DatabaseType.Unknown;
                     break;

@@ -107,6 +107,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.DM:
                 case DatabaseType.KingbaseES:
                 case DatabaseType.ShenTong:
+                case DatabaseType.Xugu:
                 case DatabaseType.DuckDB:
                     return $"\"{name}\"";
                 default:
@@ -184,6 +185,8 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.KingbaseES:
                     //return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema='public' AND table_name='{tableName}'";
                     return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_name='{tableName}'";
+                case DatabaseType.Xugu:
+                    return $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE TABLE_NAME='{tableName}'";
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
             }
@@ -259,6 +262,8 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.KingbaseES:
                     //return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema='public' AND table_name='{tableName}' AND column_name='{fieldName}'";
                     return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_name='{tableName}' AND column_name='{fieldName}'";
+                case DatabaseType.Xugu:
+                    return $"SELECT COUNT(*) AS ColumnCount FROM user_columns WHERE TABLE_ID=(SELECT TABLE_ID FROM user_tables WHERE TABLE_NAME='{tableName}') and COL_NAME='{fieldName}'";
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
             }
@@ -276,6 +281,8 @@ namespace Sean.Core.DbRepository.Extensions
             {
                 case DatabaseType.DuckDB:
                     return $"SELECT COUNT(*) AS SequenceCount FROM temp.pg_catalog.pg_sequences WHERE sequencename='{sequenceName}'";
+                case DatabaseType.Xugu:
+                    return $"SELECT COUNT(*) AS SequenceCount FROM user_sequences where seq_name='{sequenceName}'";
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
             }

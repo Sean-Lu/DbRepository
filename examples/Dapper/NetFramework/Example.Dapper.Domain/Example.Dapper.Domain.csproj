@@ -210,5 +210,14 @@
       </ItemGroup>
     </When>
   </Choose>
+  <Choose>
+    <When Condition="$(DefineConstants.Contains('UseXugu'))">
+      <ItemGroup>
+        <Reference Include="XuguClient">
+          <HintPath>D:\Sean\Dev\DB\Xugu\xugu-CSharp-demo-master\Debug\XuguClient.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
