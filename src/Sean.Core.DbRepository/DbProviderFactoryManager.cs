@@ -66,21 +66,17 @@ namespace Sean.Core.DbRepository
                     {
                         #region 1. Try to get an instance of the DbProviderFactory by reflection.
                         var dbProvideFactoryInstanceFieldInfo = type.GetField("Instance", BindingFlags.Public | BindingFlags.Static);
-                        if (dbProvideFactoryInstanceFieldInfo != null)
+                        if (dbProvideFactoryInstanceFieldInfo != null && dbProvideFactoryInstanceFieldInfo.GetValue(type) is DbProviderFactory dbProvideFactoryInstanceValue)
                         {
-                            var dbProvideFactoryInstanceValue = dbProvideFactoryInstanceFieldInfo.GetValue(type);
-                            if (dbProvideFactoryInstanceValue is DbProviderFactory dbProviderFactory)
-                            {
-                                map.ProviderFactory = dbProviderFactory;
-                                return map.ProviderFactory;
-                            }
+                            map.ProviderFactory = dbProvideFactoryInstanceValue;
+                            return map.ProviderFactory;
                         }
                         #endregion
 
                         #region 2. Try to get an instance of the DbProviderFactory by the default parameterless constructor.
-                        if (Activator.CreateInstance(type) is DbProviderFactory instance)
+                        if (type.CreateInstanceByConstructor() is DbProviderFactory dbProviderFactory)
                         {
-                            map.ProviderFactory = instance;
+                            map.ProviderFactory = dbProviderFactory;
                             return map.ProviderFactory;
                         }
                         #endregion
