@@ -208,50 +208,10 @@ VALUES{2}";
                         sb.Append($";{returnIdSql}");
                         break;
                     }
-                case DatabaseType.SqlServer:
-                    {
-                        //var returnIdSql = "SELECT @@IDENTITY AS Id";// 返回为当前会话的所有作用域中的任何表最后生成的标识值
-                        var returnIdSql = "SELECT SCOPE_IDENTITY() AS Id"; // 返回为当前会话和当前作用域中的任何表最后生成的标识值
-                        sb.Append($";{returnIdSql}");
-                        break;
-                    }
-                case DatabaseType.Oracle:
-                    {
-                        var idPropInfo = _includeFieldsList.FirstOrDefault(c => c.Identity);
-                        var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == idPropInfo.FieldName);
-                        var parameterName = findFieldInfo?.Property.Name ?? idPropInfo.FieldName;
-                        var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(idPropInfo.FieldName)} INTO {SqlAdapter.FormatSqlParameter(parameterName)}";
-                        sb.Append($" {returnIdSql}");
-                        break;
-
-                        //var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                        //var returnIdSql = $"SELECT {SqlAdapter.FormatFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
-                        //sb.Append($";{returnIdSql}");
-                        //break;
-                    }
                 case DatabaseType.SQLite:
                     {
                         var returnIdSql = "SELECT LAST_INSERT_ROWID() AS Id";
                         sb.Append($";{returnIdSql}");
-                        break;
-                    }
-                case DatabaseType.DuckDB:
-                    {
-                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                        var returnIdSql = $"SELECT CURRVAL('{sequenceName}')";
-                        sb.Append($";{returnIdSql}");
-                        break;
-                    }
-                case DatabaseType.MsAccess:
-                    {
-                        var returnIdSql = "SELECT @@IDENTITY AS Id";
-                        sb.Append($";{returnIdSql}");
-                        break;
-                    }
-                case DatabaseType.Firebird:
-                    {
-                        var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(_includeFieldsList.FirstOrDefault(c => c.Identity).FieldName)}";
-                        sb.Append($" {returnIdSql}");
                         break;
                     }
                 case DatabaseType.PostgreSql:
@@ -261,6 +221,35 @@ VALUES{2}";
                     {
                         var returnIdSql = "SELECT LASTVAL() AS Id";
                         sb.Append($";{returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.SqlServer:
+                    {
+                        //var returnIdSql = "SELECT @@IDENTITY AS Id";// 返回为当前会话的所有作用域中的任何表最后生成的标识值
+                        var returnIdSql = "SELECT SCOPE_IDENTITY() AS Id"; // 返回为当前会话和当前作用域中的任何表最后生成的标识值
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.MsAccess:
+                    {
+                        var returnIdSql = "SELECT @@IDENTITY AS Id";
+                        sb.Append($";{returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.DuckDB:
+                case DatabaseType.Firebird:
+                    {
+                        var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(_includeFieldsList.FirstOrDefault(c => c.Identity).FieldName)}";
+                        sb.Append($" {returnIdSql}");
+                        break;
+                    }
+                case DatabaseType.Oracle:
+                    {
+                        var idPropInfo = _includeFieldsList.FirstOrDefault(c => c.Identity);
+                        var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == idPropInfo.FieldName);
+                        var parameterName = findFieldInfo?.Property.Name ?? idPropInfo.FieldName;
+                        var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(idPropInfo.FieldName)} INTO {SqlAdapter.FormatSqlParameter(parameterName)}";
+                        sb.Append($" {returnIdSql}");
                         break;
                     }
                 case DatabaseType.DB2:

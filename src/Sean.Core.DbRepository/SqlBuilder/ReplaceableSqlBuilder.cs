@@ -160,6 +160,7 @@ VALUES{2}";
                     sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
                 }
                 break;
+            case DatabaseType.DuckDB:
             default:
                 throw new NotSupportedException($"[{SqlAdapter.DbType}]The database does not support the 'REPLACE INTO' SQL syntax.");
         }

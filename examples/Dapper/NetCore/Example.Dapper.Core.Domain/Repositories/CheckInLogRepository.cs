@@ -53,9 +53,9 @@ namespace Example.Dapper.Core.Domain.Repositories
             return tableName;
         }
 
-        public override string CreateTableSql(string tableName)
+        public override ExecuteSqlOptions CreateTableSql(string tableName)
         {
-            return $@"CREATE TABLE `{tableName}` (
+            var sql = $@"CREATE TABLE `{tableName}` (
   `Id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `UserId` bigint(20) NOT NULL COMMENT '用户ID',
   `CheckInType` int(2) NOT NULL COMMENT '签到类型',
@@ -63,6 +63,10 @@ namespace Example.Dapper.Core.Domain.Repositories
   `IP` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'IP地址',
   PRIMARY KEY (`Id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='签到明细日志表';";
+            return new ExecuteSqlOptions
+            {
+                Sql = sql
+            };
         }
 
         public async Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)

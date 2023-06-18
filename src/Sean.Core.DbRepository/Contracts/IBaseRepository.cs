@@ -45,7 +45,7 @@ public interface IBaseRepository
     /// </summary>
     /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    string CreateTableSql(string tableName);
+    ExecuteSqlOptions CreateTableSql(string tableName);
 
     /// <summary>
     /// The database table is automatically created if it does not exist. The <see cref="CreateTableSql"/> method needs to be implemented.

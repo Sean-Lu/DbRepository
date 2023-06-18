@@ -3,6 +3,8 @@
 -- ****** 因为 DuckDB 不支持一次性批量执行多个sql语句，所以下面的SQL语句需要分开单独执行 ******
 CREATE SEQUENCE SQ_{$TableName$};
 
+-- ### MultiSqlSeparator ###
+
 CREATE TABLE {$TableName$} (
   Id BIGINT PRIMARY KEY DEFAULT nextval('SQ_{$TableName$}'),
   UserId BIGINT NOT NULL,

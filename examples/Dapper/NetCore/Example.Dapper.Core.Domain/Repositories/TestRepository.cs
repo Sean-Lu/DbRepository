@@ -79,9 +79,9 @@ namespace Example.Dapper.Core.Domain.Repositories
             return tableName;
         }
 
-        public override string CreateTableSql(string tableName)
+        public override ExecuteSqlOptions CreateTableSql(string tableName)
         {
-            return DbType switch
+            var sql = DbType switch
             {
                 DatabaseType.MySql => File.ReadAllText(@"./SQL/MySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.MariaDB => File.ReadAllText(@"./SQL/MariaDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
@@ -105,6 +105,16 @@ namespace Example.Dapper.Core.Domain.Repositories
                 DatabaseType.Xugu => File.ReadAllText(@"./SQL/Xugu_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()
             };
+            var result = new ExecuteSqlOptions
+            {
+                Sql = sql
+            };
+            if (DbType is DatabaseType.DuckDB)
+            {
+                result.AllowExecuteMultiSql = false;
+                result.MultiSqlSeparator = "-- ### MultiSqlSeparator ###";
+            }
+            return result;
         }
 
         public async Task<bool> TestCRUDAsync(IDbTransaction trans = null)

@@ -103,7 +103,7 @@ public abstract class BaseRepository : IBaseRepository
         return null;
     }
 
-    public virtual string CreateTableSql(string tableName)
+    public virtual ExecuteSqlOptions CreateTableSql(string tableName)
     {
         throw new NotImplementedException();
     }
@@ -115,8 +115,8 @@ public abstract class BaseRepository : IBaseRepository
 
         if (!IsTableExists(tableName, master: true, useCache: true))// Using master database.
         {
-            var sql = CreateTableSql(tableName);
-            if (!string.IsNullOrWhiteSpace(sql))
+            var executeSqlOptions = CreateTableSql(tableName);
+            if (!string.IsNullOrWhiteSpace(executeSqlOptions?.Sql))
             {
 #if NET45
                 using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
@@ -124,7 +124,18 @@ public abstract class BaseRepository : IBaseRepository
                 using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
 #endif
                 {
-                    Execute(sql, master: true);
+                    if (!executeSqlOptions.AllowExecuteMultiSql && !string.IsNullOrWhiteSpace(executeSqlOptions.MultiSqlSeparator) && executeSqlOptions.Sql.Contains(executeSqlOptions.MultiSqlSeparator))
+                    {
+                        var sqlitSql = executeSqlOptions.Sql.Split(new[] { executeSqlOptions.MultiSqlSeparator }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var sql in sqlitSql)
+                        {
+                            Execute(sql, master: true);
+                        }
+                    }
+                    else
+                    {
+                        Execute(executeSqlOptions.Sql, master: true);
+                    }
                 }
             }
         }

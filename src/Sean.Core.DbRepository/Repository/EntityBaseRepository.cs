@@ -97,7 +97,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             switch (DbType)
             {
                 case DatabaseType.MsAccess:
-                case DatabaseType.DuckDB:
                 case DatabaseType.Informix:
                 case DatabaseType.ShenTong:
                     {
@@ -119,18 +118,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                 case DatabaseType.MsAccess:
                                     {
                                         returnIdSql = "SELECT @@IDENTITY AS Id";
-                                        break;
-                                    }
-                                //case DatabaseType.Oracle:
-                                //    {
-                                //        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                                //        returnIdSql = $"SELECT {DatabaseType.Oracle.MarkAsTableOrFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
-                                //        break;
-                                //    }
-                                case DatabaseType.DuckDB:
-                                    {
-                                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                                        returnIdSql = $"SELECT CURRVAL('{sequenceName}')";
                                         break;
                                     }
                                 case DatabaseType.Informix:
@@ -622,7 +609,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             switch (DbType)
             {
                 case DatabaseType.MsAccess:
-                case DatabaseType.DuckDB:
                 case DatabaseType.Informix:
                 case DatabaseType.ShenTong:
                     {
@@ -644,18 +630,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                 case DatabaseType.MsAccess:
                                     {
                                         returnIdSql = "SELECT @@IDENTITY AS Id";
-                                        break;
-                                    }
-                                //case DatabaseType.Oracle:
-                                //    {
-                                //        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                                //        returnIdSql = $"SELECT {DatabaseType.Oracle.MarkAsTableOrFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
-                                //        break;
-                                //    }
-                                case DatabaseType.DuckDB:
-                                    {
-                                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                                        returnIdSql = $"SELECT CURRVAL('{sequenceName}')";
                                         break;
                                     }
                                 case DatabaseType.Informix:
