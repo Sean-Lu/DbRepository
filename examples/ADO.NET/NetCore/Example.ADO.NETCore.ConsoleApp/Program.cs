@@ -27,6 +27,7 @@ namespace Example.ADO.NETCore.ConsoleApp
                 });
             });
 
+            //ISimpleDo toDo = DIManager.GetService<Domain.DBTest.OracleTest>();
             ISimpleDo toDo = DIManager.GetService<DBTest>();
             toDo.Execute();
 

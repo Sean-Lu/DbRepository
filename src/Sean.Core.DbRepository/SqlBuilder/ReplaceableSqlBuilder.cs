@@ -122,7 +122,7 @@ VALUES{2}";
                             }
 
                             var parameterName = ConditionBuilder.UniqueParameter($"{findFieldInfo.Property.Name}_{index}", paramDic);
-                            formatParameterNames.Add(SqlAdapter.FormatInputParameter(parameterName));
+                            formatParameterNames.Add(SqlAdapter.FormatSqlParameter(parameterName));
                             paramDic.Add(parameterName, findFieldInfo.Property.GetValue(entity, null));
                         }
                         insertValueParams.Add($"({string.Join(", ", formatParameterNames)})");
@@ -155,7 +155,7 @@ VALUES{2}";
                         }
 
                         var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
-                        return SqlAdapter.FormatInputParameter(parameterName);
+                        return SqlAdapter.FormatSqlParameter(parameterName);
                     });
                     sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
                 }

@@ -36,28 +36,28 @@ Get<T>()、GetList<T>() 其中 T ：
 
 > `TestRepository`
 
-| Database                 | Test result |
-| ------------------------ | ----------- |
-| `MySQL`                  | ✅         |
-| `MariaDB`                | ✅         |
-| `TiDB`                   | ✅         |
-| `OceanBase`              | ✅         |
-| `SQL Server`             | ✅         |
-| `Oracle`                 | ✅         |
-| `SQLite`                 | ✅         |
-| `DuckDB`                 | ✅         |
-| `MS Access`              | ✅         |
-| `Firebird`               | ✅         |
-| `PostgreSql`             | ✅         |
-| `OpenGauss`              | ✅         |
-| `IvorySQL`               | ✅         |
-| `DB2`                    | ✅         |
-| `Informix`               | ✅         |
-| `ClickHouse`             | ✅         |
-| `DM（达梦）`             | ✅         |
-| `KingbaseES（人大金仓）` | ✅         |
-| `ShenTong（神通）`       | ✅         |
-| `Xugu（虚谷）`           | ✅         |
+| Database                 | Test result | Description         |
+| ------------------------ | ----------- | ------------------- |
+| `MySQL`                  | ✅         |                     |
+| `MariaDB`                | ✅         |                     |
+| `TiDB`                   | ✅         |                     |
+| `OceanBase`              | ✅         |                     |
+| `SQL Server`             | ✅         |                     |
+| `Oracle`                 | ✅         |                     |
+| `SQLite`                 | ✅         |                     |
+| `DuckDB`                 | ✅         |                     |
+| `MS Access`              | ✅         |                     |
+| `Firebird`               | ✅         |                     |
+| `PostgreSql`             | ✅         |                     |
+| `OpenGauss`              | ✅         |                     |
+| `IvorySQL`               | ✅         |                     |
+| `DB2`                    | ✅         |                     |
+| `Informix`               | ✅         |                     |
+| `ClickHouse`             | ✅         |                     |
+| `DM`                     | ✅         | 达梦                |
+| `KingbaseES`             | ✅         | 人大金仓            |
+| `ShenTong`               | ✅         | 神通数据库          |
+| `Xugu`                   | ✅         | 虚谷数据库          |
 
 ## 💯 性能测试
 
@@ -318,7 +318,7 @@ entity => new { entity.Status, entity.UpdateTime }
 | Attribute                    | AttributeUsage | Namespace                                      | Description                                                |
 | ---------------------------- | -------------- | ---------------------------------------------- | ---------------------------------------------------------- |
 | `TableAttribute`             | Class          | `System.ComponentModel.DataAnnotations.Schema` | 自定义表名                                                 |
-| `SequenceAttribute`          | Class          | `Sean.Core.DbRepository`                       | 指定序列号名称（生成自增Id）                               |
+| `SequenceAttribute`          | Property       | `Sean.Core.DbRepository`                       | 指定序列号名称（生成自增Id）                               |
 | `KeyAttribute`               | Property       | `System.ComponentModel.DataAnnotations`        | 标记为主键字段                                             |
 | `DatabaseGeneratedAttribute` | Property       | `System.ComponentModel.DataAnnotations.Schema` | 设置数据库生成字段值的方式（通常和`KeyAttribute`一起使用） |
 | `ColumnAttribute`            | Property       | `System.ComponentModel.DataAnnotations.Schema` | 自定义字段名                                               |

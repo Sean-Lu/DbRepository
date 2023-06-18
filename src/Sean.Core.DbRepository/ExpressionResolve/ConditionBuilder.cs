@@ -33,7 +33,7 @@ internal static class ConditionBuilder
 
         var parameterName = UniqueParameter(memberInfo, adhesive);
         adhesive.Parameters.Add($"{parameterName}", value);
-        return new StringBuilder($"{fieldName} {comparison.ToComparisonSymbol(comparisonReverse)} {adhesive.SqlAdapter.FormatInputParameter(parameterName)}");
+        return new StringBuilder($"{fieldName} {comparison.ToComparisonSymbol(comparisonReverse)} {adhesive.SqlAdapter.FormatSqlParameter(parameterName)}");
     }
 
     public static StringBuilder BuildLikeOrEqualCondition(ParameterExpression parameterExpression, MethodCallExpression methodCallExpression, WhereClauseAdhesive adhesive, bool notEquals)
@@ -70,7 +70,7 @@ internal static class ConditionBuilder
             var parameterName = UniqueParameter(memberInfo, adhesive);
             var value = ConstantExtractor.ParseConstant(methodCallExpression.Arguments[0]);
             adhesive.Parameters.Add($"{parameterName}", string.Format(valueSymbol, value));
-            return new StringBuilder(string.Format($"{fieldName} {symbol}", $"{adhesive.SqlAdapter.FormatInputParameter(parameterName)}"));
+            return new StringBuilder(string.Format($"{fieldName} {symbol}", $"{adhesive.SqlAdapter.FormatSqlParameter(parameterName)}"));
         }
 
         throw new NotSupportedException($"Unsupported MethodCallExpression: {methodCallExpression}");
@@ -89,7 +89,7 @@ internal static class ConditionBuilder
         var parameterName = UniqueParameter(memberInfo, adhesive);
         var value = ConstantExtractor.ParseConstant(valueExpression);
         adhesive.Parameters.Add($"{parameterName}", value);
-        return new StringBuilder($"{fieldName} IN {adhesive.SqlAdapter.FormatInputParameter(parameterName)}");
+        return new StringBuilder($"{fieldName} IN {adhesive.SqlAdapter.FormatSqlParameter(parameterName)}");
     }
 
     public static StringBuilder BuildIsNullOrEmptyCondition(ParameterExpression parameterExpression, MethodCallExpression methodCallExpression, WhereClauseAdhesive adhesive, bool reverse = false)

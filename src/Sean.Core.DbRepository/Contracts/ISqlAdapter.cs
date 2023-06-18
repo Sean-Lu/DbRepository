@@ -13,7 +13,7 @@
         string FormatFieldName(string fieldName, bool multiTable);
         string FormatFieldName(string fieldName, string tableName);
 
-        string FormatInputParameter(string parameter);
+        string FormatSqlParameter(string parameter);
     }
 }
 

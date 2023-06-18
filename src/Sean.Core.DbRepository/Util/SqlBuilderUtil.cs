@@ -329,7 +329,7 @@ internal static class SqlBuilderUtil
             var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
             parameterName = findFieldInfo?.Property.Name ?? fieldName;
         }
-        sbWhereClause.Append($"{sqlAdapter.FormatFieldName(fieldName)} {operation.ToSqlString()} {sqlAdapter.FormatInputParameter(parameterName)}");
+        sbWhereClause.Append($"{sqlAdapter.FormatFieldName(fieldName)} {operation.ToSqlString()} {sqlAdapter.FormatSqlParameter(parameterName)}");
 
         if (include == Include.Right)
         {

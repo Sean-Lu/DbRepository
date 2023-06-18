@@ -1646,7 +1646,9 @@ public class DbFactory
                     command.Connection = connection;
                 }
 
-                return func(command, useInternalConnection);
+                var result = func(command, useInternalConnection);
+                sqlCommand.OutputParameterOptions?.ExecuteOutput(paramName => command.Parameters[paramName].Value);
+                return result;
             }
             finally
             {
@@ -1680,7 +1682,9 @@ public class DbFactory
                     command.Connection = connection;
                 }
 
-                return await func(command, useInternalConnection);
+                var result = await func(command, useInternalConnection);
+                sqlCommand.OutputParameterOptions?.ExecuteOutput(paramName => command.Parameters[paramName].Value);
+                return result;
             }
             finally
             {

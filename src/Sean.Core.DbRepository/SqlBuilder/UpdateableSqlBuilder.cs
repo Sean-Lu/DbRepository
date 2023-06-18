@@ -318,7 +318,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
 
             var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
             var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
-            return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}={SqlAdapter.FormatInputParameter(parameterName)}";
+            return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}={SqlAdapter.FormatSqlParameter(parameterName)}";
         });
 
         var sb = new StringBuilder();

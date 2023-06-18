@@ -97,7 +97,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             switch (DbType)
             {
                 case DatabaseType.MsAccess:
-                case DatabaseType.Oracle:
                 case DatabaseType.DuckDB:
                 case DatabaseType.Informix:
                 case DatabaseType.ShenTong:
@@ -122,12 +121,12 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                         returnIdSql = "SELECT @@IDENTITY AS Id";
                                         break;
                                     }
-                                case DatabaseType.Oracle:
-                                    {
-                                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                                        returnIdSql = $"SELECT {DatabaseType.Oracle.MarkAsTableOrFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
-                                        break;
-                                    }
+                                //case DatabaseType.Oracle:
+                                //    {
+                                //        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                                //        returnIdSql = $"SELECT {DatabaseType.Oracle.MarkAsTableOrFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
+                                //        break;
+                                //    }
                                 case DatabaseType.DuckDB:
                                     {
                                         var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
@@ -162,6 +161,14 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                             keyIdentityProperty.SetValue(entity, id, null);
                             return true;
                         }, true, transaction);
+                    }
+                case DatabaseType.Oracle:
+                    {
+                        var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression, keyIdentityProperty);
+                        sqlCommandReturnId.Master = true;
+                        sqlCommandReturnId.Transaction = transaction;
+                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                        return Execute(sqlCommandReturnId) > 0;
                     }
                 default:
                     {
@@ -615,7 +622,6 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             switch (DbType)
             {
                 case DatabaseType.MsAccess:
-                case DatabaseType.Oracle:
                 case DatabaseType.DuckDB:
                 case DatabaseType.Informix:
                 case DatabaseType.ShenTong:
@@ -640,12 +646,12 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                         returnIdSql = "SELECT @@IDENTITY AS Id";
                                         break;
                                     }
-                                case DatabaseType.Oracle:
-                                    {
-                                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                                        returnIdSql = $"SELECT {DatabaseType.Oracle.MarkAsTableOrFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
-                                        break;
-                                    }
+                                //case DatabaseType.Oracle:
+                                //    {
+                                //        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                                //        returnIdSql = $"SELECT {DatabaseType.Oracle.MarkAsTableOrFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
+                                //        break;
+                                //    }
                                 case DatabaseType.DuckDB:
                                     {
                                         var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
@@ -680,6 +686,14 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                             keyIdentityProperty.SetValue(entity, id, null);
                             return true;
                         }, true, transaction);
+                    }
+                case DatabaseType.Oracle:
+                    {
+                        var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression, keyIdentityProperty);
+                        sqlCommandReturnId.Master = true;
+                        sqlCommandReturnId.Transaction = transaction;
+                        sqlCommandReturnId.CommandTimeout = CommandTimeout;
+                        return await ExecuteAsync(sqlCommandReturnId) > 0;
                     }
                 default:
                     {

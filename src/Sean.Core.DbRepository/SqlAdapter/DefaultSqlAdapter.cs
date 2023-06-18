@@ -49,9 +49,9 @@ namespace Sean.Core.DbRepository
             return $"{FormatTableName(tableName)}.{FormatFieldName(fieldName)}";
         }
 
-        public virtual string FormatInputParameter(string parameter)
+        public virtual string FormatSqlParameter(string parameter)
         {
-            return DbType.MarkAsSqlInputParameter(parameter);
+            return DbType.MarkAsSqlParameter(parameter);
         }
     }
 

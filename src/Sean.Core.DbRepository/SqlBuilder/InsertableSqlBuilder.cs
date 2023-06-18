@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DbRepository.Util;
@@ -19,6 +20,7 @@ VALUES{2}";
     private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
     private bool _returnLastInsertId;
     private object _parameter;
+    private OutputParameterOptions _outputParameterOptions;
 
     private InsertableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
     {
@@ -86,6 +88,21 @@ VALUES{2}";
         return this;
     }
 
+    public IInsertable<TEntity> OutputParameter(TEntity outputTarget, PropertyInfo outputPropertyInfo)
+    {
+        _outputParameterOptions = new OutputParameterOptions
+        {
+            OutputTarget = outputTarget,
+            OutputPropertyInfo = outputPropertyInfo
+        };
+        return this;
+    }
+
+    public IInsertable<TEntity> OutputParameterIF(bool condition, TEntity outputTarget, PropertyInfo outputPropertyInfo)
+    {
+        return condition ? OutputParameter(outputTarget, outputPropertyInfo) : this;
+    }
+
     public virtual IInsertable<TEntity> SetParameter(object param)
     {
         _parameter = param;
@@ -138,7 +155,7 @@ VALUES{2}";
                     }
 
                     var parameterName = ConditionBuilder.UniqueParameter($"{findFieldInfo.Property.Name}_{index}", paramDic);
-                    formatParameterNames.Add(SqlAdapter.FormatInputParameter(parameterName));
+                    formatParameterNames.Add(SqlAdapter.FormatSqlParameter(parameterName));
                     paramDic.Add(parameterName, findFieldInfo.Property.GetValue(entity, null));
                 }
                 insertValueParams.Add($"({string.Join(", ", formatParameterNames)})");
@@ -171,7 +188,7 @@ VALUES{2}";
                 }
 
                 var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
-                return SqlAdapter.FormatInputParameter(parameterName);
+                return SqlAdapter.FormatSqlParameter(parameterName);
             });
             sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
         }
@@ -200,10 +217,17 @@ VALUES{2}";
                     }
                 case DatabaseType.Oracle:
                     {
-                        var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
-                        var returnIdSql = $"SELECT {SqlAdapter.FormatFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
-                        sb.Append($";{returnIdSql}");
+                        var idPropInfo = _includeFieldsList.FirstOrDefault(c => c.Identity);
+                        var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == idPropInfo.FieldName);
+                        var parameterName = findFieldInfo?.Property.Name ?? idPropInfo.FieldName;
+                        var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(idPropInfo.FieldName)} INTO {SqlAdapter.FormatSqlParameter(parameterName)}";
+                        sb.Append($" {returnIdSql}");
                         break;
+
+                        //var sequenceName = typeof(TEntity).GetEntityInfo()?.SequenceName;
+                        //var returnIdSql = $"SELECT {SqlAdapter.FormatFieldName(sequenceName)}.CURRVAL AS Id FROM dual";
+                        //sb.Append($";{returnIdSql}");
+                        //break;
                     }
                 case DatabaseType.SQLite:
                     {
@@ -260,7 +284,8 @@ VALUES{2}";
         var sql = new DefaultSqlCommand
         {
             Sql = sb.ToString(),
-            Parameter = _parameter
+            Parameter = _parameter,
+            OutputParameterOptions = _outputParameterOptions
         };
         return sql;
     }

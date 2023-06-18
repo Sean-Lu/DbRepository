@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Sean.Core.DbRepository;
 
@@ -51,6 +52,9 @@ public interface IInsertable<TEntity> : IBaseSqlBuilder
     /// <param name="returnAutoIncrementId"></param>
     /// <returns></returns>
     IInsertable<TEntity> ReturnAutoIncrementId(bool returnAutoIncrementId = true);
+
+    IInsertable<TEntity> OutputParameter(TEntity outputTarget, PropertyInfo outputPropertyInfo);
+    IInsertable<TEntity> OutputParameterIF(bool condition, TEntity outputTarget, PropertyInfo outputPropertyInfo);
 
     IInsertable<TEntity> SetParameter(object param);
 }

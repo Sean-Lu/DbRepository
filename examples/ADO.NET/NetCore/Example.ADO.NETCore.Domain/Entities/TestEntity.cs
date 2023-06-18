@@ -9,7 +9,7 @@ namespace Example.ADO.NETCore.Domain.Entities
     /// 测试表（仅供测试使用）
     /// </summary>
     [Table("Test")]
-    [Sequence("SQ_Test")]// Oracle 11g：通过序列+触发器的方式实现自增主键
+    [Sequence("SQ_Test")]
     public class TestEntity : EntityStateBase
     {
         /// <summary>

@@ -33,6 +33,8 @@ public interface ISqlCommand
     /// </summary>
     CommandType CommandType { get; set; }
 
+    OutputParameterOptions OutputParameterOptions { get; set; }
+
     BindSqlParameterType BindSqlParameterType { get; set; }
 
     bool UnusedSqlParameterRemoved { get; }
@@ -47,4 +49,6 @@ public interface ISqlCommand
 public interface ISqlCommand<T> : ISqlCommand
 {
     new T Parameter { get; set; }
+
+    new OutputParameterOptions<T> OutputParameterOptions { get; set; }
 }

@@ -15,6 +15,14 @@ public static class DbConnectionExtensions
     #region Synchronous method
     public static int Execute(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null)
     {
+        if (sqlCommand.OutputParameterOptions != null)
+        {
+            var dynamicParameters = new DynamicParameters(sqlCommand.Parameter);
+            var result = sqlMonitor.Execute(connection, sqlCommand, () => connection.Execute(sqlCommand.Sql, dynamicParameters, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType));
+            sqlCommand.OutputParameterOptions.ExecuteOutput(paramName => dynamicParameters.Get<object>(paramName));
+            return result;
+        }
+
         return sqlMonitor.Execute(connection, sqlCommand, () => connection.Execute(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType));
     }
 
@@ -69,6 +77,14 @@ public static class DbConnectionExtensions
     #region Asynchronous method
     public static async Task<int> ExecuteAsync(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null)
     {
+        if (sqlCommand.OutputParameterOptions != null)
+        {
+            var dynamicParameters = new DynamicParameters(sqlCommand.Parameter);
+            var result = await sqlMonitor.ExecuteAsync(connection, sqlCommand, async () => await connection.ExecuteAsync(sqlCommand.Sql, dynamicParameters, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType));
+            sqlCommand.OutputParameterOptions.ExecuteOutput(paramName => dynamicParameters.Get<object>(paramName));
+            return result;
+        }
+
         return await sqlMonitor.ExecuteAsync(connection, sqlCommand, async () => await connection.ExecuteAsync(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType));
     }
 

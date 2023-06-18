@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Example.Dapper.Core.Domain.Handler;
 using Example.Dapper.Core.Domain.Repositories;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Utility.Contracts;
 
 namespace Example.Dapper.Core.Domain.Extensions
 {
@@ -25,6 +27,12 @@ namespace Example.Dapper.Core.Domain.Extensions
             services.RegisterByAssemblyInterface(Assembly.GetExecutingAssembly(), "Repository", ServiceLifetime.Transient);
 
             services.AddTransient(typeof(CommonRepository<>));// 注册通用仓储
+
+            var types = Assembly.GetExecutingAssembly().GetTypes().Where(c => c.IsClass && typeof(ISimpleDo).IsAssignableFrom(c)).ToList();
+            types.ForEach(c =>
+            {
+                services.AddTransient(c);
+            });
 
             #region Database configuration.
 

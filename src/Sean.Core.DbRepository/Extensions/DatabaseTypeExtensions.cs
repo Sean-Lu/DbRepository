@@ -39,7 +39,7 @@ namespace Sean.Core.DbRepository.Extensions
         /// <param name="databaseType"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static string MarkAsSqlInputParameter(this DatabaseType databaseType, string parameter)
+        public static string MarkAsSqlParameter(this DatabaseType databaseType, string parameter)
         {
             if (string.IsNullOrWhiteSpace(parameter))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(parameter));

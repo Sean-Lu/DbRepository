@@ -27,6 +27,8 @@ public class DefaultSqlCommand : ISqlCommand
     public int? CommandTimeout { get; set; }
     public CommandType CommandType { get; set; } = CommandType.Text;
 
+    public OutputParameterOptions OutputParameterOptions { get; set; }
+
     public BindSqlParameterType BindSqlParameterType { get; set; } = BindSqlParameterType.BindByName;
 
     public bool UnusedSqlParameterRemoved => _unusedSqlParameterRemoved;
@@ -163,4 +165,5 @@ public class DefaultSqlCommand : ISqlCommand
 public class DefaultSqlCommand<T> : DefaultSqlCommand, ISqlCommand<T>
 {
     public new T Parameter { get; set; }
+    public new OutputParameterOptions<T> OutputParameterOptions { get; set; }
 }
