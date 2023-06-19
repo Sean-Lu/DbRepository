@@ -99,6 +99,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                 case DatabaseType.MsAccess:
                 case DatabaseType.Informix:
                 case DatabaseType.ShenTong:
+                case DatabaseType.Xugu:
                     {
                         return Execute(connection =>
                         {
@@ -128,6 +129,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                 case DatabaseType.ShenTong:
                                     {
                                         returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
+                                        break;
+                                    }
+                                case DatabaseType.Xugu:
+                                    {
+                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName())}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
                                         break;
                                     }
                             }
@@ -611,6 +617,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                 case DatabaseType.MsAccess:
                 case DatabaseType.Informix:
                 case DatabaseType.ShenTong:
+                case DatabaseType.Xugu:
                     {
                         return await ExecuteAsync(async connection =>
                         {
@@ -640,6 +647,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                 case DatabaseType.ShenTong:
                                     {
                                         returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
+                                        break;
+                                    }
+                                case DatabaseType.Xugu:
+                                    {
+                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName())}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
                                         break;
                                     }
                             }

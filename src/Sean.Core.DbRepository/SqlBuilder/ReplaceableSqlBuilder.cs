@@ -161,6 +161,7 @@ VALUES{2}";
                 }
                 break;
             case DatabaseType.DuckDB:
+            case DatabaseType.Xugu:
             default:
                 throw new NotSupportedException($"[{SqlAdapter.DbType}]The database does not support the 'REPLACE INTO' SQL syntax.");
         }
