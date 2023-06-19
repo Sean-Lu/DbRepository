@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
@@ -15,12 +14,12 @@ public static class MemberInfoExtensions
     /// <returns></returns>
     public static string GetFieldName(this MemberInfo memberInfo)
     {
-        if (memberInfo.GetCustomAttributesExt<NotMappedAttribute>(false).Any())
+        if (memberInfo.GetCustomAttributes<NotMappedAttribute>(false).Any())
         {
             throw new InvalidOperationException($"The member [{memberInfo.DeclaringType?.Name}.{memberInfo.Name}] is not a database table field.");
         }
 
-        var fieldAttribute = memberInfo.GetCustomAttributesExt<ColumnAttribute>(false)?.FirstOrDefault();
+        var fieldAttribute = memberInfo.GetCustomAttributes<ColumnAttribute>(false).FirstOrDefault();
         if (fieldAttribute != null && !string.IsNullOrEmpty(fieldAttribute.Name))
         {
             return fieldAttribute.Name;
@@ -29,8 +28,8 @@ public static class MemberInfoExtensions
         return memberInfo.Name;
     }
 
-    public static IEnumerable<T> GetCustomAttributesExt<T>(this MemberInfo memberInfo, bool inherit) where T : Attribute
+    public static string GetSequenceName(this MemberInfo memberInfo)
     {
-        return memberInfo.GetCustomAttributes<T>(inherit);
+        return memberInfo.GetCustomAttributes<SequenceAttribute>(false).FirstOrDefault()?.Name;
     }
 }

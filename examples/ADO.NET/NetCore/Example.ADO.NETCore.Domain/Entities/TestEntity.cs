@@ -9,13 +9,13 @@ namespace Example.ADO.NETCore.Domain.Entities
     /// 测试表（仅供测试使用）
     /// </summary>
     [Table("Test")]
-    [Sequence("SQ_Test")]
     public class TestEntity : EntityStateBase
     {
         /// <summary>
         /// 自增主键
         /// </summary>
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Sequence("SQ_Test")]
         public virtual long Id { get; set; }
         /// <summary>
         /// 用户id
