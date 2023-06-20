@@ -10,7 +10,7 @@ namespace Sean.Core.DbRepository.Util;
 internal static class SqlBuilderUtil
 {
     #region [Field]
-    public static void IncludeFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void IncludeFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         params string[] fields)
     {
         if (fields == null || !fields.Any()) return;
@@ -19,9 +19,9 @@ internal static class SqlBuilderUtil
         {
             if (string.IsNullOrWhiteSpace(field)) continue;
 
-            if (!includeFieldsList.Exists(c => c.TableName == sqlAdapter.TableName && c.FieldName == field))
+            if (!tableFieldList.Exists(c => c.TableName == sqlAdapter.TableName && c.FieldName == field))
             {
-                includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                tableFieldList.Add(new TableFieldInfoForSqlBuilder
                 {
                     TableName = sqlAdapter.TableName,
                     FieldName = field
@@ -29,20 +29,20 @@ internal static class SqlBuilderUtil
             }
         }
     }
-    public static void IgnoreFields<TEntity>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void IgnoreFields<TEntity>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         params string[] fields)
     {
         if (fields == null || !fields.Any()) return;
 
-        if (!includeFieldsList.Any())
+        if (!tableFieldList.Any())
         {
-            IncludeFields(sqlAdapter, includeFieldsList, typeof(TEntity).GetAllFieldNames().Except(fields).ToArray());
+            IncludeFields(sqlAdapter, tableFieldList, typeof(TEntity).GetAllFieldNames().Except(fields).ToArray());
             return;
         }
 
-        includeFieldsList.RemoveAll(c => c.TableName == sqlAdapter.TableName && fields.Contains(c.FieldName));
+        tableFieldList.RemoveAll(c => c.TableName == sqlAdapter.TableName && fields.Contains(c.FieldName));
     }
-    public static void PrimaryKeyFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void PrimaryKeyFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         params string[] fields)
     {
         if (fields == null || !fields.Any()) return;
@@ -51,14 +51,14 @@ internal static class SqlBuilderUtil
         {
             if (string.IsNullOrWhiteSpace(field)) continue;
 
-            var fieldInfo = includeFieldsList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
+            var fieldInfo = tableFieldList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
             if (fieldInfo != null)
             {
                 fieldInfo.PrimaryKey = true;
             }
             else
             {
-                includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                tableFieldList.Add(new TableFieldInfoForSqlBuilder
                 {
                     TableName = sqlAdapter.TableName,
                     FieldName = field,
@@ -67,7 +67,7 @@ internal static class SqlBuilderUtil
             }
         }
     }
-    public static void IdentityFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void IdentityFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         params string[] fields)
     {
         if (fields == null || !fields.Any()) return;
@@ -76,14 +76,14 @@ internal static class SqlBuilderUtil
         {
             if (string.IsNullOrWhiteSpace(field)) continue;
 
-            var fieldInfo = includeFieldsList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
+            var fieldInfo = tableFieldList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
             if (fieldInfo != null)
             {
                 fieldInfo.Identity = true;
             }
             else
             {
-                includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+                tableFieldList.Add(new TableFieldInfoForSqlBuilder
                 {
                     TableName = sqlAdapter.TableName,
                     FieldName = field,
@@ -92,7 +92,7 @@ internal static class SqlBuilderUtil
             }
         }
     }
-    public static void IncrFields<TEntity, TValue>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void IncrementFields<TEntity, TValue>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
         Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
         var fields = fieldExpression.GetFieldNames();
@@ -116,7 +116,7 @@ internal static class SqlBuilderUtil
             }
         }
     }
-    public static void DecrFields<TEntity, TValue>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void DecrementFields<TEntity, TValue>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
         Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
         var fields = fieldExpression.GetFieldNames();
@@ -140,12 +140,12 @@ internal static class SqlBuilderUtil
             }
         }
     }
-    public static void MaxField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void MaxField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
         if (string.IsNullOrWhiteSpace(fieldName)) return;
 
-        includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+        tableFieldList.Add(new TableFieldInfoForSqlBuilder
         {
             TableName = sqlAdapter.TableName,
             FieldName = $"MAX({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
@@ -153,12 +153,12 @@ internal static class SqlBuilderUtil
             FieldNameFormatted = true
         });
     }
-    public static void MinField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void MinField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
         if (string.IsNullOrWhiteSpace(fieldName)) return;
 
-        includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+        tableFieldList.Add(new TableFieldInfoForSqlBuilder
         {
             TableName = sqlAdapter.TableName,
             FieldName = $"MIN({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
@@ -166,12 +166,12 @@ internal static class SqlBuilderUtil
             FieldNameFormatted = true
         });
     }
-    public static void SumField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void SumField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
         if (string.IsNullOrWhiteSpace(fieldName)) return;
 
-        includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+        tableFieldList.Add(new TableFieldInfoForSqlBuilder
         {
             TableName = sqlAdapter.TableName,
             FieldName = $"SUM({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
@@ -179,12 +179,12 @@ internal static class SqlBuilderUtil
             FieldNameFormatted = true
         });
     }
-    public static void AvgField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void AvgField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
         if (string.IsNullOrWhiteSpace(fieldName)) return;
 
-        includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+        tableFieldList.Add(new TableFieldInfoForSqlBuilder
         {
             TableName = sqlAdapter.TableName,
             FieldName = $"AVG({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
@@ -192,12 +192,12 @@ internal static class SqlBuilderUtil
             FieldNameFormatted = true
         });
     }
-    public static void CountField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void CountField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
         if (string.IsNullOrWhiteSpace(fieldName)) return;
 
-        includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+        tableFieldList.Add(new TableFieldInfoForSqlBuilder
         {
             TableName = sqlAdapter.TableName,
             FieldName = $"COUNT({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
@@ -205,12 +205,12 @@ internal static class SqlBuilderUtil
             FieldNameFormatted = true
         });
     }
-    public static void CountDistinctField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void CountDistinctField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         string fieldName, string aliasName = null)
     {
         if (string.IsNullOrWhiteSpace(fieldName)) return;
 
-        includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+        tableFieldList.Add(new TableFieldInfoForSqlBuilder
         {
             TableName = sqlAdapter.TableName,
             FieldName = $"COUNT(DISTINCT {sqlAdapter.FormatFieldName(fieldName)})",
@@ -218,7 +218,7 @@ internal static class SqlBuilderUtil
             FieldNameFormatted = true
         });
     }
-    public static void DistinctFields<TEntity>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void DistinctFields<TEntity>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
         params string[] fields)
     {
         if (fields == null || !fields.Any()) return;
@@ -235,7 +235,7 @@ internal static class SqlBuilderUtil
             return $"{sqlAdapter.FormatFieldName(fieldName)}";
         }));
 
-        includeFieldsList.Add(new TableFieldInfoForSqlBuilder
+        tableFieldList.Add(new TableFieldInfoForSqlBuilder
         {
             TableName = sqlAdapter.TableName,
             FieldName = $"DISTINCT {distinctFieldNames}",

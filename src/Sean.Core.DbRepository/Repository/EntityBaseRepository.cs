@@ -104,7 +104,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                         return Execute(connection =>
                         {
                             var sqlCommandInsert = this.CreateInsertableBuilder(fieldExpression == null)
-                                .IncludeFields(fieldExpression)
+                                .InsertFields(fieldExpression)
                                 .SetParameter(entity)
                                 .Build();
                             sqlCommandInsert.Connection = connection;
@@ -161,7 +161,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                 case DatabaseType.Oracle:
                     {
                         var sqlCommandReturnId = this.CreateInsertableBuilder(fieldExpression == null)
-                            .IncludeFields(fieldExpression)
+                            .InsertFields(fieldExpression)
                             .ReturnAutoIncrementId()
                             .OutputParameter(entity, keyIdentityProperty)
                             .SetParameter(entity)
@@ -174,7 +174,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                 default:
                     {
                         var sqlCommandReturnId = this.CreateInsertableBuilder(fieldExpression == null)
-                            .IncludeFields(fieldExpression)
+                            .InsertFields(fieldExpression)
                             .ReturnAutoIncrementId()
                             .SetParameter(entity)
                             .Build();
@@ -194,7 +194,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         }
 
         var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression)
+            .InsertFields(fieldExpression)
             .SetParameter(entity)
             .Build();
         sqlCommand.Master = true;
@@ -240,7 +240,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
             {
                 var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
-                    .IncludeFields(fieldExpression)
+                    .InsertFields(fieldExpression)
                     .SetParameter(models)
                     .Build();
                 sqlCommand.Master = true;
@@ -251,7 +251,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         }
 
         var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression)
+            .InsertFields(fieldExpression)
             .SetParameter(entities)
             .Build();
         sqlCommand.Master = true;
@@ -273,7 +273,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.SQLite:
                 {
                     var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
-                        .IncludeFields(fieldExpression)
+                        .InsertFields(fieldExpression)
                         .SetParameter(entity)
                         .Build();
                     sqlCommand.Master = true;
@@ -330,7 +330,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                         return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
                         {
                             var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
-                                .IncludeFields(fieldExpression)
+                                .InsertFields(fieldExpression)
                                 .SetParameter(models)
                                 .Build();
                             sqlCommand.Master = true;
@@ -341,7 +341,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                     }
 
                     var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
-                        .IncludeFields(fieldExpression)
+                        .InsertFields(fieldExpression)
                         .SetParameter(entities)
                         .Build();
                     sqlCommand.Master = true;
@@ -421,7 +421,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
         var sqlCommand = this.CreateUpdateableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression, entity)
+            .UpdateFields(fieldExpression, entity)
             .Where(whereExpression)
             .Build();
         sqlCommand.Master = true;
@@ -580,7 +580,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
         var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression)
+            .SelectFields(fieldExpression)
             .Where(whereExpression)
             .OrderBy(orderBy)
             .Page(pageIndex, pageSize)
@@ -592,7 +592,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
         var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression)
+            .SelectFields(fieldExpression)
             .Where(whereExpression)
             .OrderBy(orderBy)
             .Offset(offset, rows)
@@ -605,7 +605,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
         var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression)
+            .SelectFields(fieldExpression)
             .Where(whereExpression)
             .Build();
         sqlCommand.Master = master;
@@ -686,7 +686,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                         return await ExecuteAsync(async connection =>
                         {
                             var sqlCommandInsert = this.CreateInsertableBuilder(fieldExpression == null)
-                                .IncludeFields(fieldExpression)
+                                .InsertFields(fieldExpression)
                                 .SetParameter(entity)
                                 .Build();
                             sqlCommandInsert.Connection = connection;
@@ -743,7 +743,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                 case DatabaseType.Oracle:
                     {
                         var sqlCommandReturnId = this.CreateInsertableBuilder(fieldExpression == null)
-                            .IncludeFields(fieldExpression)
+                            .InsertFields(fieldExpression)
                             .ReturnAutoIncrementId()
                             .OutputParameter(entity, keyIdentityProperty)
                             .SetParameter(entity)
@@ -756,7 +756,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                 default:
                     {
                         var sqlCommandReturnId = this.CreateInsertableBuilder(fieldExpression == null)
-                            .IncludeFields(fieldExpression)
+                            .InsertFields(fieldExpression)
                             .ReturnAutoIncrementId()
                             .SetParameter(entity)
                             .Build();
@@ -776,7 +776,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         }
 
         var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression)
+            .InsertFields(fieldExpression)
             .SetParameter(entity)
             .Build();
         sqlCommand.Master = true;
@@ -822,7 +822,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
             {
                 var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
-                    .IncludeFields(fieldExpression)
+                    .InsertFields(fieldExpression)
                     .SetParameter(models)
                     .Build();
                 sqlCommand.Master = true;
@@ -833,7 +833,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         }
 
         var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression)
+            .InsertFields(fieldExpression)
             .SetParameter(entities)
             .Build();
         sqlCommand.Master = true;
@@ -855,7 +855,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.SQLite:
                 {
                     var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
-                        .IncludeFields(fieldExpression)
+                        .InsertFields(fieldExpression)
                         .SetParameter(entity)
                         .Build();
                     sqlCommand.Master = true;
@@ -912,7 +912,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                         return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
                         {
                             var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
-                                .IncludeFields(fieldExpression)
+                                .InsertFields(fieldExpression)
                                 .SetParameter(models)
                                 .Build();
                             sqlCommand.Master = true;
@@ -923,7 +923,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                     }
 
                     var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
-                        .IncludeFields(fieldExpression)
+                        .InsertFields(fieldExpression)
                         .SetParameter(entities)
                         .Build();
                     sqlCommand.Master = true;
@@ -1003,7 +1003,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual async Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
         var sqlCommand = this.CreateUpdateableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression, entity)
+            .UpdateFields(fieldExpression, entity)
             .Where(whereExpression)
             .Build();
         sqlCommand.Master = true;
@@ -1162,7 +1162,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
         var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression)
+            .SelectFields(fieldExpression)
             .Where(whereExpression)
             .OrderBy(orderBy)
             .Page(pageIndex, pageSize)
@@ -1174,7 +1174,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual async Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
         var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression)
+            .SelectFields(fieldExpression)
             .Where(whereExpression)
             .OrderBy(orderBy)
             .Offset(offset, rows)
@@ -1187,7 +1187,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     public virtual async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
         var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
-            .IncludeFields(fieldExpression)
+            .SelectFields(fieldExpression)
             .Where(whereExpression)
             .Build();
         sqlCommand.Master = master;

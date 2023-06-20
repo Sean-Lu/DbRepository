@@ -670,7 +670,7 @@ namespace Sean.Core.DbRepository.Test
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>
             {
-                {nameof(TestEntity.IsVip),true}
+                { "IsVip", true }
             };
             Assert.AreEqual("`IsVip` = @IsVip AND `UpdateTime` is not null", whereClause);
             AssertSqlParameters(expectedParameters, parameters);

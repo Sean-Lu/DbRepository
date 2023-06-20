@@ -12,7 +12,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
 {
     //private const string SqlTemplate = "SELECT {1} FROM {0}{2}";
 
-    private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
+    private readonly List<TableFieldInfoForSqlBuilder> _tableFieldList = new();
 
     private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
     private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
@@ -52,64 +52,64 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
         var sqlBuilder = new QueryableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
         if (autoIncludeFields)
         {
-            sqlBuilder.IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
+            sqlBuilder.SelectFields(typeof(TEntity).GetAllFieldNames().ToArray());
         }
         return sqlBuilder;
     }
 
     #region [Field]
-    public virtual IQueryable<TEntity> IncludeFields(params string[] fields)
+    public virtual IQueryable<TEntity> SelectFields(params string[] fields)
     {
-        SqlBuilderUtil.IncludeFields(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.IncludeFields(SqlAdapter, _tableFieldList, fields);
         return this;
     }
     public virtual IQueryable<TEntity> IgnoreFields(params string[] fields)
     {
-        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _tableFieldList, fields);
         return this;
     }
 
     public IQueryable<TEntity> MaxField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
-        SqlBuilderUtil.MaxField(SqlAdapter, _includeFieldsList, fieldName, aliasName, fieldNameFormatted);
+        SqlBuilderUtil.MaxField(SqlAdapter, _tableFieldList, fieldName, aliasName, fieldNameFormatted);
         return this;
     }
     public IQueryable<TEntity> MinField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
-        SqlBuilderUtil.MinField(SqlAdapter, _includeFieldsList, fieldName, aliasName, fieldNameFormatted);
+        SqlBuilderUtil.MinField(SqlAdapter, _tableFieldList, fieldName, aliasName, fieldNameFormatted);
         return this;
     }
     public IQueryable<TEntity> SumField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
-        SqlBuilderUtil.SumField(SqlAdapter, _includeFieldsList, fieldName, aliasName, fieldNameFormatted);
+        SqlBuilderUtil.SumField(SqlAdapter, _tableFieldList, fieldName, aliasName, fieldNameFormatted);
         return this;
     }
     public IQueryable<TEntity> AvgField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
-        SqlBuilderUtil.AvgField(SqlAdapter, _includeFieldsList, fieldName, aliasName, fieldNameFormatted);
+        SqlBuilderUtil.AvgField(SqlAdapter, _tableFieldList, fieldName, aliasName, fieldNameFormatted);
         return this;
     }
     public IQueryable<TEntity> CountField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
-        SqlBuilderUtil.CountField(SqlAdapter, _includeFieldsList, fieldName, aliasName, fieldNameFormatted);
+        SqlBuilderUtil.CountField(SqlAdapter, _tableFieldList, fieldName, aliasName, fieldNameFormatted);
         return this;
     }
     public IQueryable<TEntity> CountDistinctField(string fieldName, string aliasName = null)
     {
-        SqlBuilderUtil.CountDistinctField(SqlAdapter, _includeFieldsList, fieldName, aliasName);
+        SqlBuilderUtil.CountDistinctField(SqlAdapter, _tableFieldList, fieldName, aliasName);
         return this;
     }
     public IQueryable<TEntity> DistinctFields(params string[] fields)
     {
-        SqlBuilderUtil.DistinctFields<TEntity>(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.DistinctFields<TEntity>(SqlAdapter, _tableFieldList, fields);
         return this;
     }
 
-    public virtual IQueryable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression)
+    public virtual IQueryable<TEntity> SelectFields(Expression<Func<TEntity, object>> fieldExpression)
     {
         if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames().ToArray();
-        return IncludeFields(fields);
+        return SelectFields(fields);
     }
     public virtual IQueryable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
     {
@@ -442,7 +442,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
 
         var sql = new DefaultSqlCommand();
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-        var selectFields = _includeFieldsList.Any() ? string.Join(", ", _includeFieldsList.Select(fieldInfo =>
+        var selectFields = _tableFieldList.Any() ? string.Join(", ", _tableFieldList.Select(fieldInfo =>
         {
             if (fieldInfo.FieldNameFormatted)
             {

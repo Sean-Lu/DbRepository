@@ -17,7 +17,7 @@ public class InsertableSqlBuilder<TEntity> : BaseSqlBuilder, IInsertable<TEntity
     private const string SqlIndentedTemplate = @"INSERT INTO {0}({1}) 
 VALUES{2}";
 
-    private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
+    private readonly List<TableFieldInfoForSqlBuilder> _tableFieldList = new();
     private bool _returnLastInsertId;
     private object _parameter;
     private OutputParameterOptions _outputParameterOptions;
@@ -39,34 +39,34 @@ VALUES{2}";
         var sqlBuilder = new InsertableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
         if (autoIncludeFields)
         {
-            sqlBuilder.IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
+            sqlBuilder.InsertFields(typeof(TEntity).GetAllFieldNames().ToArray());
             sqlBuilder.IdentityFields(typeof(TEntity).GetIdentityFieldNames().ToArray());
         }
         return sqlBuilder;
     }
 
     #region [Field]
-    public virtual IInsertable<TEntity> IncludeFields(params string[] fields)
+    public virtual IInsertable<TEntity> InsertFields(params string[] fields)
     {
-        SqlBuilderUtil.IncludeFields(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.IncludeFields(SqlAdapter, _tableFieldList, fields);
         return this;
     }
     public virtual IInsertable<TEntity> IgnoreFields(params string[] fields)
     {
-        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _tableFieldList, fields);
         return this;
     }
     public virtual IInsertable<TEntity> IdentityFields(params string[] fields)
     {
-        SqlBuilderUtil.IdentityFields(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.IdentityFields(SqlAdapter, _tableFieldList, fields);
         return this;
     }
 
-    public virtual IInsertable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression)
+    public virtual IInsertable<TEntity> InsertFields(Expression<Func<TEntity, object>> fieldExpression)
     {
         if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames().ToArray();
-        return IncludeFields(fields);
+        return InsertFields(fields);
     }
     public virtual IInsertable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
     {
@@ -113,7 +113,7 @@ VALUES{2}";
     {
         CheckIncludeIdentityFields();
 
-        var fields = _includeFieldsList.Where(c => !c.Identity).ToList();
+        var fields = _tableFieldList.Where(c => !c.Identity).ToList();
         if (!fields.Any())
             return default;
 
@@ -239,13 +239,13 @@ VALUES{2}";
                 case DatabaseType.DuckDB:
                 case DatabaseType.Firebird:
                     {
-                        var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(_includeFieldsList.FirstOrDefault(c => c.Identity).FieldName)}";
+                        var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(_tableFieldList.FirstOrDefault(c => c.Identity).FieldName)}";
                         sb.Append($" {returnIdSql}");
                         break;
                     }
                 case DatabaseType.Oracle:
                     {
-                        var idPropInfo = _includeFieldsList.FirstOrDefault(c => c.Identity);
+                        var idPropInfo = _tableFieldList.FirstOrDefault(c => c.Identity);
                         var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == idPropInfo.FieldName);
                         var parameterName = findFieldInfo?.Property.Name ?? idPropInfo.FieldName;
                         var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(idPropInfo.FieldName)} INTO {SqlAdapter.FormatSqlParameter(parameterName)}";
@@ -281,9 +281,9 @@ VALUES{2}";
 
     private void CheckIncludeIdentityFields()
     {
-        if (_parameter != null && _includeFieldsList.Any(c => c.Identity))
+        if (_parameter != null && _tableFieldList.Any(c => c.Identity))
         {
-            var identityFieldInfos = _includeFieldsList.Where(c => c.Identity);
+            var identityFieldInfos = _tableFieldList.Where(c => c.Identity);
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             if (_parameter is IEnumerable<TEntity> entities)
             {

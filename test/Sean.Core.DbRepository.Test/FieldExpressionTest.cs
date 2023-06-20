@@ -12,7 +12,7 @@ namespace Sean.Core.DbRepository.Test
     /// Expression表达式树测试：fieldExpression
     /// </summary>
     [TestClass]
-    public class FieldExpressionTest
+    public class FieldExpressionTest : TestBase
     {
         //private readonly TestEntity _model;
 
@@ -35,7 +35,7 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status)
+                "Status"
             };
             AssertFields(expectedFields, fields);
         }
@@ -50,8 +50,8 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -66,8 +66,8 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -82,8 +82,8 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -97,7 +97,7 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status)
+                "Status"
             };
             AssertFields(expectedFields, fields);
         }
@@ -109,7 +109,7 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status)
+                "Status"
             };
             AssertFields(expectedFields, fields);
         }
@@ -122,7 +122,7 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status)
+                "Status"
             };
             AssertFields(expectedFields, fields);
         }
@@ -139,7 +139,7 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status)
+                "Status"
             };
             AssertFields(expectedFields, fields);
         }
@@ -155,7 +155,7 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status)
+                "Status"
             };
             AssertFields(expectedFields, fields);
         }
@@ -168,15 +168,15 @@ namespace Sean.Core.DbRepository.Test
         {
             List<string> fieldList = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -189,14 +189,14 @@ namespace Sean.Core.DbRepository.Test
         {
             Expression<Func<TestEntity, object>> fieldExpression = entity => new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -212,8 +212,8 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -228,8 +228,8 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -242,15 +242,15 @@ namespace Sean.Core.DbRepository.Test
         {
             IList<string> fieldList = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -263,15 +263,15 @@ namespace Sean.Core.DbRepository.Test
         {
             IEnumerable<string> fieldList = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -284,15 +284,15 @@ namespace Sean.Core.DbRepository.Test
         {
             string[] fieldList = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             }.ToArray();
             Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -305,14 +305,14 @@ namespace Sean.Core.DbRepository.Test
         {
             Expression<Func<TestEntity, object>> fieldExpression = entity => new string[]
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
             AssertFields(expectedFields, fields);
         }
@@ -330,28 +330,19 @@ namespace Sean.Core.DbRepository.Test
             var fields = fieldExpression.GetFieldNames();
             var expectedFields = new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime),
-                nameof(TestEntity.Age)
+                "Status",
+                "UpdateTime",
+                "Age"
             };
             AssertFields(expectedFields, fields);
-        }
-
-        private void AssertFields(List<string> expectedFields, List<string> actualFields)
-        {
-            Assert.AreEqual(expectedFields.Count, actualFields.Count);
-            foreach (var field in expectedFields)
-            {
-                Assert.IsTrue(actualFields.Contains(field), $"The {nameof(actualFields)} does not contain <{field}>.");
-            }
         }
 
         private List<string> GetFieldList()
         {
             return new List<string>
             {
-                nameof(TestEntity.Status),
-                nameof(TestEntity.UpdateTime)
+                "Status",
+                "UpdateTime"
             };
         }
     }

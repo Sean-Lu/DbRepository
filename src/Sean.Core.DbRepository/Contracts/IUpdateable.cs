@@ -7,11 +7,11 @@ public interface IUpdateable<TEntity> : IBaseSqlBuilder
 {
     #region [Field]
     /// <summary>
-    /// Include fields.
+    /// UPDATE fields.
     /// </summary>
     /// <param name="fields">Database table field name.</param>
     /// <returns></returns>
-    IUpdateable<TEntity> IncludeFields(params string[] fields);
+    IUpdateable<TEntity> UpdateFields(params string[] fields);
     /// <summary>
     /// Ignore fields.
     /// </summary>
@@ -26,12 +26,12 @@ public interface IUpdateable<TEntity> : IBaseSqlBuilder
     IUpdateable<TEntity> PrimaryKeyFields(params string[] fields);
 
     /// <summary>
-    /// Include fields.
+    /// UPDATE fields.
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <param name="entity"></param>
     /// <returns></returns>
-    IUpdateable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression, TEntity entity = default);
+    IUpdateable<TEntity> UpdateFields(Expression<Func<TEntity, object>> fieldExpression, TEntity entity = default);
     /// <summary>
     /// Ignore fields.
     /// </summary>

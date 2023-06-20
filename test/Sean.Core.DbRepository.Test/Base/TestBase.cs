@@ -14,5 +14,14 @@ namespace Sean.Core.DbRepository.Test
                 Assert.IsTrue(expectedDictionary[key].Equals(actualDictionary[key]), $"Dictionary key: <{key}>, the expected value is <{expectedDictionary[key]}>, the actual value is <{actualDictionary[key]}>.");
             }
         }
+
+        protected void AssertFields(List<string> expectedFields, List<string> actualFields)
+        {
+            Assert.AreEqual(expectedFields.Count, actualFields.Count);
+            foreach (var field in expectedFields)
+            {
+                Assert.IsTrue(actualFields.Contains(field), $"The {nameof(actualFields)} does not contain <{field}>.");
+            }
+        }
     }
 }

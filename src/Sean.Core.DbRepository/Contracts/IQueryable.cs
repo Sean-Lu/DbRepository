@@ -7,11 +7,11 @@ public interface IQueryable<TEntity> : IBaseSqlBuilder
 {
     #region [Field]
     /// <summary>
-    /// Include fields.
+    /// SELECT fields.
     /// </summary>
     /// <param name="fields">Database table field name.</param>
     /// <returns></returns>
-    IQueryable<TEntity> IncludeFields(params string[] fields);
+    IQueryable<TEntity> SelectFields(params string[] fields);
     /// <summary>
     /// Ignore fields.
     /// </summary>
@@ -74,11 +74,11 @@ public interface IQueryable<TEntity> : IBaseSqlBuilder
     IQueryable<TEntity> DistinctFields(params string[] fields);
 
     /// <summary>
-    /// Include fields.
+    /// SELECT fields.
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <returns></returns>
-    IQueryable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression);
+    IQueryable<TEntity> SelectFields(Expression<Func<TEntity, object>> fieldExpression);
     /// <summary>
     /// Ignore fields.
     /// </summary>

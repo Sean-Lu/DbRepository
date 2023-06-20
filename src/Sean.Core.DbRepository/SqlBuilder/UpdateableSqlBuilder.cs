@@ -13,7 +13,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     private const string SqlTemplate = "UPDATE {0} SET {1}{2}";
     private const string SqlTemplateForClickHouse = "ALTER TABLE {0} UPDATE {1}{2}";
 
-    private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
+    private readonly List<TableFieldInfoForSqlBuilder> _tableFieldList = new();
 
     private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
     private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
@@ -42,30 +42,30 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
         var sqlBuilder = new UpdateableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
         if (autoIncludeFields)
         {
-            sqlBuilder.IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
+            sqlBuilder.UpdateFields(typeof(TEntity).GetAllFieldNames().ToArray());
             sqlBuilder.PrimaryKeyFields(typeof(TEntity).GetPrimaryKeys().ToArray());
         }
         return sqlBuilder;
     }
 
     #region [Field]
-    public virtual IUpdateable<TEntity> IncludeFields(params string[] fields)
+    public virtual IUpdateable<TEntity> UpdateFields(params string[] fields)
     {
-        SqlBuilderUtil.IncludeFields(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.IncludeFields(SqlAdapter, _tableFieldList, fields);
         return this;
     }
     public virtual IUpdateable<TEntity> IgnoreFields(params string[] fields)
     {
-        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _tableFieldList, fields);
         return this;
     }
     public virtual IUpdateable<TEntity> PrimaryKeyFields(params string[] fields)
     {
-        SqlBuilderUtil.PrimaryKeyFields(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.PrimaryKeyFields(SqlAdapter, _tableFieldList, fields);
         return this;
     }
 
-    public virtual IUpdateable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression, TEntity entity = default)
+    public virtual IUpdateable<TEntity> UpdateFields(Expression<Func<TEntity, object>> fieldExpression, TEntity entity = default)
     {
         if (fieldExpression == null)
         {
@@ -77,7 +77,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
         }
 
         var fields = fieldExpression.GetFieldNames().ToArray();
-        IncludeFields(fields);
+        UpdateFields(fields);
 
         if (entity != null)
         {
@@ -105,12 +105,12 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
 
     public virtual IUpdateable<TEntity> IncrementFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
-        SqlBuilderUtil.IncrFields(SqlAdapter, _includeFieldsList, fieldExpression, value);
+        SqlBuilderUtil.IncrementFields(SqlAdapter, _tableFieldList, fieldExpression, value);
         return this;
     }
     public virtual IUpdateable<TEntity> DecrementFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
-        SqlBuilderUtil.DecrFields(SqlAdapter, _includeFieldsList, fieldExpression, value);
+        SqlBuilderUtil.DecrementFields(SqlAdapter, _tableFieldList, fieldExpression, value);
         return this;
     }
     #endregion
@@ -274,9 +274,9 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
         if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
         {
             #region Set the primary key field to the [where] filtering condition.
-            if (_includeFieldsList.Any(c => c.PrimaryKey))
+            if (_tableFieldList.Any(c => c.PrimaryKey))
             {
-                foreach (var pks in _includeFieldsList.Where(c => c.PrimaryKey))
+                foreach (var pks in _tableFieldList.Where(c => c.PrimaryKey))
                 {
                     var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == pks.FieldName);
                     var parameterName = findFieldInfo?.Property.Name ?? pks.FieldName;
@@ -298,7 +298,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
         if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
-        var fields = _includeFieldsList.Where(c => !c.PrimaryKey).ToList();
+        var fields = _tableFieldList.Where(c => !c.PrimaryKey).ToList();
         if (!fields.Any())
         {
             throw new InvalidOperationException("No fields to update.");

@@ -8,11 +8,11 @@ public interface IInsertable<TEntity> : IBaseSqlBuilder
 {
     #region [Field]
     /// <summary>
-    /// Include fields.
+    /// INSERT fields.
     /// </summary>
     /// <param name="fields">Database table field name.</param>
     /// <returns></returns>
-    IInsertable<TEntity> IncludeFields(params string[] fields);
+    IInsertable<TEntity> InsertFields(params string[] fields);
     /// <summary>
     /// Ignore fields.
     /// </summary>
@@ -27,11 +27,11 @@ public interface IInsertable<TEntity> : IBaseSqlBuilder
     IInsertable<TEntity> IdentityFields(params string[] fields);
 
     /// <summary>
-    /// Include fields.
+    /// INSERT fields.
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <returns></returns>
-    IInsertable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression);
+    IInsertable<TEntity> InsertFields(Expression<Func<TEntity, object>> fieldExpression);
     /// <summary>
     /// Ignore fields.
     /// </summary>

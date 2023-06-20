@@ -13,7 +13,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateMaxField()
         {
             var sqlCommand = QueryableSqlBuilder<TestEntity>.Create(DatabaseType.MySql, false)
-                .IncludeFields(entity => entity.UserId)
+                .SelectFields(entity => entity.UserId)
                 .MaxField(entity => entity.AccountBalance, "MaxValue")
                 .Where(entity => entity.Status == 1)
                 .GroupByField(entity => entity.UserId)
@@ -27,7 +27,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateMinField()
         {
             var sqlCommand = QueryableSqlBuilder<TestEntity>.Create(DatabaseType.MySql, false)
-                .IncludeFields(entity => entity.UserId)
+                .SelectFields(entity => entity.UserId)
                 .MinField(entity => entity.AccountBalance, "MinValue")
                 .Where(entity => entity.Status == 1)
                 .GroupByField(entity => entity.UserId)
@@ -41,7 +41,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateSumField()
         {
             var sqlCommand = QueryableSqlBuilder<TestEntity>.Create(DatabaseType.MySql, false)
-                .IncludeFields(entity => entity.UserId)
+                .SelectFields(entity => entity.UserId)
                 .SumField(entity => entity.AccountBalance, "SumValue")
                 .Where(entity => entity.Status == 1)
                 .GroupByField(entity => entity.UserId)
@@ -55,9 +55,8 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateSumField2()
         {
             var sqlCommand = QueryableSqlBuilder<TestEntity>.Create(DatabaseType.MySql, false)
-                .IncludeFields(entity => entity.UserId)
-                .SumField($"`{nameof(TestEntity.AccountBalance)}`-`{nameof(TestEntity.AccountBalance2)}`", "SumValue", true)
-                //.SumField(entity => $"`{nameof(entity.AccountBalance)}`-`{nameof(entity.AccountBalance2)}`", "SumValue", true)
+                .SelectFields(entity => entity.UserId)
+                .SumField($"`{Table<TestEntity>.Field(entity => entity.AccountBalance)}`-`{Table<TestEntity>.Field(entity => entity.AccountBalance2)}`", "SumValue", true)
                 .Where(entity => entity.Status == 1)
                 .GroupByField(entity => entity.UserId)
                 .Build();
@@ -70,7 +69,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateAvgField()
         {
             var sqlCommand = QueryableSqlBuilder<TestEntity>.Create(DatabaseType.MySql, false)
-                .IncludeFields(entity => entity.UserId)
+                .SelectFields(entity => entity.UserId)
                 .AvgField(entity => entity.AccountBalance, "AvgValue")
                 .Where(entity => entity.Status == 1)
                 .GroupByField(entity => entity.UserId)
@@ -84,7 +83,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateCountField()
         {
             var sqlCommand = QueryableSqlBuilder<TestEntity>.Create(DatabaseType.MySql, false)
-                .IncludeFields(entity => entity.UserId)
+                .SelectFields(entity => entity.UserId)
                 .CountField(entity => entity.AccountBalance, "CountValue")
                 .Where(entity => entity.Status == 1)
                 .GroupByField(entity => entity.UserId)

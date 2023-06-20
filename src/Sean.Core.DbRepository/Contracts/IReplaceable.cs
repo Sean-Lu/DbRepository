@@ -7,11 +7,11 @@ public interface IReplaceable<TEntity> : IBaseSqlBuilder
 {
     #region [Field]
     /// <summary>
-    /// Include fields.
+    /// INSERT fields.
     /// </summary>
     /// <param name="fields">Database table field name.</param>
     /// <returns></returns>
-    IReplaceable<TEntity> IncludeFields(params string[] fields);
+    IReplaceable<TEntity> InsertFields(params string[] fields);
     /// <summary>
     /// Ignore fields.
     /// </summary>
@@ -20,11 +20,11 @@ public interface IReplaceable<TEntity> : IBaseSqlBuilder
     IReplaceable<TEntity> IgnoreFields(params string[] fields);
 
     /// <summary>
-    /// Include fields.
+    /// INSERT fields.
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <returns></returns>
-    IReplaceable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression);
+    IReplaceable<TEntity> InsertFields(Expression<Func<TEntity, object>> fieldExpression);
     /// <summary>
     /// Ignore fields.
     /// </summary>

@@ -14,7 +14,7 @@ public class ReplaceableSqlBuilder<TEntity> : BaseSqlBuilder, IReplaceable<TEnti
     private const string SqlIndentedTemplate = @"REPLACE INTO {0}({1}) 
 VALUES{2}";
 
-    private readonly List<TableFieldInfoForSqlBuilder> _includeFieldsList = new();
+    private readonly List<TableFieldInfoForSqlBuilder> _tableFieldList = new();
     private object _parameter;
 
     private ReplaceableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
@@ -34,28 +34,28 @@ VALUES{2}";
         var sqlBuilder = new ReplaceableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
         if (autoIncludeFields)
         {
-            sqlBuilder.IncludeFields(typeof(TEntity).GetAllFieldNames().ToArray());
+            sqlBuilder.InsertFields(typeof(TEntity).GetAllFieldNames().ToArray());
         }
         return sqlBuilder;
     }
 
     #region [Field]
-    public virtual IReplaceable<TEntity> IncludeFields(params string[] fields)
+    public virtual IReplaceable<TEntity> InsertFields(params string[] fields)
     {
-        SqlBuilderUtil.IncludeFields(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.IncludeFields(SqlAdapter, _tableFieldList, fields);
         return this;
     }
     public virtual IReplaceable<TEntity> IgnoreFields(params string[] fields)
     {
-        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _includeFieldsList, fields);
+        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _tableFieldList, fields);
         return this;
     }
 
-    public virtual IReplaceable<TEntity> IncludeFields(Expression<Func<TEntity, object>> fieldExpression)
+    public virtual IReplaceable<TEntity> InsertFields(Expression<Func<TEntity, object>> fieldExpression)
     {
         if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames().ToArray();
-        return IncludeFields(fields);
+        return InsertFields(fields);
     }
     public virtual IReplaceable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
     {
@@ -73,7 +73,7 @@ VALUES{2}";
 
     protected override ISqlCommand BuildSqlCommand()
     {
-        var fields = _includeFieldsList;
+        var fields = _tableFieldList;
         if (!fields.Any())
             return default;
 
