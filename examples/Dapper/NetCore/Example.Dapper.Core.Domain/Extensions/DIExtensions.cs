@@ -137,18 +137,14 @@ namespace Example.Dapper.Core.Domain.Extensions
                 };
                 options.IsTableExists = (dbType, connection, tableName) =>
                 {
-                    if (dbType == DatabaseType.MsAccess)
+                    return connection switch
                     {
-                        return connection switch
-                        {
 #if UseMsAccess
-                            System.Data.OleDb.OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
-                            System.Data.Odbc.OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
+                        System.Data.OleDb.OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
+                        System.Data.Odbc.OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
 #endif
-                            _ => null
-                        };
-                    }
-                    return null;
+                        _ => null
+                    };
                 };
                 options.BulkEntityCount = 200;
                 options.JsonSerializer = NewJsonSerializer.Instance;

@@ -74,9 +74,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Dtos\" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Sean.Core.DependencyInjection">
       <Version>1.0.1</Version>
     </PackageReference>

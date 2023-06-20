@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dtos\TestDto.cs" />
     <Compile Include="Entities\CheckInLogEntity.cs" />
     <Compile Include="Entities\TestEntity.cs" />
     <Compile Include="Entities\UserEntity.cs" />

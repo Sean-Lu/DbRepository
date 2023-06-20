@@ -332,19 +332,15 @@ public static class RepositoryExtensions
 #endif
         using (var connection = repository.Factory.OpenNewConnection(connectionString))
         {
-            exists = DbContextConfiguration.Options.IsTableExists?.Invoke(repository.DbType, connection, tableName);
-
-            if (!exists.HasValue && repository.DbType == DatabaseType.MsAccess)
-            {
+            exists = DbContextConfiguration.Options.IsTableExists?.Invoke(repository.DbType, connection, tableName) ??
+                     connection switch
+                     {
 #if NETFRAMEWORK
-                exists = connection switch
-                {
-                    OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
-                    OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
-                    _ => null
-                };
+                         OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
+                         OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
 #endif
-            }
+                         _ => null
+                     };
 
             if (!exists.HasValue)
             {
@@ -381,19 +377,15 @@ public static class RepositoryExtensions
 #endif
         using (var connection = repository.Factory.OpenNewConnection(connectionString))
         {
-            exists = DbContextConfiguration.Options.IsTableFieldExists?.Invoke(repository.DbType, connection, tableName, fieldName);
-
-            if (!exists.HasValue && repository.DbType == DatabaseType.MsAccess)
-            {
+            exists = DbContextConfiguration.Options.IsTableFieldExists?.Invoke(repository.DbType, connection, tableName, fieldName) ??
+                     connection switch
+                     {
 #if NETFRAMEWORK
-                exists = connection switch
-                {
-                    OleDbConnection oleDbConnection => oleDbConnection.IsTableFieldExists(tableName, fieldName),
-                    OdbcConnection odbcConnection => odbcConnection.IsTableFieldExists(tableName, fieldName),
-                    _ => null
-                };
+                         OleDbConnection oleDbConnection => oleDbConnection.IsTableFieldExists(tableName, fieldName),
+                         OdbcConnection odbcConnection => odbcConnection.IsTableFieldExists(tableName, fieldName),
 #endif
-            }
+                         _ => null
+                     };
 
             if (!exists.HasValue)
             {
@@ -430,19 +422,15 @@ public static class RepositoryExtensions
 #endif
         using (var connection = repository.Factory.OpenNewConnection(connectionString))
         {
-            exists = DbContextConfiguration.Options.IsTableExists?.Invoke(repository.DbType, connection, tableName);
-
-            if (!exists.HasValue && repository.DbType == DatabaseType.MsAccess)
-            {
+            exists = DbContextConfiguration.Options.IsTableExists?.Invoke(repository.DbType, connection, tableName) ??
+                     connection switch
+                     {
 #if NETFRAMEWORK
-                exists = connection switch
-                {
-                    OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
-                    OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
-                    _ => null
-                };
+                         OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
+                         OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
 #endif
-            }
+                         _ => null
+                     };
 
             if (!exists.HasValue)
             {
@@ -479,19 +467,15 @@ public static class RepositoryExtensions
 #endif
         using (var connection = repository.Factory.OpenNewConnection(connectionString))
         {
-            exists = DbContextConfiguration.Options.IsTableFieldExists?.Invoke(repository.DbType, connection, tableName, fieldName);
-
-            if (!exists.HasValue && repository.DbType == DatabaseType.MsAccess)
-            {
+            exists = DbContextConfiguration.Options.IsTableFieldExists?.Invoke(repository.DbType, connection, tableName, fieldName) ??
+                     connection switch
+                     {
 #if NETFRAMEWORK
-                exists = connection switch
-                {
-                    OleDbConnection oleDbConnection => oleDbConnection.IsTableFieldExists(tableName, fieldName),
-                    OdbcConnection odbcConnection => odbcConnection.IsTableFieldExists(tableName, fieldName),
-                    _ => null
-                };
+                         OleDbConnection oleDbConnection => oleDbConnection.IsTableFieldExists(tableName, fieldName),
+                         OdbcConnection odbcConnection => odbcConnection.IsTableFieldExists(tableName, fieldName),
 #endif
-            }
+                         _ => null
+                     };
 
             if (!exists.HasValue)
             {

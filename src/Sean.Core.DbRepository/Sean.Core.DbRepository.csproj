@@ -3,9 +3,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net45;net46;netstandard2;netstandard2.1;net5</TargetFrameworks>
-		<Description>ORM framework, support databases: MySQL, MariaDB, TiDB, OceanBase, SQL Server, Oracle, SQLite, DuckDB, MS Access, Firebird, PostgreSql, OpenGauss, IvorySQL, DB2, Informix, ClickHouse, DM(达梦), KingbaseES(人大金仓), ShenTong(神通), Xugu（虚谷）, ...</Description>
+		<Description>ORM framework, support databases: MySQL, MariaDB, TiDB, OceanBase, SQL Server, Oracle, SQLite, DuckDB, MS Access, Firebird, PostgreSql, OpenGauss, IvorySQL, DB2, Informix, ClickHouse, DM(达梦), KingbaseES(人大金仓), ShenTong(神通), Xugu(虚谷), ...</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>2.1.10</Version>
+		<Version>2.1.11</Version>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">

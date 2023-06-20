@@ -6,12 +6,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public abstract class SqlWhereClauseBuilder
-{
-
-}
-
-public class SqlWhereClauseBuilder<TEntity> : SqlWhereClauseBuilder
+public class SqlWhereClauseBuilder<TEntity>
 {
     public ISqlAdapter SqlAdapter => _sqlAdapter;
     public IDictionary<string, object> Parameter => _parameter;
