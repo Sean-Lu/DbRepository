@@ -103,7 +103,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                     {
                         return Execute(connection =>
                         {
-                            var sqlCommandInsert = this.GetSqlForAdd(entity, false, fieldExpression);
+                            var sqlCommandInsert = this.CreateInsertableBuilder(fieldExpression == null)
+                                .IncludeFields(fieldExpression)
+                                .SetParameter(entity)
+                                .Build();
                             sqlCommandInsert.Connection = connection;
                             sqlCommandInsert.Transaction = transaction;
                             sqlCommandInsert.CommandTimeout = CommandTimeout;
@@ -157,7 +160,12 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                     }
                 case DatabaseType.Oracle:
                     {
-                        var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression, keyIdentityProperty);
+                        var sqlCommandReturnId = this.CreateInsertableBuilder(fieldExpression == null)
+                            .IncludeFields(fieldExpression)
+                            .ReturnAutoIncrementId()
+                            .OutputParameter(entity, keyIdentityProperty)
+                            .SetParameter(entity)
+                            .Build();
                         sqlCommandReturnId.Master = true;
                         sqlCommandReturnId.Transaction = transaction;
                         sqlCommandReturnId.CommandTimeout = CommandTimeout;
@@ -165,7 +173,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                     }
                 default:
                     {
-                        var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
+                        var sqlCommandReturnId = this.CreateInsertableBuilder(fieldExpression == null)
+                            .IncludeFields(fieldExpression)
+                            .ReturnAutoIncrementId()
+                            .SetParameter(entity)
+                            .Build();
                         sqlCommandReturnId.Master = true;
                         sqlCommandReturnId.Transaction = transaction;
                         sqlCommandReturnId.CommandTimeout = CommandTimeout;
@@ -181,7 +193,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             }
         }
 
-        var sqlCommand = this.GetSqlForAdd(entity, false, fieldExpression);
+        var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression)
+            .SetParameter(entity)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -224,7 +239,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         {
             return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
             {
-                var sqlCommand = this.GetSqlForBulkAdd(models, fieldExpression);
+                var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
+                    .IncludeFields(fieldExpression)
+                    .SetParameter(models)
+                    .Build();
                 sqlCommand.Master = true;
                 sqlCommand.Transaction = transaction;
                 sqlCommand.CommandTimeout = CommandTimeout;
@@ -232,7 +250,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             });
         }
 
-        var sqlCommand = this.GetSqlForBulkAdd(entities, fieldExpression);
+        var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression)
+            .SetParameter(entities)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -251,7 +272,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.OceanBase:
             case DatabaseType.SQLite:
                 {
-                    var sqlCommand = this.GetSqlForAddOrUpdate(entity, fieldExpression);
+                    var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
+                        .IncludeFields(fieldExpression)
+                        .SetParameter(entity)
+                        .Build();
                     sqlCommand.Master = true;
                     sqlCommand.Transaction = transaction;
                     sqlCommand.CommandTimeout = CommandTimeout;
@@ -259,7 +283,13 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                 }
             default:
                 {
-                    var sqlCommand = this.GetSqlForEntityExists(entity);
+                    var pkFields = typeof(TEntity).GetPrimaryKeys();
+                    if (pkFields == null || !pkFields.Any()) throw new Exception($"The entity class '{typeof(TEntity).Name}' does not define a primary key field.");
+
+                    ICountable<TEntity> countableBuilder = this.CreateCountableBuilder();
+                    pkFields.ForEach(pkField => countableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
+                    countableBuilder.SetParameter(entity);
+                    ISqlCommand sqlCommand = countableBuilder.Build();
                     sqlCommand.Master = true;
                     sqlCommand.CommandTimeout = CommandTimeout;
                     if (ExecuteScalar<int>(sqlCommand) < 1)
@@ -299,7 +329,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                     {
                         return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
                         {
-                            var sqlCommand = this.GetSqlForBulkAddOrUpdate(models, fieldExpression);
+                            var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
+                                .IncludeFields(fieldExpression)
+                                .SetParameter(models)
+                                .Build();
                             sqlCommand.Master = true;
                             sqlCommand.Transaction = transaction;
                             sqlCommand.CommandTimeout = CommandTimeout;
@@ -307,7 +340,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                         });
                     }
 
-                    var sqlCommand = this.GetSqlForBulkAddOrUpdate(entities, fieldExpression);
+                    var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
+                        .IncludeFields(fieldExpression)
+                        .SetParameter(entities)
+                        .Build();
                     sqlCommand.Master = true;
                     sqlCommand.Transaction = transaction;
                     sqlCommand.CommandTimeout = CommandTimeout;
@@ -345,7 +381,9 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual bool Delete(TEntity entity, IDbTransaction transaction = null)
     {
-        var sqlCommand = this.GetSqlForDelete(entity);
+        var sqlCommand = this.CreateDeleteableBuilder()
+            .SetParameter(entity)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -367,7 +405,9 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     }
     public virtual int Delete(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
     {
-        var sqlCommand = this.GetSqlForDelete(whereExpression);
+        var sqlCommand = this.CreateDeleteableBuilder()
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -380,7 +420,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
-        var sqlCommand = this.GetSqlForUpdate(entity, fieldExpression, whereExpression);
+        var sqlCommand = this.CreateUpdateableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression, entity)
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -418,7 +461,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual bool Increment<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        var sqlCommand = this.GetSqlForIncr(value, fieldExpression, whereExpression);
+        var sqlCommand = this.CreateUpdateableBuilder(false)
+            .IncrementFields(fieldExpression, value)
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -426,7 +472,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     }
     public virtual bool Decrement<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        var sqlCommand = this.GetSqlForDecr(value, fieldExpression, whereExpression);
+        var sqlCommand = this.CreateUpdateableBuilder(false)
+            .DecrementFields(fieldExpression, value)
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -530,14 +579,24 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        var sqlCommand = this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression);
+        var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression)
+            .Where(whereExpression)
+            .OrderBy(orderBy)
+            .Page(pageIndex, pageSize)
+            .Build();
         sqlCommand.Master = master;
         sqlCommand.CommandTimeout = CommandTimeout;
         return Query<TEntity>(sqlCommand);
     }
     public virtual IEnumerable<TEntity> QueryOffset(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        var sqlCommand = this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression);
+        var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression)
+            .Where(whereExpression)
+            .OrderBy(orderBy)
+            .Offset(offset, rows)
+            .Build();
         sqlCommand.Master = master;
         sqlCommand.CommandTimeout = CommandTimeout;
         return Query<TEntity>(sqlCommand);
@@ -545,7 +604,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual TEntity Get(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        var sqlCommand = this.GetSqlForGet(whereExpression, fieldExpression);
+        var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression)
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = master;
         sqlCommand.CommandTimeout = CommandTimeout;
         return Get<TEntity>(sqlCommand);
@@ -553,7 +615,9 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual int Count(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
     {
-        var sqlCommand = this.GetSqlForCount(whereExpression);
+        var sqlCommand = this.CreateCountableBuilder()
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = master;
         sqlCommand.CommandTimeout = CommandTimeout;
         return ExecuteScalar<int>(sqlCommand);
@@ -621,7 +685,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                     {
                         return await ExecuteAsync(async connection =>
                         {
-                            var sqlCommandInsert = this.GetSqlForAdd(entity, false, fieldExpression);
+                            var sqlCommandInsert = this.CreateInsertableBuilder(fieldExpression == null)
+                                .IncludeFields(fieldExpression)
+                                .SetParameter(entity)
+                                .Build();
                             sqlCommandInsert.Connection = connection;
                             sqlCommandInsert.Transaction = transaction;
                             sqlCommandInsert.CommandTimeout = CommandTimeout;
@@ -675,7 +742,12 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                     }
                 case DatabaseType.Oracle:
                     {
-                        var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression, keyIdentityProperty);
+                        var sqlCommandReturnId = this.CreateInsertableBuilder(fieldExpression == null)
+                            .IncludeFields(fieldExpression)
+                            .ReturnAutoIncrementId()
+                            .OutputParameter(entity, keyIdentityProperty)
+                            .SetParameter(entity)
+                            .Build();
                         sqlCommandReturnId.Master = true;
                         sqlCommandReturnId.Transaction = transaction;
                         sqlCommandReturnId.CommandTimeout = CommandTimeout;
@@ -683,7 +755,11 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                     }
                 default:
                     {
-                        var sqlCommandReturnId = this.GetSqlForAdd(entity, true, fieldExpression);
+                        var sqlCommandReturnId = this.CreateInsertableBuilder(fieldExpression == null)
+                            .IncludeFields(fieldExpression)
+                            .ReturnAutoIncrementId()
+                            .SetParameter(entity)
+                            .Build();
                         sqlCommandReturnId.Master = true;
                         sqlCommandReturnId.Transaction = transaction;
                         sqlCommandReturnId.CommandTimeout = CommandTimeout;
@@ -699,7 +775,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             }
         }
 
-        var sqlCommand = this.GetSqlForAdd(entity, false, fieldExpression);
+        var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression)
+            .SetParameter(entity)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -742,7 +821,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
         {
             return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
             {
-                var sqlCommand = this.GetSqlForBulkAdd(models, fieldExpression);
+                var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
+                    .IncludeFields(fieldExpression)
+                    .SetParameter(models)
+                    .Build();
                 sqlCommand.Master = true;
                 sqlCommand.Transaction = transaction;
                 sqlCommand.CommandTimeout = CommandTimeout;
@@ -750,7 +832,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             });
         }
 
-        var sqlCommand = this.GetSqlForBulkAdd(entities, fieldExpression);
+        var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression)
+            .SetParameter(entities)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -769,7 +854,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
             case DatabaseType.OceanBase:
             case DatabaseType.SQLite:
                 {
-                    var sqlCommand = this.GetSqlForAddOrUpdate(entity, fieldExpression);
+                    var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
+                        .IncludeFields(fieldExpression)
+                        .SetParameter(entity)
+                        .Build();
                     sqlCommand.Master = true;
                     sqlCommand.Transaction = transaction;
                     sqlCommand.CommandTimeout = CommandTimeout;
@@ -777,7 +865,13 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                 }
             default:
                 {
-                    var sqlCommand = this.GetSqlForEntityExists(entity);
+                    var pkFields = typeof(TEntity).GetPrimaryKeys();
+                    if (pkFields == null || !pkFields.Any()) throw new Exception($"The entity class '{typeof(TEntity).Name}' does not define a primary key field.");
+
+                    ICountable<TEntity> countableBuilder = this.CreateCountableBuilder();
+                    pkFields.ForEach(pkField => countableBuilder.WhereField(entity1 => pkField, SqlOperation.Equal));
+                    countableBuilder.SetParameter(entity);
+                    ISqlCommand sqlCommand = countableBuilder.Build();
                     sqlCommand.Master = true;
                     sqlCommand.CommandTimeout = CommandTimeout;
                     if (await ExecuteScalarAsync<int>(sqlCommand) < 1)
@@ -817,7 +911,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                     {
                         return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
                         {
-                            var sqlCommand = this.GetSqlForBulkAddOrUpdate(models, fieldExpression);
+                            var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
+                                .IncludeFields(fieldExpression)
+                                .SetParameter(models)
+                                .Build();
                             sqlCommand.Master = true;
                             sqlCommand.Transaction = transaction;
                             sqlCommand.CommandTimeout = CommandTimeout;
@@ -825,7 +922,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                         });
                     }
 
-                    var sqlCommand = this.GetSqlForBulkAddOrUpdate(entities, fieldExpression);
+                    var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
+                        .IncludeFields(fieldExpression)
+                        .SetParameter(entities)
+                        .Build();
                     sqlCommand.Master = true;
                     sqlCommand.Transaction = transaction;
                     sqlCommand.CommandTimeout = CommandTimeout;
@@ -863,7 +963,9 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null)
     {
-        var sqlCommand = this.GetSqlForDelete(entity);
+        var sqlCommand = this.CreateDeleteableBuilder()
+            .SetParameter(entity)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -885,7 +987,9 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     }
     public virtual async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null)
     {
-        var sqlCommand = this.GetSqlForDelete(whereExpression);
+        var sqlCommand = this.CreateDeleteableBuilder()
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -898,7 +1002,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
-        var sqlCommand = this.GetSqlForUpdate(entity, fieldExpression, whereExpression);
+        var sqlCommand = this.CreateUpdateableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression, entity)
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -936,7 +1043,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<bool> IncrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        var sqlCommand = this.GetSqlForIncr(value, fieldExpression, whereExpression);
+        var sqlCommand = this.CreateUpdateableBuilder(false)
+            .IncrementFields(fieldExpression, value)
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -944,7 +1054,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
     }
     public virtual async Task<bool> DecrementAsync<TValue>(TValue value, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, bool>> whereExpression, IDbTransaction transaction = null) where TValue : struct
     {
-        var sqlCommand = this.GetSqlForDecr(value, fieldExpression, whereExpression);
+        var sqlCommand = this.CreateUpdateableBuilder(false)
+            .DecrementFields(fieldExpression, value)
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -1048,14 +1161,24 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        var sqlCommand = this.GetSqlForQuery(whereExpression, orderBy, pageIndex, pageSize, fieldExpression);
+        var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression)
+            .Where(whereExpression)
+            .OrderBy(orderBy)
+            .Page(pageIndex, pageSize)
+            .Build();
         sqlCommand.Master = master;
         sqlCommand.CommandTimeout = CommandTimeout;
         return await QueryAsync<TEntity>(sqlCommand);
     }
     public virtual async Task<IEnumerable<TEntity>> QueryOffsetAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? offset = null, int? rows = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        var sqlCommand = this.GetSqlForQueryOffset(whereExpression, orderBy, offset, rows, fieldExpression);
+        var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression)
+            .Where(whereExpression)
+            .OrderBy(orderBy)
+            .Offset(offset, rows)
+            .Build();
         sqlCommand.Master = master;
         sqlCommand.CommandTimeout = CommandTimeout;
         return await QueryAsync<TEntity>(sqlCommand);
@@ -1063,7 +1186,10 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
-        var sqlCommand = this.GetSqlForGet(whereExpression, fieldExpression);
+        var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
+            .IncludeFields(fieldExpression)
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = master;
         sqlCommand.CommandTimeout = CommandTimeout;
         return await GetAsync<TEntity>(sqlCommand);
@@ -1071,7 +1197,9 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
 
     public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>> whereExpression, bool master = true)
     {
-        var sqlCommand = this.GetSqlForCount(whereExpression);
+        var sqlCommand = this.CreateCountableBuilder()
+            .Where(whereExpression)
+            .Build();
         sqlCommand.Master = master;
         sqlCommand.CommandTimeout = CommandTimeout;
         return await ExecuteScalarAsync<int>(sqlCommand);

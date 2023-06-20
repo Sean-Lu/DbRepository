@@ -4,101 +4,100 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Sean.Core.DbRepository.Extensions
+namespace Sean.Core.DbRepository.Extensions;
+
+public static class TypeExtensions
 {
-    public static class TypeExtensions
+    /// <summary>
+    /// 获取数据库表的实体类信息
+    /// </summary>
+    /// <param name="entityClassType"></param>
+    /// <returns></returns>
+    public static EntityInfo GetEntityInfo(this Type entityClassType)
     {
-        /// <summary>
-        /// 获取数据库表的实体类信息
-        /// </summary>
-        /// <param name="entityClassType"></param>
-        /// <returns></returns>
-        public static EntityInfo GetEntityInfo(this Type entityClassType)
+        return EntityTypeCache.GetEntityInfo(entityClassType);
+    }
+
+    /// <summary>
+    /// 获取数据库表的主表名称
+    /// </summary>
+    /// <param name="entityClassType"></param>
+    /// <returns></returns>
+    public static string GetMainTableName(this Type entityClassType)
+    {
+        return EntityTypeCache.GetEntityInfo(entityClassType).MainTableName;
+    }
+
+    /// <summary>
+    /// 获取数据库表的所有字段
+    /// </summary>
+    /// <param name="entityClassType"></param>
+    /// <returns></returns>
+    public static List<string> GetAllFieldNames(this Type entityClassType)
+    {
+        return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.Select(c => c.FieldName).ToList();
+    }
+
+    /// <summary>
+    /// 获取数据库表的主键字段
+    /// </summary>
+    /// <param name="entityClassType"></param>
+    /// <returns></returns>
+    public static List<string> GetPrimaryKeys(this Type entityClassType)
+    {
+        return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.Where(c => c.PrimaryKey).Select(c => c.FieldName).ToList();
+    }
+
+    /// <summary>
+    /// 获取数据库表的自增字段
+    /// </summary>
+    /// <param name="entityClassType"></param>
+    /// <returns></returns>
+    public static List<string> GetIdentityFieldNames(this Type entityClassType)
+    {
+        return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.Where(c => c.Identity).Select(c => c.FieldName).ToList();
+    }
+
+    /// <summary>
+    /// 获取数据库表的自增主键字段
+    /// </summary>
+    /// <param name="entityClassType"></param>
+    /// <returns></returns>
+    public static PropertyInfo GetKeyIdentityProperty(this Type entityClassType)
+    {
+        return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.FirstOrDefault(c => c.PrimaryKey && c.Identity)?.Property;
+    }
+
+    internal static object CreateInstanceByConstructor(this Type type)
+    {
+        var emptyParamConstructor = type.GetConstructor(Type.EmptyTypes);
+        if (emptyParamConstructor != null)
         {
-            return EntityTypeCache.GetEntityInfo(entityClassType);
+            return Activator.CreateInstance(type);
         }
 
-        /// <summary>
-        /// 获取数据库表的主表名称
-        /// </summary>
-        /// <param name="entityClassType"></param>
-        /// <returns></returns>
-        public static string GetMainTableName(this Type entityClassType)
+        var constructors = type.GetConstructors();
+        var minParamConstructor = constructors.Length > 1
+            ? constructors.OrderBy(c => c.GetParameters().Length).FirstOrDefault()
+            : constructors.FirstOrDefault();
+        if (minParamConstructor == null)
         {
-            return EntityTypeCache.GetEntityInfo(entityClassType).MainTableName;
+            return default;
         }
 
-        /// <summary>
-        /// 获取数据库表的所有字段
-        /// </summary>
-        /// <param name="entityClassType"></param>
-        /// <returns></returns>
-        public static List<string> GetAllFieldNames(this Type entityClassType)
+        object[] parameterArgs = null;
+        var parameters = minParamConstructor.GetParameters();
+        if (parameters.Length > 0)
         {
-            return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.Select(c => c.FieldName).ToList();
-        }
-
-        /// <summary>
-        /// 获取数据库表的主键字段
-        /// </summary>
-        /// <param name="entityClassType"></param>
-        /// <returns></returns>
-        public static List<string> GetPrimaryKeys(this Type entityClassType)
-        {
-            return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.Where(c => c.PrimaryKey).Select(c => c.FieldName).ToList();
-        }
-
-        /// <summary>
-        /// 获取数据库表的自增字段
-        /// </summary>
-        /// <param name="entityClassType"></param>
-        /// <returns></returns>
-        public static List<string> GetIdentityFieldNames(this Type entityClassType)
-        {
-            return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.Where(c => c.Identity).Select(c => c.FieldName).ToList();
-        }
-
-        /// <summary>
-        /// 获取数据库表的自增主键字段
-        /// </summary>
-        /// <param name="entityClassType"></param>
-        /// <returns></returns>
-        public static PropertyInfo GetKeyIdentityProperty(this Type entityClassType)
-        {
-            return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.FirstOrDefault(c => c.PrimaryKey && c.Identity)?.Property;
-        }
-
-        internal static object CreateInstanceByConstructor(this Type type)
-        {
-            var emptyParamConstructor = type.GetConstructor(Type.EmptyTypes);
-            if (emptyParamConstructor != null)
+            parameterArgs = new object[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
             {
-                return Activator.CreateInstance(type);
+                var parameterInfo = parameters[i];
+                parameterArgs[i] = parameterInfo.HasDefaultValue
+                    ? parameterInfo.DefaultValue
+                    : parameterInfo.ParameterType.GetDefaultValue();
             }
-
-            var constructors = type.GetConstructors();
-            var minParamConstructor = constructors.Length > 1
-                ? constructors.OrderBy(c => c.GetParameters().Length).FirstOrDefault()
-                : constructors.FirstOrDefault();
-            if (minParamConstructor == null)
-            {
-                return default;
-            }
-
-            object[] parameterArgs = null;
-            var parameters = minParamConstructor.GetParameters();
-            if (parameters.Length > 0)
-            {
-                parameterArgs = new object[parameters.Length];
-                for (int i = 0; i < parameters.Length; i++)
-                {
-                    var parameterInfo = parameters[i];
-                    parameterArgs[i] = parameterInfo.HasDefaultValue
-                        ? parameterInfo.DefaultValue
-                        : parameterInfo.ParameterType.GetDefaultValue();
-                }
-            }
-            return Activator.CreateInstance(type, parameterArgs);
         }
+        return Activator.CreateInstance(type, parameterArgs);
     }
 }

@@ -5,8 +5,14 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using System.Transactions;
 using Sean.Core.DbRepository.Extensions;
+
 #if NETSTANDARD || NET5_0_OR_GREATER
 using Microsoft.Extensions.Configuration;
+#endif
+
+#if NETFRAMEWORK
+using System.Data.Odbc;
+using System.Data.OleDb;
 #endif
 
 namespace Sean.Core.DbRepository;
@@ -418,12 +424,92 @@ public abstract class BaseRepository : IBaseRepository
 
     public virtual bool IsTableExists(string tableName, bool master = true, bool useCache = true)
     {
-        return this.IsTableExists(tableName, (sql, connection) => ExecuteScalar<int>(sql, connection: connection) > 0, master, useCache);
+        if (string.IsNullOrWhiteSpace(tableName))
+        {
+            return false;
+        }
+
+        string connectionString = Factory.ConnectionSettings.GetConnectionString(master);
+        if (useCache && TableInfoCache.IsTableExists(connectionString, master, tableName))
+        {
+            return true;
+        }
+
+        bool? exists = null;
+#if NET45
+        using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
+#else
+        using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+#endif
+        using (var connection = Factory.OpenNewConnection(connectionString))
+        {
+            exists = DbContextConfiguration.Options.IsTableExists?.Invoke(DbType, connection, tableName) ??
+                     connection switch
+                     {
+#if NETFRAMEWORK
+                         OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
+                         OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
+#endif
+                         _ => null
+                     };
+
+            if (!exists.HasValue)
+            {
+                var sql = DbType.GetSqlForTableExists(connection, tableName);
+                exists = ExecuteScalar<int>(sql, connection: connection) > 0;
+            }
+        }
+
+        if (useCache && exists.GetValueOrDefault())
+        {
+            TableInfoCache.AddTable(connectionString, master, tableName);
+        }
+        return exists.GetValueOrDefault();
     }
 
     public virtual bool IsTableFieldExists(string tableName, string fieldName, bool master = true, bool useCache = true)
     {
-        return this.IsTableFieldExists(tableName, fieldName, (sql, connection) => ExecuteScalar<int>(sql, connection: connection) > 0, master, useCache);
+        if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
+        {
+            return false;
+        }
+
+        string connectionString = Factory.ConnectionSettings.GetConnectionString(master);
+        if (useCache && TableInfoCache.IsTableFieldExists(connectionString, master, tableName, fieldName))
+        {
+            return true;
+        }
+
+        bool? exists = null;
+#if NET45
+        using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
+#else
+        using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+#endif
+        using (var connection = Factory.OpenNewConnection(connectionString))
+        {
+            exists = DbContextConfiguration.Options.IsTableFieldExists?.Invoke(DbType, connection, tableName, fieldName) ??
+                     connection switch
+                     {
+#if NETFRAMEWORK
+                         OleDbConnection oleDbConnection => oleDbConnection.IsTableFieldExists(tableName, fieldName),
+                         OdbcConnection odbcConnection => odbcConnection.IsTableFieldExists(tableName, fieldName),
+#endif
+                         _ => null
+                     };
+
+            if (!exists.HasValue)
+            {
+                var sql = DbType.GetSqlForTableFieldExists(connection, tableName, fieldName);
+                exists = ExecuteScalar<int>(sql, connection: connection) > 0;
+            }
+        }
+
+        if (useCache && exists.GetValueOrDefault())
+        {
+            TableInfoCache.AddTableField(connectionString, master, tableName, fieldName);
+        }
+        return exists.GetValueOrDefault();
     }
 
     public virtual void AddTableField(string tableName, string fieldName, string fieldType, bool master = true)
@@ -712,12 +798,92 @@ public abstract class BaseRepository : IBaseRepository
 
     public virtual async Task<bool> IsTableExistsAsync(string tableName, bool master = true, bool useCache = true)
     {
-        return await this.IsTableExistsAsync(tableName, async (sql, connection) => await ExecuteScalarAsync<int>(sql, connection: connection) > 0, master, useCache);
+        if (string.IsNullOrWhiteSpace(tableName))
+        {
+            return false;
+        }
+
+        string connectionString = Factory.ConnectionSettings.GetConnectionString(master);
+        if (useCache && TableInfoCache.IsTableExists(connectionString, master, tableName))
+        {
+            return true;
+        }
+
+        bool? exists = null;
+#if NET45
+        using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
+#else
+        using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+#endif
+        using (var connection = Factory.OpenNewConnection(connectionString))
+        {
+            exists = DbContextConfiguration.Options.IsTableExists?.Invoke(DbType, connection, tableName) ??
+                     connection switch
+                     {
+#if NETFRAMEWORK
+                         OleDbConnection oleDbConnection => oleDbConnection.IsTableExists(tableName),
+                         OdbcConnection odbcConnection => odbcConnection.IsTableExists(tableName),
+#endif
+                         _ => null
+                     };
+
+            if (!exists.HasValue)
+            {
+                var sql = DbType.GetSqlForTableExists(connection, tableName);
+                exists = await ExecuteScalarAsync<int>(sql, connection: connection) > 0;
+            }
+        }
+
+        if (useCache && exists.GetValueOrDefault())
+        {
+            TableInfoCache.AddTable(connectionString, master, tableName);
+        }
+        return exists.GetValueOrDefault();
     }
 
     public virtual async Task<bool> IsTableFieldExistsAsync(string tableName, string fieldName, bool master = true, bool useCache = true)
     {
-        return await this.IsTableFieldExistsAsync(tableName, fieldName, async (sql, connection) => await ExecuteScalarAsync<int>(sql, connection: connection) > 0, master, useCache);
+        if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(fieldName))
+        {
+            return false;
+        }
+
+        string connectionString = Factory.ConnectionSettings.GetConnectionString(master);
+        if (useCache && TableInfoCache.IsTableFieldExists(connectionString, master, tableName, fieldName))
+        {
+            return true;
+        }
+
+        bool? exists = null;
+#if NET45
+        using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
+#else
+        using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+#endif
+        using (var connection = Factory.OpenNewConnection(connectionString))
+        {
+            exists = DbContextConfiguration.Options.IsTableFieldExists?.Invoke(DbType, connection, tableName, fieldName) ??
+                     connection switch
+                     {
+#if NETFRAMEWORK
+                         OleDbConnection oleDbConnection => oleDbConnection.IsTableFieldExists(tableName, fieldName),
+                         OdbcConnection odbcConnection => odbcConnection.IsTableFieldExists(tableName, fieldName),
+#endif
+                         _ => null
+                     };
+
+            if (!exists.HasValue)
+            {
+                var sql = DbType.GetSqlForTableFieldExists(connection, tableName, fieldName);
+                exists = await ExecuteScalarAsync<int>(sql, connection: connection) > 0;
+            }
+        }
+
+        if (useCache && exists.GetValueOrDefault())
+        {
+            TableInfoCache.AddTableField(connectionString, master, tableName, fieldName);
+        }
+        return exists.GetValueOrDefault();
     }
 
     public virtual async Task AddTableFieldAsync(string tableName, string fieldName, string fieldType, bool master = true)
