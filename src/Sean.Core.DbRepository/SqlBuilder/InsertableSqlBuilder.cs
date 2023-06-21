@@ -216,6 +216,7 @@ VALUES{2}";
                     }
                 case DatabaseType.PostgreSql:
                 case DatabaseType.OpenGauss:
+                case DatabaseType.HighgoDB:
                 case DatabaseType.IvorySQL:
                 case DatabaseType.KingbaseES:
                     {
@@ -236,6 +237,9 @@ VALUES{2}";
                         sb.Append($";{returnIdSql}");
                         break;
                     }
+                //case DatabaseType.PostgreSql:// √
+                //case DatabaseType.HighgoDB:// √
+                //case DatabaseType.IvorySQL:// √
                 case DatabaseType.DuckDB:
                 case DatabaseType.Firebird:
                     {

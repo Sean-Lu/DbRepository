@@ -473,6 +473,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                 case DatabaseType.DuckDB:
                 case DatabaseType.PostgreSql:
                 case DatabaseType.OpenGauss:
+                case DatabaseType.HighgoDB:
                 case DatabaseType.IvorySQL:
                 case DatabaseType.ClickHouse:
                 case DatabaseType.KingbaseES:
@@ -533,6 +534,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows}";
             case DatabaseType.PostgreSql:
             case DatabaseType.OpenGauss:
+            case DatabaseType.HighgoDB:
             case DatabaseType.IvorySQL:
             case DatabaseType.KingbaseES:
             case DatabaseType.ShenTong:

@@ -1,6 +1,6 @@
 ## 🌈 简介
 
-> `ORM`框架，支持数据库：`MySQL`、`MariaDB`、`TiDB`、`OceanBase`、`SQL Server`、`Oracle`、`SQLite`、`DuckDB`、`MS Access`、`Firebird`、`PostgreSql`、`OpenGauss`、`IvorySQL`、`DB2`、`Informix`、`ClickHouse`、`DM（达梦）`、`KingbaseES（人大金仓）`、`ShenTong（神通）`、`Xugu（虚谷）`
+> `ORM`框架，支持数据库：`MySQL`、`MariaDB`、`TiDB`、`OceanBase`、`SQL Server`、`Oracle`、`SQLite`、`DuckDB`、`MS Access`、`Firebird`、`PostgreSql`、`OpenGauss`、`HighgoDB(瀚高)`、`IvorySQL`、`DB2`、`Informix`、`ClickHouse`、`DM(达梦)`、`KingbaseES(人大金仓)`、`ShenTong(神通)`、`Xugu(虚谷)`
 
 - 支持主从库分离（主库：增\删\改，从库：查）
 - 支持分表（自定义表名规则）
@@ -50,6 +50,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | `Firebird`               | ✅         |                     |
 | `PostgreSql`             | ✅         |                     |
 | `OpenGauss`              | ✅         |                     |
+| `HighgoDB`               | ✅         | 瀚高数据库          |
 | `IvorySQL`               | ✅         |                     |
 | `DB2`                    | ✅         |                     |
 | `Informix`               | ✅         |                     |
@@ -189,6 +190,7 @@ var _db = new DbFactory("Database connection string...", MySqlClientFactory.Inst
       <database name="Firebird" providerInvariantName="FirebirdSql.Data.FirebirdClient" factoryTypeAssemblyQualifiedName="FirebirdSql.Data.FirebirdClient.FirebirdClientFactory,FirebirdSql.Data.FirebirdClient"/>
       <database name="PostgreSql" providerInvariantName="Npgsql" factoryTypeAssemblyQualifiedName="Npgsql.NpgsqlFactory,Npgsql"/>
       <database name="OpenGauss" providerInvariantName="OpenGauss" factoryTypeAssemblyQualifiedName="OpenGauss.NET.OpenGaussFactory,OpenGauss.NET"/>
+      <database name="HighgoDB" providerInvariantName="HighgoDB" factoryTypeAssemblyQualifiedName="Npgsql.NpgsqlFactory,Npgsql"/>
       <database name="IvorySQL" providerInvariantName="IvorySQL" factoryTypeAssemblyQualifiedName="Npgsql.NpgsqlFactory,Npgsql"/>
       <database name="DB2" providerInvariantName="IBM.Data.DB2" factoryTypeAssemblyQualifiedName="IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"/>
       <database name="Informix" providerInvariantName="IBM.Data.Informix" factoryTypeAssemblyQualifiedName="IBM.Data.Informix.IfxFactory,IBM.Data.Informix"/>

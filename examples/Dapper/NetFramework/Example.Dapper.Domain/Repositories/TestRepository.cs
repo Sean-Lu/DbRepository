@@ -33,6 +33,7 @@ namespace Example.Dapper.Domain.Repositories
             //) : base("test_Firebird")// Firebird: CRUD test passed.
             //) : base("test_PostgreSql")// PostgreSql: CRUD test passed.
             //) : base("test_OpenGauss")// OpenGauss: CRUD test passed.
+            //) : base("test_HighgoDB")// HighgoDB: CRUD test passed.
             //) : base("test_IvorySQL")// IvorySQL: CRUD test passed.
             //) : base("test_DB2")// DB2: CRUD test passed.
             //) : base("test_Informix")// Informix: CRUD test passed.
@@ -93,6 +94,7 @@ namespace Example.Dapper.Domain.Repositories
                 DatabaseType.Firebird => File.ReadAllText(@"./SQL/Firebird_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.PostgreSql => File.ReadAllText(@"./SQL/PostgreSql_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.OpenGauss => File.ReadAllText(@"./SQL/OpenGauss_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.HighgoDB => File.ReadAllText(@"./SQL/HighgoDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.IvorySQL => File.ReadAllText(@"./SQL/IvorySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.DB2 => File.ReadAllText(@"./SQL/DB2_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Informix => File.ReadAllText(@"./SQL/Informix_CreateTable_Test.sql").Replace("{$TableName$}", tableName),

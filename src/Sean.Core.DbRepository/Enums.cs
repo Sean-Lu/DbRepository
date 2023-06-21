@@ -81,6 +81,11 @@ public enum DatabaseType
     /// </summary>
     OpenGauss,
     /// <summary>
+    /// HighgoDB（瀚高数据库）
+    /// <para>https://www.highgo.com/</para>
+    /// </summary>
+    HighgoDB,
+    /// <summary>
     /// IvorySQL
     /// <para>https://ivorysql.org/</para>
     /// <para>https://github.com/IvorySQL/IvorySQL</para>

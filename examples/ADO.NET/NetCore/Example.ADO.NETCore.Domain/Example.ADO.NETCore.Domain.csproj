@@ -8,7 +8,7 @@
   <PropertyGroup>
     <!-- 根据定义的常量动态引用不同数据库的nuget包 -->
     <DefineConstants>
-      <!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseOpenGauss;UseIvorySQL;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES;UseShenTong;UseXugu-->
+      <!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseDuckDB;UseMsAccess;UseFirebird;UsePostgreSql;UseOpenGauss;UseHighgoDB;UseIvorySQL;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES;UseShenTong;UseXugu-->
     </DefineConstants>
   </PropertyGroup>
 
@@ -38,7 +38,7 @@
   <ItemGroup Condition="$(DefineConstants.Contains('UseFirebird'))">
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
   </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('UsePostgreSql')) OR $(DefineConstants.Contains('UseIvorySQL'))">
+  <ItemGroup Condition="$(DefineConstants.Contains('UsePostgreSql')) OR $(DefineConstants.Contains('UseHighgoDB')) OR $(DefineConstants.Contains('UseIvorySQL'))">
     <PackageReference Include="Npgsql" Version="7.0.2" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseOpenGauss'))">

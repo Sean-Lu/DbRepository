@@ -250,6 +250,15 @@ namespace Example.EF.Core.ConsoleApp
         }
 #endif
 
+#if UseHighgoDB
+        private void UseHighgoDB(DbContextOptionsBuilder optionsBuilder)
+        {
+            // HighgoDB: CRUD test passed.
+            var connString = "server=127.0.0.1;port=5866;database=highgo;username=highgo;password=Highgo!123";
+            optionsBuilder.UseNpgsql(connString);
+        }
+#endif
+
 #if UseIvorySQL
         private void UseIvorySQL(DbContextOptionsBuilder optionsBuilder)
         {
