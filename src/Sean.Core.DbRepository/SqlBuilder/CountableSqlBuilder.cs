@@ -95,9 +95,10 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder, ICountable<TEntity>
     #region [WHERE]
     public virtual ICountable<TEntity> Where(string where)
     {
-        SqlBuilderUtil.Where(_where.Value, WhereSqlKeyword.None, where);
+        SqlBuilderUtil.Where(_where.Value, where);
         return this;
     }
+
     public virtual ICountable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression)
     {
         if (MultiTable)
@@ -125,6 +126,15 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder, ICountable<TEntity>
         return this;
     }
 
+    public ICountable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> whereExpression)
+    {
+        return condition ? Where(whereExpression) : this;
+    }
+    public ICountable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
+    {
+        return condition ? Where(whereExpression) : this;
+    }
+
     public virtual ICountable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
     {
         if (MultiTable)
@@ -141,38 +151,6 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder, ICountable<TEntity>
             MultiTable = true
         };
         SqlBuilderUtil.WhereField(aqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
-        return this;
-    }
-
-    public virtual ICountable<TEntity> AndWhere(string where)
-    {
-        SqlBuilderUtil.Where(_where.Value, WhereSqlKeyword.And, where);
-        return this;
-    }
-    public virtual ICountable<TEntity> AndWhere(Expression<Func<TEntity, bool>> whereExpression)
-    {
-        if (MultiTable)
-        {
-            SqlAdapter.MultiTable = true;
-        }
-        SqlBuilderUtil.Where(SqlAdapter,
-            SqlParameterUtil.ConvertToDicParameter(_parameter),
-            whereClause => AndWhere(whereClause),
-            dicParameters => SetParameter(dicParameters),
-            whereExpression);
-        return this;
-    }
-    public virtual ICountable<TEntity> AndWhere<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression)
-    {
-        var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
-        {
-            MultiTable = true
-        };
-        SqlBuilderUtil.Where(aqlAdapter,
-            SqlParameterUtil.ConvertToDicParameter(_parameter),
-            whereClause => AndWhere(whereClause),
-            dicParameters => SetParameter(dicParameters),
-            whereExpression);
         return this;
     }
     #endregion

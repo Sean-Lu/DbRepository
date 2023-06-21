@@ -269,15 +269,14 @@ internal static class SqlBuilderUtil
     #endregion
 
     #region [WHERE]
-    public static void Where(StringBuilder sbWhereClause, WhereSqlKeyword keyword,
-        string where)
+    public static void Where(StringBuilder sbWhereClause, string where)
     {
-        if (string.IsNullOrWhiteSpace(where)) return;
+        if (sbWhereClause == null || string.IsNullOrWhiteSpace(where))
+        {
+            return;
+        }
 
-        if (sbWhereClause.Length > 0) sbWhereClause.Append(" ");
-        else if (keyword == WhereSqlKeyword.And) sbWhereClause.Append("1=1 ");
-
-        sbWhereClause.Append(keyword == WhereSqlKeyword.None ? where : $"{keyword.ToSqlString()} {where}");
+        sbWhereClause.Append(sbWhereClause.Length > 0 ? $" {WhereSqlKeyword.And.ToSqlString()} {where}" : where);
     }
     public static void Where<TEntity>(ISqlAdapter sqlAdapter, IDictionary<string, object> dicParameters, Action<string> setWhereClause, Action<IDictionary<string, object>> setParameter,
         Expression<Func<TEntity, bool>> whereExpression)
