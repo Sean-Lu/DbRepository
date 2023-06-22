@@ -50,7 +50,7 @@ namespace Example.Dapper.Domain.Repositories
             return tableName;
         }
 
-        public override ExecuteSqlOptions CreateTableSql(string tableName)
+        protected override ExecuteSqlOptions CreateTableSql(string tableName)
         {
             var sql = $@"CREATE TABLE `{tableName}` (
   `Id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增主键',

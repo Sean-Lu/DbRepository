@@ -30,11 +30,19 @@ public abstract class BaseRepository : IBaseRepository
         set => Factory.DbType = value;
     }
 
-    public ISqlMonitor SqlMonitor => Factory.SqlMonitor;
+    protected ISqlMonitor SqlMonitor => Factory.SqlMonitor;
 
-    public int? BulkEntityCount { get; set; }
+    /// <summary>
+    /// The limit on the number of entities when executing database bulk operations.
+    /// <para>批量实体数据限制</para>
+    /// </summary>
+    protected int? BulkEntityCount { get; set; }
 
-    public int? CommandTimeout
+    /// <summary>
+    /// Number of seconds before command execution timeout.
+    /// <para>命令执行超时时间（单位：秒）</para>
+    /// </summary>
+    protected int? CommandTimeout
     {
         get => Factory.CommandTimeout;
         set => Factory.CommandTimeout = value;
@@ -109,12 +117,23 @@ public abstract class BaseRepository : IBaseRepository
         return null;
     }
 
-    public virtual ExecuteSqlOptions CreateTableSql(string tableName)
+    /// <summary>
+    /// Gets the SQL of database table creation.
+    /// <para>获取建表SQL语句</para>
+    /// </summary>
+    /// <param name="tableName">The table name.</param>
+    /// <returns></returns>
+    protected virtual ExecuteSqlOptions CreateTableSql(string tableName)
     {
         throw new NotImplementedException();
     }
 
-    public virtual void AutoCreateTable(string tableName)
+    /// <summary>
+    /// The database table is automatically created if it does not exist. The <see cref="CreateTableSql"/> method needs to be implemented.
+    /// <para>自动创建表（如果表不存在），必须要实现<see cref="CreateTableSql"/>方法。</para>
+    /// </summary>
+    /// <param name="tableName">The table name.</param>
+    protected virtual void AutoCreateTable(string tableName)
     {
         if (string.IsNullOrWhiteSpace(tableName))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
@@ -157,7 +176,12 @@ public abstract class BaseRepository : IBaseRepository
 
     }
 
-    public virtual DbConnection OpenNewConnection(bool master = true)
+    /// <summary>
+    /// Create and open a new connection
+    /// </summary>
+    /// <param name="master">true: master database, false: slave database.</param>
+    /// <returns></returns>
+    protected virtual DbConnection OpenNewConnection(bool master = true)
     {
         return Factory.OpenNewConnection(master);
     }
@@ -534,6 +558,11 @@ public abstract class BaseRepository : IBaseRepository
 
         return Execute($"DELETE FROM {tableName}", transaction: transaction);
     }
+
+    public virtual int DropTable(params string[] tableNames)
+    {
+        return Execute($"DROP TABLE {string.Join(", ", tableNames)}");
+    }
     #endregion
 
     #region Asynchronous method
@@ -907,6 +936,11 @@ public abstract class BaseRepository : IBaseRepository
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
         return await ExecuteAsync($"DELETE FROM {tableName}", transaction: transaction);
+    }
+
+    public virtual async Task<int> DropTableAsync(params string[] tableNames)
+    {
+        return await ExecuteAsync($"DROP TABLE {string.Join(", ", tableNames)}");
     }
     #endregion
 }

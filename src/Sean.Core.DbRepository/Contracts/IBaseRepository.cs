@@ -20,45 +20,13 @@ public interface IBaseRepository
     /// <summary>
     /// Database type
     /// </summary>
-    DatabaseType DbType { get; set; }
-
-    ISqlMonitor SqlMonitor { get; }
-
-    /// <summary>
-    /// The limit on the number of entities when executing database bulk operations.
-    /// </summary>
-    int? BulkEntityCount { get; set; }
-
-    /// <summary>
-    /// Number of seconds before command execution timeout.
-    /// </summary>
-    int? CommandTimeout { get; set; }
+    DatabaseType DbType { get; }
 
     /// <summary>
     /// Table name.
     /// </summary>
     /// <returns></returns>
     string TableName();
-
-    /// <summary>
-    /// Gets the SQL of database table creation.
-    /// </summary>
-    /// <param name="tableName">The table name.</param>
-    /// <returns></returns>
-    ExecuteSqlOptions CreateTableSql(string tableName);
-
-    /// <summary>
-    /// The database table is automatically created if it does not exist. The <see cref="CreateTableSql"/> method needs to be implemented.
-    /// </summary>
-    /// <param name="tableName">The table name.</param>
-    void AutoCreateTable(string tableName);
-
-    /// <summary>
-    /// Create and open a new connection
-    /// </summary>
-    /// <param name="master">true: master database, false: slave database.</param>
-    /// <returns></returns>
-    DbConnection OpenNewConnection(bool master = true);
 
     #region Synchronous method
     int Execute(string sql, object param = null, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
@@ -143,6 +111,8 @@ public interface IBaseRepository
     /// <param name="tableName">Table name.</param>
     /// <returns></returns>
     int DeleteAll(string tableName, IDbTransaction transaction = null);
+
+    int DropTable(params string[] tableNames);
     #endregion
 
     #region Asynchronous method
@@ -229,6 +199,8 @@ public interface IBaseRepository
     /// <param name="tableName">Table name.</param>
     /// <returns></returns>
     Task<int> DeleteAllAsync(string tableName, IDbTransaction transaction = null);
+
+    Task<int> DropTableAsync(params string[] tableNames);
     #endregion
 }
 

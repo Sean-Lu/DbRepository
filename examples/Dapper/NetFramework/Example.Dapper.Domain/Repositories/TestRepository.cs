@@ -79,7 +79,7 @@ namespace Example.Dapper.Domain.Repositories
             return tableName;
         }
 
-        public override ExecuteSqlOptions CreateTableSql(string tableName)
+        protected override ExecuteSqlOptions CreateTableSql(string tableName)
         {
             var sql = DbType switch
             {
