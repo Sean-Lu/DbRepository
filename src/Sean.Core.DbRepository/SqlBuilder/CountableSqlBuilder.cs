@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Linq.Expressions;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
@@ -166,7 +167,7 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder, ICountable<TEntity>
         var sb = new StringBuilder();
         sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", WhereSql));
 
-        var sql = new DefaultSqlCommand
+        var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {
             Sql = sb.ToString(),
             Parameter = _parameter

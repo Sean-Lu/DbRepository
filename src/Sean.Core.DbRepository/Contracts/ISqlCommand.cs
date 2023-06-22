@@ -4,6 +4,8 @@ namespace Sean.Core.DbRepository;
 
 public interface ISqlCommand
 {
+    DatabaseType DbType { get; set; }
+
     /// <summary>
     /// Command text
     /// </summary>

@@ -112,7 +112,7 @@ VALUES{2}";
                                 if (property != null)
                                 {
                                     var value = property.GetValue(entity);
-                                    var convertResult = SqlBuilderUtil.ConvertToSqlString(value, out var convertible);
+                                    var convertResult = SqlBuilderUtil.ConvertToSqlString(SqlAdapter.DbType, value, out var convertible);
                                     if (convertible)
                                     {
                                         formatParameterNames.Add(convertResult);
@@ -146,7 +146,7 @@ VALUES{2}";
                             if (property != null)
                             {
                                 var value = property.GetValue(_parameter);
-                                var convertResult = SqlBuilderUtil.ConvertToSqlString(value, out var convertible);
+                                var convertResult = SqlBuilderUtil.ConvertToSqlString(SqlAdapter.DbType, value, out var convertible);
                                 if (convertible)
                                 {
                                     return convertResult;
@@ -160,13 +160,14 @@ VALUES{2}";
                     sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
                 }
                 break;
+            case DatabaseType.QuestDB:
             case DatabaseType.DuckDB:
             case DatabaseType.Xugu:
             default:
                 throw new NotSupportedException($"[{SqlAdapter.DbType}]The database does not support the 'REPLACE INTO' SQL syntax.");
         }
 
-        var sql = new DefaultSqlCommand
+        var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {
             Sql = sb.ToString(),
             Parameter = _parameter

@@ -418,7 +418,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
             SqlAdapter.MultiTable = true;
         }
 
-        var sql = new DefaultSqlCommand();
+        var sql = new DefaultSqlCommand(SqlAdapter.DbType);
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
         var selectFields = _tableFieldList.Any() ? string.Join(", ", _tableFieldList.Select(fieldInfo =>
         {
@@ -453,6 +453,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                 case DatabaseType.OpenGauss:
                 case DatabaseType.HighgoDB:
                 case DatabaseType.IvorySQL:
+                case DatabaseType.QuestDB:
                 case DatabaseType.ClickHouse:
                 case DatabaseType.KingbaseES:
                 case DatabaseType.ShenTong:
@@ -519,6 +520,8 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
             case DatabaseType.Xugu:
             case DatabaseType.DuckDB:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {rows} OFFSET {offset}";
+            case DatabaseType.QuestDB:
+                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows + offset}";
             case DatabaseType.SqlServer:
                 {
                     if (DbContextConfiguration.SqlServerOptions is { UseRowNumberForPaging: true })

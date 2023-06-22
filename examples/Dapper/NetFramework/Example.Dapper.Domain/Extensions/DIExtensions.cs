@@ -45,6 +45,7 @@ namespace Example.Dapper.Domain.Extensions
             //DatabaseType.OpenGauss.SetDbProviderMap(new DbProviderMap("OpenGauss", OpenGauss.NET.OpenGaussFactory.Instance));// OpenGauss
             //DatabaseType.HighgoDB.SetDbProviderMap(new DbProviderMap("HighgoDB", Npgsql.NpgsqlFactory.Instance));// HighgoDB
             //DatabaseType.IvorySQL.SetDbProviderMap(new DbProviderMap("IvorySQL", Npgsql.NpgsqlFactory.Instance));// IvorySQL
+            //DatabaseType.QuestDB.SetDbProviderMap(new DbProviderMap("QuestDB", Npgsql.NpgsqlFactory.Instance));// QuestDB
             //DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", IBM.Data.DB2.Core.DB2Factory.Instance));// DB2
             //DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", IBM.Data.Informix.IfxFactory.Instance));// Informix
             //DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", new ClickHouse.Client.ADO.ClickHouseConnectionFactory()));// ClickHouse
@@ -68,6 +69,7 @@ namespace Example.Dapper.Domain.Extensions
             DatabaseType.OpenGauss.SetDbProviderMap(new DbProviderMap("OpenGauss", "OpenGauss.NET.OpenGaussFactory,OpenGauss.NET"));// OpenGauss
             DatabaseType.HighgoDB.SetDbProviderMap(new DbProviderMap("HighgoDB", "Npgsql.NpgsqlFactory,Npgsql"));// HighgoDB
             DatabaseType.IvorySQL.SetDbProviderMap(new DbProviderMap("IvorySQL", "Npgsql.NpgsqlFactory,Npgsql"));// IvorySQL
+            DatabaseType.QuestDB.SetDbProviderMap(new DbProviderMap("QuestDB", "Npgsql.NpgsqlFactory,Npgsql"));// QuestDB
             DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", "IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"));// DB2
             DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", "IBM.Data.Informix.IfxFactory,IBM.Data.Informix"));// Informix
             DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", "ClickHouse.Client.ADO.ClickHouseConnectionFactory,ClickHouse.Client"));// ClickHouse
@@ -95,7 +97,7 @@ namespace Example.Dapper.Domain.Extensions
             #endregion
 #endif
 
-#if UsePostgreSql || UseHighgoDB || UseIvorySQL
+#if UsePostgreSql || UseHighgoDB || UseIvorySQL || UseQuestDB
             // 解决 PostgreSQL 在使用 DateTime 类型抛出异常：Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported.
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 #endif
@@ -133,7 +135,7 @@ namespace Example.Dapper.Domain.Extensions
                 options.JsonSerializer = NewJsonSerializer.Instance;
                 options.SqlExecuting += OnSqlExecuting;
                 options.SqlExecuted += OnSqlExecuted;
-                //options.SqlParameterized = false;// ClickHouse
+                //options.SqlParameterized = false;
             });
 
 #if UseSqlServer

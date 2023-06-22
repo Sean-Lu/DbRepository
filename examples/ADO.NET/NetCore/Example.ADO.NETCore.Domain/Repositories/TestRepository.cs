@@ -37,6 +37,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             //) : base(configuration, "test_OpenGauss")// OpenGauss: CRUD test passed.
             //) : base(configuration, "test_HighgoDB")// HighgoDB: CRUD test passed.
             //) : base(configuration, "test_IvorySQL")// IvorySQL: CRUD test passed.
+            //) : base(configuration, "test_QuestDB")// QuestDB: CRUD test passed.
             //) : base(configuration, "test_DB2")// DB2: CRUD test passed.
             //) : base(configuration, "test_Informix")// Informix: CRUD test passed.
             //) : base(configuration, "test_ClickHouse")// ClickHouse: CRUD test passed.
@@ -98,6 +99,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
                 DatabaseType.OpenGauss => File.ReadAllText(@"./SQL/OpenGauss_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.HighgoDB => File.ReadAllText(@"./SQL/HighgoDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.IvorySQL => File.ReadAllText(@"./SQL/IvorySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.QuestDB => File.ReadAllText(@"./SQL/QuestDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.DB2 => File.ReadAllText(@"./SQL/DB2_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Informix => File.ReadAllText(@"./SQL/Informix_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.ClickHouse => File.ReadAllText(@"./SQL/ClickHouse_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
@@ -151,13 +153,16 @@ namespace Example.ADO.NETCore.Domain.Repositories
                 return false;
             }
 
-            testModel.AccountBalance++;
-            testModel.Age++;
-            var addOrUpdateResult = await AddOrUpdateAsync(testModel, transaction: trans);
-            _logger.LogDebug($"######AddOrUpdate result: {addOrUpdateResult}");
-            if (!addOrUpdateResult)
+            if (DbType != DatabaseType.QuestDB)// QuestDB 数据库不支持 DELETE 删除操作
             {
-                return false;
+                testModel.AccountBalance++;
+                testModel.Age++;
+                var addOrUpdateResult = await AddOrUpdateAsync(testModel, transaction: trans);
+                _logger.LogDebug($"######AddOrUpdate result: {addOrUpdateResult}");
+                if (!addOrUpdateResult)
+                {
+                    return false;
+                }
             }
 
             var incrResult = await IncrementAsync(1, entity => entity.AccountBalance, entity => entity.Id == testModel.Id, transaction: trans);
@@ -185,11 +190,14 @@ namespace Example.ADO.NETCore.Domain.Repositories
             var executeDataTableResult = await ExecuteDataTableAsync(sqlCommand);
             _logger.LogDebug($"######ExecuteDataTable result: {JsonConvert.SerializeObject(executeDataTableResult, Formatting.Indented)}");
 
-            var deleteResult = await DeleteAsync(testModel, transaction: trans);
-            _logger.LogDebug($"######Delete result: {deleteResult}");
-            if (!deleteResult)
+            if (DbType != DatabaseType.QuestDB)// QuestDB 数据库不支持 DELETE 删除操作
             {
-                return false;
+                var deleteResult = await DeleteAsync(testModel, transaction: trans);
+                _logger.LogDebug($"######Delete result: {deleteResult}");
+                if (!deleteResult)
+                {
+                    return false;
+                }
             }
 
             return true;

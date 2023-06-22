@@ -168,7 +168,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return Execute(new DefaultSqlCommand
+        return Execute(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -195,7 +195,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return Query<T>(new DefaultSqlCommand
+        return Query<T>(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -217,7 +217,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return Get<T>(new DefaultSqlCommand
+        return Get<T>(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -239,7 +239,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return ExecuteScalar<T>(new DefaultSqlCommand
+        return ExecuteScalar<T>(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -261,7 +261,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return ExecuteScalar(new DefaultSqlCommand
+        return ExecuteScalar(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -283,7 +283,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return ExecuteDataTable(new DefaultSqlCommand
+        return ExecuteDataTable(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -305,7 +305,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return ExecuteDataSet(new DefaultSqlCommand
+        return ExecuteDataSet(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -327,7 +327,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return ExecuteReader(new DefaultSqlCommand
+        return ExecuteReader(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -542,7 +542,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return await ExecuteAsync(new DefaultSqlCommand
+        return await ExecuteAsync(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -569,7 +569,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return await QueryAsync<T>(new DefaultSqlCommand
+        return await QueryAsync<T>(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -591,7 +591,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return await GetAsync<T>(new DefaultSqlCommand
+        return await GetAsync<T>(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -613,7 +613,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return await ExecuteScalarAsync<T>(new DefaultSqlCommand
+        return await ExecuteScalarAsync<T>(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -635,7 +635,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return await ExecuteScalarAsync(new DefaultSqlCommand
+        return await ExecuteScalarAsync(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -657,7 +657,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return await ExecuteDataTableAsync(new DefaultSqlCommand
+        return await ExecuteDataTableAsync(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -679,7 +679,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return await ExecuteDataSetAsync(new DefaultSqlCommand
+        return await ExecuteDataSetAsync(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,
@@ -701,7 +701,7 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(sql));
 
-        return await ExecuteReaderAsync(new DefaultSqlCommand
+        return await ExecuteReaderAsync(new DefaultSqlCommand(DbType)
         {
             Sql = sql,
             Parameter = param,

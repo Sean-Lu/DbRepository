@@ -141,7 +141,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                     }
                             }
 
-                            var sqlCommandReturnId = new DefaultSqlCommand
+                            var sqlCommandReturnId = new DefaultSqlCommand(DbType)
                             {
                                 Sql = returnIdSql,
                                 Connection = connection,
@@ -723,7 +723,7 @@ public abstract class EntityBaseRepository<TEntity> : BaseRepository, IBaseRepos
                                     }
                             }
 
-                            var sqlCommandReturnId = new DefaultSqlCommand
+                            var sqlCommandReturnId = new DefaultSqlCommand(DbType)
                             {
                                 Sql = returnIdSql,
                                 Connection = connection,

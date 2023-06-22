@@ -192,7 +192,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
         var sb = new StringBuilder();
         sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", WhereSql));
 
-        var sql = new DefaultSqlCommand
+        var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {
             Sql = sb.ToString(),
             Parameter = _parameter

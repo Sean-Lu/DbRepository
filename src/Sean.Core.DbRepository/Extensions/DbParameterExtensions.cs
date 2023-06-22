@@ -25,8 +25,8 @@ internal static class DbParameterExtensions
                 double => DbType.Double,
                 decimal => DbType.Decimal,
                 string => DbType.String,
-                bool => dbType == DatabaseType.Oracle ? DbType.Byte : DbType.Boolean,
-                DateTime => dbType == DatabaseType.MsAccess ? DbType.String : DbType.DateTime,
+                bool => dbType is DatabaseType.Oracle ? DbType.Byte : DbType.Boolean,
+                DateTime => dbType is DatabaseType.MsAccess ? DbType.String : DbType.DateTime,
                 Guid => DbType.Guid,
                 _ => sqlParameter.DbType
             };

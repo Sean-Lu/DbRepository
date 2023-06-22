@@ -92,6 +92,12 @@ public enum DatabaseType
     /// </summary>
     IvorySQL,
     /// <summary>
+    /// QuestDB
+    /// <para>https://questdb.io/</para>
+    /// <para>https://github.com/questdb/questdb</para>
+    /// </summary>
+    QuestDB,
+    /// <summary>
     /// DB2
     /// <para>https://www.ibm.com/</para>
     /// </summary>

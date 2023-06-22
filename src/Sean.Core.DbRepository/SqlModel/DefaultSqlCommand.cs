@@ -12,12 +12,18 @@ public class DefaultSqlCommand : ISqlCommand
     public DefaultSqlCommand()
     {
     }
+    public DefaultSqlCommand(DatabaseType dbType)
+    {
+        DbType = dbType;
+    }
     public DefaultSqlCommand(string sql, object parameter = null, bool useQuestionMarkParameter = false)
     {
         Sql = sql;
         Parameter = parameter;
         _useQuestionMarkParameter = useQuestionMarkParameter;
     }
+
+    public DatabaseType DbType { get; set; }
 
     public string Sql { get; set; }
     public object Parameter { get; set; }
@@ -134,7 +140,7 @@ public class DefaultSqlCommand : ISqlCommand
                     }
 
                     var sqlParameter = dicParameters.ElementAt(index++);
-                    var convertResult = SqlBuilderUtil.ConvertToSqlString(sqlParameter.Value, out var convertible);
+                    var convertResult = SqlBuilderUtil.ConvertToSqlString(DbType, sqlParameter.Value, out var convertible);
                     return convertible ? convertResult : throw new Exception($"The sql parameter [{sqlParameter.Key}] cannot be converted to a string value.");
                 });
             }
@@ -150,7 +156,7 @@ public class DefaultSqlCommand : ISqlCommand
                     var paraName = keyValuePair.Key;
                     if (dicParameters.ContainsKey(paraName))
                     {
-                        var convertResult = SqlBuilderUtil.ConvertToSqlString(dicParameters[paraName], out var convertible);
+                        var convertResult = SqlBuilderUtil.ConvertToSqlString(DbType, dicParameters[paraName], out var convertible);
                         if (convertible)
                         {
                             Sql = SqlParameterUtil.ReplaceParameter(Sql, paraName, convertResult);

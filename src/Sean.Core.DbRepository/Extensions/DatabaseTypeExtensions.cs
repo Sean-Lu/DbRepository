@@ -101,6 +101,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.OpenGauss:
                 case DatabaseType.HighgoDB:
                 case DatabaseType.IvorySQL:
+                case DatabaseType.QuestDB:
                 case DatabaseType.Oracle:
                 case DatabaseType.DB2:
                 case DatabaseType.Firebird:
@@ -143,6 +144,8 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.HighgoDB:
                 case DatabaseType.IvorySQL:
                     return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_type='BASE TABLE' AND  table_catalog='{connection.Database}' AND table_name='{tableName}'";
+                case DatabaseType.QuestDB:
+                    return $"SELECT COUNT(*) AS TableCount FROM TABLES WHERE name='{tableName}'";
                 case DatabaseType.ShenTong:
                     {
                         var connectionType = connection.GetType();
@@ -220,6 +223,8 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.HighgoDB:
                 case DatabaseType.IvorySQL:
                     return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_catalog='{connection.Database}' AND table_name='{tableName}' AND column_name='{fieldName}'";
+                case DatabaseType.QuestDB:
+                    return $"SELECT COUNT(*) AS ColumnCount FROM table_columns('{tableName}') WHERE column='{fieldName}'";
                 case DatabaseType.ShenTong:
                     {
                         var connectionType = connection.GetType();

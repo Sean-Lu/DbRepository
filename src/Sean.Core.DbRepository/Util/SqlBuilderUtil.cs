@@ -343,7 +343,7 @@ internal static class SqlBuilderUtil
     /// <param name="value"></param>
     /// <param name="convertible">Indicates whether <paramref name="value"/> is convertible.</param>
     /// <returns></returns>
-    public static string ConvertToSqlString(object value, out bool convertible)
+    public static string ConvertToSqlString(DatabaseType dbType, object value, out bool convertible)
     {
         convertible = true;
         if (value == null)
@@ -359,7 +359,14 @@ internal static class SqlBuilderUtil
         }
         if (valueType == typeof(bool))
         {
-            return (bool)value ? "1" : "0";
+            if (dbType == DatabaseType.QuestDB)
+            {
+                return (bool)value ? "TRUE" : "FALSE";
+            }
+            else
+            {
+                return (bool)value ? "1" : "0";
+            }
         }
         if (valueType == typeof(byte)
             || valueType == typeof(sbyte)

@@ -302,7 +302,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
         var sb = new StringBuilder();
         sb.Append(string.Format(SqlAdapter.DbType == DatabaseType.ClickHouse ? SqlTemplateForClickHouse : SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", string.Join(", ", sets), WhereSql));
 
-        var sql = new DefaultSqlCommand
+        var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {
             Sql = sb.ToString(),
             Parameter = _parameter

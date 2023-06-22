@@ -136,10 +136,10 @@
     </When>
   </Choose>
   <Choose>
-    <When Condition="$(DefineConstants.Contains('UsePostgreSql')) OR $(DefineConstants.Contains('UseHighgoDB')) OR $(DefineConstants.Contains('UseIvorySQL'))">
+    <When Condition="$(DefineConstants.Contains('UsePostgreSql')) OR $(DefineConstants.Contains('UseHighgoDB')) OR $(DefineConstants.Contains('UseIvorySQL')) OR $(DefineConstants.Contains('UseQuestDB'))">
       <ItemGroup>
         <PackageReference Include="Npgsql">
-          <Version>7.0.2</Version>
+          <Version>7.0.4</Version>
         </PackageReference>
       </ItemGroup>
     </When>

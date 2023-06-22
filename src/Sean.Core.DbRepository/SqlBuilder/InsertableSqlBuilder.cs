@@ -145,7 +145,7 @@ VALUES{2}";
                         if (property != null)
                         {
                             var value = property.GetValue(entity);
-                            var convertResult = SqlBuilderUtil.ConvertToSqlString(value, out var convertible);
+                            var convertResult = SqlBuilderUtil.ConvertToSqlString(SqlAdapter.DbType, value, out var convertible);
                             if (convertible)
                             {
                                 formatParameterNames.Add(convertResult);
@@ -179,7 +179,7 @@ VALUES{2}";
                     if (property != null)
                     {
                         var value = property.GetValue(_parameter);
-                        var convertResult = SqlBuilderUtil.ConvertToSqlString(value, out var convertible);
+                        var convertResult = SqlBuilderUtil.ConvertToSqlString(SqlAdapter.DbType, value, out var convertible);
                         if (convertible)
                         {
                             return convertResult;
@@ -269,12 +269,13 @@ VALUES{2}";
                         break;
                     }
                 case DatabaseType.Xugu:
+                case DatabaseType.QuestDB:
                 default:
                     throw new NotSupportedException($"[ReturnLastInsertId] Unsupported database type: {SqlAdapter.DbType}");
             }
         }
 
-        var sql = new DefaultSqlCommand
+        var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {
             Sql = sb.ToString(),
             Parameter = _parameter,
