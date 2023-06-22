@@ -36,7 +36,7 @@
 		<PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.9" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlite'))">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.7" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMsAccess'))">
 		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.0-beta.1" />
@@ -68,7 +68,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>-->
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>

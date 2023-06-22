@@ -7,16 +7,16 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
-		<PackageReference Include="SqlSugar" Version="5.1.4.78" />
+		<PackageReference Include="SqlSugar" Version="5.1.4.85" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net46'">
-		<PackageReference Include="SqlSugar" Version="5.1.4.78" />
+		<PackageReference Include="SqlSugar" Version="5.1.4.85" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-		<PackageReference Include="SqlSugarCore" Version="5.1.4.78" />
+		<PackageReference Include="SqlSugarCore" Version="5.1.4.85" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net5'">
-		<PackageReference Include="SqlSugarCore" Version="5.1.4.78" />
+		<PackageReference Include="SqlSugarCore" Version="5.1.4.85" />
 	</ItemGroup>
 
 	<ItemGroup>
