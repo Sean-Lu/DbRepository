@@ -27,7 +27,8 @@ namespace Example.ADO.NETCore.Domain.Extensions
 
             services.RegisterByAssemblyInterface(Assembly.GetExecutingAssembly(), "Repository", ServiceLifetime.Transient);
 
-            services.AddTransient(typeof(CommonRepository<>));// 注册通用仓储
+            services.AddTransient(typeof(CommonRepository));// 注册通用仓储
+            services.AddTransient(typeof(CommonRepository<>));// 注册通用仓储（泛型）
 
             var types = Assembly.GetExecutingAssembly().GetTypes().Where(c => c.IsClass && typeof(ISimpleDo).IsAssignableFrom(c)).ToList();
             types.ForEach(c =>

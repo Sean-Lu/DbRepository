@@ -12,8 +12,9 @@
 | `DbFactory`                     | `Sean.Core.DbRepository`        | 数据库工厂                     |
 | `SqlFactory`                    | `Sean.Core.DbRepository`        | `SQL`创建工厂（CRUD）          |
 | `BaseRepository`                | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
-| `EntityBaseRepository<TEntity>` | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
-| `BaseRepository<TEntity>`       | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory` + `Dapper`实现 |
+| `BaseRepository<TEntity>`       | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
+| `DapperBaseRepository`          | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory` + `Dapper`实现 |
+| `DapperBaseRepository<TEntity>` | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory` + `Dapper`实现 |
 
 - `DbFactory`类：支持所有实现`DbProviderFactory`的数据库
 

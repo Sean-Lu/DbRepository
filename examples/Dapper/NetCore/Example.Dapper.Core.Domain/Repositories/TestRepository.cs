@@ -15,8 +15,8 @@ using Sean.Utility.Contracts;
 
 namespace Example.Dapper.Core.Domain.Repositories
 {
-    //public class TestRepository : EntityBaseRepository<TestEntity>, ITestRepository// Using ADO.NET
-    public class TestRepository : BaseRepository<TestEntity>, ITestRepository// Using Dapper
+    //public class TestRepository : BaseRepository<TestEntity>, ITestRepository// Using ADO.NET
+    public class TestRepository : DapperBaseRepository<TestEntity>, ITestRepository// Using Dapper
     {
         private readonly ILogger _logger;
 

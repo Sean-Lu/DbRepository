@@ -24,7 +24,8 @@ namespace Example.Dapper.Domain.Extensions
 
             container.RegisterAssemblyByInterfaceSuffix(Assembly.GetExecutingAssembly(), "Repository", ServiceLifeStyle.Transient);
 
-            container.RegisterType(typeof(CommonRepository<>), typeof(CommonRepository<>), ServiceLifeStyle.Transient);// 注册通用仓储
+            container.RegisterType(typeof(CommonRepository), typeof(CommonRepository), ServiceLifeStyle.Transient);// 注册通用仓储
+            container.RegisterType(typeof(CommonRepository<>), typeof(CommonRepository<>), ServiceLifeStyle.Transient);// 注册通用仓储（泛型）
 
             #region Database configuration.
 
