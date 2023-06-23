@@ -94,7 +94,7 @@
     <When Condition="$(DefineConstants.Contains('UseMariaDB'))">
       <ItemGroup>
         <PackageReference Include="MySqlConnector">
-          <Version>2.2.5</Version>
+          <Version>2.2.6</Version>
         </PackageReference>
       </ItemGroup>
     </When>
@@ -103,7 +103,7 @@
     <When Condition="$(DefineConstants.Contains('UseOracle'))">
       <ItemGroup>
         <PackageReference Include="Oracle.ManagedDataAccess">
-          <Version>21.9.0</Version>
+          <Version>21.10.0</Version>
         </PackageReference>
       </ItemGroup>
     </When>
@@ -175,7 +175,7 @@
     <When Condition="$(DefineConstants.Contains('UseClickHouse'))">
       <ItemGroup>
         <PackageReference Include="ClickHouse.Client">
-          <Version>6.6.0</Version>
+          <Version>6.7.0</Version>
         </PackageReference>
       </ItemGroup>
     </When>
@@ -193,7 +193,7 @@
     <When Condition="$(DefineConstants.Contains('UseKingbaseES'))">
       <ItemGroup>
         <PackageReference Include="FreeSql.Provider.KingbaseES">
-          <Version>3.2.695</Version>
+          <Version>3.2.697</Version>
         </PackageReference>
       </ItemGroup>
     </When>
@@ -202,7 +202,7 @@
     <When Condition="$(DefineConstants.Contains('UseShenTong'))">
       <ItemGroup>
         <PackageReference Include="Oscar.Data.SqlClient">
-          <Version>4.2.0</Version>
+          <Version>4.2.3</Version>
         </PackageReference>
       </ItemGroup>
     </When>

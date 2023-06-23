@@ -16,13 +16,13 @@
 		<PackageReference Include="MySql.Data" Version="8.0.33" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMariaDB'))">
-		<PackageReference Include="MySqlConnector" Version="2.2.5" />
+		<PackageReference Include="MySqlConnector" Version="2.2.6" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlServer'))">
 		<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseOracle'))">
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.90" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.100" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlite'))">
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
@@ -53,17 +53,17 @@
 		</Reference>
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseClickHouse'))">
-		<PackageReference Include="ClickHouse.Client" Version="6.6.0" />
+		<PackageReference Include="ClickHouse.Client" Version="6.7.0" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseDm'))">
 		<PackageReference Include="dmdbms.DmProvider" Version="1.1.0.16649" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseKingbaseES'))">
-		<PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.695" />
+		<PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.697" />
 		<!--<PackageReference Include="SqlSugarCore.Kdbndp" Version="7.3.0" />-->
 	</ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseShenTong'))">
-    <PackageReference Include="Oscar.Data.SqlClient" Version="4.2.0" />
+    <PackageReference Include="Oscar.Data.SqlClient" Version="4.2.3" />
     <!--<PackageReference Include="FreeSql.Provider.ShenTong" Version="3.2.697" />-->
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseXugu'))">
