@@ -7,14 +7,12 @@
 - 支持`Expression`表达式树（自动转换为参数化SQL语句）
 - 常用类：
 
-| Class                           | Namespace                       | Description                    |
-| ------------------------------- | ------------------------------- | ------------------------------ |
-| `DbFactory`                     | `Sean.Core.DbRepository`        | 数据库工厂                     |
-| `SqlFactory`                    | `Sean.Core.DbRepository`        | `SQL`创建工厂（CRUD）          |
-| `BaseRepository`                | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
-| `BaseRepository<TEntity>`       | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
-| `DapperBaseRepository`          | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory` + `Dapper`实现 |
-| `DapperBaseRepository<TEntity>` | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory` + `Dapper`实现 |
+| Class                                                     | Namespace                       | Description                    |
+| --------------------------------------------------------- | ------------------------------- | ------------------------------ |
+| `DbFactory`                                               | `Sean.Core.DbRepository`        | 数据库工厂                     |
+| `SqlFactory`                                              | `Sean.Core.DbRepository`        | `SQL`创建工厂（CRUD）          |
+| `BaseRepository`<br>`BaseRepository<TEntity>`             | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
+| `DapperBaseRepository`<br>`DapperBaseRepository<TEntity>` | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory` + `Dapper`实现 |
 
 - `DbFactory`类：支持所有实现`DbProviderFactory`的数据库
 
