@@ -11,8 +11,4 @@
 		<PackageReference Include="EntityFramework" Version="6.4.4" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj" />
-	</ItemGroup>
-
 </Project>
