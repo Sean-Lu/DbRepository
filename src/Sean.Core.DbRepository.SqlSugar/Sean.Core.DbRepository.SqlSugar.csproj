@@ -1,6 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../config/Common.props" />
 
-	<PropertyGroup>
+  <PropertyGroup>
 		<TargetFrameworks>net45;net46;netstandard2.1;net5</TargetFrameworks>
 		<Description>ORM framework: SqlSugar</Description>
 		<Version>2.1.10</Version>
@@ -17,10 +18,6 @@
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net5'">
 		<PackageReference Include="SqlSugarCore" Version="5.1.4.85" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj" />
 	</ItemGroup>
 
 </Project>
