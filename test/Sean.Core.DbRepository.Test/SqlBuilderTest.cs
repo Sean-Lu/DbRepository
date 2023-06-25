@@ -9,10 +9,17 @@ namespace Sean.Core.DbRepository.Test
     [TestClass]
     public class SqlBuilderTest : TestBase
     {
+        private readonly SqlFactory _sqlFactory;
+
+        public SqlBuilderTest()
+        {
+            _sqlFactory = new SqlFactory(DatabaseType.MySql);
+        }
+
         [TestMethod]
         public void ValidateWhere()
         {
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1 && entity.IsVip && entity.Age > 18)
                 .Build();
@@ -24,7 +31,7 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateMultiWhere()
         {
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .Where(entity => entity.IsVip && entity.Age > 18)
@@ -38,7 +45,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateWhereIFTrue()
         {
             var condition = true;
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .WhereIF(condition, entity => entity.IsVip && entity.Age > 18)
@@ -51,7 +58,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateWhereIFFalse()
         {
             var condition = false;
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .WhereIF(condition, entity => entity.IsVip && entity.Age > 18)
@@ -64,7 +71,7 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateMaxField()
         {
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .MaxField(entity => entity.AccountBalance, "MaxValue")
                 .Where(entity => entity.Status == 1)
@@ -78,7 +85,7 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateMinField()
         {
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .MinField(entity => entity.AccountBalance, "MinValue")
                 .Where(entity => entity.Status == 1)
@@ -92,7 +99,7 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateSumField()
         {
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .SumField(entity => entity.AccountBalance, "SumValue")
                 .Where(entity => entity.Status == 1)
@@ -106,7 +113,7 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateSumField2()
         {
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .SumField($"`{Table<TestEntity>.Field(entity => entity.AccountBalance)}`-`{Table<TestEntity>.Field(entity => entity.AccountBalance2)}`", "SumValue", true)
                 .Where(entity => entity.Status == 1)
@@ -120,7 +127,7 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateAvgField()
         {
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .AvgField(entity => entity.AccountBalance, "AvgValue")
                 .Where(entity => entity.Status == 1)
@@ -134,7 +141,7 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateCountField()
         {
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .CountField(entity => entity.AccountBalance, "CountValue")
                 .Where(entity => entity.Status == 1)
@@ -148,7 +155,7 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateDistinctField()
         {
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .DistinctFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .Build();
@@ -160,7 +167,7 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateCountDistinctField()
         {
-            var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql, false)
+            var sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .CountDistinctField(entity => entity.UserId, "CountDistinctValue")
                 .Where(entity => entity.Status == 1)
                 .Build();
