@@ -201,7 +201,7 @@ VALUES{2}";
                 case DatabaseType.MariaDB:
                 case DatabaseType.TiDB:
                 case DatabaseType.OceanBase:
-                case DatabaseType.DM:
+                case DatabaseType.Dameng:
                 case DatabaseType.ShenTong:
                     {
                         var returnIdSql = "SELECT LAST_INSERT_ID() AS Id";

@@ -39,7 +39,7 @@ namespace Example.Dapper.Domain.Repositories
             //) : base("test_DB2")// DB2: CRUD test passed.
             //) : base("test_Informix")// Informix: CRUD test passed.
             //) : base("test_ClickHouse")// ClickHouse: CRUD test passed.
-            //) : base("test_DM")// DM（达梦）: CRUD test passed.
+            //) : base("test_Dameng")// Dameng（达梦）: CRUD test passed.
             //) : base("test_KingbaseES")// KingbaseES（人大金仓）: CRUD test passed.
             //) : base("test_ShenTong")// ShenTong（神通数据库）: CRUD test passed.
             //) : base("test_Xugu")// Xugu（虚谷数据库）: CRUD test passed.
@@ -101,7 +101,7 @@ namespace Example.Dapper.Domain.Repositories
                 DatabaseType.DB2 => File.ReadAllText(@"./SQL/DB2_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Informix => File.ReadAllText(@"./SQL/Informix_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.ClickHouse => File.ReadAllText(@"./SQL/ClickHouse_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.DM => File.ReadAllText(@"./SQL/DM_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+                DatabaseType.Dameng => File.ReadAllText(@"./SQL/Dameng_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.KingbaseES => File.ReadAllText(@"./SQL/KingbaseES_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.ShenTong => File.ReadAllText(@"./SQL/ShenTong_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 DatabaseType.Xugu => File.ReadAllText(@"./SQL/Xugu_CreateTable_Test.sql").Replace("{$TableName$}", tableName),

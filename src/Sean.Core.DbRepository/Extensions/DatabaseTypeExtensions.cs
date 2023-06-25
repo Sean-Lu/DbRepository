@@ -56,7 +56,7 @@ namespace Sean.Core.DbRepository.Extensions
             switch (databaseType)
             {
                 case DatabaseType.Oracle:
-                case DatabaseType.DM:
+                case DatabaseType.Dameng:
                     return $":{parameter}";
                 default:
                     return $"@{parameter}";
@@ -106,7 +106,7 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.DB2:
                 case DatabaseType.Firebird:
                 case DatabaseType.Informix:
-                case DatabaseType.DM:
+                case DatabaseType.Dameng:
                 case DatabaseType.KingbaseES:
                 case DatabaseType.ShenTong:
                 case DatabaseType.Xugu:
@@ -185,7 +185,7 @@ namespace Sean.Core.DbRepository.Extensions
                     return $"SELECT COUNT(*) AS TableCount FROM systables WHERE tabname='{tableName}' AND tabtype='T'";
                 case DatabaseType.ClickHouse:
                     return $"SELECT COUNT(*) AS TableCount FROM system.tables WHERE database='{connection.Database}' AND name='{tableName}'";
-                case DatabaseType.DM:
+                case DatabaseType.Dameng:
                     return $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name='{tableName}'";
                 case DatabaseType.KingbaseES:
                     //return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema='public' AND table_name='{tableName}'";
@@ -265,7 +265,7 @@ namespace Sean.Core.DbRepository.Extensions
                     return $"SELECT COUNT(*) AS ColumnCount FROM syscolumns WHERE tabid=(SELECT tabid FROM systables WHERE tabname='{tableName}' AND tabtype='T') AND colname='{fieldName}'";
                 case DatabaseType.ClickHouse:
                     return $"SELECT COUNT(*) AS ColumnCount FROM system.columns WHERE database='{connection.Database}' AND table='{tableName}' AND name='{fieldName}'";
-                case DatabaseType.DM:
+                case DatabaseType.Dameng:
                     return $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}'";
                 case DatabaseType.KingbaseES:
                     //return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema='public' AND table_name='{tableName}' AND column_name='{fieldName}'";

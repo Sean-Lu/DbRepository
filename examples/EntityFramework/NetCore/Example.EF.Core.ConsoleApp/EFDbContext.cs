@@ -328,10 +328,10 @@ namespace Example.EF.Core.ConsoleApp
         }
 #endif
 
-#if UseDm
-        private void UseDm(DbContextOptionsBuilder optionsBuilder)
+#if UseDameng
+        private void UseDameng(DbContextOptionsBuilder optionsBuilder)
         {
-            // DM（达梦）: CRUD test passed.
+            // Dameng（达梦）: CRUD test passed.
             var connString = "SERVER=127.0.0.1;PORT=5236;USER=SYSDBA;PASSWORD=SYSDBA";
             optionsBuilder.UseDm(connString);
         }

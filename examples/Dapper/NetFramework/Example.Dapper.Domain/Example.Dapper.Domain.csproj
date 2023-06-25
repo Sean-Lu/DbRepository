@@ -181,7 +181,7 @@
     </When>
   </Choose>
   <Choose>
-    <When Condition="$(DefineConstants.Contains('UseDm'))">
+    <When Condition="$(DefineConstants.Contains('UseDameng'))">
       <ItemGroup>
         <PackageReference Include="dmdbms.DmProvider">
           <Version>1.1.0.16649</Version>

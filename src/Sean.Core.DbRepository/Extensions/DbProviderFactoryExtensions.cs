@@ -56,7 +56,7 @@ namespace Sean.Core.DbRepository.Extensions
                     databaseType = DatabaseType.ClickHouse;
                     break;
                 case "DmClientFactory":
-                    databaseType = DatabaseType.DM;
+                    databaseType = DatabaseType.Dameng;
                     break;
                 case "KdbndpFactory":
                     databaseType = DatabaseType.KingbaseES;

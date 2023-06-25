@@ -17,7 +17,7 @@
     <None Update="SQL\MariaDB_CreateTable_Test.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SQL\DM_CreateTable_Test.sql">
+    <None Update="SQL\Dameng_CreateTable_Test.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="SQL\DuckDB_CreateTable_Test.sql">

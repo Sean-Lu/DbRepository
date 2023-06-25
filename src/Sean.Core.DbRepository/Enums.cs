@@ -113,10 +113,10 @@ public enum DatabaseType
     /// </summary>
     ClickHouse,
     /// <summary>
-    /// DM（达梦）
+    /// Dameng（达梦）
     /// <para>https://www.dameng.com/</para>
     /// </summary>
-    DM,
+    Dameng,
     /// <summary>
     /// KingbaseES（人大金仓）
     /// <para>https://www.kingbase.com.cn/</para>

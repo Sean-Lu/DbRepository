@@ -462,7 +462,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                     break;
                 case DatabaseType.SqlServer:
                 case DatabaseType.MsAccess:
-                case DatabaseType.DM:
+                case DatabaseType.Dameng:
                     sql.Sql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     break;
                 case DatabaseType.Firebird:
@@ -531,7 +531,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
 
                     return GetOffsetQuerySql(selectFields, offset, rows);// SQL Server 2012 ~ +
                 }
-            case DatabaseType.DM:
+            case DatabaseType.Dameng:
                 return GetOffsetQuerySql(selectFields, offset, rows, false);
             case DatabaseType.DB2:
                 return GetRowNumberQuerySql(selectFields, offset, rows);

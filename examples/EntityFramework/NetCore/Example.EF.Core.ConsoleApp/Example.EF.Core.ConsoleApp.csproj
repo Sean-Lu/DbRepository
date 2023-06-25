@@ -17,7 +17,7 @@
 	<PropertyGroup>
 		<!-- 根据定义的常量动态引用不同数据库的nuget包 -->
 		<DefineConstants>
-			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseMsAccess;UseFirebird;UsePostgreSql;UseOpenGauss;UseHighgoDB;UseIvorySQL;UseDB2;UseInformix;UseClickHouse;UseDm;UseKingbaseES;UseShenTong-->
+			<!--UseMySQL;UseMariaDB;UseTiDB;UseOceanBase;UseSqlServer;UseOracle;-->UseSqlite<!--;UseMsAccess;UseFirebird;UsePostgreSql;UseOpenGauss;UseHighgoDB;UseIvorySQL;UseDB2;UseInformix;UseClickHouse;UseDameng;UseKingbaseES;UseShenTong-->
 		</DefineConstants>
 	</PropertyGroup>
 
@@ -53,7 +53,7 @@
 	<ItemGroup Condition="$(DefineConstants.Contains('UseClickHouse'))">
 		<PackageReference Include="EntityFrameworkCore.ClickHouse.6.0" Version="1.0.0" />
 	</ItemGroup>
-	<ItemGroup Condition="$(DefineConstants.Contains('UseDm'))">
+	<ItemGroup Condition="$(DefineConstants.Contains('UseDameng'))">
 		<PackageReference Include="dmdbms.Microsoft.EntityFrameworkCore.Dm" Version="6.0.16.16649" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseKingbaseES'))">

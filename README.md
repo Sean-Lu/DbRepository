@@ -1,6 +1,6 @@
 ## 🌈 简介
 
-> `ORM`框架，支持数据库：`MySQL`、`MariaDB`、`TiDB`、`OceanBase`、`SQL Server`、`Oracle`、`SQLite`、`DuckDB`、`MS Access`、`Firebird`、`PostgreSql`、`OpenGauss`、`HighgoDB(瀚高)`、`IvorySQL`、`QuestDB`、`DB2`、`Informix`、`ClickHouse`、`DM(达梦)`、`KingbaseES(人大金仓)`、`ShenTong(神通)`、`Xugu(虚谷)`
+> `ORM`框架，支持数据库：[`MySQL`](https://www.mysql.com/)、[`MariaDB`](https://mariadb.org/)、[`TiDB`](https://pingcap.com/)、[`OceanBase`](https://open.oceanbase.com/)、[`SQL Server`](https://www.microsoft.com/)、[`Oracle`](https://www.oracle.com/)、[`SQLite`](https://www.sqlite.org/)、[`DuckDB`](https://duckdb.org/)、[`MS Access`](https://www.microsoft.com/)、[`Firebird`](https://www.firebirdsql.org/)、[`PostgreSql`](https://www.postgresql.org/)、[`OpenGauss`](https://opengauss.org/)、[`HighgoDB(瀚高)`](https://www.highgo.com/)、[`IvorySQL`](https://ivorysql.org/)、[`QuestDB`](https://questdb.io/)、[`DB2`](https://www.ibm.com/)、[`Informix`](https://www.ibm.com/)、[`ClickHouse`](https://clickhouse.com/)、[`Dameng(达梦)`](https://www.dameng.com/)、[`KingbaseES(人大金仓)`](https://www.kingbase.com.cn/)、[`ShenTong(神通)`](http://www.shentongdata.com/)、[`Xugu(虚谷)`](http://www.xugucn.com/)
 
 - 支持主从库分离（主库：增\删\改，从库：查）
 - 支持分表（自定义表名规则）
@@ -55,7 +55,7 @@ Get<T>()、GetList<T>() 其中 T ：
 | `DB2`                    | ✅         |                     |
 | `Informix`               | ✅         |                     |
 | `ClickHouse`             | ✅         |                     |
-| `DM`                     | ✅         | 达梦                |
+| `Dameng`                 | ✅         | 达梦                |
 | `KingbaseES`             | ✅         | 人大金仓            |
 | `ShenTong`               | ✅         | 神通数据库          |
 | `Xugu`                   | ✅         | 虚谷数据库          |
@@ -196,7 +196,7 @@ var _db = new DbFactory("Database connection string...", MySqlClientFactory.Inst
       <database name="DB2" providerInvariantName="IBM.Data.DB2" factoryTypeAssemblyQualifiedName="IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"/>
       <database name="Informix" providerInvariantName="IBM.Data.Informix" factoryTypeAssemblyQualifiedName="IBM.Data.Informix.IfxFactory,IBM.Data.Informix"/>
       <database name="ClickHouse" providerInvariantName="ClickHouse.Client" factoryTypeAssemblyQualifiedName="ClickHouse.Client.ADO.ClickHouseConnectionFactory,ClickHouse.Client"/>
-      <database name="DM" providerInvariantName="DM" factoryTypeAssemblyQualifiedName="Dm.DmClientFactory,DmProvider"/>
+      <database name="Dameng" providerInvariantName="Dameng" factoryTypeAssemblyQualifiedName="Dm.DmClientFactory,DmProvider"/>
       <database name="KingbaseES" providerInvariantName="Kdbndp" factoryTypeAssemblyQualifiedName="Kdbndp.KdbndpFactory,Kdbndp"/>
       <database name="ShenTong" providerInvariantName="ShenTong" factoryTypeAssemblyQualifiedName="System.Data.OscarClient.OscarFactory,Oscar.Data.SqlClient"/>
       <database name="Xugu" providerInvariantName="Xugu" factoryTypeAssemblyQualifiedName="XuguClient.XGProviderFactory,XuguClient"/>

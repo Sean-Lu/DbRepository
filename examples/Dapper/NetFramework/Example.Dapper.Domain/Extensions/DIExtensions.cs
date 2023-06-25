@@ -50,7 +50,7 @@ namespace Example.Dapper.Domain.Extensions
             //DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", IBM.Data.DB2.Core.DB2Factory.Instance));// DB2
             //DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", IBM.Data.Informix.IfxFactory.Instance));// Informix
             //DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", new ClickHouse.Client.ADO.ClickHouseConnectionFactory()));// ClickHouse
-            //DatabaseType.DM.SetDbProviderMap(new DbProviderMap("DM", Dm.DmClientFactory.Instance));// DM（达梦）
+            //DatabaseType.Dameng.SetDbProviderMap(new DbProviderMap("Dameng", Dm.DmClientFactory.Instance));// Dameng（达梦）
             //DatabaseType.KingbaseES.SetDbProviderMap(new DbProviderMap("Kdbndp", Kdbndp.KdbndpFactory.Instance));// KingbaseES（人大金仓）
             //DatabaseType.ShenTong.SetDbProviderMap(new DbProviderMap("ShenTong", System.Data.OscarClient.OscarFactory.Instance));// ShenTong（神通数据库）
             //DatabaseType.Xugu.SetDbProviderMap(new DbProviderMap("Xugu", new XuguClient.XGProviderFactory(null)));// Xugu（虚谷数据库）
@@ -74,7 +74,7 @@ namespace Example.Dapper.Domain.Extensions
             DatabaseType.DB2.SetDbProviderMap(new DbProviderMap("IBM.Data.DB2", "IBM.Data.DB2.Core.DB2Factory,IBM.Data.DB2.Core"));// DB2
             DatabaseType.Informix.SetDbProviderMap(new DbProviderMap("IBM.Data.Informix", "IBM.Data.Informix.IfxFactory,IBM.Data.Informix"));// Informix
             DatabaseType.ClickHouse.SetDbProviderMap(new DbProviderMap("ClickHouse.Client", "ClickHouse.Client.ADO.ClickHouseConnectionFactory,ClickHouse.Client"));// ClickHouse
-            DatabaseType.DM.SetDbProviderMap(new DbProviderMap("DM", "Dm.DmClientFactory,DmProvider"));// DM（达梦）
+            DatabaseType.Dameng.SetDbProviderMap(new DbProviderMap("Dameng", "Dm.DmClientFactory,DmProvider"));// Dameng（达梦）
             DatabaseType.KingbaseES.SetDbProviderMap(new DbProviderMap("Kdbndp", "Kdbndp.KdbndpFactory,Kdbndp"));// KingbaseES（人大金仓）
             DatabaseType.ShenTong.SetDbProviderMap(new DbProviderMap("ShenTong", "System.Data.OscarClient.OscarFactory,Oscar.Data.SqlClient"));// ShenTong（神通数据库）
             DatabaseType.Xugu.SetDbProviderMap(new DbProviderMap("Xugu", "XuguClient.XGProviderFactory,XuguClient"));// Xugu（虚谷数据库）
