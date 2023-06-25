@@ -22,7 +22,10 @@ public interface ISqlWhere<TEntity, out TResult>
     TResult Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
 
     TResult WhereIF(bool condition, Expression<Func<TEntity, bool>> whereExpression);
+    TResult WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression);
     TResult WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression);
+    TResult WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression);
+    TResult WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression);
 
     /// <summary>
     /// WHERE column_name operator value

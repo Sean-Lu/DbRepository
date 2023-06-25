@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository.Test
 {
@@ -1144,6 +1145,64 @@ namespace Sean.Core.DbRepository.Test
                 { "Country", (int)CountryType.China },
             };
             Assert.AreEqual("((`UserId` = @UserId OR `AccountBalance` >= @AccountBalance) AND `IsVip` = @IsVip OR `Age` > @Age AND (`IsBlack` = @IsBlack OR `Country` = @Country))", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        [TestMethod]
+        public void ValidateWhereExpressionUtilAndAlso()
+        {
+            var whereExpression = WhereExpressionUtil.Create<TestEntity>(entity => entity.UserId == 10001L && !entity.IsBlack).AndAlso(entity => entity.IsVip);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserId", 10001L },
+                { "IsBlack", false },
+                { "IsVip", true }
+            };
+            Assert.AreEqual("`UserId` = @UserId AND `IsBlack` = @IsBlack AND `IsVip` = @IsVip", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        [TestMethod]
+        public void ValidateWhereExpressionUtilOrElse()
+        {
+            var whereExpression = WhereExpressionUtil.Create<TestEntity>(entity => entity.UserId == 10001L && !entity.IsBlack).OrElse(entity => entity.IsVip);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserId", 10001L },
+                { "IsBlack", false },
+                { "IsVip", true }
+            };
+            Assert.AreEqual("(`UserId` = @UserId AND `IsBlack` = @IsBlack OR `IsVip` = @IsVip)", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        [TestMethod]
+        public void ValidateWhereExpressionUtilAndAlsoIFTrue()
+        {
+            var condition = true;
+            var whereExpression = WhereExpressionUtil.Create<TestEntity>(entity => entity.UserId == 10001L && !entity.IsBlack).AndAlsoIF(condition, entity => entity.IsVip);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserId", 10001L },
+                { "IsBlack", false },
+                { "IsVip", true }
+            };
+            Assert.AreEqual("`UserId` = @UserId AND `IsBlack` = @IsBlack AND `IsVip` = @IsVip", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+        [TestMethod]
+        public void ValidateWhereExpressionUtilAndAlsoIFFalse()
+        {
+            var condition = false;
+            var whereExpression = WhereExpressionUtil.Create<TestEntity>(entity => entity.UserId == 10001L && !entity.IsBlack).AndAlsoIF(condition, entity => entity.IsVip);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserId", 10001L },
+                { "IsBlack", false }
+            };
+            Assert.AreEqual("`UserId` = @UserId AND `IsBlack` = @IsBlack", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
         #endregion 支持的写法

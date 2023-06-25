@@ -94,13 +94,23 @@ public static class ExpressionExtensions
         return whereExpression.GetParameterizedWhereClause(sqlAdapter, parameters);
     }
 
-    public static Expression<Func<T, bool>> AndAlso<T>(this Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
+    public static Expression<Func<TEntity, bool>> AndAlsoIF<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, bool condition, Expression<Func<TEntity, bool>> mergeWhereExpression)
     {
-        return first.Compose(second, Expression.AndAlso);
+        return condition ? whereExpression.AndAlso(mergeWhereExpression) : whereExpression;
     }
-    public static Expression<Func<T, bool>> OrElse<T>(this Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
+    public static Expression<Func<TEntity, bool>> AndAlsoIF<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression)
     {
-        return first.Compose(second, Expression.OrElse);
+        return whereExpression.AndAlso(condition ? trueWhereExpression : falseWhereExpression);
+    }
+
+    public static Expression<Func<TEntity, bool>> AndAlso<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, bool>> mergeWhereExpression)
+    {
+        return whereExpression.Compose(mergeWhereExpression, Expression.AndAlso);
+    }
+
+    public static Expression<Func<TEntity, bool>> OrElse<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, bool>> mergeWhereExpression)
+    {
+        return whereExpression.Compose(mergeWhereExpression, Expression.OrElse);
     }
     #endregion
 

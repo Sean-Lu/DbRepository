@@ -131,9 +131,25 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder, ICountable<TEntity>
     {
         return condition ? Where(whereExpression) : this;
     }
+
+    public ICountable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression)
+    {
+        return Where(condition ? trueWhereExpression : falseWhereExpression);
+    }
+
     public ICountable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
     {
         return condition ? Where(whereExpression) : this;
+    }
+
+    public ICountable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
+    {
+        return Where(condition ? trueWhereExpression : falseWhereExpression);
+    }
+
+    public ICountable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
+    {
+        return condition ? Where(trueWhereExpression) : Where(falseWhereExpression);
     }
 
     public virtual ICountable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)

@@ -209,9 +209,25 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     {
         return condition ? Where(whereExpression) : this;
     }
+
+    public IUpdateable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression)
+    {
+        return Where(condition ? trueWhereExpression : falseWhereExpression);
+    }
+
     public IUpdateable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
     {
         return condition ? Where(whereExpression) : this;
+    }
+
+    public IUpdateable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
+    {
+        return Where(condition ? trueWhereExpression : falseWhereExpression);
+    }
+
+    public IUpdateable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
+    {
+        return condition ? Where(trueWhereExpression) : Where(falseWhereExpression);
     }
 
     public virtual IUpdateable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)

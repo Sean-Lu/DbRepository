@@ -262,9 +262,25 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     {
         return condition ? Where(whereExpression) : this;
     }
+
+    public IQueryable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression)
+    {
+        return Where(condition ? trueWhereExpression : falseWhereExpression);
+    }
+
     public IQueryable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
     {
         return condition ? Where(whereExpression) : this;
+    }
+
+    public IQueryable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
+    {
+        return Where(condition ? trueWhereExpression : falseWhereExpression);
+    }
+
+    public IQueryable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
+    {
+        return condition ? Where(trueWhereExpression) : Where(falseWhereExpression);
     }
 
     public virtual IQueryable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
