@@ -10,12 +10,6 @@ public class SequenceAttribute : BaseAttribute
         Name = name;
     }
 
-    /// <summary>
-    /// Sequence name.
-    /// </summary>
     public string Name { get; }
-    /// <summary>
-    /// Whether to use trigger. The default value is true.
-    /// </summary>
     public bool UseTrigger { get; } = true;
 }

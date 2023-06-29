@@ -2,6 +2,7 @@
 
 > `ORM`框架，支持数据库：[`MySQL`](https://www.mysql.com/)、[`MariaDB`](https://mariadb.org/)、[`TiDB`](https://pingcap.com/)、[`OceanBase`](https://open.oceanbase.com/)、[`SQL Server`](https://www.microsoft.com/)、[`Oracle`](https://www.oracle.com/)、[`SQLite`](https://www.sqlite.org/)、[`DuckDB`](https://duckdb.org/)、[`MS Access`](https://www.microsoft.com/)、[`Firebird`](https://www.firebirdsql.org/)、[`PostgreSql`](https://www.postgresql.org/)、[`OpenGauss`](https://opengauss.org/)、[`HighgoDB(瀚高)`](https://www.highgo.com/)、[`IvorySQL`](https://ivorysql.org/)、[`QuestDB`](https://questdb.io/)、[`DB2`](https://www.ibm.com/)、[`Informix`](https://www.ibm.com/)、[`ClickHouse`](https://clickhouse.com/)、[`Dameng(达梦)`](https://www.dameng.com/)、[`KingbaseES(人大金仓)`](https://www.kingbase.com.cn/)、[`ShenTong(神通)`](http://www.shentongdata.com/)、[`Xugu(虚谷)`](http://www.xugucn.com/)
 
+- 支持：`DbFirst`、`CodeFirst`
 - 支持主从库分离（主库：增\删\改，从库：查）
 - 支持分表（自定义表名规则）
 - 支持`Expression`表达式树（自动转换为参数化SQL语句）
@@ -31,34 +32,34 @@ Get<T>()、GetList<T>() 其中 T ：
 | [Sean.Core.DbRepository](https://www.nuget.org/packages/Sean.Core.DbRepository/)               | [![Sean.Core.DbRepository](https://img.shields.io/nuget/v/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/)                      | [![Sean.Core.DbRepository](https://img.shields.io/nuget/vpre/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/)                      | [![Sean.Core.DbRepository](https://img.shields.io/nuget/dt/Sean.Core.DbRepository.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository/)                      |
 | [Sean.Core.DbRepository.Dapper](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/v/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/vpre/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) | [![Sean.Core.DbRepository.Dapper](https://img.shields.io/nuget/dt/Sean.Core.DbRepository.Dapper.svg)](https://www.nuget.org/packages/Sean.Core.DbRepository.Dapper/) |
 
-## 🍉 CRUD Test
+## 🍉 数据库
 
-> `TestRepository`
+> CRUD Test: `TestRepository.cs`
 
-| Database                 | Test result | Description         |
-| ------------------------ | ----------- | ------------------- |
-| `MySQL`                  | ✅         |                     |
-| `MariaDB`                | ✅         |                     |
-| `TiDB`                   | ✅         |                     |
-| `OceanBase`              | ✅         |                     |
-| `SQL Server`             | ✅         |                     |
-| `Oracle`                 | ✅         |                     |
-| `SQLite`                 | ✅         |                     |
-| `DuckDB`                 | ✅         |                     |
-| `MS Access`              | ✅         |                     |
-| `Firebird`               | ✅         |                     |
-| `PostgreSql`             | ✅         |                     |
-| `OpenGauss`              | ✅         |                     |
-| `HighgoDB`               | ✅         | 瀚高数据库          |
-| `IvorySQL`               | ✅         |                     |
-| `QuestDB`                | ✅         |                     |
-| `DB2`                    | ✅         |                     |
-| `Informix`               | ✅         |                     |
-| `ClickHouse`             | ✅         |                     |
-| `Dameng`                 | ✅         | 达梦                |
-| `KingbaseES`             | ✅         | 人大金仓            |
-| `ShenTong`               | ✅         | 神通数据库          |
-| `Xugu`                   | ✅         | 虚谷数据库          |
+| Database     | CRUD Test | DbFirst | CodeFirst | Description |
+| ------------ | --------- | ------- | --------- |------------ |
+| `MySQL`      | ✅       |         | ✅       |              |
+| `MariaDB`    | ✅       |         | ✅       |              |
+| `TiDB`       | ✅       |         | ✅       |              |
+| `OceanBase`  | ✅       |         | ✅       |              |
+| `SQL Server` | ✅       |         | ✅       |              |
+| `Oracle`     | ✅       |         | ✅       |              |
+| `SQLite`     | ✅       |         | ✅       |              |
+| `DuckDB`     | ✅       |         | ✅       |              |
+| `MS Access`  | ✅       |         | ✅       |              |
+| `Firebird`   | ✅       |         | ✅       |              |
+| `PostgreSql` | ✅       |         | ✅       |              |
+| `OpenGauss`  | ✅       |         | ✅       |              |
+| `HighgoDB`   | ✅       |         | ✅       | 瀚高数据库   |
+| `IvorySQL`   | ✅       |         | ✅       |              |
+| `QuestDB`    | ✅       |         |           |              |
+| `DB2`        | ✅       |         |           |              |
+| `Informix`   | ✅       |         |           |              |
+| `ClickHouse` | ✅       |         |           |              |
+| `Dameng`     | ✅       |         |           | 达梦         |
+| `KingbaseES` | ✅       |         |           | 人大金仓     |
+| `ShenTong`   | ✅       |         |           | 神通数据库   |
+| `Xugu`       | ✅       |         |           | 虚谷数据库   |
 
 ## 💯 性能测试
 

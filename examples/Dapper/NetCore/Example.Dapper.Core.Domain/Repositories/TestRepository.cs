@@ -113,7 +113,7 @@ namespace Example.Dapper.Core.Domain.Repositories
             {
                 Sql = sql
             };
-            if (DbType is DatabaseType.DuckDB)
+            if (DbType is DatabaseType.DuckDB or DatabaseType.Firebird)
             {
                 result.AllowExecuteMultiSql = false;
                 result.MultiSqlSeparator = "-- ### MultiSqlSeparator ###";

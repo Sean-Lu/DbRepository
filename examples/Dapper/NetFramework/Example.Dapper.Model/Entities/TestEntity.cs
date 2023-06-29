@@ -26,6 +26,7 @@ namespace Example.Dapper.Model.Entities
         /// 用户名称
         /// </summary>
         [Column("UserName")]
+        [MaxLength(50)]
         public virtual string UserName { get; set; }
         /// <summary>
         /// 年龄
@@ -38,10 +39,12 @@ namespace Example.Dapper.Model.Entities
         /// <summary>
         /// 电话号码
         /// </summary>
+        [MaxLength(50)]
         public virtual string PhoneNumber { get; set; }
         /// <summary>
         /// 邮箱
         /// </summary>
+        [MaxLength(50)]
         public virtual string Email { get; set; }
         /// <summary>
         /// 是否是VIP用户
@@ -58,10 +61,12 @@ namespace Example.Dapper.Model.Entities
         /// <summary>
         /// 账户余额
         /// </summary>
+        [Number(18, 2)]
         public virtual decimal AccountBalance { get; set; }
         /// <summary>
         /// 账户余额
         /// </summary>
+        [Number(18, 2)]
         public virtual decimal AccountBalance2 { get; set; }
         /// <summary>
         /// 状态
@@ -70,6 +75,7 @@ namespace Example.Dapper.Model.Entities
         /// <summary>
         /// 备注
         /// </summary>
+        [MaxLength(255)]
         public virtual string Remark { get; set; }
         /// <summary>
         /// 创建时间

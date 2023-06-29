@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Transactions;
+using Sean.Core.DbRepository.CodeFirst;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Utility.Extensions;
 
@@ -1012,6 +1013,21 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     public override string TableName()
     {
         return MainTableName;
+    }
+
+    protected override ExecuteSqlOptions CreateTableSql(string tableName)
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DbType);
+        var executeSqlOptions= new ExecuteSqlOptions
+        {
+            Sql = sqlGenerator?.GetCreateTableSql<TEntity>(_ => tableName),
+        };
+        if (DbType is DatabaseType.DuckDB or DatabaseType.Firebird)
+        {
+            executeSqlOptions.AllowExecuteMultiSql = false;
+            executeSqlOptions.MultiSqlSeparator = "-- ### MultiSqlSeparator ###";
+        }
+        return executeSqlOptions;
     }
 
     #region Synchronous method

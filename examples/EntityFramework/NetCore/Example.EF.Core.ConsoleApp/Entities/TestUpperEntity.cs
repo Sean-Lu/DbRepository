@@ -24,6 +24,7 @@ namespace Example.EF.Core.ConsoleApp.Entities
         /// 用户名称
         /// </summary>
         [Column("USER_NAME")]
+        [MaxLength(50)]
         public virtual string? UserName { get; set; }
         /// <summary>
         /// 年龄
@@ -39,11 +40,13 @@ namespace Example.EF.Core.ConsoleApp.Entities
         /// 电话号码
         /// </summary>
         [Column("PHONE_NUMBER")]
+        [MaxLength(50)]
         public virtual string? PhoneNumber { get; set; }
         /// <summary>
         /// 邮箱
         /// </summary>
         [Column("EMAIL")]
+        [MaxLength(50)]
         public virtual string? Email { get; set; }
         /// <summary>
         /// 是否是VIP用户
@@ -79,6 +82,7 @@ namespace Example.EF.Core.ConsoleApp.Entities
         /// 备注
         /// </summary>
         [Column("REMARK")]
+        [MaxLength(255)]
         public virtual string? Remark { get; set; }
         /// <summary>
         /// 创建时间

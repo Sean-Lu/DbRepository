@@ -50,26 +50,6 @@ namespace Example.Dapper.Domain.Repositories
             return tableName;
         }
 
-        protected override ExecuteSqlOptions CreateTableSql(string tableName)
-        {
-            var sql = DbType switch
-            {
-                DatabaseType.MySql => $@"CREATE TABLE `{tableName}` (
-  `Id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-  `UserId` bigint(20) NOT NULL COMMENT '用户ID',
-  `CheckInType` int(2) NOT NULL COMMENT '签到类型',
-  `CreateTime` datetime NOT NULL COMMENT '创建时间',
-  `IP` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'IP地址',
-  PRIMARY KEY (`Id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='签到明细日志表';",
-                _ => throw new NotImplementedException()
-            };
-            return new ExecuteSqlOptions
-            {
-                Sql = sql
-            };
-        }
-
         private async Task TestDapperQueryAsync()
         {
             var sqlCommand = this.CreateQueryableBuilder(true)

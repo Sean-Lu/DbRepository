@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netcoreapp3.1</TargetFramework>
 		<LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<PropertyGroup>

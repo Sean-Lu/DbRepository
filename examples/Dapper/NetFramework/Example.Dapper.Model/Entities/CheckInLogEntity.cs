@@ -31,6 +31,7 @@ namespace Example.Dapper.Model.Entities
         /// <summary>
         /// IP地址
         /// </summary>
+        [MaxLength(50)]
         public virtual string IP { get; set; }
     }
 }

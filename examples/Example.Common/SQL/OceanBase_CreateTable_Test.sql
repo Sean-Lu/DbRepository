@@ -1,4 +1,4 @@
-﻿CREATE TABLE `Test` (
+﻿CREATE TABLE `{$TableName$}` (
     `Id` bigint NOT NULL AUTO_INCREMENT,
     `UserId` bigint NOT NULL,
     `UserName` longtext NULL,
