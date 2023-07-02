@@ -35,6 +35,10 @@ Get<T>()、GetList<T>() 其中 T ：
 ## 🍉 数据库
 
 > CRUD Test: `TestRepository.cs`
+>
+> DbFirst: `CodeGeneratorFactory`
+>
+> CodeFirst: `SqlGeneratorFactory`
 
 | Database     | CRUD Test | DbFirst | CodeFirst | Description |
 | ------------ | --------- | ------- | --------- |------------ |
@@ -52,14 +56,14 @@ Get<T>()、GetList<T>() 其中 T ：
 | `OpenGauss`  | ✅       |         | ✅       |              |
 | `HighgoDB`   | ✅       |         | ✅       | 瀚高数据库   |
 | `IvorySQL`   | ✅       |         | ✅       |              |
-| `QuestDB`    | ✅       |         |           |              |
+| `QuestDB`    | ✅       |         | ✅       |              |
 | `DB2`        | ✅       |         |           |              |
 | `Informix`   | ✅       |         |           |              |
-| `ClickHouse` | ✅       |         |           |              |
+| `ClickHouse` | ✅       |         | ✅       |              |
 | `Dameng`     | ✅       |         |           | 达梦         |
-| `KingbaseES` | ✅       |         |           | 人大金仓     |
+| `KingbaseES` | ✅       |         | ✅       | 人大金仓     |
 | `ShenTong`   | ✅       |         |           | 神通数据库   |
-| `Xugu`       | ✅       |         |           | 虚谷数据库   |
+| `Xugu`       | ✅       |         | ✅       | 虚谷数据库   |
 
 ## 💯 性能测试
 

@@ -1,9 +1,9 @@
 ﻿namespace Sean.Core.DbRepository;
 
-public class Constants
+internal static class Constants
 {
     public const string Master = "master";
-    public const string Slave = "slave";
+    //public const string Slave = "slave";
     public const string Secondary = "secondary";
 
     public const string DatabaseSettings = "DatabaseSettings";

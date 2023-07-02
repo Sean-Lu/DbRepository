@@ -17,4 +17,5 @@
   `UpdateTime` Nullable(DateTime) DEFAULT now() COMMENT '更新时间',
   PRIMARY KEY (`Id`)
 ) ENGINE = MergeTree()
-ORDER BY (`Id`);
+ORDER BY (`Id`)
+COMMENT '测试表';

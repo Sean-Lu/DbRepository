@@ -24,14 +24,14 @@ public static class SqlGeneratorFactory
         SetSqlGenerator(DatabaseType.OpenGauss, new SqlGeneratorForOpenGauss());
         SetSqlGenerator(DatabaseType.HighgoDB, new SqlGeneratorForPostgreSql());
         SetSqlGenerator(DatabaseType.IvorySQL, new SqlGeneratorForPostgreSql());
-        SetSqlGenerator(DatabaseType.QuestDB, null);
+        SetSqlGenerator(DatabaseType.QuestDB, new SqlGeneratorForQuestDB());
         SetSqlGenerator(DatabaseType.DB2, null);
         SetSqlGenerator(DatabaseType.Informix, null);
-        SetSqlGenerator(DatabaseType.ClickHouse, null);
+        SetSqlGenerator(DatabaseType.ClickHouse, new SqlGeneratorForClickHouse());
         SetSqlGenerator(DatabaseType.Dameng, null);
-        SetSqlGenerator(DatabaseType.KingbaseES, null);
+        SetSqlGenerator(DatabaseType.KingbaseES, new SqlGeneratorForPostgreSql());
         SetSqlGenerator(DatabaseType.ShenTong, null);
-        SetSqlGenerator(DatabaseType.Xugu, null);
+        SetSqlGenerator(DatabaseType.Xugu, new SqlGeneratorForXugu());
         #endregion
     }
 
