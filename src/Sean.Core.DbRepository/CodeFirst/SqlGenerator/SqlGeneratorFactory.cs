@@ -25,12 +25,12 @@ public static class SqlGeneratorFactory
         SetSqlGenerator(DatabaseType.HighgoDB, new SqlGeneratorForPostgreSql());
         SetSqlGenerator(DatabaseType.IvorySQL, new SqlGeneratorForPostgreSql());
         SetSqlGenerator(DatabaseType.QuestDB, new SqlGeneratorForQuestDB());
-        SetSqlGenerator(DatabaseType.DB2, null);
-        SetSqlGenerator(DatabaseType.Informix, null);
+        SetSqlGenerator(DatabaseType.DB2, new SqlGeneratorForDB2());
+        SetSqlGenerator(DatabaseType.Informix, new SqlGeneratorForInformix());
         SetSqlGenerator(DatabaseType.ClickHouse, new SqlGeneratorForClickHouse());
-        SetSqlGenerator(DatabaseType.Dameng, null);
+        SetSqlGenerator(DatabaseType.Dameng, new SqlGeneratorForDameng());
         SetSqlGenerator(DatabaseType.KingbaseES, new SqlGeneratorForPostgreSql());
-        SetSqlGenerator(DatabaseType.ShenTong, null);
+        SetSqlGenerator(DatabaseType.ShenTong, new SqlGeneratorForShenTong());
         SetSqlGenerator(DatabaseType.Xugu, new SqlGeneratorForXugu());
         #endregion
     }

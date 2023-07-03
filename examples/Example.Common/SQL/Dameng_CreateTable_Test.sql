@@ -16,4 +16,4 @@
     "CreateTime" DATETIME NOT NULL COMMENT '创建时间',
     "UpdateTime" DATETIME COMMENT '更新时间',
     PRIMARY KEY ("Id")
-);
+) COMMENT '测试表';
