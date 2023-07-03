@@ -1,4 +1,5 @@
-﻿using Sean.Utility.Extensions;
+﻿using System;
+using Sean.Utility.Extensions;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Xml;
 
 namespace Sean.Core.DbRepository.CodeFirst;
 
-public abstract class BaseSqlGenerator
+public abstract class BaseSqlGenerator : ISqlGenerator
 {
     protected readonly DatabaseType _dbType;
 
@@ -18,6 +19,12 @@ public abstract class BaseSqlGenerator
     {
         _dbType = dbType;
     }
+
+    protected abstract string ConvertFieldType(PropertyInfo fieldPropertyInfo);
+
+    public abstract string GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null);
+
+    public abstract string GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null);
 
     protected virtual string GetTableName<TEntity>()
     {

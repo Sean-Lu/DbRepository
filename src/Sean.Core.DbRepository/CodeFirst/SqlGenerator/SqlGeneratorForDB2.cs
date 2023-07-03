@@ -15,7 +15,7 @@ public class SqlGeneratorForDB2 : BaseSqlGenerator, ISqlGenerator
     {
     }
 
-    public virtual string ConvertFieldType(PropertyInfo fieldPropertyInfo)
+    protected override string ConvertFieldType(PropertyInfo fieldPropertyInfo)
     {
         var columnAttribute = fieldPropertyInfo.GetCustomAttribute<ColumnAttribute>();
         if (!string.IsNullOrWhiteSpace(columnAttribute?.TypeName))
@@ -59,7 +59,7 @@ public class SqlGeneratorForDB2 : BaseSqlGenerator, ISqlGenerator
         return result;
     }
 
-    public virtual string GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
+    public override string GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
     {
         var sb = new StringBuilder();
         var entityInfo = typeof(TEntity).GetEntityInfo();
@@ -107,7 +107,7 @@ public class SqlGeneratorForDB2 : BaseSqlGenerator, ISqlGenerator
         return sb.ToString();
     }
 
-    public virtual string GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
+    public override string GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
     {
         throw new NotImplementedException();
     }
