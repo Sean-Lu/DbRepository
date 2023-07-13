@@ -5,7 +5,7 @@
 - 支持：`DbFirst`、`CodeFirst`
 - 支持主从库分离（主库：增\删\改，从库：查）
 - 支持分表（自定义表名规则）
-- 支持`Expression`表达式树（自动转换为参数化SQL语句）
+- 支持`Expression`表达式树解析：`whereExpression`、`fieldExpression`
 - 常用类：
 
 | Class                                                     | Namespace                       | Description                    |
@@ -13,17 +13,7 @@
 | `DbFactory`                                               | `Sean.Core.DbRepository`        | 数据库工厂                     |
 | `SqlFactory`                                              | `Sean.Core.DbRepository`        | `SQL`创建工厂（CRUD）          |
 | `BaseRepository`<br>`BaseRepository<TEntity>`             | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
-| `DapperBaseRepository`<br>`DapperBaseRepository<TEntity>` | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory` + `Dapper`实现 |
-
-- `DbFactory`类：支持所有实现`DbProviderFactory`的数据库
-
-```
-Get<T>()、GetList<T>() 其中 T ：
-1. 支持自定义的 Model 实体类
-2. 支持 dynamic 动态类型
-3. 支持值类型，如：int、long、double、decimal、DateTime、bool等
-4. 支持 string 类型
-```
+| `DapperBaseRepository`<br>`DapperBaseRepository<TEntity>` | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory`+`Dapper`实现 |
 
 ## 💖 Nuget Packages
 
@@ -113,7 +103,7 @@ Get<T>()、GetList<T>() 其中 T ：
 
 > `.NET Core`: `appsettings.json`
 
-- 配置示例：**通过在数据库连接字符串中设置`ProviderName`或`DatabaseType`的值来指定数据库类型**
+- 配置示例：可以通过设置`ProviderName`或`DatabaseType`的值来指定数据库类型
 
 ```json
 {
@@ -282,7 +272,7 @@ bool exists = _testRepository.Exists(entity => entity.UserId == 10001);
 // 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.TableRepositoryTest
 ```
 
-> 表达式树：**`Expression<Func<TEntity, bool>> whereExpression`**
+> 表达式树：`Expression<Func<TEntity, bool>> whereExpression`
 
 ```csharp
 // 常量
@@ -309,7 +299,7 @@ entity => entity.UserId == _model.UserId && entity.Remark.StartsWith("测试")
 // 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.WhereExpressionTest
 ```
 
-> 表达式树：**`Expression<Func<TEntity, object>> fieldExpression`**
+> 表达式树：`Expression<Func<TEntity, object>> fieldExpression`
 
 ```csharp
 // 单个字段：
@@ -340,43 +330,3 @@ entity => new { entity.Status, entity.UpdateTime }
 1. `OleDb`是Microsoft开发的一种数据库连接技术，它是面向对象的，可以连接多种类型的数据库，包括`Access`、`Excel`、`SQL Server`等等。OleDb使用COM接口连接数据库，因此只能在Windows平台上使用。
 2. `ODBC`是一种通用的数据库连接技术，它可以连接多种类型的数据库，包括`Access`、`Excel`、`SQL Server`等等。ODBC使用标准的API连接数据库，因此可以在多个平台上使用，包括Windows、Linux、Unix等等。
 
-> 报错：System.ArgumentException:“The specified invariant name 'MySql.Data.MySqlClient' wasn't found in the list of registered .NET Data Providers.”
-
-```
-注：从`.NET Standard` 2.1版本开始（`.NET Core` >= 3.0）才有`System.Data.Common.DbProviderFactories`类
-
-.NET Core的数据库连接与.NET Framework略有不同。
-在.NET Framework中，程序可用的数据库驱动程序在整个系统范围内自动可用（通过操作系统的machine.config或项目里的App.config、Web.config）。
-而在.NET Core中，必须要先注册数据库工厂，示例：
-
-SQLServer：
-=========================================================
-using System.Data.SqlClient;
-DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
-=========================================================
-
-MySQL：
-=========================================================
-using MySql.Data.MySqlClient;
-DbProviderFactories.RegisterFactory("MySql.Data.MySqlClient", MySqlClientFactory.Instance);
-=========================================================
-
-PostgreSQL：
-=========================================================
-using Npgsql;
-DbProviderFactories.RegisterFactory("Npgsql", NpgsqlFactory.Instance);
-=========================================================
-
-SQLite：
-=========================================================
-using Microsoft.Data.Sqlite;
-DbProviderFactories.RegisterFactory("Microsoft.Data.Sqlite", SqliteFactory.Instance);
-=========================================================
-
-这些数据库访问工厂的单例都是继承DbProviderFactory，需要通过nuget安装对应的数据库客户端包，例如：Mysql.Data
-上面是通过直接注册工厂单例实现，也可以通过注册指定的工厂类型和应用程序集来实现，示例：
-DbProviderFactories.RegisterFactory("MySql.Data.MySqlClient", "MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data");
-然后就可以正常使用了：
-DbProviderFactory factory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
-DbConnection conn = factory.CreateConnection();
-```
