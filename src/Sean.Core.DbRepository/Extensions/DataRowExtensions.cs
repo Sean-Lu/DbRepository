@@ -51,10 +51,13 @@ namespace Sean.Core.DbRepository.Extensions
                 {
                     var fieldName = column.ColumnName;
                     var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName()?.ToLower() == fieldName.ToLower() : c.GetFieldName() == fieldName);
-                    var value = dr[fieldName];
-                    if (propertyInfo != null && propertyInfo.CanWrite && value != DBNull.Value)
+                    if (propertyInfo != null && propertyInfo.CanWrite)
                     {
-                        propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
+                        var value = dr[fieldName];
+                        if (value != DBNull.Value)
+                        {
+                            propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
+                        }
                     }
                 }
             }

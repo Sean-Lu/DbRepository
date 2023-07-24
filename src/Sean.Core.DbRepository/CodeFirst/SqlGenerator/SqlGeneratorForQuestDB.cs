@@ -15,7 +15,7 @@ public class SqlGeneratorForQuestDB : BaseSqlGenerator, ISqlGenerator
     {
     }
 
-    protected override string ConvertFieldType(PropertyInfo fieldPropertyInfo)
+    protected virtual string ConvertFieldType(PropertyInfo fieldPropertyInfo)
     {
         var columnAttribute = fieldPropertyInfo.GetCustomAttribute<ColumnAttribute>();
         if (!string.IsNullOrWhiteSpace(columnAttribute?.TypeName))
@@ -46,7 +46,7 @@ public class SqlGeneratorForQuestDB : BaseSqlGenerator, ISqlGenerator
             case not null when underlyingType == typeof(DateTime):
                 result = "TIMESTAMP";
                 break;
-            case not null when underlyingType == typeof(decimal):
+            case not null when underlyingType == typeof(decimal) || underlyingType == typeof(double):
                 {
                     //var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumberAttribute>();
                     result = "DOUBLE";
@@ -59,7 +59,7 @@ public class SqlGeneratorForQuestDB : BaseSqlGenerator, ISqlGenerator
         return result;
     }
 
-    public override string GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
+    public virtual string GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
     {
         var sb = new StringBuilder();
         var entityInfo = typeof(TEntity).GetEntityInfo();
@@ -107,7 +107,7 @@ public class SqlGeneratorForQuestDB : BaseSqlGenerator, ISqlGenerator
         return sb.ToString();
     }
 
-    public override string GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
+    public virtual string GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
     {
         throw new NotImplementedException();
     }

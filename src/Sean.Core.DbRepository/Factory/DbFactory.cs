@@ -42,7 +42,7 @@ public class DbFactory
     public MultiConnectionSettings ConnectionSettings
     {
         get => _connectionSettings;
-        set => OnConnectionStringChanged(value);
+        set => OnConnectionSettingsChanged(value);
     }
 
     public ISqlMonitor SqlMonitor { get; }
@@ -99,7 +99,7 @@ public class DbFactory
     /// <param name="connectionSettings"></param>
     public DbFactory(MultiConnectionSettings connectionSettings)
     {
-        ConnectionSettings = connectionSettings ?? throw new ArgumentNullException(nameof(connectionSettings));
+        ConnectionSettings = connectionSettings;
 
         SqlMonitor = new DefaultSqlMonitor();
     }
@@ -1710,7 +1710,7 @@ public class DbFactory
         _dbType = dbType;
         _providerFactory = _dbType.GetDbProviderFactory();
     }
-    private void OnConnectionStringChanged(MultiConnectionSettings connectionSettings)
+    private void OnConnectionSettingsChanged(MultiConnectionSettings connectionSettings)
     {
         _connectionSettings = connectionSettings ?? throw new ArgumentNullException(nameof(connectionSettings));
 

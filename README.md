@@ -32,14 +32,14 @@
 
 | Database     | CRUD Test | DbFirst | CodeFirst | Description |
 | ------------ | --------- | ------- | --------- |------------ |
-| `MySQL`      | ✅       |         | ✅       |              |
-| `MariaDB`    | ✅       |         | ✅       |              |
-| `TiDB`       | ✅       |         | ✅       |              |
-| `OceanBase`  | ✅       |         | ✅       |              |
-| `SQL Server` | ✅       |         | ✅       |              |
-| `Oracle`     | ✅       |         | ✅       |              |
-| `SQLite`     | ✅       |         | ✅       |              |
-| `DuckDB`     | ✅       |         | ✅       |              |
+| `MySQL`      | ✅       | ✅      | ✅       |             |
+| `MariaDB`    | ✅       | ✅      | ✅       |             |
+| `TiDB`       | ✅       | ✅      | ✅       |             |
+| `OceanBase`  | ✅       | ✅      | ✅       |             |
+| `SQL Server` | ✅       | ✅      | ✅       |             |
+| `Oracle`     | ✅       | ✅      | ✅       |             |
+| `SQLite`     | ✅       | ✅      | ✅       |             |
+| `DuckDB`     | ✅       | ✅      | ✅       |             |
 | `MS Access`  | ✅       |         | ✅       |              |
 | `Firebird`   | ✅       |         | ✅       |              |
 | `PostgreSql` | ✅       |         | ✅       |              |

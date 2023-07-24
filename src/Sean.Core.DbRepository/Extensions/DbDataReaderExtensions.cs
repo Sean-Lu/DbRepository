@@ -295,10 +295,13 @@ namespace Sean.Core.DbRepository.Extensions
                 {
                     var fieldName = dataReader.GetName(i);
                     var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName()?.ToLower() == fieldName.ToLower() : c.GetFieldName() == fieldName);
-                    var value = dataReader[i];
-                    if (propertyInfo != null && propertyInfo.CanWrite && value != DBNull.Value)
+                    if (propertyInfo != null && propertyInfo.CanWrite)
                     {
-                        propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
+                        var value = dataReader[i];
+                        if (value != DBNull.Value)
+                        {
+                            propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
+                        }
                     }
                 }
             }
