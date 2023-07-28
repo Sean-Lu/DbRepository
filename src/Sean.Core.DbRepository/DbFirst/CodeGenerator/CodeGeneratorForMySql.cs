@@ -18,6 +18,11 @@ public class CodeGeneratorForMySql : BaseCodeGenerator, ICodeGenerator
         _db = new DbFactory(new MultiConnectionSettings(ConnectionStringOptions.Create(connectionString, _dbType)));
     }
 
+    public virtual void Initialize(DbFactory dbFactory)
+    {
+        _db = dbFactory;
+    }
+
     public virtual TableInfoModel GetTableInfo(string tableName)
     {
         using var conn = _db.OpenNewConnection();
