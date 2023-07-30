@@ -42,7 +42,7 @@
 | `DuckDB`     | ✅       | ✅      | ✅       |             |
 | `MS Access`  | ✅       |         | ✅       |              |
 | `Firebird`   | ✅       |         | ✅       |              |
-| `PostgreSql` | ✅       |         | ✅       |              |
+| `PostgreSql` | ✅       | ✅      | ✅       |             |
 | `OpenGauss`  | ✅       |         | ✅       |              |
 | `HighgoDB`   | ✅       |         | ✅       | 瀚高数据库   |
 | `IvorySQL`   | ✅       |         | ✅       |              |

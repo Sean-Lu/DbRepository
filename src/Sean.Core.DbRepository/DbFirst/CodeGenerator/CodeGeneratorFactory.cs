@@ -20,7 +20,7 @@ public static class CodeGeneratorFactory
         SetCodeGenerator(DatabaseType.DuckDB, new CodeGeneratorForSQLite(DatabaseType.DuckDB));
         SetCodeGenerator(DatabaseType.MsAccess, null);
         SetCodeGenerator(DatabaseType.Firebird, null);
-        SetCodeGenerator(DatabaseType.PostgreSql, null);
+        SetCodeGenerator(DatabaseType.PostgreSql, new CodeGeneratorForPostgreSql());
         SetCodeGenerator(DatabaseType.OpenGauss, null);
         SetCodeGenerator(DatabaseType.HighgoDB, null);
         SetCodeGenerator(DatabaseType.IvorySQL, null);
