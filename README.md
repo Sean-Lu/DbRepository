@@ -44,8 +44,8 @@
 | `Firebird`   | ✅       |         | ✅       |              |
 | `PostgreSql` | ✅       | ✅      | ✅       |             |
 | `OpenGauss`  | ✅       |         | ✅       |              |
-| `HighgoDB`   | ✅       |         | ✅       | 瀚高数据库   |
-| `IvorySQL`   | ✅       |         | ✅       |              |
+| `HighgoDB`   | ✅       | ✅      | ✅       | 瀚高数据库  |
+| `IvorySQL`   | ✅       | ✅      | ✅       |             |
 | `QuestDB`    | ✅       |         | ✅       |              |
 | `DB2`        | ✅       |         | ✅       |              |
 | `Informix`   | ✅       |         | ✅       |              |
