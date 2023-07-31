@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Example.EF.Core.ConsoleApp.Entities
 {
     /// <summary>
-    /// 测试表（仅供测试使用）
+    /// 测试表
     /// </summary>
     [Table("TEST"/*, Schema = "DB2ADMIN"*/)]
     public class TestUpperEntity
@@ -49,12 +49,12 @@ namespace Example.EF.Core.ConsoleApp.Entities
         [MaxLength(50)]
         public virtual string? Email { get; set; }
         /// <summary>
-        /// 是否是VIP用户
+        /// 是否VIP用户
         /// </summary>
         [Column("IS_VIP")]
         public virtual bool IsVip { get; set; }
         /// <summary>
-        /// 是否是黑名单用户
+        /// 是否黑名单用户
         /// </summary>
         [Column("IS_BLACK")]
         public virtual bool IsBlack { get; set; }

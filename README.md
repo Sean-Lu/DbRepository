@@ -40,10 +40,10 @@
 | `Oracle`     | ✅       | ✅      | ✅       |             |
 | `SQLite`     | ✅       | ✅      | ✅       |             |
 | `DuckDB`     | ✅       | ✅      | ✅       |             |
-| `MS Access`  | ✅       |         | ✅       |              |
-| `Firebird`   | ✅       |         | ✅       |              |
+| `MS Access`  | ✅       | ✅      | ✅       |             |
+| `Firebird`   | ✅       | ✅      | ✅       |             |
 | `PostgreSql` | ✅       | ✅      | ✅       |             |
-| `OpenGauss`  | ✅       |         | ✅       |              |
+| `OpenGauss`  | ✅       | ✅      | ✅       |             |
 | `HighgoDB`   | ✅       | ✅      | ✅       | 瀚高数据库  |
 | `IvorySQL`   | ✅       | ✅      | ✅       |             |
 | `QuestDB`    | ✅       |         | ✅       |              |

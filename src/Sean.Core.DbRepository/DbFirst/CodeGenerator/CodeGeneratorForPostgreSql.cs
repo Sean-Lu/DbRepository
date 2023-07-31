@@ -4,23 +4,11 @@ namespace Sean.Core.DbRepository.DbFirst;
 
 public class CodeGeneratorForPostgreSql : BaseCodeGenerator, ICodeGenerator
 {
-    private DbFactory _db;
-
     public CodeGeneratorForPostgreSql() : base(DatabaseType.PostgreSql)
     {
     }
     public CodeGeneratorForPostgreSql(DatabaseType compatibleDbType) : base(compatibleDbType)
     {
-    }
-
-    public virtual void Initialize(string connectionString)
-    {
-        _db = new DbFactory(new MultiConnectionSettings(ConnectionStringOptions.Create(connectionString, _dbType)));
-    }
-
-    public virtual void Initialize(DbFactory dbFactory)
-    {
-        _db = dbFactory;
     }
 
     public virtual TableInfoModel GetTableInfo(string tableName)
@@ -30,9 +18,8 @@ public class CodeGeneratorForPostgreSql : BaseCodeGenerator, ICodeGenerator
 	table_name AS {nameof(TableInfoModel.TableName)},
 	obj_description(pg_class.oid) AS {nameof(TableInfoModel.TableComment)}
 FROM information_schema.tables
-JOIN pg_database db ON db.datname = current_database()
 LEFT JOIN pg_class ON pg_class.relname = table_name
-WHERE table_name = '{tableName}'";
+WHERE table_catalog = current_database() AND table_name = '{tableName}'";
         return _db.Get<TableInfoModel>(sql);
     }
 
@@ -53,7 +40,6 @@ WHERE table_name = '{tableName}'";
     CASE WHEN fk.constraint_name IS NOT NULL THEN 1 ELSE 0 END AS {nameof(TableFieldModel.IsForeignKey)},
     CASE WHEN c.is_identity='YES' THEN 1 ELSE 0 END AS {nameof(TableFieldModel.IsAutoIncrement)}
 FROM information_schema.columns c
-JOIN pg_database db ON db.datname = current_database()
 JOIN pg_class pc ON pc.relname = c.table_name
 LEFT JOIN pg_description d ON d.objoid = pc.oid AND d.objsubid = c.ordinal_position
 LEFT JOIN
@@ -86,8 +72,8 @@ LEFT JOIN
     ) fk ON c.table_schema = fk.table_schema
            AND c.table_name = fk.table_name
            AND c.column_name = fk.column_name
-WHERE c.table_name = '{tableName}'
-ORDER BY c.ordinal_position;";
+WHERE table_catalog = current_database() AND c.table_name = '{tableName}'
+ORDER BY c.ordinal_position";
         return _db.Query<TableFieldModel>(sql);
     }
 
@@ -102,10 +88,12 @@ ORDER BY c.ordinal_position;";
     confrelid::regclass::text AS {nameof(TableFieldReferenceModel.ReferencedTableName)},
     af.attname AS {nameof(TableFieldReferenceModel.ReferencedFieldName)}
 FROM pg_constraint c
-JOIN pg_database db ON db.datname = current_database()
 JOIN pg_attribute a ON a.attnum = ANY (c.conkey) AND a.attrelid = c.conrelid
 JOIN pg_attribute af ON af.attnum = ANY (c.confkey) AND af.attrelid = c.confrelid
-WHERE contype = 'f' AND conrelid::regclass = '{tableName}'::regclass";
+WHERE contype = 'f'
+    AND connamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())
+    AND conrelid IN (SELECT oid FROM pg_class WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema()))
+    AND conrelid::regclass = '{tableName}'::regclass";
         return _db.Query<TableFieldReferenceModel>(sql);
     }
 }

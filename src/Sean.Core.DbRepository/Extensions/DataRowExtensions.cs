@@ -27,7 +27,18 @@ namespace Sean.Core.DbRepository.Extensions
 
             T model = default;
             var type = typeof(T);
-            if (type.IsValueType// 值类型，如：int、long、double、decimal、DateTime、bool、可空类型等
+            if (type.IsGenericType)
+            {
+                var genericType = type.GetGenericTypeDefinition();
+                if (genericType.Name.StartsWith("Tuple")// Tuple<>
+                    || genericType.Name.StartsWith("ValueTuple")// 匿名类：ValueTuple<>
+                    )
+                {
+                    object[] values = dr.ItemArray;
+                    model = (T)Activator.CreateInstance(typeof(T), values);
+                }
+            }
+            else if (type.IsValueType// 值类型，如：int、long、double、decimal、DateTime、bool、可空类型等
                 || type == typeof(string)
             )
             {

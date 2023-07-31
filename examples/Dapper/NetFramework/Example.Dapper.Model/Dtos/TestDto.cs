@@ -5,7 +5,7 @@ using Example.Dapper.Model.Entities;
 namespace Example.Dapper.Model.Dtos
 {
     /// <summary>
-    /// 测试表（仅供测试使用）
+    /// 测试表
     /// </summary>
     //[AutoMap(typeof(TestEntity), ReverseMap = true)]
     public class TestDto
@@ -39,11 +39,11 @@ namespace Example.Dapper.Model.Dtos
         /// </summary>
         public string Email { get; set; }
         /// <summary>
-        /// 是否是VIP用户
+        /// 是否VIP用户
         /// </summary>
         public bool IsVip { get; set; }
         /// <summary>
-        /// 是否是黑名单用户
+        /// 是否黑名单用户
         /// </summary>
         public bool IsBlack { get; set; }
         /// <summary>

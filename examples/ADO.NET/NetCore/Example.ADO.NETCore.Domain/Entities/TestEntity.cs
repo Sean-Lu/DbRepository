@@ -6,7 +6,7 @@ using Sean.Core.DbRepository;
 namespace Example.ADO.NETCore.Domain.Entities
 {
     /// <summary>
-    /// 测试表（仅供测试使用）
+    /// 测试表
     /// </summary>
     [Table("Test")]
     public class TestEntity : EntityStateBase
@@ -47,11 +47,11 @@ namespace Example.ADO.NETCore.Domain.Entities
         [MaxLength(50)]
         public virtual string Email { get; set; }
         /// <summary>
-        /// 是否是VIP用户
+        /// 是否VIP用户
         /// </summary>
         public virtual bool IsVip { get; set; }
         /// <summary>
-        /// 是否是黑名单用户
+        /// 是否黑名单用户
         /// </summary>
         public virtual bool IsBlack { get; set; }
         /// <summary>

@@ -18,10 +18,10 @@ public static class CodeGeneratorFactory
         SetCodeGenerator(DatabaseType.Oracle, new CodeGeneratorForOracle());
         SetCodeGenerator(DatabaseType.SQLite, new CodeGeneratorForSQLite());
         SetCodeGenerator(DatabaseType.DuckDB, new CodeGeneratorForSQLite(DatabaseType.DuckDB));
-        SetCodeGenerator(DatabaseType.MsAccess, null);
-        SetCodeGenerator(DatabaseType.Firebird, null);
+        SetCodeGenerator(DatabaseType.MsAccess, new CodeGeneratorForMsAccess());
+        SetCodeGenerator(DatabaseType.Firebird, new CodeGeneratorForFirebird());
         SetCodeGenerator(DatabaseType.PostgreSql, new CodeGeneratorForPostgreSql());
-        SetCodeGenerator(DatabaseType.OpenGauss, null);
+        SetCodeGenerator(DatabaseType.OpenGauss, new CodeGeneratorForOpenGauss());
         SetCodeGenerator(DatabaseType.HighgoDB, new CodeGeneratorForPostgreSql(DatabaseType.HighgoDB));
         SetCodeGenerator(DatabaseType.IvorySQL, new CodeGeneratorForPostgreSql(DatabaseType.IvorySQL));
         SetCodeGenerator(DatabaseType.QuestDB, null);

@@ -4,23 +4,11 @@ namespace Sean.Core.DbRepository.DbFirst;
 
 public class CodeGeneratorForSqlServer : BaseCodeGenerator, ICodeGenerator
 {
-    private DbFactory _db;
-
     public CodeGeneratorForSqlServer() : base(DatabaseType.SqlServer)
     {
     }
     public CodeGeneratorForSqlServer(DatabaseType compatibleDbType) : base(compatibleDbType)
     {
-    }
-
-    public virtual void Initialize(string connectionString)
-    {
-        _db = new DbFactory(new MultiConnectionSettings(ConnectionStringOptions.Create(connectionString, _dbType)));
-    }
-
-    public virtual void Initialize(DbFactory dbFactory)
-    {
-        _db = dbFactory;
     }
 
     public virtual TableInfoModel GetTableInfo(string tableName)
