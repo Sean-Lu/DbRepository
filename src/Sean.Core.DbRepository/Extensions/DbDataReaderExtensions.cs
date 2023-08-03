@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using Sean.Utility.Extensions;
 using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository.Extensions
@@ -270,21 +271,55 @@ namespace Sean.Core.DbRepository.Extensions
             if (type.IsGenericType)
             {
                 var genericType = type.GetGenericTypeDefinition();
-                if (genericType.Name.StartsWith("Tuple")// Tuple<>
-                    || genericType.Name.StartsWith("ValueTuple")// 匿名类：ValueTuple<>
-                    )
+                if (genericType.Name.StartsWith("Tuple"))// Tuple<>
                 {
-                    object[] values = new object[dataReader.FieldCount];
-                    dataReader.GetValues(values);
-                    model = (T)Activator.CreateInstance(typeof(T), values);
+                    var itemCount = type.GetProperties().Count(c => c.Name.StartsWith("Item"));
+                    if (itemCount > 0)
+                    {
+                        var values = new object[itemCount];// dataReader.FieldCount
+                        dataReader.GetValues(values);
+                        if (values.Any(c => c == DBNull.Value))
+                        {
+                            for (var i = 0; i < values.Length; i++)
+                            {
+                                if (values[i] == DBNull.Value)
+                                {
+                                    //var propertyInfo = type.GetProperty($"Item{i + 1}");
+                                    //values[i] = propertyInfo != null ? propertyInfo.PropertyType.GetDefaultValue() : null;
+                                    values[i] = null;
+                                }
+                            }
+                        }
+                        model = (T)Activator.CreateInstance(typeof(T), values);
+                    }
+                }
+                else if (genericType.Name.StartsWith("ValueTuple"))// 匿名类：ValueTuple<>
+                {
+                    var itemCount = type.GetFields().Count(c => c.Name.StartsWith("Item"));
+                    if (itemCount > 0)
+                    {
+                        var values = new object[itemCount];// dataReader.FieldCount
+                        dataReader.GetValues(values);
+                        if (values.Any(c => c == DBNull.Value))
+                        {
+                            for (var i = 0; i < values.Length; i++)
+                            {
+                                if (values[i] == DBNull.Value)
+                                {
+                                    //var fieldInfo = type.GetField($"Item{i + 1}");
+                                    //values[i] = fieldInfo != null ? fieldInfo.FieldType.GetDefaultValue() : null;
+                                    values[i] = null;
+                                }
+                            }
+                        }
+                        model = (T)Activator.CreateInstance(typeof(T), values);
+                    }
                 }
             }
-            else if (type.IsValueType// 值类型，如：int、long、double、decimal、DateTime、bool、可空类型等
-                || type == typeof(string)
-            )
+            else if (type.IsValueType || type == typeof(string))// 值类型、字符串
             {
                 var value = dataReader[0];
-                if (value != DBNull.Value)// 对象不能从 DBNull 转换为其他类型。
+                if (value != DBNull.Value)
                 {
                     model = ObjectConvert.ChangeType<T>(value);
                 }
@@ -299,9 +334,9 @@ namespace Sean.Core.DbRepository.Extensions
                 var json = DbContextConfiguration.Options.JsonSerializer.Serialize(dic);
                 model = DbContextConfiguration.Options.JsonSerializer.Deserialize<T>(json);
             }
-            else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)
+            else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)// 实体类
             {
-                model = Activator.CreateInstance<T>();//new T();
+                model = Activator.CreateInstance<T>();
                 var properties = type.GetProperties();
                 for (var i = 0; i < dataReader.FieldCount; i++)
                 {
