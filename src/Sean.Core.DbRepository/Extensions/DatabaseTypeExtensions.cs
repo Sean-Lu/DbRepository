@@ -133,17 +133,11 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.TiDB:
                 case DatabaseType.OceanBase:
                     return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema='{connection.Database}' AND table_name='{tableName}'";
-                case DatabaseType.OpenGauss:
-                    {
-                        var connectionType = connection.GetType();
-                        var property = connectionType.GetProperty("UserName");
-                        var userName = property.GetValue(connection, null) as string;
-                        return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_catalog='{connection.Database}' AND table_schema='{userName}' AND table_name='{tableName}'";
-                    }
                 case DatabaseType.PostgreSql:
+                case DatabaseType.OpenGauss:
                 case DatabaseType.HighgoDB:
                 case DatabaseType.IvorySQL:
-                    return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_catalog=current_database() AND table_name='{tableName}'";
+                    return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_catalog=current_database() AND table_schema=current_schema() AND table_name='{tableName}'";
                 case DatabaseType.QuestDB:
                     return $"SELECT COUNT(*) AS TableCount FROM TABLES WHERE name='{tableName}'";
                 case DatabaseType.ShenTong:
@@ -212,17 +206,11 @@ namespace Sean.Core.DbRepository.Extensions
                 case DatabaseType.TiDB:
                 case DatabaseType.OceanBase:
                     return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema='{connection.Database}' AND table_name='{tableName}' AND column_name='{fieldName}'";
-                case DatabaseType.OpenGauss:
-                    {
-                        var connectionType = connection.GetType();
-                        var property = connectionType.GetProperty("UserName");
-                        var userName = property.GetValue(connection, null) as string;
-                        return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_catalog='{connection.Database}' AND table_schema='{userName}' AND table_name='{tableName}' AND column_name='{fieldName}'";
-                    }
                 case DatabaseType.PostgreSql:
+                case DatabaseType.OpenGauss:
                 case DatabaseType.HighgoDB:
                 case DatabaseType.IvorySQL:
-                    return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_catalog=current_database() AND table_name='{tableName}' AND column_name='{fieldName}'";
+                    return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_catalog=current_database() AND table_schema=current_schema() AND table_name='{tableName}' AND column_name='{fieldName}'";
                 case DatabaseType.QuestDB:
                     return $"SELECT COUNT(*) AS ColumnCount FROM table_columns('{tableName}') WHERE column='{fieldName}'";
                 case DatabaseType.ShenTong:

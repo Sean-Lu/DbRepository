@@ -19,7 +19,9 @@ public class CodeGeneratorForPostgreSql : BaseCodeGenerator, ICodeGenerator
 	obj_description(pg_class.oid) AS {nameof(TableInfoModel.TableComment)}
 FROM information_schema.tables
 LEFT JOIN pg_class ON pg_class.relname = table_name
-WHERE table_catalog = current_database() AND table_name = '{tableName}'";
+WHERE table_catalog = current_database()
+    AND table_schema = current_schema()
+    AND table_name = '{tableName}'";
         return _db.Get<TableInfoModel>(sql);
     }
 
@@ -72,28 +74,48 @@ LEFT JOIN
     ) fk ON c.table_schema = fk.table_schema
            AND c.table_name = fk.table_name
            AND c.column_name = fk.column_name
-WHERE table_catalog = current_database() AND c.table_name = '{tableName}'
+WHERE c.table_catalog = current_database()
+    AND c.table_schema = current_schema()
+    AND c.table_name = '{tableName}'
 ORDER BY c.ordinal_position";
         return _db.Query<TableFieldModel>(sql);
     }
 
     public virtual List<TableFieldReferenceModel> GetTableFieldReferenceInfo(string tableName)
     {
+//        var sql = $@"SELECT
+//    conname AS {nameof(TableFieldReferenceModel.ForeignKeyName)},
+//    connamespace::regnamespace::text AS {nameof(TableFieldReferenceModel.TableSchema)},
+//    conrelid::regclass::text AS {nameof(TableFieldReferenceModel.TableName)},
+//    a.attname AS {nameof(TableFieldReferenceModel.FieldName)},
+//    connamespace::regnamespace::text AS {nameof(TableFieldReferenceModel.ReferencedTableSchema)},
+//    confrelid::regclass::text AS {nameof(TableFieldReferenceModel.ReferencedTableName)},
+//    af.attname AS {nameof(TableFieldReferenceModel.ReferencedFieldName)}
+//FROM pg_constraint c
+//JOIN pg_attribute a ON a.attnum = ANY (c.conkey) AND a.attrelid = c.conrelid
+//JOIN pg_attribute af ON af.attnum = ANY (c.confkey) AND af.attrelid = c.confrelid
+//WHERE contype = 'f'
+//    AND connamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())
+//    AND conrelid IN (SELECT oid FROM pg_class WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema()))
+//    AND conrelid::regclass = '{tableName}'::regclass";
         var sql = $@"SELECT
-    conname AS {nameof(TableFieldReferenceModel.ForeignKeyName)},
-    connamespace::regnamespace::text AS {nameof(TableFieldReferenceModel.TableSchema)},
-    conrelid::regclass::text AS {nameof(TableFieldReferenceModel.TableName)},
+    c.conname AS {nameof(TableFieldReferenceModel.ForeignKeyName)},
+    n.nspname AS {nameof(TableFieldReferenceModel.TableSchema)},
+    c.conrelid::regclass::text AS {nameof(TableFieldReferenceModel.TableName)},
     a.attname AS {nameof(TableFieldReferenceModel.FieldName)},
-    connamespace::regnamespace::text AS {nameof(TableFieldReferenceModel.ReferencedTableSchema)},
-    confrelid::regclass::text AS {nameof(TableFieldReferenceModel.ReferencedTableName)},
+    nr.nspname AS {nameof(TableFieldReferenceModel.ReferencedTableSchema)},
+    cr.relname AS {nameof(TableFieldReferenceModel.ReferencedTableName)},
     af.attname AS {nameof(TableFieldReferenceModel.ReferencedFieldName)}
 FROM pg_constraint c
 JOIN pg_attribute a ON a.attnum = ANY (c.conkey) AND a.attrelid = c.conrelid
 JOIN pg_attribute af ON af.attnum = ANY (c.confkey) AND af.attrelid = c.confrelid
-WHERE contype = 'f'
-    AND connamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())
-    AND conrelid IN (SELECT oid FROM pg_class WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema()))
-    AND conrelid::regclass = '{tableName}'::regclass";
+JOIN pg_class cr ON cr.oid = c.confrelid
+JOIN pg_namespace nr ON nr.oid = cr.relnamespace
+JOIN pg_namespace n ON n.oid = c.connamespace
+WHERE c.contype = 'f'
+    AND c.connamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())
+    AND c.conrelid IN (SELECT oid FROM pg_class WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema()))
+    AND c.conrelid::regclass = '{tableName}'::regclass";
         return _db.Query<TableFieldReferenceModel>(sql);
     }
 }

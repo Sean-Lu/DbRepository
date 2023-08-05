@@ -21,7 +21,7 @@ public static class CodeGeneratorFactory
         SetCodeGenerator(DatabaseType.MsAccess, new CodeGeneratorForMsAccess());
         SetCodeGenerator(DatabaseType.Firebird, new CodeGeneratorForFirebird());
         SetCodeGenerator(DatabaseType.PostgreSql, new CodeGeneratorForPostgreSql());
-        SetCodeGenerator(DatabaseType.OpenGauss, new CodeGeneratorForOpenGauss());
+        SetCodeGenerator(DatabaseType.OpenGauss, new CodeGeneratorForPostgreSql(DatabaseType.OpenGauss));
         SetCodeGenerator(DatabaseType.HighgoDB, new CodeGeneratorForPostgreSql(DatabaseType.HighgoDB));
         SetCodeGenerator(DatabaseType.IvorySQL, new CodeGeneratorForPostgreSql(DatabaseType.IvorySQL));
         SetCodeGenerator(DatabaseType.QuestDB, null);
