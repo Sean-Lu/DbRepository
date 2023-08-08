@@ -186,6 +186,17 @@ namespace Example.Dapper.Domain.Repositories
             var executeDataTableResult = await ExecuteDataTableAsync(sqlCommand);
             _logger.LogDebug($"######ExecuteDataTable result: {JsonConvert.SerializeObject(executeDataTableResult, Formatting.Indented)}");
 
+            var sqlCommand2 = this.CreateQueryableBuilder(false)
+                .SelectFields(entity => new { entity.Id, entity.UserId, entity.Email })
+                .Where(entity => entity.Id == testModel.Id)
+                .Build();
+            //var getTupleData = await GetAsync<Tuple<long, long, string>>(sqlCommand2);// Tuple<>
+            //_logger.LogDebug($"######GetTupleData result: {JsonConvert.SerializeObject(getTupleData, Formatting.Indented)}");
+            var getValueTupleData = await GetAsync<(long, long, string)>(sqlCommand2);// 匿名类：ValueTuple<>
+            _logger.LogDebug($"######GetValueTupleData result: {JsonConvert.SerializeObject(getValueTupleData, Formatting.Indented)}");
+            var getDynamicData = await GetAsync<dynamic>(sqlCommand2);// dynamic动态类型
+            _logger.LogDebug($"######GetDynamicData result: {JsonConvert.SerializeObject(getDynamicData, Formatting.Indented)}");
+
             if (DbType != DatabaseType.QuestDB) // QuestDB 数据库不支持 DELETE 删除操作
             {
                 var deleteResult = await DeleteAsync(testModel, transaction: trans);
