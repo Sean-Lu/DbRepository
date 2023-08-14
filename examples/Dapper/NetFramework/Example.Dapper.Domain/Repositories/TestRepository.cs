@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Example.Common;
 using Example.Dapper.Domain.Contracts;
 using Example.Dapper.Model.Entities;
 using Newtonsoft.Json;
@@ -79,7 +80,7 @@ namespace Example.Dapper.Domain.Repositories
             return tableName;
         }
 
-        protected override ExecuteSqlOptions CreateTableSql(string tableName)
+        protected override IEnumerable<string> GetCreateTableSql(string tableName)
         {
             var sql = DbType switch
             {
@@ -107,16 +108,9 @@ namespace Example.Dapper.Domain.Repositories
                 DatabaseType.Xugu => File.ReadAllText(@"./SQL/Xugu_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()
             };
-            var result = new ExecuteSqlOptions
-            {
-                Sql = sql
-            };
-            if (DbType is DatabaseType.DuckDB or DatabaseType.Firebird)
-            {
-                result.AllowExecuteMultiSql = false;
-                result.MultiSqlSeparator = "-- ### MultiSqlSeparator ###";
-            }
-            return result;
+            return DbType is DatabaseType.DuckDB or DatabaseType.Firebird
+                ? sql.Split(new[] { Constants.MultiSqlSeparatorComment }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                : new List<string> { sql };
         }
 
         public async Task<bool> TestCRUDAsync(IDbTransaction trans = null)

@@ -48,7 +48,7 @@ public class SqlGeneratorForPostgreSql : BaseSqlGenerator, ISqlGenerator
                 break;
             case not null when underlyingType == typeof(decimal):
                 {
-                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumberAttribute>();
+                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumericAttribute>();
                     result = numberAttr != null ? $"numeric({numberAttr.Precision},{numberAttr.Scale})" : "numeric";
                     break;
                 }
@@ -59,10 +59,15 @@ public class SqlGeneratorForPostgreSql : BaseSqlGenerator, ISqlGenerator
         return result;
     }
 
-    public virtual string GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
+    public virtual List<string> GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
     {
+        return GetCreateTableSql(typeof(TEntity), tableNameFunc);
+    }
+    public List<string> GetCreateTableSql(Type entityType, Func<string, string> tableNameFunc = null)
+    {
+        var result = new List<string>();
         var sb = new StringBuilder();
-        var entityInfo = typeof(TEntity).GetEntityInfo();
+        var entityInfo = entityType.GetEntityInfo();
         var tableName = entityInfo.MainTableName;
         if (tableNameFunc != null)
         {
@@ -91,6 +96,11 @@ public class SqlGeneratorForPostgreSql : BaseSqlGenerator, ISqlGenerator
             {
                 sbFieldInfo.Append(" NOT NULL");
             }
+            var fieldDefaultValue = GetFieldDefaultValue(fieldPropertyInfo);
+            if (fieldDefaultValue != null)
+            {
+                sbFieldInfo.Append($" DEFAULT {ConvertFieldDefaultValue(fieldDefaultValue)}");
+            }
             fieldInfoList.Add(sbFieldInfo.ToString());
         }
         if (entityInfo.FieldInfos.Any(c => c.PrimaryKey))
@@ -99,7 +109,7 @@ public class SqlGeneratorForPostgreSql : BaseSqlGenerator, ISqlGenerator
         }
         sb.AppendLine(string.Join($",{Environment.NewLine}", fieldInfoList));
         sb.AppendLine(");");
-        var tableDescription = GetTableDescription<TEntity>();
+        var tableDescription = GetTableDescription(entityType);
         if (!string.IsNullOrWhiteSpace(tableDescription))
         {
             sb.AppendLine($"COMMENT ON TABLE {_dbType.MarkAsTableOrFieldName(tableName)} IS '{tableDescription}';");
@@ -108,11 +118,55 @@ public class SqlGeneratorForPostgreSql : BaseSqlGenerator, ISqlGenerator
         {
             sb.AppendLine($"COMMENT ON COLUMN {_dbType.MarkAsTableOrFieldName(tableName)}.{_dbType.MarkAsTableOrFieldName(kv.Key)} IS '{kv.Value}';");
         }
-        return sb.ToString();
+        result.Add(sb.ToString());
+        return result;
     }
 
-    public virtual string GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
+    public virtual List<string> GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
     {
-        throw new NotImplementedException();
+        return GetUpgradeSql(typeof(TEntity), tableNameFunc);
+    }
+    public List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
+    {
+        var entityInfo = entityType.GetEntityInfo();
+        var tableName = entityInfo.MainTableName;
+        if (tableNameFunc != null)
+        {
+            tableName = tableNameFunc(tableName);
+        }
+        if (!IsTableExists(tableName))
+        {
+            return GetCreateTableSql(entityType, _ => tableName);
+        }
+        var missingTableFieldInfo = GetDbMissingTableFields(entityType, tableName);
+        var result = new List<string>();
+        var sb = new StringBuilder();
+        var fieldDescriptionDic = new Dictionary<string, string>();
+        missingTableFieldInfo?.ForEach(c =>
+        {
+            sb.Clear();
+            var fieldDescription = GetFieldDescription(c.Property);
+            if (!string.IsNullOrWhiteSpace(fieldDescription))
+            {
+                fieldDescriptionDic.Add(c.FieldName, fieldDescription);
+            }
+            sb.Append($"ALTER TABLE {_dbType.MarkAsTableOrFieldName(tableName)} ADD {_dbType.MarkAsTableOrFieldName(c.FieldName)} {ConvertFieldType(c.Property)}");
+            if (IsNotAllowNull(c.Property))
+            {
+                sb.Append(" NOT NULL");
+            }
+            var fieldDefaultValue = GetFieldDefaultValue(c.Property);
+            if (fieldDefaultValue != null)
+            {
+                sb.Append($" DEFAULT {ConvertFieldDefaultValue(fieldDefaultValue)}");
+            }
+            sb.Append(";");
+            result.Add(sb.ToString());
+        });
+        foreach (var kv in fieldDescriptionDic)
+        {
+            result.Add($"COMMENT ON COLUMN {_dbType.MarkAsTableOrFieldName(tableName)}.{_dbType.MarkAsTableOrFieldName(kv.Key)} IS '{kv.Value}';");
+        }
+        return result;
     }
 }

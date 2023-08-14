@@ -48,7 +48,7 @@ public class SqlGeneratorForDuckDB : BaseSqlGenerator, ISqlGenerator
                 break;
             case not null when underlyingType == typeof(decimal):
                 {
-                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumberAttribute>();
+                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumericAttribute>();
                     result = numberAttr != null ? $"DECIMAL({numberAttr.Precision},{numberAttr.Scale})" : "DECIMAL";
                     break;
                 }
@@ -59,10 +59,15 @@ public class SqlGeneratorForDuckDB : BaseSqlGenerator, ISqlGenerator
         return result;
     }
 
-    public virtual string GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
+    public virtual List<string> GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
     {
+        return GetCreateTableSql(typeof(TEntity), tableNameFunc);
+    }
+    public List<string> GetCreateTableSql(Type entityType, Func<string, string> tableNameFunc = null)
+    {
+        var result = new List<string>();
         var sb = new StringBuilder();
-        var entityInfo = typeof(TEntity).GetEntityInfo();
+        var entityInfo = entityType.GetEntityInfo();
         var tableName = entityInfo.MainTableName;
         if (tableNameFunc != null)
         {
@@ -71,8 +76,7 @@ public class SqlGeneratorForDuckDB : BaseSqlGenerator, ISqlGenerator
         var sequenceName = $"SQ_{tableName}";
         if (entityInfo.FieldInfos.Exists(c => c.Identity))
         {
-            sb.AppendLine($"CREATE SEQUENCE {_dbType.MarkAsTableOrFieldName(sequenceName)};");
-            sb.AppendLine("-- ### MultiSqlSeparator ###");
+            result.Add($"CREATE SEQUENCE {_dbType.MarkAsTableOrFieldName(sequenceName)};");
         }
         sb.AppendLine($"CREATE TABLE {_dbType.MarkAsTableOrFieldName(tableName)} (");
         var fieldInfoList = new List<string>();
@@ -87,7 +91,12 @@ public class SqlGeneratorForDuckDB : BaseSqlGenerator, ISqlGenerator
             {
                 sbFieldInfo.Append(" NOT NULL");
             }
-            if (fieldInfo.Identity)
+            var fieldDefaultValue = GetFieldDefaultValue(fieldPropertyInfo);
+            if (fieldDefaultValue != null)
+            {
+                sbFieldInfo.Append($" DEFAULT {ConvertFieldDefaultValue(fieldDefaultValue)}");
+            }
+            if (fieldInfo.Identity && fieldDefaultValue == null)
             {
                 sbFieldInfo.Append($" DEFAULT nextval('{sequenceName}')");
             }
@@ -98,12 +107,46 @@ public class SqlGeneratorForDuckDB : BaseSqlGenerator, ISqlGenerator
             fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.PrimaryKey).Select(c => _dbType.MarkAsTableOrFieldName(c.FieldName)).ToList())})");
         }
         sb.AppendLine(string.Join($",{Environment.NewLine}", fieldInfoList));
-        sb.AppendLine(");");
-        return sb.ToString();
+        sb.Append(");");
+        result.Add(sb.ToString());
+        return result;
     }
 
-    public virtual string GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
+    public virtual List<string> GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
     {
-        throw new NotImplementedException();
+        return GetUpgradeSql(typeof(TEntity), tableNameFunc);
+    }
+    public List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
+    {
+        var entityInfo = entityType.GetEntityInfo();
+        var tableName = entityInfo.MainTableName;
+        if (tableNameFunc != null)
+        {
+            tableName = tableNameFunc(tableName);
+        }
+        if (!IsTableExists(tableName))
+        {
+            return GetCreateTableSql(entityType, _ => tableName);
+        }
+        var missingTableFieldInfo = GetDbMissingTableFields(entityType, tableName);
+        var result = new List<string>();
+        var sb = new StringBuilder();
+        missingTableFieldInfo?.ForEach(c =>
+        {
+            sb.Clear();
+            sb.Append($"ALTER TABLE {_dbType.MarkAsTableOrFieldName(tableName)} ADD {_dbType.MarkAsTableOrFieldName(c.FieldName)} {ConvertFieldType(c.Property)}");
+            if (IsNotAllowNull(c.Property))
+            {
+                sb.Append(" NOT NULL");
+            }
+            var fieldDefaultValue = GetFieldDefaultValue(c.Property);
+            if (fieldDefaultValue != null)
+            {
+                sb.Append($" DEFAULT {ConvertFieldDefaultValue(fieldDefaultValue)}");
+            }
+            sb.Append(";");
+            result.Add(sb.ToString());
+        });
+        return result;
     }
 }

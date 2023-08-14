@@ -359,14 +359,11 @@ internal static class SqlBuilderUtil
         }
         if (valueType == typeof(bool))
         {
-            if (dbType == DatabaseType.QuestDB)
+            return dbType switch
             {
-                return (bool)value ? "TRUE" : "FALSE";
-            }
-            else
-            {
-                return (bool)value ? "1" : "0";
-            }
+                DatabaseType.QuestDB => (bool)value ? "TRUE" : "FALSE",
+                _ => (bool)value ? "1" : "0"
+            };
         }
         if (valueType == typeof(byte)
             || valueType == typeof(sbyte)

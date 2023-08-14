@@ -125,14 +125,14 @@ public abstract class BaseRepository : IBaseRepository
     /// </summary>
     /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    protected virtual ExecuteSqlOptions CreateTableSql(string tableName)
+    protected virtual IEnumerable<string> GetCreateTableSql(string tableName)
     {
         throw new NotImplementedException();
     }
 
     /// <summary>
-    /// The database table is automatically created if it does not exist. The <see cref="CreateTableSql"/> method needs to be implemented.
-    /// <para>自动创建表（如果表不存在），必须要实现<see cref="CreateTableSql"/>方法。</para>
+    /// The database table is automatically created if it does not exist. The <see cref="GetCreateTableSql"/> method needs to be implemented.
+    /// <para>自动创建表（如果表不存在），必须要实现<see cref="GetCreateTableSql"/>方法。</para>
     /// </summary>
     /// <param name="tableName">The table name.</param>
     protected virtual void AutoCreateTable(string tableName)
@@ -142,8 +142,8 @@ public abstract class BaseRepository : IBaseRepository
 
         if (!IsTableExists(tableName, master: true, useCache: true))// Using master database.
         {
-            var executeSqlOptions = CreateTableSql(tableName);
-            if (!string.IsNullOrWhiteSpace(executeSqlOptions?.Sql))
+            var sqlList = GetCreateTableSql(tableName);
+            if (sqlList != null && sqlList.Any())
             {
 #if NET45
                 using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress))
@@ -151,17 +151,9 @@ public abstract class BaseRepository : IBaseRepository
                 using (var tranScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
 #endif
                 {
-                    if (!executeSqlOptions.AllowExecuteMultiSql && !string.IsNullOrWhiteSpace(executeSqlOptions.MultiSqlSeparator) && executeSqlOptions.Sql.Contains(executeSqlOptions.MultiSqlSeparator))
+                    foreach (var sql in sqlList)
                     {
-                        var sqlitSql = executeSqlOptions.Sql.Split(new[] { executeSqlOptions.MultiSqlSeparator }, StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var sql in sqlitSql)
-                        {
-                            Execute(sql, master: true);
-                        }
-                    }
-                    else
-                    {
-                        Execute(executeSqlOptions.Sql, master: true);
+                        Execute(sql, master: true);
                     }
                 }
             }
@@ -1015,19 +1007,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         return MainTableName;
     }
 
-    protected override ExecuteSqlOptions CreateTableSql(string tableName)
+    protected override IEnumerable<string> GetCreateTableSql(string tableName)
     {
         ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DbType);
-        var executeSqlOptions = new ExecuteSqlOptions
-        {
-            Sql = sqlGenerator?.GetCreateTableSql<TEntity>(_ => tableName),
-        };
-        if (DbType is DatabaseType.DuckDB or DatabaseType.Firebird)
-        {
-            executeSqlOptions.AllowExecuteMultiSql = false;
-            executeSqlOptions.MultiSqlSeparator = "-- ### MultiSqlSeparator ###";
-        }
-        return executeSqlOptions;
+        return sqlGenerator?.GetCreateTableSql<TEntity>(_ => tableName);
     }
 
     #region Synchronous method

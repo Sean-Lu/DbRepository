@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Transactions;
 using Example.ADO.NETCore.Domain.Contracts;
 using Example.ADO.NETCore.Domain.Entities;
 using Example.ADO.NETCore.Infrastructure.Converter;
+using Example.Common;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Sean.Core.DbRepository;
@@ -81,7 +83,7 @@ namespace Example.ADO.NETCore.Domain.Repositories
             return tableName;
         }
 
-        protected override ExecuteSqlOptions CreateTableSql(string tableName)
+        protected override IEnumerable<string> GetCreateTableSql(string tableName)
         {
             var sql = DbType switch
             {
@@ -109,16 +111,9 @@ namespace Example.ADO.NETCore.Domain.Repositories
                 DatabaseType.Xugu => File.ReadAllText(@"./SQL/Xugu_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
                 _ => throw new NotImplementedException()
             };
-            var result = new ExecuteSqlOptions
-            {
-                Sql = sql
-            };
-            if (DbType is DatabaseType.DuckDB or DatabaseType.Firebird)
-            {
-                result.AllowExecuteMultiSql = false;
-                result.MultiSqlSeparator = "-- ### MultiSqlSeparator ###";
-            }
-            return result;
+            return DbType is DatabaseType.DuckDB or DatabaseType.Firebird
+                ? sql.Split(new[] { Constants.MultiSqlSeparatorComment }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                : new List<string> { sql };
         }
 
         public async Task<bool> TestCRUDAsync(IDbTransaction trans = null)

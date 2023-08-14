@@ -48,7 +48,7 @@ public class SqlGeneratorForClickHouse : BaseSqlGenerator, ISqlGenerator
                 break;
             case not null when underlyingType == typeof(decimal):
                 {
-                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumberAttribute>();
+                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumericAttribute>();
                     result = numberAttr != null ? $"Decimal({numberAttr.Precision},{numberAttr.Scale})" : "Decimal";
                     break;
                 }
@@ -59,10 +59,15 @@ public class SqlGeneratorForClickHouse : BaseSqlGenerator, ISqlGenerator
         return result;
     }
 
-    public virtual string GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
+    public virtual List<string> GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
     {
+        return GetCreateTableSql(typeof(TEntity), tableNameFunc);
+    }
+    public List<string> GetCreateTableSql(Type entityType, Func<string, string> tableNameFunc = null)
+    {
+        var result = new List<string>();
         var sb = new StringBuilder();
-        var entityInfo = typeof(TEntity).GetEntityInfo();
+        var entityInfo = entityType.GetEntityInfo();
         var tableName = entityInfo.MainTableName;
         if (tableNameFunc != null)
         {
@@ -78,13 +83,13 @@ public class SqlGeneratorForClickHouse : BaseSqlGenerator, ISqlGenerator
             var fieldName = fieldInfo.FieldName;
             var fieldDescription = GetFieldDescription(fieldPropertyInfo);
             sbFieldInfo.Append($"  {_dbType.MarkAsTableOrFieldName(fieldName)}");
-            if (IsNotAllowNull(fieldPropertyInfo))
+            sbFieldInfo.Append(IsNotAllowNull(fieldPropertyInfo)
+                ? $" {ConvertFieldType(fieldPropertyInfo)} NOT NULL"
+                : $" Nullable({ConvertFieldType(fieldPropertyInfo)})");
+            var fieldDefaultValue = GetFieldDefaultValue(fieldPropertyInfo);
+            if (fieldDefaultValue != null)
             {
-                sbFieldInfo.Append($" {ConvertFieldType(fieldPropertyInfo)} NOT NULL");
-            }
-            else
-            {
-                sbFieldInfo.Append($" Nullable({ConvertFieldType(fieldPropertyInfo)})");
+                sbFieldInfo.Append($" DEFAULT {ConvertFieldDefaultValue(fieldDefaultValue)}");
             }
             //if (fieldInfo.Identity)
             //{
@@ -102,17 +107,55 @@ public class SqlGeneratorForClickHouse : BaseSqlGenerator, ISqlGenerator
         }
         sb.AppendLine(string.Join($",{Environment.NewLine}", fieldInfoList));
         sb.Append(") ENGINE = MergeTree()");
-        var tableDescription = GetTableDescription<TEntity>();
+        var tableDescription = GetTableDescription(entityType);
         if (!string.IsNullOrWhiteSpace(tableDescription))
         {
             sb.Append($" COMMENT '{tableDescription}'");
         }
         sb.Append(";");
-        return sb.ToString();
+        result.Add(sb.ToString());
+        return result;
     }
 
-    public virtual string GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
+    public virtual List<string> GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
     {
-        throw new NotImplementedException();
+        return GetUpgradeSql(typeof(TEntity), tableNameFunc);
+    }
+    public List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
+    {
+        var entityInfo = entityType.GetEntityInfo();
+        var tableName = entityInfo.MainTableName;
+        if (tableNameFunc != null)
+        {
+            tableName = tableNameFunc(tableName);
+        }
+        if (!IsTableExists(tableName))
+        {
+            return GetCreateTableSql(entityType, _ => tableName);
+        }
+        var missingTableFieldInfo = GetDbMissingTableFields(entityType, tableName);
+        var result = new List<string>();
+        var sb = new StringBuilder();
+        missingTableFieldInfo?.ForEach(c =>
+        {
+            sb.Clear();
+            var fieldDescription = GetFieldDescription(c.Property);
+            sb.Append($"ALTER TABLE {_dbType.MarkAsTableOrFieldName(tableName)} ADD {_dbType.MarkAsTableOrFieldName(c.FieldName)}");
+            sb.Append(IsNotAllowNull(c.Property)
+                ? $" {ConvertFieldType(c.Property)} NOT NULL"
+                : $" Nullable({ConvertFieldType(c.Property)})");
+            var fieldDefaultValue = GetFieldDefaultValue(c.Property);
+            if (fieldDefaultValue != null)
+            {
+                sb.Append($" DEFAULT {ConvertFieldDefaultValue(fieldDefaultValue)}");
+            }
+            if (!string.IsNullOrWhiteSpace(fieldDescription))
+            {
+                sb.Append($" COMMENT '{fieldDescription}'");
+            }
+            sb.Append(";");
+            result.Add(sb.ToString());
+        });
+        return result;
     }
 }

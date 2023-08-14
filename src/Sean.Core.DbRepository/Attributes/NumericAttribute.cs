@@ -3,13 +3,13 @@
 namespace Sean.Core.DbRepository;
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
-public class NumberAttribute : BaseAttribute
+public class NumericAttribute : BaseAttribute
 {
-    public NumberAttribute(int precision)
+    public NumericAttribute(int precision)
     {
         Precision = precision;
     }
-    public NumberAttribute(int precision, int scale)
+    public NumericAttribute(int precision, int scale)
     {
         Precision = precision;
         Scale = scale;
