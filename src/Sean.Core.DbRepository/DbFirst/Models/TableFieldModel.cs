@@ -26,11 +26,11 @@ public class TableFieldModel
     /// <summary>
     /// 表示数字中的有效位数。从左边第一个不为0的数算起，小数点和负号不计入有效位数。
     /// </summary>
-    public int? NumberPrecision { get; set; }
+    public int? NumericPrecision { get; set; }
     /// <summary>
     /// 表示精确到多少位。大于零时，表示数字精确到小数点右边的位数；小于零时，将把该数字取舍到小数点左边的指定位数。
     /// </summary>
-    public int? NumberScale { get; set; }
+    public int? NumericScale { get; set; }
     /// <summary>
     /// 字符串最大长度
     /// </summary>

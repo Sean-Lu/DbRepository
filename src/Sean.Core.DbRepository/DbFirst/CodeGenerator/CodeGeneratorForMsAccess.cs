@@ -36,8 +36,8 @@ public class CodeGeneratorForMsAccess : BaseCodeGenerator, ICodeGenerator
             tableFieldModel.FieldDefault = _db.Get<string>(connection, $"SELECT DefaultValue FROM MSysColumns WHERE ID IN (SELECT ID FROM MSysObjects WHERE Name = '{tableName}') AND Name = '{fieldName}'");
             tableFieldModel.FieldType = _db.Get<string>(connection, $"SELECT Type FROM MSysColumns WHERE ID IN (SELECT ID FROM MSysObjects WHERE Name = '{tableName}') AND Name = '{fieldName}'");
             var numberTuple = _db.Get<Tuple<int?, int?>>(connection, $"SELECT NumericPrecision, NumericScale FROM MSysColumns WHERE ID IN (SELECT ID FROM MSysObjects WHERE Name = '{tableName}') AND Name = '{fieldName}' AND Type IN (3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30)");
-            tableFieldModel.NumberPrecision = numberTuple.Item1;
-            tableFieldModel.NumberScale = numberTuple.Item2;
+            tableFieldModel.NumericPrecision = numberTuple.Item1;
+            tableFieldModel.NumericScale = numberTuple.Item2;
             tableFieldModel.StringMaxLength = _db.Get<int?>(connection, $"SELECT Length FROM MSysColumns WHERE ID = (SELECT ID FROM MSysObjects WHERE Name = '{tableName}') AND Name = '{fieldName}' AND Type IN (10, 11, 12, 16, 17)");
             tableFieldModel.IsNullable = !_db.Get<bool>(connection, $"SELECT Required FROM MSysColumns WHERE ID IN (SELECT ID FROM MSysObjects WHERE Name = '{tableName}') AND Name = '{fieldName}'");
             tableFieldModel.IsPrimaryKey = _db.Get<int>(connection, $"SELECT Count(*) FROM MSysIndexes WHERE Name = 'PrimaryKey' AND IndexID = (SELECT ID FROM MSysObjects WHERE Name = '{tableName}') AND ColumnID = (SELECT ID FROM MSysColumns WHERE ID IN (SELECT ID FROM MSysObjects WHERE Name = '{tableName}') AND Name = '{fieldName}')") > 0;

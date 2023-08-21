@@ -33,8 +33,8 @@ WHERE RDB$VIEW_BLR IS NULL
     rf.RDB$DESCRIPTION AS ""{nameof(TableFieldModel.FieldComment)}"",
     rf.RDB$DEFAULT_SOURCE AS ""{nameof(TableFieldModel.FieldDefault)}"",
     TRIM(t.RDB$TYPE_NAME) AS ""{nameof(TableFieldModel.FieldType)}"",
-    f.RDB$FIELD_PRECISION AS ""{nameof(TableFieldModel.NumberPrecision)}"",
-    f.RDB$FIELD_SCALE AS ""{nameof(TableFieldModel.NumberScale)}"",
+    f.RDB$FIELD_PRECISION AS ""{nameof(TableFieldModel.NumericPrecision)}"",
+    f.RDB$FIELD_SCALE AS ""{nameof(TableFieldModel.NumericScale)}"",
     f.RDB$CHARACTER_LENGTH AS ""{nameof(TableFieldModel.StringMaxLength)}"",
     CASE WHEN rf.RDB$NULL_FLAG = 1 THEN 0 ELSE 1 END AS ""{nameof(TableFieldModel.IsNullable)}"",
     CASE WHEN EXISTS (
