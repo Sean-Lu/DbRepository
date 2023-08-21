@@ -100,7 +100,7 @@ public class SqlGeneratorForOracle : BaseSqlGenerator, ISqlGenerator
             var fieldDefaultValue = GetFieldDefaultValue(fieldPropertyInfo);
             if (fieldDefaultValue != null)
             {
-                sbFieldInfo.Append($" DEFAULT {ConvertFieldDefaultValue(fieldDefaultValue)}");
+                sbFieldInfo.Append($" DEFAULT {ConvertFieldDefaultValue(fieldDefaultValue)?.Replace("'", "''")}");
             }
             fieldInfoList.Add(sbFieldInfo.ToString());
         }

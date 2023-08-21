@@ -362,6 +362,8 @@ internal static class SqlBuilderUtil
             return dbType switch
             {
                 DatabaseType.QuestDB => (bool)value ? "TRUE" : "FALSE",
+                DatabaseType.Informix => (bool)value ? "'t'" : "'f'",
+                DatabaseType.Xugu => (bool)value ? "true" : "false",
                 _ => (bool)value ? "1" : "0"
             };
         }

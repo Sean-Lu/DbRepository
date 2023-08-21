@@ -108,7 +108,7 @@ public class SqlGeneratorForShenTong : BaseSqlGenerator, ISqlGenerator
             fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.PrimaryKey).Select(c => _dbType.MarkAsTableOrFieldName(c.FieldName)).ToList())})");
         }
         sb.AppendLine(string.Join($",{Environment.NewLine}", fieldInfoList));
-        sb.AppendLine(");");
+        sb.Append(");");
         //var tableDescription = GetTableDescription(entityType);
         //if (!string.IsNullOrWhiteSpace(tableDescription))
         //{

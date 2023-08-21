@@ -186,6 +186,8 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
             bool boolValue => _dbType switch
             {
                 DatabaseType.QuestDB => boolValue ? "TRUE" : "FALSE",
+                DatabaseType.Informix => boolValue ? "'t'" : "'f'",
+                DatabaseType.Xugu => boolValue ? "true" : "false",
                 _ => boolValue ? "1" : "0"
             },
             char charValue => $"'{charValue}'",
