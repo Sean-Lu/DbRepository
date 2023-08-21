@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 
 namespace Sean.Core.DbRepository.CodeFirst;
 
@@ -18,11 +20,11 @@ public class DatabaseUpgrader : IDatabaseUpgrader
         _db = dbFactory;
     }
 
-    public void UpgradeFromEntity<TEntity>(Func<string, string> tableNameFunc = null)
+    public void Upgrade<TEntity>(Func<string, string> tableNameFunc = null)
     {
-        UpgradeFromEntity(typeof(TEntity), tableNameFunc);
+        Upgrade(typeof(TEntity), tableNameFunc);
     }
-    public virtual void UpgradeFromEntity(Type entityType, Func<string, string> tableNameFunc = null)
+    public virtual void Upgrade(Type entityType, Func<string, string> tableNameFunc = null)
     {
         ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(_dbType);
         sqlGenerator.Initialize(_db);
@@ -34,5 +36,17 @@ public class DatabaseUpgrader : IDatabaseUpgrader
                 _db.ExecuteNonQuery(sql);
             }
         });
+    }
+
+    public virtual void Upgrade(params Assembly[] assemblies)
+    {
+        foreach (var assembly in assemblies)
+        {
+            var types = assembly.GetTypes().Where(c => c.GetCustomAttributes<CodeFirstAttribute>(false).Any()).ToList();
+            types.ForEach(type =>
+            {
+                Upgrade(type);
+            });
+        }
     }
 }

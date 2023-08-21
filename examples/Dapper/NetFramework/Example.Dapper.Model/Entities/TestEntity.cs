@@ -10,6 +10,7 @@ namespace Example.Dapper.Model.Entities
     /// 测试表
     /// </summary>
     [Table("Test")]
+    [CodeFirst]
     public class TestEntity : EntityStateBase
     {
         /// <summary>
