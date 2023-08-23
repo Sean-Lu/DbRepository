@@ -275,10 +275,12 @@ namespace Sean.Core.DbRepository.Extensions
 
             switch (dbType)
             {
+                case DatabaseType.SQLite:
+                    return $"SELECT COUNT(*) AS SequenceCount FROM sqlite_sequence WHERE name='{sequenceName}'";
                 case DatabaseType.DuckDB:
                     return $"SELECT COUNT(*) AS SequenceCount FROM temp.pg_catalog.pg_sequences WHERE sequencename='{sequenceName}'";
                 case DatabaseType.Xugu:
-                    return $"SELECT COUNT(*) AS SequenceCount FROM user_sequences where seq_name='{sequenceName}'";
+                    return $"SELECT COUNT(*) AS SequenceCount FROM user_sequences WHERE seq_name='{sequenceName}'";
                 default:
                     throw new NotSupportedException($"Unsupported database type: {dbType}");
             }

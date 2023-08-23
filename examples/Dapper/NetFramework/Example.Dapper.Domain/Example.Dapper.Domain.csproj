@@ -193,7 +193,7 @@
     <When Condition="$(DefineConstants.Contains('UseKingbaseES'))">
       <ItemGroup>
         <PackageReference Include="FreeSql.Provider.KingbaseES">
-          <Version>3.2.697</Version>
+          <Version>3.2.700</Version>
         </PackageReference>
       </ItemGroup>
     </When>

@@ -60,12 +60,12 @@
     <PackageReference Include="dmdbms.DmProvider" Version="1.1.0.16649" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseKingbaseES'))">
-    <PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.697" />
-    <!--<PackageReference Include="SqlSugarCore.Kdbndp" Version="7.3.0" />-->
+    <PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.700" />
+    <!--<PackageReference Include="SqlSugarCore.Kdbndp" Version="7.4.0" />-->
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseShenTong'))">
     <PackageReference Include="Oscar.Data.SqlClient" Version="4.2.3" />
-    <!--<PackageReference Include="FreeSql.Provider.ShenTong" Version="3.2.697" />-->
+    <!--<PackageReference Include="FreeSql.Provider.ShenTong" Version="3.2.700" />-->
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseXugu'))">
     <!-- 注意：XuguClient.dll 依赖 XGCSQL.dll（非.NET程序，运行时没有这个文件会报错） -->
