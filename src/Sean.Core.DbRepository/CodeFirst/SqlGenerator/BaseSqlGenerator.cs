@@ -122,17 +122,17 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
     {
         return fieldPropertyInfo.PropertyType.IsValueType && !fieldPropertyInfo.PropertyType.IsNullableType()
                || IsPrimaryKey(fieldPropertyInfo)
-               || fieldPropertyInfo.PropertyType.GetCustomAttributes<RequiredAttribute>(false).Any();
+               || fieldPropertyInfo.GetCustomAttributes<RequiredAttribute>(false).Any();
     }
 
     protected virtual bool IsPrimaryKey(PropertyInfo fieldPropertyInfo)
     {
-        return fieldPropertyInfo.PropertyType.GetCustomAttributes<KeyAttribute>(false).Any();
+        return fieldPropertyInfo.GetCustomAttributes<KeyAttribute>(false).Any();
     }
 
     protected virtual bool IsIdentity(PropertyInfo fieldPropertyInfo)
     {
-        return fieldPropertyInfo.PropertyType.GetCustomAttributes<DatabaseGeneratedAttribute>(false).Any(c => c.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity);
+        return fieldPropertyInfo.GetCustomAttributes<DatabaseGeneratedAttribute>(false).Any(c => c.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity);
     }
 
     protected virtual bool IsTableExists(string tableName)
