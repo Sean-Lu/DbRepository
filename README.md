@@ -154,7 +154,7 @@ DatabaseType.SQLite.SetDbProviderMap(new DbProviderMap("System.Data.SQLite", "Sy
 
 ```csharp
 // 如果直接使用数据库提供者工厂，也可以不配置数据库和数据库提供者工厂之间的映射关系。代码示例：
-var _db = new DbFactory("Database connection string...", MySqlClientFactory.Instance);
+var db = new DbFactory("Database connection string...", MySqlClientFactory.Instance);// MySql
 ```
 
 #### 方式2：配置文件

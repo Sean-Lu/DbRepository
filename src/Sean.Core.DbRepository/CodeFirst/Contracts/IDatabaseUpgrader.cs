@@ -19,7 +19,7 @@ public interface IDatabaseUpgrader
     void Upgrade(Type entityType, Func<string, string> tableNameFunc = null);
 
     /// <summary>
-    /// Upgrade all entity classes that contain <see cref="CodeFirstAttribute"/> to the database.
+    /// Upgrade all entity classes that use <see cref="CodeFirstAttribute"/> to the database.
     /// </summary>
     /// <param name="assemblies"></param>
     void Upgrade(params Assembly[] assemblies);

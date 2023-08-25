@@ -39,8 +39,8 @@ namespace Example.Dapper.ConsoleApp
             //}
             #endregion
 
-            ISimpleDo toDo = DIManager.Resolve<DBTest>();
-            toDo.Execute();
+            ISimpleDo test = DIManager.Resolve<DBTest>();
+            test.Execute();
 
             Console.ReadLine();
         }

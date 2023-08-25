@@ -27,9 +27,9 @@ namespace Example.Dapper.Core.ConsoleApp
                 });
             });
 
-            //ISimpleDo toDo = DIManager.GetService<Domain.DBTest.OracleTest>();
-            ISimpleDo toDo = DIManager.GetService<DBTest>();
-            toDo.Execute();
+            //ISimpleDo test = DIManager.GetService<Domain.DBTest.OracleTest>();
+            ISimpleDo test = DIManager.GetService<DBTest>();
+            test.Execute();
 
             Console.ReadLine();
         }
