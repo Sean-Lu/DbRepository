@@ -7,11 +7,12 @@ namespace Sean.Core.DbRepository.Test
     {
         protected void AssertSqlParameters(IDictionary<string, object> expectedDictionary, IDictionary<string, object> actualDictionary)
         {
+            Assert.IsNotNull(actualDictionary);
             Assert.AreEqual(expectedDictionary.Count, actualDictionary.Count);
             foreach (var key in expectedDictionary.Keys)
             {
                 Assert.IsTrue(actualDictionary.ContainsKey(key), $"The <{nameof(actualDictionary)}> does not contain key <{key}>.");
-                Assert.IsTrue(expectedDictionary[key].Equals(actualDictionary[key]), $"Dictionary key: <{key}>, the expected value is <{expectedDictionary[key]}>, the actual value is <{actualDictionary[key]}>.");
+                Assert.IsTrue(Equals(expectedDictionary[key], actualDictionary[key]), $"Dictionary key: <{key}>, the expected value is <{expectedDictionary[key]}>, the actual value is <{actualDictionary[key]}>.");
             }
         }
 

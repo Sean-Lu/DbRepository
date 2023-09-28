@@ -30,8 +30,8 @@ namespace Sean.Core.DbRepository.Test
                 });
             }
 
-            //BaseSqlBuilder.SqlIndented = true;
-            //BaseSqlBuilder.SqlParameterized = false;
+            //DbContextConfiguration.Options.SqlIndented = true;
+            //DbContextConfiguration.Options.SqlParameterized = false;
 
             ISqlCommand sqlCommand = SqlFactory.CreateInsertableBuilder<TestEntity>(DatabaseType.MySql, true)
                 .SetParameter(list)
@@ -59,8 +59,8 @@ namespace Sean.Core.DbRepository.Test
                 });
             }
 
-            //BaseSqlBuilder.SqlIndented = true;
-            //BaseSqlBuilder.SqlParameterized = false;
+            //DbContextConfiguration.Options.SqlIndented = true;
+            //DbContextConfiguration.Options.SqlParameterized = false;
 
             ISqlCommand sqlCommand = SqlFactory.CreateReplaceableBuilder<TestEntity>(DatabaseType.MySql, true)
                 .SetParameter(list)
