@@ -29,9 +29,8 @@ public interface IUpdateable<TEntity> : IBaseSqlBuilder, ISqlWhere<TEntity, IUpd
     /// UPDATE fields.
     /// </summary>
     /// <param name="fieldExpression"></param>
-    /// <param name="entity"></param>
     /// <returns></returns>
-    IUpdateable<TEntity> UpdateFields(Expression<Func<TEntity, object>> fieldExpression, TEntity entity = default);
+    IUpdateable<TEntity> UpdateFields(Expression<Func<TEntity, object>> fieldExpression);
     /// <summary>
     /// Ignore fields.
     /// </summary>

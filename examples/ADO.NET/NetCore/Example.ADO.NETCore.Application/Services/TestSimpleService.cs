@@ -140,7 +140,7 @@ namespace Example.ADO.NETCore.Application.Services
 
             var sqlCommand = _testRepository.CreateQueryableBuilder(true)
                 .Where(entity => entity.Age >= 18 && entity.IsVip)
-                .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
+                .OrderBy(OrderByType.Desc, entity => entity.CreateTime)
                 .Page(1, 3)
                 .Build();
             var executeDataTableResult = await _testRepository.ExecuteDataTableAsync(sqlCommand);

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -118,7 +117,7 @@ VALUES{2}";
             return default;
 
         var sb = new StringBuilder();
-        var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName));
+        var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName)).ToList();
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
         if (_parameter is IEnumerable<TEntity> entities)// BulkInsert
         {
@@ -189,7 +188,7 @@ VALUES{2}";
 
                 var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
                 return SqlAdapter.FormatSqlParameter(parameterName);
-            });
+            }).ToList();
             sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
         }
 

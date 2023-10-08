@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Linq;
 
-namespace Sean.Core.DbRepository.Extensions
+namespace Sean.Core.DbRepository.Extensions;
+
+public static class OrderByConditionExtensions
 {
-    public static class OrderByConditionExtensions
+    public static void Resolve(this OrderByCondition orderBy, Action<OrderByCondition> orderByAction)
     {
-        public static void Resolve(this OrderByCondition orderBy, Action<OrderByType, string[], string> orderByField)
+        if (orderBy == null)
         {
-            if (orderBy == null)
-            {
-                return;
-            }
-
-            orderByField(orderBy.Type, orderBy.Fields, orderBy.OrderBy);
-
-            orderBy.Next?.Resolve(orderByField);
+            return;
         }
+
+        orderByAction(orderBy);
+
+        orderBy.Next?.Resolve(orderByAction);
     }
 }

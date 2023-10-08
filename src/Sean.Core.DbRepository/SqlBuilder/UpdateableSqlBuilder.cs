@@ -21,6 +21,8 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     private readonly Lazy<StringBuilder> _joinTable = new();
     private readonly Lazy<StringBuilder> _where = new();
 
+    private readonly List<Action> _whereActions = new();
+
     private bool MultiTable => _joinTable.IsValueCreated && _joinTable.Value.Length > 0;
 
     private bool _allowEmptyWhereClause;
@@ -65,30 +67,11 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
         return this;
     }
 
-    public virtual IUpdateable<TEntity> UpdateFields(Expression<Func<TEntity, object>> fieldExpression, TEntity entity = default)
+    public virtual IUpdateable<TEntity> UpdateFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null)
-        {
-            if (entity != null)
-            {
-                SetParameter(entity);
-            }
-            return this;
-        }
-
+        if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames().ToArray();
-        UpdateFields(fields);
-
-        if (entity != null)
-        {
-            var paramDic = SqlParameterUtil.ConvertToDicParameter(entity);
-            if (paramDic != null && paramDic.Any())
-            {
-                SetParameter(paramDic);
-            }
-        }
-
-        return this;
+        return UpdateFields(fields);
     }
     public virtual IUpdateable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
     {
@@ -120,7 +103,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" INNER JOIN {joinTableSql}");
+            _joinTable.Value.Append($" INNER JOIN {joinTableSql}");
         }
         return this;
     }
@@ -128,7 +111,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" LEFT JOIN {joinTableSql}");
+            _joinTable.Value.Append($" LEFT JOIN {joinTableSql}");
         }
         return this;
     }
@@ -136,7 +119,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" RIGHT JOIN {joinTableSql}");
+            _joinTable.Value.Append($" RIGHT JOIN {joinTableSql}");
         }
         return this;
     }
@@ -144,7 +127,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" FULL JOIN {joinTableSql}");
+            _joinTable.Value.Append($" FULL JOIN {joinTableSql}");
         }
         return this;
     }
@@ -174,78 +157,82 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     #region [WHERE]
     public virtual IUpdateable<TEntity> Where(string where)
     {
-        SqlBuilderUtil.Where(_where.Value, where);
+        _whereActions.Add(() => SqlBuilderUtil.Where(_where.Value, where));
         return this;
     }
 
     public virtual IUpdateable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression)
     {
-        if (MultiTable)
+        _whereActions.Add(() =>
         {
-            SqlAdapter.MultiTable = true;
-        }
-        SqlBuilderUtil.Where(SqlAdapter,
-            SqlParameterUtil.ConvertToDicParameter(_parameter),
-            whereClause => Where(whereClause),
-            dicParameters => SetParameter(dicParameters),
-            whereExpression);
+            SqlBuilderUtil.Where(SqlAdapter,
+                SqlParameterUtil.ConvertToDicParameter(_parameter),
+                whereClause => SqlBuilderUtil.Where(_where.Value, whereClause),
+                dicParameters => SetParameter(dicParameters),
+                whereExpression);
+        });
         return this;
     }
     public virtual IUpdateable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression)
     {
-        var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+        _whereActions.Add(() =>
         {
-            MultiTable = true
-        };
-        SqlBuilderUtil.Where(aqlAdapter,
-            SqlParameterUtil.ConvertToDicParameter(_parameter),
-            whereClause => Where(whereClause),
-            dicParameters => SetParameter(dicParameters),
-            whereExpression);
+            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+            {
+                MultiTable = true
+            };
+            SqlBuilderUtil.Where(aqlAdapter,
+                SqlParameterUtil.ConvertToDicParameter(_parameter),
+                whereClause => SqlBuilderUtil.Where(_where.Value, whereClause),
+                dicParameters => SetParameter(dicParameters),
+                whereExpression);
+        });
         return this;
     }
 
-    public IUpdateable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> whereExpression)
+    public virtual IUpdateable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> whereExpression)
     {
         return condition ? Where(whereExpression) : this;
     }
 
-    public IUpdateable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression)
+    public virtual IUpdateable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression)
     {
         return Where(condition ? trueWhereExpression : falseWhereExpression);
     }
 
-    public IUpdateable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
+    public virtual IUpdateable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
     {
         return condition ? Where(whereExpression) : this;
     }
 
-    public IUpdateable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
+    public virtual IUpdateable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
     {
         return Where(condition ? trueWhereExpression : falseWhereExpression);
     }
 
-    public IUpdateable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
+    public virtual IUpdateable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
     {
         return condition ? Where(trueWhereExpression) : Where(falseWhereExpression);
     }
 
     public virtual IUpdateable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
     {
-        if (MultiTable)
+        _whereActions.Add(() =>
         {
-            SqlAdapter.MultiTable = true;
-        }
-        SqlBuilderUtil.WhereField(SqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+            SqlBuilderUtil.WhereField(SqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+        });
         return this;
     }
     public virtual IUpdateable<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
     {
-        var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+        _whereActions.Add(() =>
         {
-            MultiTable = true
-        };
-        SqlBuilderUtil.WhereField(aqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+            {
+                MultiTable = true
+            };
+            SqlBuilderUtil.WhereField(aqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+        });
         return this;
     }
     #endregion
@@ -265,32 +252,6 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     protected override ISqlCommand BuildSqlCommand()
     {
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-        if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
-        {
-            #region Set the primary key field to the [where] filtering condition.
-            if (_tableFieldList.Any(c => c.PrimaryKey))
-            {
-                foreach (var pks in _tableFieldList.Where(c => c.PrimaryKey))
-                {
-                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == pks.FieldName);
-                    var parameterName = findFieldInfo?.Property.Name ?? pks.FieldName;
-                    WhereField(entity => pks.FieldName, SqlOperation.Equal, paramName: parameterName);
-                }
-            }
-            else
-            {
-                typeof(TEntity).GetPrimaryKeys().ForEach(fieldName =>
-                {
-                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
-                    var parameterName = findFieldInfo?.Property.Name ?? fieldName;
-                    WhereField(entity => fieldName, SqlOperation.Equal, paramName: parameterName);
-                });
-            }
-            #endregion
-        }
-
-        if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
         var fields = _tableFieldList.Where(c => !c.PrimaryKey).ToList();
         if (!fields.Any())
@@ -303,7 +264,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
             SqlAdapter.MultiTable = true;
         }
 
-        var sets = fields.Select(fieldInfo =>
+        var updateFields = fields.Select(fieldInfo =>
         {
             if (fieldInfo.SetFieldCustomHandler != null)
             {
@@ -313,10 +274,43 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
             var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
             var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
             return $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}={SqlAdapter.FormatSqlParameter(parameterName)}";
-        });
+        }).ToList();
+
+        if (_whereActions.Any())
+        {
+            _whereActions.ForEach(c => c.Invoke());
+            _whereActions.Clear();
+        }
+
+        if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
+        {
+            #region Set the primary key field to the [where] filtering condition.
+            if (_tableFieldList.Any(c => c.PrimaryKey))
+            {
+                foreach (var pks in _tableFieldList.Where(c => c.PrimaryKey))
+                {
+                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == pks.FieldName);
+                    var parameterName = findFieldInfo?.Property.Name ?? pks.FieldName;
+                    SqlBuilderUtil.WhereField<TEntity>(SqlAdapter, _where.Value, entity => pks.FieldName, SqlOperation.Equal, paramName: parameterName);
+                }
+            }
+            else
+            {
+                typeof(TEntity).GetPrimaryKeys().ForEach(fieldName =>
+                {
+                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
+                    var parameterName = findFieldInfo?.Property.Name ?? fieldName;
+                    SqlBuilderUtil.WhereField<TEntity>(SqlAdapter, _where.Value, entity => fieldName, SqlOperation.Equal, paramName: parameterName);
+                });
+            }
+            #endregion
+        }
+
+        if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
         var sb = new StringBuilder();
-        sb.Append(string.Format(SqlAdapter.DbType == DatabaseType.ClickHouse ? SqlTemplateForClickHouse : SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", string.Join(", ", sets), WhereSql));
+        sb.Append(string.Format(SqlAdapter.DbType == DatabaseType.ClickHouse ? SqlTemplateForClickHouse : SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", string.Join(", ", updateFields), WhereSql));
 
         var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {

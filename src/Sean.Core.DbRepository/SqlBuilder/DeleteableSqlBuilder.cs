@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -18,6 +17,8 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
 
     private readonly Lazy<StringBuilder> _joinTable = new();
     private readonly Lazy<StringBuilder> _where = new();
+
+    private readonly List<Action> _whereActions = new();
 
     private bool MultiTable => _joinTable.IsValueCreated && _joinTable.Value.Length > 0;
 
@@ -45,7 +46,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" INNER JOIN {joinTableSql}");
+            _joinTable.Value.Append($" INNER JOIN {joinTableSql}");
         }
         return this;
     }
@@ -53,7 +54,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" LEFT JOIN {joinTableSql}");
+            _joinTable.Value.Append($" LEFT JOIN {joinTableSql}");
         }
         return this;
     }
@@ -61,7 +62,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" RIGHT JOIN {joinTableSql}");
+            _joinTable.Value.Append($" RIGHT JOIN {joinTableSql}");
         }
         return this;
     }
@@ -69,7 +70,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" FULL JOIN {joinTableSql}");
+            _joinTable.Value.Append($" FULL JOIN {joinTableSql}");
         }
         return this;
     }
@@ -99,78 +100,82 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
     #region [WHERE]
     public virtual IDeleteable<TEntity> Where(string where)
     {
-        SqlBuilderUtil.Where(_where.Value, where);
+        _whereActions.Add(() => SqlBuilderUtil.Where(_where.Value, where));
         return this;
     }
 
     public virtual IDeleteable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression)
     {
-        if (MultiTable)
+        _whereActions.Add(() =>
         {
-            SqlAdapter.MultiTable = true;
-        }
-        SqlBuilderUtil.Where(SqlAdapter,
-            SqlParameterUtil.ConvertToDicParameter(_parameter),
-            whereClause => Where(whereClause),
-            dicParameters => SetParameter(dicParameters),
-            whereExpression);
+            SqlBuilderUtil.Where(SqlAdapter,
+                SqlParameterUtil.ConvertToDicParameter(_parameter),
+                whereClause => SqlBuilderUtil.Where(_where.Value, whereClause),
+                dicParameters => SetParameter(dicParameters),
+                whereExpression);
+        });
         return this;
     }
     public virtual IDeleteable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression)
     {
-        var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+        _whereActions.Add(() =>
         {
-            MultiTable = true
-        };
-        SqlBuilderUtil.Where(aqlAdapter,
-            SqlParameterUtil.ConvertToDicParameter(_parameter),
-            whereClause => Where(whereClause),
-            dicParameters => SetParameter(dicParameters),
-            whereExpression);
+            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+            {
+                MultiTable = true
+            };
+            SqlBuilderUtil.Where(aqlAdapter,
+                SqlParameterUtil.ConvertToDicParameter(_parameter),
+                whereClause => SqlBuilderUtil.Where(_where.Value, whereClause),
+                dicParameters => SetParameter(dicParameters),
+                whereExpression);
+        });
         return this;
     }
 
-    public IDeleteable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> whereExpression)
+    public virtual IDeleteable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> whereExpression)
     {
         return condition ? Where(whereExpression) : this;
     }
 
-    public IDeleteable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression)
+    public virtual IDeleteable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression)
     {
         return Where(condition ? trueWhereExpression : falseWhereExpression);
     }
 
-    public IDeleteable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
+    public virtual IDeleteable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
     {
         return condition ? Where(whereExpression) : this;
     }
 
-    public IDeleteable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
+    public virtual IDeleteable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
     {
         return Where(condition ? trueWhereExpression : falseWhereExpression);
     }
 
-    public IDeleteable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
+    public virtual IDeleteable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
     {
         return condition ? Where(trueWhereExpression) : Where(falseWhereExpression);
     }
 
     public virtual IDeleteable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
     {
-        if (MultiTable)
+        _whereActions.Add(() =>
         {
-            SqlAdapter.MultiTable = true;
-        }
-        SqlBuilderUtil.WhereField(SqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+            SqlBuilderUtil.WhereField(SqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+        });
         return this;
     }
     public virtual IDeleteable<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
     {
-        var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+        _whereActions.Add(() =>
         {
-            MultiTable = true
-        };
-        SqlBuilderUtil.WhereField(aqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+            {
+                MultiTable = true
+            };
+            SqlBuilderUtil.WhereField(aqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+        });
         return this;
     }
     #endregion
@@ -189,6 +194,17 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
 
     protected override ISqlCommand BuildSqlCommand()
     {
+        if (MultiTable)
+        {
+            SqlAdapter.MultiTable = true;
+        }
+
+        if (_whereActions.Any())
+        {
+            _whereActions.ForEach(c => c.Invoke());
+            _whereActions.Clear();
+        }
+
         if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
         {
             #region Set the primary key field to the [where] filtering condition.
@@ -197,7 +213,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
             {
                 var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
                 var parameterName = findFieldInfo?.Property.Name ?? fieldName;
-                WhereField(entity => fieldName, SqlOperation.Equal, paramName: parameterName);
+                SqlBuilderUtil.WhereField<TEntity>(SqlAdapter, _where.Value, entity => fieldName, SqlOperation.Equal, paramName: parameterName);
             });
             #endregion
         }

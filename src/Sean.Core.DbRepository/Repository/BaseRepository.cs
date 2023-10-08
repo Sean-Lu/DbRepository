@@ -555,7 +555,7 @@ public abstract class BaseRepository : IBaseRepository
 
     public virtual int DropTable(params string[] tableNames)
     {
-        return Execute($"DROP TABLE {string.Join(", ", tableNames.Select(tableName => DbType.MarkAsTableOrFieldName(tableName)))}");
+        return Execute($"DROP TABLE {string.Join(", ", tableNames.Select(tableName => DbType.MarkAsTableOrFieldName(tableName)).ToList())}");
     }
     #endregion
 
@@ -934,7 +934,7 @@ public abstract class BaseRepository : IBaseRepository
 
     public virtual async Task<int> DropTableAsync(params string[] tableNames)
     {
-        return await ExecuteAsync($"DROP TABLE {string.Join(", ", tableNames.Select(tableName => DbType.MarkAsTableOrFieldName(tableName)))}");
+        return await ExecuteAsync($"DROP TABLE {string.Join(", ", tableNames.Select(tableName => DbType.MarkAsTableOrFieldName(tableName)).ToList())}");
     }
     #endregion
 }
@@ -1348,8 +1348,9 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     public virtual int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
         var sqlCommand = this.CreateUpdateableBuilder(fieldExpression == null)
-            .UpdateFields(fieldExpression, entity)
+            .UpdateFields(fieldExpression)
             .Where(whereExpression)
+            .SetParameter(entity)
             .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;
@@ -1930,8 +1931,9 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     public virtual async Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
         var sqlCommand = this.CreateUpdateableBuilder(fieldExpression == null)
-            .UpdateFields(fieldExpression, entity)
+            .UpdateFields(fieldExpression)
             .Where(whereExpression)
+            .SetParameter(entity)
             .Build();
         sqlCommand.Master = true;
         sqlCommand.Transaction = transaction;

@@ -233,7 +233,7 @@ internal static class SqlBuilderUtil
             }
 
             return $"{sqlAdapter.FormatFieldName(fieldName)}";
-        }));
+        }).ToList());
 
         tableFieldList.Add(new TableFieldInfoForSqlBuilder
         {

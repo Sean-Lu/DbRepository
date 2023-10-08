@@ -70,8 +70,8 @@ namespace Example.Dapper.Core.Domain.Repositories
                 .Page(pageIndex, pageSize)
                 .WhereField(entity => entity.UserId, SqlOperation.Equal)
                 .WhereField(entity => nameof(CheckInLogEntity.CheckInType), SqlOperation.In)
-                .OrderByField(OrderByType.Asc, nameof(CheckInLogEntity.UserId))
-                .OrderByField(OrderByType.Desc, nameof(CheckInLogEntity.CreateTime))
+                .OrderBy(OrderByType.Asc, nameof(CheckInLogEntity.UserId))
+                .OrderBy(OrderByType.Desc, nameof(CheckInLogEntity.CreateTime))
                 .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
                 .Build();
             sql2.Master = false;// 查询结果来自从库
@@ -83,8 +83,8 @@ namespace Example.Dapper.Core.Domain.Repositories
                 .WhereField(entity => entity.CheckInType, SqlOperation.In)
                 .WhereField(entity => entity.CreateTime, SqlOperation.GreaterOrEqual, paramName: "StartTime")
                 .WhereField(entity => entity.CreateTime, SqlOperation.Less, paramName: "EndTime")
-                .OrderByField(OrderByType.Asc, entity => entity.UserId)
-                .OrderByField(OrderByType.Desc, entity => entity.CreateTime)
+                .OrderBy(OrderByType.Asc, entity => entity.UserId)
+                .OrderBy(OrderByType.Desc, entity => entity.CreateTime)
                 .SetParameter(new
                 {
                     UserId = userId,

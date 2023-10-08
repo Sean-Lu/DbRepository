@@ -26,6 +26,8 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     private readonly Lazy<StringBuilder> _having = new();
     private readonly Lazy<StringBuilder> _orderBy = new();
 
+    private readonly List<Action> _whereActions = new();
+
     private bool MultiTable => _joinTable.IsValueCreated && _joinTable.Value.Length > 0;
 
     private object _parameter;
@@ -173,7 +175,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" INNER JOIN {joinTableSql}");
+            _joinTable.Value.Append($" INNER JOIN {joinTableSql}");
         }
         return this;
     }
@@ -181,7 +183,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" LEFT JOIN {joinTableSql}");
+            _joinTable.Value.Append($" LEFT JOIN {joinTableSql}");
         }
         return this;
     }
@@ -189,7 +191,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" RIGHT JOIN {joinTableSql}");
+            _joinTable.Value.Append($" RIGHT JOIN {joinTableSql}");
         }
         return this;
     }
@@ -197,7 +199,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     {
         if (!string.IsNullOrWhiteSpace(joinTableSql))
         {
-            this._joinTable.Value.Append($" FULL JOIN {joinTableSql}");
+            _joinTable.Value.Append($" FULL JOIN {joinTableSql}");
         }
         return this;
     }
@@ -227,78 +229,82 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     #region [WHERE]
     public virtual IQueryable<TEntity> Where(string where)
     {
-        SqlBuilderUtil.Where(_where.Value, where);
+        _whereActions.Add(() => SqlBuilderUtil.Where(_where.Value, where));
         return this;
     }
 
     public virtual IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> whereExpression)
     {
-        if (MultiTable)
+        _whereActions.Add(() =>
         {
-            SqlAdapter.MultiTable = true;
-        }
-        SqlBuilderUtil.Where(SqlAdapter,
-            SqlParameterUtil.ConvertToDicParameter(_parameter),
-            whereClause => Where(whereClause),
-            dicParameters => SetParameter(dicParameters),
-            whereExpression);
+            SqlBuilderUtil.Where(SqlAdapter,
+                SqlParameterUtil.ConvertToDicParameter(_parameter),
+                whereClause => SqlBuilderUtil.Where(_where.Value, whereClause),
+                dicParameters => SetParameter(dicParameters),
+                whereExpression);
+        });
         return this;
     }
     public virtual IQueryable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression)
     {
-        var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+        _whereActions.Add(() =>
         {
-            MultiTable = true
-        };
-        SqlBuilderUtil.Where(aqlAdapter,
-            SqlParameterUtil.ConvertToDicParameter(_parameter),
-            whereClause => Where(whereClause),
-            dicParameters => SetParameter(dicParameters),
-            whereExpression);
+            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+            {
+                MultiTable = true
+            };
+            SqlBuilderUtil.Where(aqlAdapter,
+                SqlParameterUtil.ConvertToDicParameter(_parameter),
+                whereClause => SqlBuilderUtil.Where(_where.Value, whereClause),
+                dicParameters => SetParameter(dicParameters),
+                whereExpression);
+        });
         return this;
     }
 
-    public IQueryable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> whereExpression)
+    public virtual IQueryable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> whereExpression)
     {
         return condition ? Where(whereExpression) : this;
     }
 
-    public IQueryable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression)
+    public virtual IQueryable<TEntity> WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression)
     {
         return Where(condition ? trueWhereExpression : falseWhereExpression);
     }
 
-    public IQueryable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
+    public virtual IQueryable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
     {
         return condition ? Where(whereExpression) : this;
     }
 
-    public IQueryable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
+    public virtual IQueryable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
     {
         return Where(condition ? trueWhereExpression : falseWhereExpression);
     }
 
-    public IQueryable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
+    public virtual IQueryable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
     {
         return condition ? Where(trueWhereExpression) : Where(falseWhereExpression);
     }
 
     public virtual IQueryable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
     {
-        if (MultiTable)
+        _whereActions.Add(() =>
         {
-            SqlAdapter.MultiTable = true;
-        }
-        SqlBuilderUtil.WhereField(SqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+            SqlBuilderUtil.WhereField(SqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+        });
         return this;
     }
     public virtual IQueryable<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
     {
-        var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+        _whereActions.Add(() =>
         {
-            MultiTable = true
-        };
-        SqlBuilderUtil.WhereField(aqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+            {
+                MultiTable = true
+            };
+            SqlBuilderUtil.WhereField(aqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+        });
         return this;
     }
     #endregion
@@ -313,26 +319,23 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     {
         if (!string.IsNullOrWhiteSpace(groupBy))
         {
-            if (_groupBy.Value.Length > 0) this._groupBy.Value.Append(" ");
-            this._groupBy.Value.Append(groupBy);
+            if (_groupBy.Value.Length > 0) _groupBy.Value.Append(" ");
+            _groupBy.Value.Append(groupBy);
         }
         return this;
     }
-    public virtual IQueryable<TEntity> GroupByField(params string[] fieldNames)
+    public virtual IQueryable<TEntity> GroupBy(Expression<Func<TEntity, object>> fieldExpression)
     {
+        var fieldNames = fieldExpression.GetFieldNames();
         if (fieldNames != null && fieldNames.Any())
         {
             if (MultiTable)
             {
                 SqlAdapter.MultiTable = true;
             }
-            GroupBy(string.Join(", ", fieldNames.Select(fieldName => SqlAdapter.FormatFieldName(fieldName))));
+            GroupBy(string.Join(", ", fieldNames.Select(fieldName => SqlAdapter.FormatFieldName(fieldName)).ToList()));
         }
         return this;
-    }
-    public virtual IQueryable<TEntity> GroupByField(Expression<Func<TEntity, object>> fieldExpression)
-    {
-        return GroupByField(fieldExpression.GetFieldNames().ToArray());
     }
     #endregion
 
@@ -346,8 +349,8 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     {
         if (!string.IsNullOrWhiteSpace(having))
         {
-            if (_having.Value.Length > 0) this._having.Value.Append(" ");
-            this._having.Value.Append(having);
+            if (_having.Value.Length > 0) _having.Value.Append(" ");
+            _having.Value.Append(having);
         }
         return this;
     }
@@ -363,61 +366,61 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     {
         if (!string.IsNullOrWhiteSpace(orderBy))
         {
-            if (_orderBy.Value.Length > 0) this._orderBy.Value.Append(", ");
-            this._orderBy.Value.Append(orderBy);
+            if (_orderBy.Value.Length > 0) _orderBy.Value.Append(", ");
+            _orderBy.Value.Append(orderBy);
         }
         return this;
     }
     public virtual IQueryable<TEntity> OrderBy(OrderByCondition orderBy)
     {
-        orderBy?.Resolve((type, fields, orderByValue) =>
+        orderBy?.Resolve(c =>
         {
-            if (!string.IsNullOrEmpty(orderByValue))
+            if (!string.IsNullOrEmpty(c.OrderBy))
             {
-                OrderBy(orderByValue);
+                OrderBy(c.OrderBy);
             }
             else
             {
-                OrderByField(type, fields);
+                OrderBy(c.Type, c.Fields);
             }
         });
         return this;
     }
-    public virtual IQueryable<TEntity> OrderByField(OrderByType type, params string[] fieldNames)
+    public virtual IQueryable<TEntity> OrderBy(OrderByType type, params string[] fieldNames)
     {
         if (fieldNames != null && fieldNames.Any())
         {
-            if (_orderBy.Value.Length > 0) this._orderBy.Value.Append(", ");
+            if (_orderBy.Value.Length > 0) _orderBy.Value.Append(", ");
 
             if (MultiTable)
             {
                 SqlAdapter.MultiTable = true;
             }
-            _orderBy.Value.Append($"{string.Join(", ", fieldNames.Select(fieldName => SqlAdapter.FormatFieldName(fieldName)))} {type.ToSqlString()}");
+            _orderBy.Value.Append($"{string.Join(", ", fieldNames.Select(fieldName => SqlAdapter.FormatFieldName(fieldName)).ToList())} {type.ToSqlString()}");
         }
         return this;
     }
-    public virtual IQueryable<TEntity> OrderByField(OrderByType type, Expression<Func<TEntity, object>> fieldExpression)
+    public virtual IQueryable<TEntity> OrderBy(OrderByType type, Expression<Func<TEntity, object>> fieldExpression)
     {
-        return OrderByField(type, fieldExpression.GetFieldNames().ToArray());
+        return OrderBy(type, fieldExpression.GetFieldNames().ToArray());
     }
     #endregion
 
     public virtual IQueryable<TEntity> Top(int? top)
     {
-        this._topNumber = top;
+        _topNumber = top;
         return this;
     }
     public virtual IQueryable<TEntity> Page(int? pageIndex, int? pageSize)
     {
-        this._pageIndex = pageIndex;
-        this._pageSize = pageSize;
+        _pageIndex = pageIndex;
+        _pageSize = pageSize;
         return this;
     }
     public virtual IQueryable<TEntity> Offset(int? offset, int? rows)
     {
-        this._offset = offset;
-        this._rows = rows;
+        _offset = offset;
+        _rows = rows;
         return this;
     }
 
@@ -434,7 +437,6 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
             SqlAdapter.MultiTable = true;
         }
 
-        var sql = new DefaultSqlCommand(SqlAdapter.DbType);
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
         var selectFields = _tableFieldList.Any() ? string.Join(", ", _tableFieldList.Select(fieldInfo =>
         {
@@ -452,8 +454,15 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
             return findFieldInfo != null && findFieldInfo.Property.Name != fieldInfo.FieldName
                 ? $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)} AS {findFieldInfo.Property.Name}"
                 : $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}";
-        })) : "*";
+        }).ToList()) : "*";
 
+        if (_whereActions.Any())
+        {
+            _whereActions.ForEach(c => c.Invoke());
+            _whereActions.Clear();
+        }
+
+        var sql = new DefaultSqlCommand(SqlAdapter.DbType);
         if (_topNumber.HasValue)
         {
             // 查询前几行

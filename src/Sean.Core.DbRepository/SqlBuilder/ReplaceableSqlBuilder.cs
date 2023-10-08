@@ -78,7 +78,7 @@ VALUES{2}";
             return default;
 
         var sb = new StringBuilder();
-        var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName));
+        var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName)).ToList();
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
         switch (SqlAdapter.DbType)
         {
@@ -156,7 +156,7 @@ VALUES{2}";
 
                         var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
                         return SqlAdapter.FormatSqlParameter(parameterName);
-                    });
+                    }).ToList();
                     sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
                 }
                 break;

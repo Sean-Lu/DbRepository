@@ -21,7 +21,7 @@ namespace Sean.Core.DbRepository.Test
             Assert.AreEqual(expectedFields.Count, actualFields.Count);
             foreach (var field in expectedFields)
             {
-                Assert.IsTrue(actualFields.Contains(field), $"The {nameof(actualFields)} does not contain <{field}>.");
+                Assert.IsTrue(actualFields.Contains(field), $"The <{nameof(actualFields)}> does not contain <{field}>.");
             }
         }
     }

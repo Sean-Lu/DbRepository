@@ -148,8 +148,7 @@ public interface IQueryable<TEntity> : IBaseSqlBuilder, ISqlWhere<TEntity, IQuer
     /// <param name="groupBy">The [GROUP BY] keyword is not included.</param>
     /// <returns></returns>
     IQueryable<TEntity> GroupBy(string groupBy);
-    IQueryable<TEntity> GroupByField(params string[] fieldNames);
-    IQueryable<TEntity> GroupByField(Expression<Func<TEntity, object>> fieldExpression);
+    IQueryable<TEntity> GroupBy(Expression<Func<TEntity, object>> fieldExpression);
     #endregion
 
     #region [HAVING]
@@ -169,8 +168,8 @@ public interface IQueryable<TEntity> : IBaseSqlBuilder, ISqlWhere<TEntity, IQuer
     /// <returns></returns>
     IQueryable<TEntity> OrderBy(string orderBy);
     IQueryable<TEntity> OrderBy(OrderByCondition orderBy);
-    IQueryable<TEntity> OrderByField(OrderByType type, params string[] fieldNames);
-    IQueryable<TEntity> OrderByField(OrderByType type, Expression<Func<TEntity, object>> fieldExpression);
+    IQueryable<TEntity> OrderBy(OrderByType type, params string[] fieldNames);
+    IQueryable<TEntity> OrderBy(OrderByType type, Expression<Func<TEntity, object>> fieldExpression);
     #endregion
 
     /// <summary>
