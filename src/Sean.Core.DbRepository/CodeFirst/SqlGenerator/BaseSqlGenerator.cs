@@ -120,8 +120,8 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
 
     protected virtual bool IsNotAllowNull(PropertyInfo fieldPropertyInfo)
     {
-        return fieldPropertyInfo.PropertyType.IsValueType && !fieldPropertyInfo.PropertyType.IsNullableType()
-               || IsPrimaryKey(fieldPropertyInfo)
+        return /*fieldPropertyInfo.PropertyType.IsValueType && !fieldPropertyInfo.PropertyType.IsNullableType()
+               || */IsPrimaryKey(fieldPropertyInfo)
                || fieldPropertyInfo.GetCustomAttributes<RequiredAttribute>(false).Any();
     }
 
