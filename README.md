@@ -8,12 +8,12 @@
 - 支持`Expression`表达式树解析：`whereExpression`、`fieldExpression`
 - 常用类：
 
-| Class                                                     | Namespace                       | Description                    |
-| --------------------------------------------------------- | ------------------------------- | ------------------------------ |
-| `DbFactory`                                               | `Sean.Core.DbRepository`        | 数据库工厂                     |
-| `SqlFactory`                                              | `Sean.Core.DbRepository`        | `SQL`创建工厂（CRUD）          |
-| `BaseRepository`<br>`BaseRepository<TEntity>`             | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
-| `DapperBaseRepository`<br>`DapperBaseRepository<TEntity>` | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory`+`Dapper`实现 |
+| Class                                                          | Namespace                       | Description                    |
+| -------------------------------------------------------------- | ------------------------------- | ------------------------------ |
+| `DbFactory`                                                    | `Sean.Core.DbRepository`        | 数据库工厂                     |
+| `SqlFactory`                                                   | `Sean.Core.DbRepository`        | `SQL`创建工厂（CRUD）          |
+| **`BaseRepository`<br>`BaseRepository<TEntity>`**             | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
+| **`DapperBaseRepository`<br>`DapperBaseRepository<TEntity>`** | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory`+`Dapper`实现   |
 
 ## 💖 Nuget Packages
 
@@ -200,9 +200,30 @@ var db = new DbFactory("Database connection string...", MySqlClientFactory.Insta
 </configuration>
 ```
 
-### 增删改查（CRUD）
+### 实体类特性
 
-> `IBaseRepository<TEntity>`
+> `TableEntity`
+
+| Attribute                                                                      | Use      | Description                                                    |
+| ------------------------------------------------------------------------------ | -------- | -------------------------------------------------------------- |
+| `Sean.Core.DbRepository.CodeFirstAttribute`                                    | Class    | 标记为CodeFirst的类                                            |
+| **`System.ComponentModel.DataAnnotations.Schema.TableAttribute`**             | Class    | 设置表名                                                       |
+| `Sean.Core.DbRepository.SequenceAttribute`                                     | Property | 设置序列号名称<br>（生成自增Id）                               |
+| **`System.ComponentModel.DataAnnotations.KeyAttribute`**                      | Property | 标记为主键字段                                                 |
+| **`System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedAttribute`** | Property | 设置数据库生成字段值的方式<br>（通常和`KeyAttribute`一起使用） |
+| **`System.ComponentModel.DataAnnotations.Schema.ColumnAttribute`**            | Property | 设置字段名                                                     |
+| `System.ComponentModel.DescriptionAttribute`                                   | Property | 设置字段描述                                                   |
+| `Sean.Core.DbRepository.NumericAttribute`                                      | Property | 设置数值字段的位数和精度                                       |
+| `System.ComponentModel.DataAnnotations.MaxLengthAttribute`                     | Property | 设置字段的最大长度                                             |
+| `System.ComponentModel.DataAnnotations.StringLengthAttribute`                  | Property | 设置字段的最大长度                                             |
+| `System.ComponentModel.DataAnnotations.RequiredAttribute`                      | Property | 设置字段不允许为空                                             |
+| `System.ComponentModel.DefaultValueAttribute`                                  | Property | 设置字段默认值                                                 |
+| **`System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute`**         | Property | 标记为为忽略字段                                               |
+| ~~`System.ComponentModel.DataAnnotations.Schema.ForeignKeyAttribute`~~         | Property | 标记为外键字段（***暂不支持***）                              |
+
+### 增删改查
+
+> CRUD: `IBaseRepository<TEntity>`
 
 ```csharp
 // 新增数据：
@@ -310,25 +331,6 @@ entity => new { entity.Status, entity.UpdateTime }
 
 // 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.FieldExpressionTest
 ```
-
-> 常用实体类注解：`TableEntity`
-
-| Attribute                                                                 | Use      | Description                                                    |
-| ------------------------------------------------------------------------- | -------- | -------------------------------------------------------------- |
-| `Sean.Core.DbRepository.CodeFirstAttribute`                               | Class    | 标记为CodeFirst的类                                            |
-| `System.ComponentModel.DataAnnotations.Schema.TableAttribute`             | Class    | 设置表名                                                       |
-| `Sean.Core.DbRepository.SequenceAttribute`                                | Property | 设置序列号名称<br>（生成自增Id）                               |
-| `System.ComponentModel.DataAnnotations.KeyAttribute`                      | Property | 标记为主键字段                                                 |
-| `System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedAttribute` | Property | 设置数据库生成字段值的方式<br>（通常和`KeyAttribute`一起使用） |
-| `System.ComponentModel.DataAnnotations.Schema.ColumnAttribute`            | Property | 设置字段名                                                     |
-| `System.ComponentModel.DescriptionAttribute`                              | Property | 设置字段描述                                                   |
-| `Sean.Core.DbRepository.NumericAttribute`                                 | Property | 设置数值字段的位数和精度                                       |
-| `System.ComponentModel.DataAnnotations.MaxLengthAttribute`                | Property | 设置字段的最大长度                                             |
-| `System.ComponentModel.DataAnnotations.StringLengthAttribute`             | Property | 设置字段的最大长度                                             |
-| `System.ComponentModel.DataAnnotations.RequiredAttribute`                 | Property | 设置字段不允许为空                                             |
-| `System.ComponentModel.DefaultValueAttribute`                             | Property | 设置字段默认值                                                 |
-| `System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute`         | Property | 标记为为忽略字段                                               |
-| ~~`System.ComponentModel.DataAnnotations.Schema.ForeignKeyAttribute`~~    | Property | 标记为外键字段（***暂不支持***）                              |
 
 ## ❓ 常见问题
 
