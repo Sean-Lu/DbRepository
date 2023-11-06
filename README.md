@@ -313,15 +313,22 @@ entity => new { entity.Status, entity.UpdateTime }
 
 > 常用实体类注解：`TableEntity`
 
-| Attribute                    | AttributeUsage | Namespace                                      | Description                                                |
-| ---------------------------- | -------------- | ---------------------------------------------- | ---------------------------------------------------------- |
-| `TableAttribute`             | Class          | `System.ComponentModel.DataAnnotations.Schema` | 自定义表名                                                 |
-| `SequenceAttribute`          | Property       | `Sean.Core.DbRepository`                       | 指定序列号名称（生成自增Id）                               |
-| `KeyAttribute`               | Property       | `System.ComponentModel.DataAnnotations`        | 标记为主键字段                                             |
-| `DatabaseGeneratedAttribute` | Property       | `System.ComponentModel.DataAnnotations.Schema` | 设置数据库生成字段值的方式（通常和`KeyAttribute`一起使用） |
-| `ColumnAttribute`            | Property       | `System.ComponentModel.DataAnnotations.Schema` | 自定义字段名                                               |
-| `NotMappedAttribute`         | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为为忽略字段                                           |
-| ~~`ForeignKeyAttribute`~~    | Property       | `System.ComponentModel.DataAnnotations.Schema` | 标记为外键字段（***暂不支持***）                           |
+| Attribute                                                                 | Use      | Description                                                    |
+| ------------------------------------------------------------------------- | -------- | -------------------------------------------------------------- |
+| `Sean.Core.DbRepository.CodeFirstAttribute`                               | Class    | 标记为CodeFirst的类                                            |
+| `System.ComponentModel.DataAnnotations.Schema.TableAttribute`             | Class    | 设置表名                                                       |
+| `Sean.Core.DbRepository.SequenceAttribute`                                | Property | 设置序列号名称<br>（生成自增Id）                               |
+| `System.ComponentModel.DataAnnotations.KeyAttribute`                      | Property | 标记为主键字段                                                 |
+| `System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedAttribute` | Property | 设置数据库生成字段值的方式<br>（通常和`KeyAttribute`一起使用） |
+| `System.ComponentModel.DataAnnotations.Schema.ColumnAttribute`            | Property | 设置字段名                                                     |
+| `System.ComponentModel.DescriptionAttribute`                              | Property | 设置字段描述                                                   |
+| `Sean.Core.DbRepository.NumericAttribute`                                 | Property | 设置数值字段的位数和精度                                       |
+| `System.ComponentModel.DataAnnotations.MaxLengthAttribute`                | Property | 设置字段的最大长度                                             |
+| `System.ComponentModel.DataAnnotations.StringLengthAttribute`             | Property | 设置字段的最大长度                                             |
+| `System.ComponentModel.DataAnnotations.RequiredAttribute`                 | Property | 设置字段不允许为空                                             |
+| `System.ComponentModel.DefaultValueAttribute`                             | Property | 设置字段默认值                                                 |
+| `System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute`         | Property | 标记为为忽略字段                                               |
+| ~~`System.ComponentModel.DataAnnotations.Schema.ForeignKeyAttribute`~~    | Property | 标记为外键字段（***暂不支持***）                              |
 
 ## ❓ 常见问题
 
