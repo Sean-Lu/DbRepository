@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 using Example.ADO.NETCore.Application.Contracts;
-using Example.ADO.NETCore.Application.Dtos;
 using Example.ADO.NETCore.Domain.Entities;
 using Example.ADO.NETCore.Domain.Repositories;
 using Newtonsoft.Json;
@@ -18,37 +16,34 @@ namespace Example.ADO.NETCore.Application.Services
     public class TestSimpleService : ITestSimpleService
     {
         private readonly ILogger _logger;
-        private readonly IMapper _mapper;
         private readonly CommonRepository<TestEntity> _testRepository;
 
         public TestSimpleService(
             ISimpleLogger<TestSimpleService> logger,
-            IMapper mapper,
             CommonRepository<TestEntity> testRepository)
         {
             _logger = logger;
-            _mapper = mapper;
             _testRepository = testRepository;
         }
 
-        public async Task<bool> AddAsync(TestDto model)
+        public async Task<bool> AddAsync(TestEntity model)
         {
-            return await _testRepository.AddAsync(_mapper.Map<TestEntity>(model));
+            return await _testRepository.AddAsync(model);
         }
 
-        public async Task<bool> AddAsync(IEnumerable<TestDto> list)
+        public async Task<bool> AddAsync(IEnumerable<TestEntity> list)
         {
-            return await _testRepository.AddAsync(_mapper.Map<List<TestEntity>>(list));
+            return await _testRepository.AddAsync(list);
         }
 
-        public async Task<bool> AddOrUpdateAsync(TestDto model)
+        public async Task<bool> AddOrUpdateAsync(TestEntity model)
         {
-            return await _testRepository.AddOrUpdateAsync(_mapper.Map<TestEntity>(model));
+            return await _testRepository.AddOrUpdateAsync(model);
         }
 
-        public async Task<bool> AddOrUpdateAsync(IEnumerable<TestDto> list)
+        public async Task<bool> AddOrUpdateAsync(IEnumerable<TestEntity> list)
         {
-            return await _testRepository.AddOrUpdateAsync(_mapper.Map<List<TestEntity>>(list));
+            return await _testRepository.AddOrUpdateAsync(list);
         }
 
         public async Task<bool> DeleteByIdAsync(long id)
@@ -70,16 +65,14 @@ namespace Example.ADO.NETCore.Application.Services
             }, entity => new { entity.Status }) > 0;
         }
 
-        public async Task<TestDto> GetByIdAsync(long id)
+        public async Task<TestEntity> GetByIdAsync(long id)
         {
-            var entities = await _testRepository.GetAsync(entity => entity.Id == id);
-            return _mapper.Map<TestDto>(entities);
+            return await _testRepository.GetAsync(entity => entity.Id == id);
         }
 
-        public async Task<List<TestDto>> GetAllAsync()
+        public async Task<List<TestEntity>> GetAllAsync()
         {
-            var entity = await _testRepository.QueryAsync(entity => true);
-            return _mapper.Map<List<TestDto>>(entity);
+            return (await _testRepository.QueryAsync(entity => true))?.ToList();
         }
 
         public async Task<bool> TestCRUDAsync(IDbTransaction trans = null)

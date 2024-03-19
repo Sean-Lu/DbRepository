@@ -1,51 +1,48 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 using Example.Dapper.Core.Application.Contracts;
-using Example.Dapper.Core.Application.Dtos;
 using Example.Dapper.Core.Domain.Contracts;
 using Example.Dapper.Core.Domain.Entities;
 using Sean.Utility.Contracts;
+using Sean.Utility.Extensions;
 
 namespace Example.Dapper.Core.Application.Services
 {
     public class CheckInLogService : ICheckInLogService
     {
         private readonly ILogger _logger;
-        private readonly IMapper _mapper;
         private readonly ICheckInLogRepository _checkInLogRepository;
 
         public CheckInLogService(
             ISimpleLogger<CheckInLogService> logger,
-            IMapper mapper,
             ICheckInLogRepository checkInLogRepository)
         {
             _logger = logger;
-            _mapper = mapper;
             _checkInLogRepository = checkInLogRepository;
             //_checkInLogRepository.SubTableDate = DateTime.Now;// 按时间分表
         }
 
-        public async Task<bool> AddAsync(CheckInLogDto model)
+        public async Task<bool> AddAsync(CheckInLogEntity model)
         {
-            return await _checkInLogRepository.AddAsync(_mapper.Map<CheckInLogEntity>(model));
+            return await _checkInLogRepository.AddAsync(model);
         }
 
-        public async Task<bool> AddAsync(IEnumerable<CheckInLogDto> list)
+        public async Task<bool> AddAsync(IEnumerable<CheckInLogEntity> list)
         {
-            return await _checkInLogRepository.AddAsync(_mapper.Map<List<CheckInLogEntity>>(list));
-            //return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _checkInLogRepository.AddAsync(_mapper.Map<List<CheckInLogEntity>>(models)));
+            return await _checkInLogRepository.AddAsync(list);
+            //return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _checkInLogRepository.AddAsync(models));
         }
 
-        public async Task<bool> AddOrUpdateAsync(CheckInLogDto model)
+        public async Task<bool> AddOrUpdateAsync(CheckInLogEntity model)
         {
-            return await _checkInLogRepository.AddOrUpdateAsync(_mapper.Map<CheckInLogEntity>(model));
+            return await _checkInLogRepository.AddOrUpdateAsync(model);
         }
 
-        public async Task<bool> AddOrUpdateAsync(IEnumerable<CheckInLogDto> list)
+        public async Task<bool> AddOrUpdateAsync(IEnumerable<CheckInLogEntity> list)
         {
-            return await _checkInLogRepository.AddOrUpdateAsync(_mapper.Map<List<CheckInLogEntity>>(list));
-            //return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _checkInLogRepository.AddOrUpdateAsync(_mapper.Map<List<CheckInLogEntity>>(models)));
+            return await _checkInLogRepository.AddOrUpdateAsync(list);
+            //return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _checkInLogRepository.AddOrUpdateAsync(models));
         }
 
         public async Task<bool> DeleteByIdAsync(long id)
@@ -67,22 +64,19 @@ namespace Example.Dapper.Core.Application.Services
             }, entity => new { entity.CheckInType }, entity => entity.Id == id) > 0;
         }
 
-        public async Task<CheckInLogDto> GetByIdAsync(long id)
+        public async Task<CheckInLogEntity> GetByIdAsync(long id)
         {
-            var entity = await _checkInLogRepository.GetAsync(entity => entity.Id == id);
-            return _mapper.Map<CheckInLogDto>(entity);
+            return await _checkInLogRepository.GetAsync(entity => entity.Id == id);
         }
 
-        public async Task<List<CheckInLogDto>> GetAllAsync()
+        public async Task<List<CheckInLogEntity>> GetAllAsync()
         {
-            var entities = await _checkInLogRepository.QueryAsync(entity => true, master: false);// 查询结果来自从库
-            return _mapper.Map<List<CheckInLogDto>>(entities);
+            return (await _checkInLogRepository.QueryAsync(entity => true, master: false))?.ToList();// 查询结果来自从库
         }
 
-        public async Task<List<CheckInLogDto>> SearchAsync(long userId, int pageIndex, int pageSize)
+        public async Task<List<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
         {
-            var entities = await _checkInLogRepository.SearchAsync(userId, pageIndex, pageSize);
-            return _mapper.Map<List<CheckInLogDto>>(entities);
+            return (await _checkInLogRepository.SearchAsync(userId, pageIndex, pageSize))?.ToList();
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Sean.Core.DbRepository.Test
     {
         static DapperTestBase()
         {
-            DIManager.ConfigureServices(services =>
+            DIManager.ConfigureServices((services, configuration) =>
             {
                 services.AddApplicationDI();
             });

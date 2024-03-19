@@ -2,7 +2,7 @@
 	<Import Project="../../config/Common.props" />
 
 	<PropertyGroup>
-		<TargetFrameworks>net46;netstandard2.1;net5</TargetFrameworks>
+		<TargetFrameworks>net46;netstandard2.1;net6</TargetFrameworks>
 		<Description>Tools: DbFirst(CodeGenerator), CodeFirst(DbMigrator).</Description>
 		<Version>2.1.10</Version>
 	</PropertyGroup>

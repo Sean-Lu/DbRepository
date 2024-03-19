@@ -1,19 +1,40 @@
 ﻿using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Sean.Core.Ioc;
 
 namespace Example.Dapper.Core.Infrastructure
 {
     public static class DIManager
     {
-        public static void ConfigureServices(Action<IServiceCollection> action)
+        private static IConfiguration _configuration;
+        private static IServiceCollection _services;
+        private static IServiceProvider _serviceProvider;
+
+        public static void ConfigureServices(Action<IServiceCollection, IConfiguration> configServices)
         {
-            IocContainer.Instance.ConfigureServices(action);
+            if (_services != null)
+            {
+                configServices(_services, _configuration);
+                _serviceProvider = _services.BuildServiceProvider();
+                return;
+            }
+
+            _configuration = new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile("appsettings.json", true, true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            _services = new ServiceCollection();
+            _services.AddSingleton<IConfiguration>(_configuration);
+            configServices(_services, _configuration);
+
+            _serviceProvider = _services.BuildServiceProvider();
         }
 
         public static TService GetService<TService>()
         {
-            return IocContainer.Instance.GetService<TService>();
+            return _serviceProvider.GetService<TService>();
         }
     }
 }

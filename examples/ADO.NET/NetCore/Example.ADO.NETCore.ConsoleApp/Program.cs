@@ -16,7 +16,7 @@ namespace Example.ADO.NETCore.ConsoleApp
         {
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置当前工作目录：@".\"
 
-            DIManager.ConfigureServices(services =>
+            DIManager.ConfigureServices((services, configuration) =>
             {
                 services.AddApplicationDI();
 

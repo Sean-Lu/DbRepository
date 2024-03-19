@@ -1,20 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Example.Dapper.Core.Application.Dtos;
+using Example.Dapper.Core.Domain.Entities;
 
 namespace Example.Dapper.Core.Application.Contracts
 {
     public interface ICheckInLogService
     {
-        Task<bool> AddAsync(CheckInLogDto model);
-        Task<bool> AddAsync(IEnumerable<CheckInLogDto> list);
-        Task<bool> AddOrUpdateAsync(CheckInLogDto model);
-        Task<bool> AddOrUpdateAsync(IEnumerable<CheckInLogDto> list);
+        Task<bool> AddAsync(CheckInLogEntity model);
+        Task<bool> AddAsync(IEnumerable<CheckInLogEntity> list);
+        Task<bool> AddOrUpdateAsync(CheckInLogEntity model);
+        Task<bool> AddOrUpdateAsync(IEnumerable<CheckInLogEntity> list);
         Task<bool> DeleteByIdAsync(long id);
         Task<int> DeleteAllAsync();
         Task<bool> UpdateCheckInTypeAsync(long id, int checkInType);
-        Task<CheckInLogDto> GetByIdAsync(long id);
-        Task<List<CheckInLogDto>> GetAllAsync();
-        Task<List<CheckInLogDto>> SearchAsync(long userId, int pageIndex, int pageSize);
+        Task<CheckInLogEntity> GetByIdAsync(long id);
+        Task<List<CheckInLogEntity>> GetAllAsync();
+        Task<List<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize);
     }
 }

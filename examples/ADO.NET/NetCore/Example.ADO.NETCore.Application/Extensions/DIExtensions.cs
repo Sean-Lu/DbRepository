@@ -16,14 +16,6 @@ namespace Example.ADO.NETCore.Application.Extensions
             services.AddDomainDI();
 
             services.RegisterByAssemblyInterface(Assembly.GetExecutingAssembly(), "Service", ServiceLifetime.Transient);
-
-            services.AddAutoMapper(expression =>
-            {
-                expression.AllowNullCollections = true;
-                expression.AllowNullDestinationValues = true;
-                //expression.Advanced.AllowAdditiveTypeMapCreation = true;
-                expression.AddMaps(typeof(AutoMapperProfile));
-            });
         }
     }
 }
