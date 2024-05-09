@@ -359,6 +359,21 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     bool Save<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
 
     /// <summary>
+    /// Paging query.
+    /// </summary>
+    /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+    /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
+    /// <para>1. Single field: entity => entity.Status</para>
+    /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
+    /// </param>
+    /// <param name="orderBy">SQL ORDER BY condition.</param>
+    /// <param name="pageNumber">The current page number for paging query, the minimum value is 1.</param>
+    /// <param name="pageSize">The page size for paging query.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
+    /// <returns></returns>
+    PageQueryResult<TEntity> PageQuery(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy, int pageNumber, int pageSize, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
+
+    /// <summary>
     /// Query entities.
     /// </summary>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
@@ -583,6 +598,21 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="transaction"></param>
     /// <returns></returns>
     Task<bool> SaveAsync<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
+
+    /// <summary>
+    /// Paging query.
+    /// </summary>
+    /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
+    /// <param name="fieldExpression">The fields to query. If the value is null, all fields of the entity are queried. Example: 
+    /// <para>1. Single field: entity => entity.Status</para>
+    /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
+    /// </param>
+    /// <param name="orderBy">SQL ORDER BY condition.</param>
+    /// <param name="pageNumber">The current page number for paging query, the minimum value is 1.</param>
+    /// <param name="pageSize">The page size for paging query.</param>
+    /// <param name="master">true: master database, false: slave database.</param>
+    /// <returns></returns>
+    Task<PageQueryResult<TEntity>> PageQueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy, int pageNumber, int pageSize, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
 
     /// <summary>
     /// Query entities.

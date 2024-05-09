@@ -1505,6 +1505,18 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         return result;
     }
 
+    public virtual PageQueryResult<TEntity> PageQuery(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy, int pageNumber, int pageSize, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
+    {
+        var result = new PageQueryResult<TEntity>
+        {
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            Total = Count(whereExpression, master),
+            List = Query(whereExpression, orderBy, pageNumber, pageSize, fieldExpression, master)?.ToList()
+        };
+        return result;
+    }
+
     public virtual IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageNumber = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
         var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
@@ -2085,6 +2097,18 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
             entities.ResetEntityState();
         }
 
+        return result;
+    }
+
+    public virtual async Task<PageQueryResult<TEntity>> PageQueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy, int pageNumber, int pageSize, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
+    {
+        var result = new PageQueryResult<TEntity>
+        {
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            Total = await CountAsync(whereExpression, master),
+            List = (await QueryAsync(whereExpression, orderBy, pageNumber, pageSize, fieldExpression, master))?.ToList()
+        };
         return result;
     }
 
