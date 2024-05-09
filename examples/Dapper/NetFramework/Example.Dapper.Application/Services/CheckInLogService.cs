@@ -72,11 +72,11 @@ namespace Example.Dapper.Application.Services
             return (await _checkInLogRepository.QueryAsync(entity => true, master: false))?.ToList();// 查询结果来自从库
         }
 
-        public async Task<List<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
+        public async Task<List<CheckInLogEntity>> SearchAsync(long userId, int pageNumber, int pageSize)
         {
             var orderBy = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.CreateTime);
             orderBy.Next = OrderByConditionBuilder<CheckInLogEntity>.Build(OrderByType.Desc, entity => entity.Id);
-            return (await _checkInLogRepository.QueryAsync(entity => entity.UserId == userId, orderBy, pageIndex, pageSize, master: false))?.ToList();// 查询结果来自从库
+            return (await _checkInLogRepository.QueryAsync(entity => entity.UserId == userId, orderBy, pageNumber, pageSize, master: false))?.ToList();// 查询结果来自从库
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Example.Dapper.Core.Application.Services
         public async Task<bool> AddAsync(IEnumerable<CheckInLogEntity> list)
         {
             return await _checkInLogRepository.AddAsync(list);
-            //return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _checkInLogRepository.AddAsync(models));
+            //return await list.PagingExecuteAsync(200, async (pageNumber, models) => await _checkInLogRepository.AddAsync(models));
         }
 
         public async Task<bool> AddOrUpdateAsync(CheckInLogEntity model)
@@ -42,7 +42,7 @@ namespace Example.Dapper.Core.Application.Services
         public async Task<bool> AddOrUpdateAsync(IEnumerable<CheckInLogEntity> list)
         {
             return await _checkInLogRepository.AddOrUpdateAsync(list);
-            //return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _checkInLogRepository.AddOrUpdateAsync(models));
+            //return await list.PagingExecuteAsync(200, async (pageNumber, models) => await _checkInLogRepository.AddOrUpdateAsync(models));
         }
 
         public async Task<bool> DeleteByIdAsync(long id)
@@ -74,9 +74,9 @@ namespace Example.Dapper.Core.Application.Services
             return (await _checkInLogRepository.QueryAsync(entity => true, master: false))?.ToList();// 查询结果来自从库
         }
 
-        public async Task<List<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
+        public async Task<List<CheckInLogEntity>> SearchAsync(long userId, int pageNumber, int pageSize)
         {
-            return (await _checkInLogRepository.SearchAsync(userId, pageIndex, pageSize))?.ToList();
+            return (await _checkInLogRepository.SearchAsync(userId, pageNumber, pageSize))?.ToList();
         }
     }
 }

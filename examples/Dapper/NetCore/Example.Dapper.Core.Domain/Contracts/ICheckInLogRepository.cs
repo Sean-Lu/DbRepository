@@ -13,6 +13,6 @@ namespace Example.Dapper.Core.Domain.Contracts
         /// </summary>
         DateTime? SubTableDate { get; set; }
 
-        Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize);
+        Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageNumber, int pageSize);
     }
 }

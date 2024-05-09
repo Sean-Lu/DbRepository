@@ -53,12 +53,12 @@ namespace Example.Dapper.Core.Domain.Repositories
             return tableName;
         }
 
-        public async Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize)
+        public async Task<IEnumerable<CheckInLogEntity>> SearchAsync(long userId, int pageNumber, int pageSize)
         {
             #region 自定义 SqlCommand 示例
             // SqlCommand 示例1：
             var sql = this.CreateQueryableBuilder(true)
-                .Page(pageIndex, pageSize)
+                .Page(pageNumber, pageSize)
                 .Where($"{nameof(CheckInLogEntity.UserId)} = @{nameof(CheckInLogEntity.UserId)} AND {nameof(CheckInLogEntity.CheckInType)} IN @{nameof(CheckInLogEntity.CheckInType)}")
                 .OrderBy($"{nameof(CheckInLogEntity.UserId)} ASC, {nameof(CheckInLogEntity.CreateTime)} DESC")
                 .SetParameter(new { UserId = userId, CheckInType = new[] { 1, 2 } })
@@ -67,7 +67,7 @@ namespace Example.Dapper.Core.Domain.Repositories
 
             // SqlCommand 示例2：
             var sql2 = this.CreateQueryableBuilder(true)
-                .Page(pageIndex, pageSize)
+                .Page(pageNumber, pageSize)
                 .WhereField(entity => entity.UserId, SqlOperation.Equal)
                 .WhereField(entity => nameof(CheckInLogEntity.CheckInType), SqlOperation.In)
                 .OrderBy(OrderByType.Asc, nameof(CheckInLogEntity.UserId))
@@ -78,7 +78,7 @@ namespace Example.Dapper.Core.Domain.Repositories
 
             // SqlCommand 示例3：
             var sql3 = this.CreateQueryableBuilder(true)
-                .Page(pageIndex, pageSize)
+                .Page(pageNumber, pageSize)
                 .WhereField(entity => entity.UserId, SqlOperation.Equal)
                 .WhereField(entity => entity.CheckInType, SqlOperation.In)
                 .WhereField(entity => entity.CreateTime, SqlOperation.GreaterOrEqual, paramName: "StartTime")
@@ -107,7 +107,7 @@ namespace Example.Dapper.Core.Domain.Repositories
             return await QueryAsync(entity => entity.UserId == userId
                                               && checkInTypes.Contains(entity.CheckInType)
                                               && entity.CreateTime >= DateTime.Parse("2020-1-1 00:00:00")
-                                              && entity.CreateTime < DateTime.Now, orderBy, pageIndex, pageSize, master: false);// 查询结果来自从库
+                                              && entity.CreateTime < DateTime.Now, orderBy, pageNumber, pageSize, master: false);// 查询结果来自从库
             #endregion
         }
     }

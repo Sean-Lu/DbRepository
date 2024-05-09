@@ -30,7 +30,7 @@ namespace Example.ADO.NETCore.Application.Services
         public async Task<bool> AddAsync(IEnumerable<TestEntity> list)
         {
             return await _testRepository.AddAsync(list);
-            //return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.AddAsync(_mapper.Map<List<TestEntity>>(models)));
+            //return await list.PagingExecuteAsync(200, async (pageNumber, models) => await _testRepository.AddAsync(_mapper.Map<List<TestEntity>>(models)));
         }
 
         public async Task<bool> AddOrUpdateAsync(TestEntity model)
@@ -41,7 +41,7 @@ namespace Example.ADO.NETCore.Application.Services
         public async Task<bool> AddOrUpdateAsync(IEnumerable<TestEntity> list)
         {
             return await _testRepository.AddOrUpdateAsync(list);
-            //return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.AddOrUpdateAsync(_mapper.Map<List<TestEntity>>(models)));
+            //return await list.PagingExecuteAsync(200, async (pageNumber, models) => await _testRepository.AddOrUpdateAsync(_mapper.Map<List<TestEntity>>(models)));
         }
 
         public async Task<bool> DeleteByIdAsync(long id)

@@ -15,6 +15,6 @@ namespace Example.Dapper.Application.Contracts
         Task<bool> UpdateCheckInTypeAsync(long id, int checkInType);
         Task<CheckInLogEntity> GetByIdAsync(long id);
         Task<List<CheckInLogEntity>> GetAllAsync();
-        Task<List<CheckInLogEntity>> SearchAsync(long userId, int pageIndex, int pageSize);
+        Task<List<CheckInLogEntity>> SearchAsync(long userId, int pageNumber, int pageSize);
     }
 }

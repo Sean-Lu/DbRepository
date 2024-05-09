@@ -31,7 +31,7 @@ namespace Example.Dapper.Core.Application.Services
         public async Task<bool> AddAsync(IEnumerable<TestEntity> list)
         {
             return await _testRepository.AddAsync(list);
-            //return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.AddAsync(models));
+            //return await list.PagingExecuteAsync(200, async (pageNumber, models) => await _testRepository.AddAsync(models));
         }
 
         public async Task<bool> AddOrUpdateAsync(TestEntity model)
@@ -42,7 +42,7 @@ namespace Example.Dapper.Core.Application.Services
         public async Task<bool> AddOrUpdateAsync(IEnumerable<TestEntity> list)
         {
             return await _testRepository.AddOrUpdateAsync(list);
-            //return await list.PagingExecuteAsync(200, async (pageIndex, models) => await _testRepository.AddOrUpdateAsync(models));
+            //return await list.PagingExecuteAsync(200, async (pageNumber, models) => await _testRepository.AddOrUpdateAsync(models));
         }
 
         public async Task<bool> DeleteByIdAsync(long id)
