@@ -367,11 +367,11 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
     /// </param>
     /// <param name="orderBy">SQL ORDER BY condition.</param>
-    /// <param name="pageIndex">The current page index for paging query, the minimum value is 1.</param>
+    /// <param name="pageNumber">The current page number for paging query, the minimum value is 1.</param>
     /// <param name="pageSize">The page size for paging query.</param>
     /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
-    IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
+    IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageNumber = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
     /// <summary>
     /// Query entities.
     /// </summary>
@@ -593,11 +593,11 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <para>2. Multiple fields: entity => new { entity.Status, entity.UpdateTime }</para>
     /// </param>
     /// <param name="orderBy">SQL ORDER BY condition.</param>
-    /// <param name="pageIndex">The current page index for paging query, the minimum value is 1.</param>
+    /// <param name="pageNumber">The current page number for paging query, the minimum value is 1.</param>
     /// <param name="pageSize">The page size for paging query.</param>
     /// <param name="master">true: master database, false: slave database.</param>
     /// <returns></returns>
-    Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
+    Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageNumber = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true);
     /// <summary>
     /// Query entities.
     /// </summary>

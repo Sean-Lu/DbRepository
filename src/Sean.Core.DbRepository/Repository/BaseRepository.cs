@@ -1164,7 +1164,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
         if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
         {
-            return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
+            return entities.PagingExecute(bulkCountLimit.Value, (pageNumber, models) =>
             {
                 var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
                     .InsertFields(fieldExpression)
@@ -1254,7 +1254,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                     var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
                     if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
                     {
-                        return entities.PagingExecute(bulkCountLimit.Value, (pageIndex, models) =>
+                        return entities.PagingExecute(bulkCountLimit.Value, (pageNumber, models) =>
                         {
                             var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
                                 .InsertFields(fieldExpression)
@@ -1505,13 +1505,13 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         return result;
     }
 
-    public virtual IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
+    public virtual IEnumerable<TEntity> Query(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageNumber = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
         var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
             .SelectFields(fieldExpression)
             .Where(whereExpression)
             .OrderBy(orderBy)
-            .Page(pageIndex, pageSize)
+            .Page(pageNumber, pageSize)
             .Build();
         sqlCommand.Master = master;
         sqlCommand.CommandTimeout = CommandTimeout;
@@ -1747,7 +1747,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
         if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
         {
-            return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
+            return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageNumber, models) =>
             {
                 var sqlCommand = this.CreateInsertableBuilder(fieldExpression == null)
                     .InsertFields(fieldExpression)
@@ -1837,7 +1837,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                     var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
                     if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
                     {
-                        return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageIndex, models) =>
+                        return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageNumber, models) =>
                         {
                             var sqlCommand = this.CreateReplaceableBuilder(fieldExpression == null)
                                 .InsertFields(fieldExpression)
@@ -2088,13 +2088,13 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         return result;
     }
 
-    public virtual async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageIndex = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
+    public virtual async Task<IEnumerable<TEntity>> QueryAsync(Expression<Func<TEntity, bool>> whereExpression, OrderByCondition orderBy = null, int? pageNumber = null, int? pageSize = null, Expression<Func<TEntity, object>> fieldExpression = null, bool master = true)
     {
         var sqlCommand = this.CreateQueryableBuilder(fieldExpression == null)
             .SelectFields(fieldExpression)
             .Where(whereExpression)
             .OrderBy(orderBy)
-            .Page(pageIndex, pageSize)
+            .Page(pageNumber, pageSize)
             .Build();
         sqlCommand.Master = master;
         sqlCommand.CommandTimeout = CommandTimeout;

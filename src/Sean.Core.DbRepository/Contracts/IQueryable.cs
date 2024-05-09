@@ -179,12 +179,12 @@ public interface IQueryable<TEntity> : IBaseSqlBuilder, ISqlWhere<TEntity, IQuer
     /// <returns></returns>
     IQueryable<TEntity> Top(int? top);
     /// <summary>
-    /// LIMIT {(<paramref name="pageIndex"/> - 1) * <paramref name="pageSize"/>},{<paramref name="pageSize"/>}
+    /// LIMIT {(<paramref name="pageNumber"/> - 1) * <paramref name="pageSize"/>},{<paramref name="pageSize"/>}
     /// </summary>
-    /// <param name="pageIndex">The current page index for paging query, the minimum value is 1.</param>
+    /// <param name="pageNumber">The current page number for paging query, the minimum value is 1.</param>
     /// <param name="pageSize">The page size for paging query.</param>
     /// <returns></returns>
-    IQueryable<TEntity> Page(int? pageIndex, int? pageSize);
+    IQueryable<TEntity> Page(int? pageNumber, int? pageSize);
     /// <summary>
     /// LIMIT {<paramref name="offset"/>},{<paramref name="rows"/>}
     /// </summary>

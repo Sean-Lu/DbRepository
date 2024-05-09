@@ -33,7 +33,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     private object _parameter;
 
     private int? _topNumber;
-    private int? _pageIndex;
+    private int? _pageNumber;
     private int? _pageSize;
     private int? _offset;
     private int? _rows;
@@ -411,9 +411,9 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
         _topNumber = top;
         return this;
     }
-    public virtual IQueryable<TEntity> Page(int? pageIndex, int? pageSize)
+    public virtual IQueryable<TEntity> Page(int? pageNumber, int? pageSize)
     {
-        _pageIndex = pageIndex;
+        _pageNumber = pageNumber;
         _pageSize = pageSize;
         return this;
     }
@@ -503,10 +503,10 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                     break;
             }
         }
-        else if (_pageIndex.HasValue && _pageSize.HasValue)
+        else if (_pageNumber.HasValue && _pageSize.HasValue)
         {
             // 分页查询
-            var offset = (_pageIndex.Value - 1) * _pageSize.Value;// 偏移量
+            var offset = (_pageNumber.Value - 1) * _pageSize.Value;// 偏移量
             var rows = _pageSize.Value;// 行数
             sql.Sql = GetQuerySql(selectFields, offset, rows);
         }
