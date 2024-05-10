@@ -12,9 +12,7 @@ public class OutputParameterOptions
 
     public void ExecuteOutput(Func<string, object> getParamValue)
     {
-        var parameterValue = getParamValue(OutputPropertyInfo.Name);
-        var convertedValue = ObjectConvert.ChangeType(parameterValue, OutputPropertyInfo.PropertyType);
-        OutputPropertyInfo.SetValue(OutputTarget, convertedValue);
+        OutputPropertyInfo.SetValue(OutputTarget, ObjectConvert.ChangeType(getParamValue(OutputPropertyInfo.Name), OutputPropertyInfo.PropertyType));
     }
 }
 

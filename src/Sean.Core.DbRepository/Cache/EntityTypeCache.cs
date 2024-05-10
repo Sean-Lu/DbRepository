@@ -62,10 +62,19 @@ public static class EntityTypeCache
             {
                 Property = propertyInfo,
                 FieldName = propertyInfo.GetFieldName(),
+                Order = propertyInfo.GetCustomAttributes<ColumnAttribute>(false).FirstOrDefault()?.Order,
                 PrimaryKey = propertyInfo.GetCustomAttributes<KeyAttribute>(false).Any(),
                 Identity = propertyInfo.GetCustomAttributes<DatabaseGeneratedAttribute>(false).Any(c => c.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity)
             };
             entityInfo.FieldInfos.Add(fieldInfo);
+        }
+
+        if (entityInfo.FieldInfos.Any(c => c.Order.HasValue))
+        {
+            entityInfo.FieldInfos = entityInfo.FieldInfos
+                .OrderBy(c => c.Order == null)
+                .ThenBy(c => c.Order)
+                .ToList();
         }
 
         _entityInfoCache.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);// Update cache.
@@ -93,6 +102,7 @@ public class TableFieldInfo
     /// 字段名称
     /// </summary>
     public string FieldName { get; set; }
+    public int? Order { get; set; }
     /// <summary>
     /// 是否是主键字段 <see cref="KeyAttribute"/>
     /// </summary>
