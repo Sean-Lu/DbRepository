@@ -57,6 +57,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Sean.Utility" Version="2.1.4" />
+		<PackageReference Include="Sean.Utility" Version="2.1.5" />
 	</ItemGroup>
 </Project>

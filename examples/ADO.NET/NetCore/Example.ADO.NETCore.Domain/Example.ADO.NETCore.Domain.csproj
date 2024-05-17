@@ -14,33 +14,33 @@
   </PropertyGroup>
 
   <ItemGroup Condition="$(DefineConstants.Contains('UseMySQL')) OR $(DefineConstants.Contains('UseTiDB')) OR $(DefineConstants.Contains('UseOceanBase'))">
-    <PackageReference Include="MySql.Data" Version="8.0.33" />
+    <PackageReference Include="MySql.Data" Version="8.4.0" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseMariaDB'))">
-    <PackageReference Include="MySqlConnector" Version="2.2.6" />
+    <PackageReference Include="MySqlConnector" Version="2.3.7" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseSqlServer'))">
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseOracle'))">
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.100" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.4.0" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseSqlite'))">
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseDuckDB'))">
-    <PackageReference Include="DuckDB.NET.Data.Full" Version="0.8.0" />
+    <PackageReference Include="DuckDB.NET.Data.Full" Version="0.10.2" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseMsAccess'))">
-    <PackageReference Include="System.Data.OleDb" Version="6.0.0" />
-    <PackageReference Include="System.Data.Odbc" Version="6.0.0" />
+    <PackageReference Include="System.Data.OleDb" Version="8.0.0" />
+    <PackageReference Include="System.Data.Odbc" Version="8.0.0" />
     <!--<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="3.1.1" />-->
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseFirebird'))">
-    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="9.1.1" />
+    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UsePostgreSql')) OR $(DefineConstants.Contains('UseHighgoDB')) OR $(DefineConstants.Contains('UseIvorySQL')) OR $(DefineConstants.Contains('UseQuestDB'))">
-    <PackageReference Include="Npgsql" Version="7.0.4" />
+    <PackageReference Include="Npgsql" Version="8.0.3" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseOpenGauss'))">
     <PackageReference Include="OpenGauss.NET" Version="6.0.3" />
@@ -54,18 +54,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseClickHouse'))">
-    <PackageReference Include="ClickHouse.Client" Version="6.7.0" />
+    <PackageReference Include="ClickHouse.Client" Version="7.5.0" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseDameng'))">
-    <PackageReference Include="dmdbms.DmProvider" Version="1.1.0.16649" />
+    <PackageReference Include="dmdbms.DmProvider" Version="1.1.0.20739" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseKingbaseES'))">
-    <PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.700" />
-    <!--<PackageReference Include="SqlSugarCore.Kdbndp" Version="7.4.0" />-->
+    <PackageReference Include="FreeSql.Provider.KingbaseES" Version="3.2.822" />
+    <!--<PackageReference Include="SqlSugarCore.Kdbndp" Version="9.3.6.411" />-->
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseShenTong'))">
-    <PackageReference Include="Oscar.Data.SqlClient" Version="4.2.3" />
-    <!--<PackageReference Include="FreeSql.Provider.ShenTong" Version="3.2.700" />-->
+    <PackageReference Include="Oscar.Data.SqlClient" Version="4.2.6" />
+    <!--<PackageReference Include="FreeSql.Provider.ShenTong" Version="3.2.822" />-->
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseXugu'))">
     <!-- 注意：XuguClient.dll 依赖 XGCSQL.dll（非.NET程序，运行时没有这个文件会报错） -->

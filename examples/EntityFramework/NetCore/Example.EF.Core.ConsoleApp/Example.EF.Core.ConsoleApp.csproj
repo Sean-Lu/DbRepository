@@ -22,39 +22,39 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMySQL')) OR $(DefineConstants.Contains('UseTiDB')) OR $(DefineConstants.Contains('UseOceanBase'))">
-		<PackageReference Include="MySql.EntityFrameworkCore" Version="7.0.2" />
+		<PackageReference Include="MySql.EntityFrameworkCore" Version="8.0.2" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMariaDB'))">
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlServer'))">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.19" />
 		<!-- SQL Server 2005 ~ 2008: UseRowNumberForPaging -->
-		<PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.4.0" />
+		<PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.5.0" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseOracle'))">
-		<PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.9" />
+		<PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.13" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlite'))">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.17" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.19" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMsAccess'))">
-		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.2" />
+		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.3" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseFirebird'))">
-		<PackageReference Include="FirebirdSql.EntityFrameworkCore.Firebird" Version="9.1.1" />
+		<PackageReference Include="FirebirdSql.EntityFrameworkCore.Firebird" Version="10.0.0" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UsePostgreSql')) OR $(DefineConstants.Contains('UseOpenGauss')) OR $(DefineConstants.Contains('UseHighgoDB')) OR $(DefineConstants.Contains('UseIvorySQL'))">
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.18" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseDB2')) OR $(DefineConstants.Contains('UseInformix'))">
-		<PackageReference Include="IBM.EntityFrameworkCore" Version="7.0.0.200" />
+		<PackageReference Include="IBM.EntityFrameworkCore" Version="7.0.0.400" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseClickHouse'))">
 		<PackageReference Include="EntityFrameworkCore.ClickHouse.6.0" Version="1.0.0" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseDameng'))">
-		<PackageReference Include="dmdbms.Microsoft.EntityFrameworkCore.Dm" Version="6.0.16.16649" />
+		<PackageReference Include="dmdbms.Microsoft.EntityFrameworkCore.Dm" Version="6.0.28.20604" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseKingbaseES'))">
 		<PackageReference Include="KingbaseES.EntityFrameworkCore" Version="6.0.7" />
@@ -64,7 +64,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<!--<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">
+		<!--<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.19">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>-->
