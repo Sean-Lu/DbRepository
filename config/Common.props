@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<Authors>Sean</Authors>
-		<Copyright>Copyright © 2019-2023 Sean</Copyright>
+		<Copyright>Copyright © 2019-2024 Sean</Copyright>
 		<PackageProjectUrl>https://github.com/Sean-Lu/DbRepository</PackageProjectUrl>
 		<LangVersion>latest</LangVersion>
 

@@ -15,6 +15,11 @@
 | **`BaseRepository`<br>`BaseRepository<TEntity>`**             | `Sean.Core.DbRepository`        | 基于`DbFactory`实现            |
 | **`DapperBaseRepository`<br>`DapperBaseRepository<TEntity>`** | `Sean.Core.DbRepository.Dapper` | 基于`DbFactory`+`Dapper`实现   |
 
+## ⭐ 开源
+
+- GitHub: https://github.com/Sean-Lu/DbRepository
+- Gitee: https://gitee.com/Sean-Lu/DbRepository
+
 ## 💖 Nuget Packages
 
 | Package                                                                                        | NuGet Stable                                                                                                                                                        | NuGet Pre-release                                                                                                                                                      | Downloads                                                                                                                                                            |
@@ -82,10 +87,8 @@
 <configuration>
     <connectionStrings>
         <!-- 主库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。 -->
-        <!-- Master database: If multiple databases are configured, the suffix of the database name is a number starting with 1. -->
         <add name="master" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
         <!-- 从库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。 -->
-        <!-- Slave database: If multiple databases are configured, the suffix of the database name is a number starting with 1. -->
         <add name="secondary1" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
         <add name="secondary2" connectionString="DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a" providerName="MySql.Data.MySqlClient"/>
     </connectionStrings>
@@ -109,10 +112,8 @@
 {
   "ConnectionStrings": {
     // 主库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。
-    // Master database: If multiple databases are configured, the suffix of the database name is a number starting with 1.
     "master": "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a;ProviderName=MySql.Data.MySqlClient",
     // 从库：如果配置了多个数据库，数据库名称后缀是以1开始的数字。
-    // Slave database: If multiple databases are configured, the suffix of the database name is a number starting with 1.
     "secondary1": "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a;ProviderName=MySql.Data.MySqlClient",
     "secondary2": "DataSource=127.0.0.1;Database=test;uid=root;pwd=12345!a;ProviderName=MySql.Data.MySqlClient",
 
