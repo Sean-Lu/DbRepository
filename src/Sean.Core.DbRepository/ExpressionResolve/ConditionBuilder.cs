@@ -25,9 +25,9 @@ internal static class ConditionBuilder
             switch (comparison)
             {
                 case ExpressionType.Equal:
-                    return new StringBuilder($"{fieldName} is null");
+                    return new StringBuilder($"{fieldName} IS NULL");
                 case ExpressionType.NotEqual:
-                    return new StringBuilder($"{fieldName} is not null");
+                    return new StringBuilder($"{fieldName} IS NOT NULL");
             }
         }
 
@@ -100,8 +100,8 @@ internal static class ConditionBuilder
             var memberInfo = memberExpression.Member;
             var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName());
             return reverse
-                ? new StringBuilder($"{fieldName} is not null AND {fieldName} <> ''")
-                : new StringBuilder($"({fieldName} is null OR {fieldName} = '')");
+                ? new StringBuilder($"{fieldName} IS NOT NULL AND {fieldName} <> ''")
+                : new StringBuilder($"({fieldName} IS NULL OR {fieldName} = '')");
         }
 
         throw new NotSupportedException($"Unsupported MethodCallExpression: {methodCallExpression}");

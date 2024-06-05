@@ -193,7 +193,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UpdateTime", startTime },
                 { "UpdateTime_2", endTime },
             };
-            Assert.AreEqual("`UpdateTime` is not null AND `UpdateTime` >= @UpdateTime AND `UpdateTime` < @UpdateTime_2", whereClause);
+            Assert.AreEqual("`UpdateTime` IS NOT NULL AND `UpdateTime` >= @UpdateTime AND `UpdateTime` < @UpdateTime_2", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
@@ -645,7 +645,7 @@ namespace Sean.Core.DbRepository.Test
             Expression<Func<TestEntity, bool>> whereExpression = entity => entity.UpdateTime.HasValue;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
-            Assert.AreEqual("`UpdateTime` is not null", whereClause);
+            Assert.AreEqual("`UpdateTime` IS NOT NULL", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
         /// <summary>
@@ -657,7 +657,7 @@ namespace Sean.Core.DbRepository.Test
             Expression<Func<TestEntity, bool>> whereExpression = entity => !entity.UpdateTime.HasValue;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
-            Assert.AreEqual("`UpdateTime` is null", whereClause);
+            Assert.AreEqual("`UpdateTime` IS NULL", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
         /// <summary>
@@ -673,7 +673,7 @@ namespace Sean.Core.DbRepository.Test
             {
                 { "IsVip", true }
             };
-            Assert.AreEqual("`IsVip` = @IsVip AND `UpdateTime` is not null", whereClause);
+            Assert.AreEqual("`IsVip` = @IsVip AND `UpdateTime` IS NOT NULL", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
@@ -686,7 +686,7 @@ namespace Sean.Core.DbRepository.Test
             Expression<Func<TestEntity, bool>> whereExpression = entity => string.IsNullOrEmpty(entity.Email);
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
-            Assert.AreEqual("(`Email` is null OR `Email` = '')", whereClause);
+            Assert.AreEqual("(`Email` IS NULL OR `Email` = '')", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
         /// <summary>
@@ -698,7 +698,7 @@ namespace Sean.Core.DbRepository.Test
             Expression<Func<TestEntity, bool>> whereExpression = entity => !string.IsNullOrEmpty(entity.Email);
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
-            Assert.AreEqual("`Email` is not null AND `Email` <> ''", whereClause);
+            Assert.AreEqual("`Email` IS NOT NULL AND `Email` <> ''", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
@@ -728,7 +728,7 @@ namespace Sean.Core.DbRepository.Test
             Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Id != excludeId;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
-            Assert.AreEqual("`Id` is not null", whereClause);
+            Assert.AreEqual("`Id` IS NOT NULL", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
         /// <summary>
@@ -757,7 +757,7 @@ namespace Sean.Core.DbRepository.Test
             Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Id != excludeId.Value;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
-            Assert.AreEqual("`Id` is not null", whereClause);
+            Assert.AreEqual("`Id` IS NOT NULL", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
         /// <summary>
@@ -802,7 +802,7 @@ namespace Sean.Core.DbRepository.Test
             Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Email == null;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
-            Assert.AreEqual("`Email` is null", whereClause);
+            Assert.AreEqual("`Email` IS NULL", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
         /// <summary>
@@ -814,7 +814,7 @@ namespace Sean.Core.DbRepository.Test
             Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Email != null;
             var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             var expectedParameters = new Dictionary<string, object>();
-            Assert.AreEqual("`Email` is not null", whereClause);
+            Assert.AreEqual("`Email` IS NOT NULL", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 

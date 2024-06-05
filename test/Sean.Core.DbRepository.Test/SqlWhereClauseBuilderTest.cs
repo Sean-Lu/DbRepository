@@ -36,7 +36,7 @@ namespace Sean.Core.DbRepository.Test
                { "UserId", 10010L },
                { "IsVip", true }
             };
-            Assert.AreEqual($"`UserId` = @UserId AND `PhoneNumber` is not null AND `PhoneNumber` <> '' AND `IsVip` = @IsVip", whereClause);
+            Assert.AreEqual($"`UserId` = @UserId AND `PhoneNumber` IS NOT NULL AND `PhoneNumber` <> '' AND `IsVip` = @IsVip", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
@@ -53,7 +53,7 @@ namespace Sean.Core.DbRepository.Test
                 { "UserId", 10010L },
                 { "IsVip", true }
             };
-            Assert.AreEqual($"(`UserId` = @UserId OR `IsVip` = @IsVip) AND `PhoneNumber` is not null AND `PhoneNumber` <> ''", whereClause);
+            Assert.AreEqual($"(`UserId` = @UserId OR `IsVip` = @IsVip) AND `PhoneNumber` IS NOT NULL AND `PhoneNumber` <> ''", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
     }
