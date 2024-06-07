@@ -11,16 +11,10 @@ namespace Example.Dapper.Model.Entities
     /// </summary>
     [Table("Test")]
     [CodeFirst]
-    public class TestEntity : EntityStateBase
+    public class TestEntity : EntityBase
     {
         /// <summary>
-        /// 自增主键
-        /// </summary>
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Sequence("SQ_Test")]
-        public virtual long Id { get; set; }
-        /// <summary>
-        /// 用户id
+        /// 用户主键
         /// </summary>
         [Column("UserId")]
         public virtual long UserId { get; set; }
@@ -87,14 +81,6 @@ namespace Example.Dapper.Model.Entities
         /// </summary>
         [MaxLength(255)]
         public virtual string Remark { get; set; }
-        /// <summary>
-        /// 创建时间
-        /// </summary>
-        public virtual DateTime CreateTime { get; set; }
-        /// <summary>
-        /// 更新时间
-        /// </summary>
-        public virtual DateTime? UpdateTime { get; set; }
 
         #region 忽略字段
         [NotMapped]

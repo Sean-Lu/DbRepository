@@ -347,7 +347,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="returnAutoIncrementId"></param>
     /// <param name="transaction"></param>
     /// <returns></returns>
-    bool Save<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
+    bool Save<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : TEntity, IEntityStateBase;
     /// <summary>
     /// Save entities to the database by checking entity state.
     /// </summary>
@@ -356,7 +356,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="returnAutoIncrementId"></param>
     /// <param name="transaction"></param>
     /// <returns></returns>
-    bool Save<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
+    bool Save<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : TEntity, IEntityStateBase;
 
     /// <summary>
     /// Paging query.
@@ -588,7 +588,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="returnAutoIncrementId"></param>
     /// <param name="transaction"></param>
     /// <returns></returns>
-    Task<bool> SaveAsync<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
+    Task<bool> SaveAsync<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : TEntity, IEntityStateBase;
     /// <summary>
     /// Save entities to the database by checking entity state.
     /// </summary>
@@ -597,7 +597,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="returnAutoIncrementId"></param>
     /// <param name="transaction"></param>
     /// <returns></returns>
-    Task<bool> SaveAsync<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity;
+    Task<bool> SaveAsync<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : TEntity, IEntityStateBase;
 
     /// <summary>
     /// Paging query.

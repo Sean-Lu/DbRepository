@@ -69,12 +69,16 @@ public static class EntityTypeCache
             entityInfo.FieldInfos.Add(fieldInfo);
         }
 
-        if (entityInfo.FieldInfos.Any(c => c.Order.HasValue))
+        if (entityInfo.FieldInfos.Any(c => c.Order > 0))
         {
-            entityInfo.FieldInfos = entityInfo.FieldInfos
-                .OrderBy(c => c.Order == null)
-                .ThenBy(c => c.Order)
+            var orderedFieldInfos = entityInfo.FieldInfos
+                .Where(c => c.Order > 0)
+                .OrderBy(c => c.Order)
                 .ToList();
+            var nonOrderedFieldInfos = entityInfo.FieldInfos
+                .Except(orderedFieldInfos)
+                .ToList();
+            entityInfo.FieldInfos = orderedFieldInfos.Concat(nonOrderedFieldInfos).ToList();
         }
 
         _entityInfoCache.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);// Update cache.

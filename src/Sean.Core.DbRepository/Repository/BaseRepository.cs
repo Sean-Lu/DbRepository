@@ -1410,7 +1410,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         return Execute(sqlCommand) > 0;
     }
 
-    public virtual bool Save<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
+    public virtual bool Save<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : TEntity, IEntityStateBase
     {
         if (entity == null)
         {
@@ -1453,7 +1453,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
         return true;
     }
-    public virtual bool Save<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
+    public virtual bool Save<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : TEntity, IEntityStateBase
     {
         if (entities == null || !entities.Any())
         {
@@ -1467,7 +1467,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
         var result = ExecuteAutoTransaction(trans =>
         {
-            var addList = entities.Where(t => t.EntityState == EntityStateType.Added).ToList();
+            var addList = entities.Where(t => t.EntityState == EntityStateType.Added).Select(c => (TEntity)c).ToList();
             if (addList.Any())
             {
                 if (!Add(addList, returnAutoIncrementId, transaction: trans))
@@ -1476,7 +1476,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                 }
             }
 
-            var updateList = entities.Where(t => t.EntityState == EntityStateType.Modified).ToList();
+            var updateList = entities.Where(t => t.EntityState == EntityStateType.Modified).Select(c => (TEntity)c).ToList();
             if (updateList.Any())
             {
                 if (!Update(updateList, transaction: trans))
@@ -1485,7 +1485,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                 }
             }
 
-            var deleteList = entities.Where(t => t.EntityState == EntityStateType.Deleted).ToList();
+            var deleteList = entities.Where(t => t.EntityState == EntityStateType.Deleted).Select(c => (TEntity)c).ToList();
             if (deleteList.Any())
             {
                 if (!Delete(deleteList, transaction: trans))
@@ -2005,7 +2005,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         return await ExecuteAsync(sqlCommand) > 0;
     }
 
-    public virtual async Task<bool> SaveAsync<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
+    public virtual async Task<bool> SaveAsync<TEntityState>(TEntityState entity, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : TEntity, IEntityStateBase
     {
         if (entity == null)
         {
@@ -2048,7 +2048,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
         return true;
     }
-    public virtual async Task<bool> SaveAsync<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : EntityStateBase, TEntity
+    public virtual async Task<bool> SaveAsync<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : TEntity, IEntityStateBase
     {
         if (entities == null || !entities.Any())
         {
@@ -2062,7 +2062,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
         var result = await ExecuteAutoTransactionAsync(async trans =>
         {
-            var addList = entities.Where(t => t.EntityState == EntityStateType.Added).ToList();
+            var addList = entities.Where(t => t.EntityState == EntityStateType.Added).Select(c => (TEntity)c).ToList();
             if (addList.Any())
             {
                 if (!await AddAsync(addList, returnAutoIncrementId, transaction: trans))
@@ -2071,7 +2071,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                 }
             }
 
-            var updateList = entities.Where(t => t.EntityState == EntityStateType.Modified).ToList();
+            var updateList = entities.Where(t => t.EntityState == EntityStateType.Modified).Select(c => (TEntity)c).ToList();
             if (updateList.Any())
             {
                 if (!await UpdateAsync(updateList, transaction: trans))
@@ -2080,7 +2080,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                 }
             }
 
-            var deleteList = entities.Where(t => t.EntityState == EntityStateType.Deleted).ToList();
+            var deleteList = entities.Where(t => t.EntityState == EntityStateType.Deleted).Select(c => (TEntity)c).ToList();
             if (deleteList.Any())
             {
                 if (!await DeleteAsync(deleteList, transaction: trans))

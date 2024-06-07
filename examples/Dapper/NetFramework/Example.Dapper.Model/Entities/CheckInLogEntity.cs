@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Sean.Core.DbRepository;
 
 namespace Example.Dapper.Model.Entities
 {
@@ -9,7 +8,7 @@ namespace Example.Dapper.Model.Entities
     /// 签到明细日志表
     /// </summary>
     [Table("CheckInLog")]
-    public class CheckInLogEntity : EntityStateBase
+    public class CheckInLogEntity
     {
         /// <summary>
         /// 自增主键

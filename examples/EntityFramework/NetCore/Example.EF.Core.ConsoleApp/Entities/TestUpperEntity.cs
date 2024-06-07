@@ -16,7 +16,7 @@ namespace Example.EF.Core.ConsoleApp.Entities
         [Column("ID")]
         public virtual long Id { get; set; }
         /// <summary>
-        /// 用户id
+        /// 用户主键
         /// </summary>
         [Column("USER_ID")]
         public virtual long UserId { get; set; }

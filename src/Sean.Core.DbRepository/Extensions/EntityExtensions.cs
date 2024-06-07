@@ -3,14 +3,14 @@ using System.Linq;
 
 namespace Sean.Core.DbRepository.Extensions
 {
-    public static class EntityStateExtensions
+    public static class EntityExtensions
     {
         /// <summary>
-        /// <see cref="EntityStateBase.EntityState"/>
+        /// Reset <see cref="IEntityStateBase.EntityState"/>
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="entity"></param>
-        public static void ResetEntityState<TEntity>(this TEntity entity) where TEntity : EntityStateBase
+        public static void ResetEntityState<TEntity>(this TEntity entity) where TEntity : IEntityStateBase
         {
             if (entity == null)
             {
@@ -21,11 +21,11 @@ namespace Sean.Core.DbRepository.Extensions
         }
 
         /// <summary>
-        /// <see cref="EntityStateBase.EntityState"/>
+        /// Reset <see cref="IEntityStateBase.EntityState"/>
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="entities"></param>
-        public static void ResetEntityState<TEntity>(this IEnumerable<TEntity> entities) where TEntity : EntityStateBase
+        public static void ResetEntityState<TEntity>(this IEnumerable<TEntity> entities) where TEntity : IEntityStateBase
         {
             if (entities == null || !entities.Any())
             {

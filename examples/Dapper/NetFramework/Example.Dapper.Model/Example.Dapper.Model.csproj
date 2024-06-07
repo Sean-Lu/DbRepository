@@ -47,8 +47,8 @@
   <ItemGroup>
     <Compile Include="Dtos\TestDto.cs" />
     <Compile Include="Entities\CheckInLogEntity.cs" />
+    <Compile Include="Entities\EntityBase.cs" />
     <Compile Include="Entities\TestEntity.cs" />
-    <Compile Include="Entities\UserEntity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
