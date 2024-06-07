@@ -15,6 +15,8 @@ namespace Sean.Core.DbRepository;
 
 public class DbOptions
 {
+    public NamingConvention DefaultNamingConvention { get; set; }
+
     /// <summary>
     /// The limit on the number of entities when executing database bulk operations. The default value is 1000.
     /// </summary>

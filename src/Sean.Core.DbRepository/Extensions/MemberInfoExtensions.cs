@@ -25,7 +25,7 @@ public static class MemberInfoExtensions
             return fieldAttribute.Name;
         }
 
-        return memberInfo.Name;
+        return memberInfo.Name.ToNamingConvention(DbContextConfiguration.Options.DefaultNamingConvention);
     }
 
     public static string GetSequenceName(this MemberInfo memberInfo)

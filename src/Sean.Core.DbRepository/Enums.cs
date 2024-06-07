@@ -182,3 +182,27 @@ public enum BindSqlParameterType
     BindByName,
     BindByPosition
 }
+
+/// <summary>
+/// 命名规范
+/// </summary>
+public enum NamingConvention
+{
+    Default,
+    /// <summary>
+    /// 帕斯卡命名法（Pascal Case）。示例：UserName、ProductPrice、IsValid
+    /// </summary>
+    PascalCase,
+    /// <summary>
+    /// 驼峰命名法（Camel Case）。示例：userName、productPrice、isValid
+    /// </summary>
+    CamelCase,
+    /// <summary>
+    /// 蛇形命名法（Snake Case）。示例：user_name、product_price、is_valid
+    /// </summary>
+    SnakeCase,
+    /// <summary>
+    /// 大写蛇形命名法（Upper Snake Case）。示例：USER_NAME、PRODUCT_PRICE、IS_VALID
+    /// </summary>
+    UpperSnakeCase
+}
