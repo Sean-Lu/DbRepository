@@ -9,7 +9,7 @@ namespace Sean.Core.DbRepository;
 
 internal static class ConditionBuilder
 {
-    public static StringBuilder BuildCondition(ParameterExpression parameterExpression, MemberExpression memberExpression, WhereClauseAdhesive adhesive, ExpressionType comparison, object value, bool comparisonReverse = false)
+    public static StringBuilder BuildCondition(ParameterExpression parameterExpression, MemberExpression memberExpression, WhereClauseAdhesive adhesive, ExpressionType comparison, object value, NamingConvention namingConvention, bool comparisonReverse = false)
     {
         if (memberExpression.Expression is not ParameterExpression parameterExpression2
             || parameterExpression2.Name != parameterExpression.Name)
@@ -18,7 +18,7 @@ internal static class ConditionBuilder
         }
 
         var memberInfo = memberExpression.Member;
-        var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName());
+        var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName(namingConvention));
 
         if (value == null)
         {
@@ -36,7 +36,7 @@ internal static class ConditionBuilder
         return new StringBuilder($"{fieldName} {comparison.ToComparisonSymbol(comparisonReverse)} {adhesive.SqlAdapter.FormatSqlParameter(parameterName)}");
     }
 
-    public static StringBuilder BuildLikeOrEqualCondition(ParameterExpression parameterExpression, MethodCallExpression methodCallExpression, WhereClauseAdhesive adhesive, bool notEquals)
+    public static StringBuilder BuildLikeOrEqualCondition(ParameterExpression parameterExpression, MethodCallExpression methodCallExpression, WhereClauseAdhesive adhesive, bool notEquals, NamingConvention namingConvention)
     {
         if (methodCallExpression.Object is MemberExpression { Expression: ParameterExpression parameterExpression2 } memberExpression
             && parameterExpression2.Name == parameterExpression.Name)
@@ -66,7 +66,7 @@ internal static class ConditionBuilder
             }
 
             var memberInfo = memberExpression.Member;
-            var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName());
+            var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName(namingConvention));
             var parameterName = UniqueParameter(memberInfo, adhesive);
             var value = ConstantExtractor.ParseConstant(methodCallExpression.Arguments[0]);
             adhesive.Parameters.Add($"{parameterName}", string.Format(valueSymbol, value));
@@ -76,7 +76,7 @@ internal static class ConditionBuilder
         throw new NotSupportedException($"Unsupported MethodCallExpression: {methodCallExpression}");
     }
 
-    public static StringBuilder BuildInCondition(ParameterExpression parameterExpression, MemberExpression memberExpression, Expression valueExpression, WhereClauseAdhesive adhesive)
+    public static StringBuilder BuildInCondition(ParameterExpression parameterExpression, MemberExpression memberExpression, Expression valueExpression, WhereClauseAdhesive adhesive, NamingConvention namingConvention)
     {
         if (memberExpression.Expression is not ParameterExpression parameterExpression2
             || parameterExpression2.Name != parameterExpression.Name)
@@ -85,20 +85,20 @@ internal static class ConditionBuilder
         }
 
         var memberInfo = memberExpression.Member;
-        var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName());
+        var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName(namingConvention));
         var parameterName = UniqueParameter(memberInfo, adhesive);
         var value = ConstantExtractor.ParseConstant(valueExpression);
         adhesive.Parameters.Add($"{parameterName}", value);
         return new StringBuilder($"{fieldName} IN {adhesive.SqlAdapter.FormatSqlParameter(parameterName)}");
     }
 
-    public static StringBuilder BuildIsNullOrEmptyCondition(ParameterExpression parameterExpression, MethodCallExpression methodCallExpression, WhereClauseAdhesive adhesive, bool reverse = false)
+    public static StringBuilder BuildIsNullOrEmptyCondition(ParameterExpression parameterExpression, MethodCallExpression methodCallExpression, WhereClauseAdhesive adhesive, NamingConvention namingConvention, bool reverse = false)
     {
         if (methodCallExpression.Arguments[0] is MemberExpression { Expression: ParameterExpression parameterExpression2 } memberExpression
             && parameterExpression2.Name == parameterExpression.Name)
         {
             var memberInfo = memberExpression.Member;
-            var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName());
+            var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName(namingConvention));
             return reverse
                 ? new StringBuilder($"{fieldName} IS NOT NULL AND {fieldName} <> ''")
                 : new StringBuilder($"({fieldName} IS NULL OR {fieldName} = '')");

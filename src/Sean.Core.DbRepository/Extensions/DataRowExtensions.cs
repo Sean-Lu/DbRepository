@@ -98,7 +98,7 @@ public static class DataRowExtensions
             foreach (DataColumn column in dr.Table.Columns)
             {
                 var fieldName = column.ColumnName;
-                var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName()?.ToLower() == fieldName.ToLower() : c.GetFieldName() == fieldName);
+                var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName(type.GetNamingConvention())?.ToLower() == fieldName.ToLower() : c.GetFieldName(type.GetNamingConvention()) == fieldName);
                 if (propertyInfo != null && propertyInfo.CanWrite)
                 {
                     var value = dr[fieldName];

@@ -11,7 +11,7 @@ public static class ExpressionExtensions
     #region fieldExpression
     public static List<string> GetFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression)
     {
-        return fieldExpression?.Body.GetFieldNames()?.Distinct().ToList();
+        return fieldExpression?.Body.GetFieldNames(typeof(TEntity).GetNamingConvention())?.Distinct().ToList();
     }
 
     public static bool IsFieldExists<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, string fieldName)
@@ -133,7 +133,7 @@ public static class ExpressionExtensions
         return Expression.Lambda<T>(merge(first.Body, secondBody), first.Parameters);
     }
 
-    private static List<string> GetFieldNames(this Expression fieldExpression)
+    private static List<string> GetFieldNames(this Expression fieldExpression, NamingConvention namingConvention)
     {
         if (fieldExpression == null) throw new ArgumentNullException(nameof(fieldExpression));
 
@@ -163,7 +163,7 @@ public static class ExpressionExtensions
         {
             foreach (var subExpression in newArrayExpression.Expressions)
             {
-                var memberName = subExpression.GetFieldName();
+                var memberName = subExpression.GetFieldName(namingConvention);
                 if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                 {
                     result.Add(memberName);
@@ -176,7 +176,7 @@ public static class ExpressionExtensions
             {
                 foreach (var argument in initializer.Arguments)
                 {
-                    var memberName = argument.GetFieldName();
+                    var memberName = argument.GetFieldName(namingConvention);
                     if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                     {
                         result.Add(memberName);
@@ -196,7 +196,7 @@ public static class ExpressionExtensions
             //}
             foreach (var argument in newExpression.Arguments)
             {
-                var memberName = argument.GetFieldName();
+                var memberName = argument.GetFieldName(namingConvention);
                 if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                 {
                     result.Add(memberName);
@@ -207,7 +207,7 @@ public static class ExpressionExtensions
         {
             if (memberExpression.Expression is ParameterExpression parameterExpression)
             {
-                var fieldName = memberExpression.Member.GetFieldName();
+                var fieldName = memberExpression.Member.GetFieldName(namingConvention);
                 if (!string.IsNullOrWhiteSpace(fieldName) && !result.Contains(fieldName))
                 {
                     result.Add(fieldName);
@@ -282,7 +282,7 @@ public static class ExpressionExtensions
 
         if (!result.Any())
         {
-            var memberName = fieldExpression.GetFieldName();
+            var memberName = fieldExpression.GetFieldName(namingConvention);
             if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
             {
                 result.Add(memberName);
@@ -296,7 +296,7 @@ public static class ExpressionExtensions
 
         return result;
     }
-    private static string GetFieldName(this Expression expression)
+    private static string GetFieldName(this Expression expression, NamingConvention namingConvention)
     {
         if (expression == null) throw new ArgumentNullException(nameof(expression));
 
@@ -305,7 +305,7 @@ public static class ExpressionExtensions
         {
             if (unaryExpression.Operand is MemberExpression memberExpression)
             {
-                result = memberExpression.Member.GetFieldName();
+                result = memberExpression.Member.GetFieldName(namingConvention);
             }
         }
         else if (expression is ConstantExpression constantExpression)
@@ -316,7 +316,7 @@ public static class ExpressionExtensions
         {
             if (memberExpression.Expression is ParameterExpression)
             {
-                result = memberExpression.Member.GetFieldName();
+                result = memberExpression.Member.GetFieldName(namingConvention);
             }
             else
             {

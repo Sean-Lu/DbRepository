@@ -12,12 +12,11 @@ namespace Example.EF.Core.ConsoleApp.Entities
         /// <summary>
         /// 用户主键
         /// </summary>
-        [Column("UserId")]
+        //[Column("UserId")]
         public virtual long UserId { get; set; }
         /// <summary>
         /// 用户名称
         /// </summary>
-        [Column("UserName")]
         [MaxLength(50)]
         public virtual string? UserName { get; set; }
         /// <summary>

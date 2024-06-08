@@ -85,35 +85,37 @@ namespace Example.ADO.NETCore.Domain.Repositories
 
         protected override IEnumerable<string> GetCreateTableSql(string tableName)
         {
-            var sql = DbType switch
-            {
-                DatabaseType.MySql => File.ReadAllText(@"./SQL/MySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.MariaDB => File.ReadAllText(@"./SQL/MariaDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.TiDB => File.ReadAllText(@"./SQL/TiDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.OceanBase => File.ReadAllText(@"./SQL/OceanBase_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.SqlServer => File.ReadAllText(@"./SQL/SQLSever_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.Oracle => File.ReadAllText(@"./SQL/Oracle11g_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.SQLite => File.ReadAllText(@"./SQL/SQLite_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.DuckDB => File.ReadAllText(@"./SQL/DuckDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.MsAccess => File.ReadAllText(@"./SQL/MsAccess_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.Firebird => File.ReadAllText(@"./SQL/Firebird_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.PostgreSql => File.ReadAllText(@"./SQL/PostgreSql_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.OpenGauss => File.ReadAllText(@"./SQL/OpenGauss_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.HighgoDB => File.ReadAllText(@"./SQL/HighgoDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.IvorySQL => File.ReadAllText(@"./SQL/IvorySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.QuestDB => File.ReadAllText(@"./SQL/QuestDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.DB2 => File.ReadAllText(@"./SQL/DB2_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.Informix => File.ReadAllText(@"./SQL/Informix_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.ClickHouse => File.ReadAllText(@"./SQL/ClickHouse_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.Dameng => File.ReadAllText(@"./SQL/Dameng_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.KingbaseES => File.ReadAllText(@"./SQL/KingbaseES_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.ShenTong => File.ReadAllText(@"./SQL/ShenTong_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                DatabaseType.Xugu => File.ReadAllText(@"./SQL/Xugu_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
-                _ => throw new NotImplementedException()
-            };
-            return DbType is DatabaseType.DuckDB or DatabaseType.Firebird
-                ? sql.Split(new[] { Constants.MultiSqlSeparatorComment }, StringSplitOptions.RemoveEmptyEntries).ToList()
-                : new List<string> { sql };
+            return base.GetCreateTableSql(tableName);
+
+            //var sql = DbType switch
+            //{
+            //    DatabaseType.MySql => File.ReadAllText(@"./SQL/MySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.MariaDB => File.ReadAllText(@"./SQL/MariaDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.TiDB => File.ReadAllText(@"./SQL/TiDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.OceanBase => File.ReadAllText(@"./SQL/OceanBase_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.SqlServer => File.ReadAllText(@"./SQL/SQLSever_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.Oracle => File.ReadAllText(@"./SQL/Oracle11g_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.SQLite => File.ReadAllText(@"./SQL/SQLite_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.DuckDB => File.ReadAllText(@"./SQL/DuckDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.MsAccess => File.ReadAllText(@"./SQL/MsAccess_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.Firebird => File.ReadAllText(@"./SQL/Firebird_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.PostgreSql => File.ReadAllText(@"./SQL/PostgreSql_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.OpenGauss => File.ReadAllText(@"./SQL/OpenGauss_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.HighgoDB => File.ReadAllText(@"./SQL/HighgoDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.IvorySQL => File.ReadAllText(@"./SQL/IvorySQL_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.QuestDB => File.ReadAllText(@"./SQL/QuestDB_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.DB2 => File.ReadAllText(@"./SQL/DB2_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.Informix => File.ReadAllText(@"./SQL/Informix_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.ClickHouse => File.ReadAllText(@"./SQL/ClickHouse_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.Dameng => File.ReadAllText(@"./SQL/Dameng_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.KingbaseES => File.ReadAllText(@"./SQL/KingbaseES_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.ShenTong => File.ReadAllText(@"./SQL/ShenTong_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    DatabaseType.Xugu => File.ReadAllText(@"./SQL/Xugu_CreateTable_Test.sql").Replace("{$TableName$}", tableName),
+            //    _ => throw new NotImplementedException()
+            //};
+            //return DbType is DatabaseType.DuckDB or DatabaseType.Firebird
+            //    ? sql.Split(new[] { Constants.MultiSqlSeparatorComment }, StringSplitOptions.RemoveEmptyEntries).ToList()
+            //    : new List<string> { sql };
         }
 
         public async Task<bool> TestCRUDAsync(IDbTransaction trans = null)

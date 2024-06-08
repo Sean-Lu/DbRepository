@@ -31,6 +31,7 @@ public static class EntityTypeCache
 
         entityInfo = new EntityInfo
         {
+            NamingConvention = DbContextConfiguration.Options.DefaultNamingConvention,
             FieldInfos = new List<TableFieldInfo>()
         };
 
@@ -48,6 +49,12 @@ public static class EntityTypeCache
             return entityInfo;
         }
 
+        var namingConvention = entityClassType.GetCustomAttributes<NamingConventionAttribute>(true).FirstOrDefault()?.NamingConvention;
+        if (namingConvention.HasValue)
+        {
+            entityInfo.NamingConvention = namingConvention.Value;
+        }
+
         var tableName = entityClassType.GetCustomAttributes<TableAttribute>(true).FirstOrDefault()?.Name;
         if (!string.IsNullOrWhiteSpace(tableName))
         {
@@ -61,7 +68,7 @@ public static class EntityTypeCache
             {
                 entityClassName = entityClassName.Substring(0, entityClassName.Length - entityClassSuffix.Length);
             }
-            entityInfo.MainTableName = entityClassName.ToNamingConvention(DbContextConfiguration.Options.DefaultNamingConvention);
+            entityInfo.MainTableName = entityClassName.ToNamingConvention(entityInfo.NamingConvention);
         }
 
         var propertyInfos = entityClassType.GetProperties();
@@ -75,7 +82,7 @@ public static class EntityTypeCache
             var fieldInfo = new TableFieldInfo
             {
                 Property = propertyInfo,
-                FieldName = propertyInfo.GetFieldName(),
+                FieldName = propertyInfo.GetFieldName(entityInfo.NamingConvention),
                 Order = propertyInfo.GetCustomAttributes<ColumnAttribute>(false).FirstOrDefault()?.Order,
                 PrimaryKey = propertyInfo.GetCustomAttributes<KeyAttribute>(false).Any(),
                 Identity = propertyInfo.GetCustomAttributes<DatabaseGeneratedAttribute>(false).Any(c => c.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity)
@@ -106,6 +113,7 @@ public class EntityInfo
     /// 主表表名
     /// </summary>
     public string MainTableName { get; set; }
+    public NamingConvention NamingConvention { get; set; }
 
     /// <summary>
     /// 所有字段信息

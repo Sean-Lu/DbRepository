@@ -68,6 +68,11 @@ public static class TypeExtensions
         return EntityTypeCache.GetEntityInfo(entityClassType).FieldInfos.FirstOrDefault(c => c.PrimaryKey && c.Identity)?.Property;
     }
 
+    public static NamingConvention GetNamingConvention(this Type entityClassType)
+    {
+        return EntityTypeCache.GetEntityInfo(entityClassType).NamingConvention;
+    }
+
     internal static object CreateInstanceByConstructor(this Type type)
     {
         var emptyParamConstructor = type.GetConstructor(Type.EmptyTypes);

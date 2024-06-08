@@ -5,6 +5,7 @@ using Sean.Core.DbRepository;
 
 namespace Example.Dapper.Core.Domain.Entities;
 
+//[NamingConvention(NamingConvention.SnakeCase)]
 public abstract class EntityBase : IEntityStateBase
 {
     /// <summary>

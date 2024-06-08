@@ -66,9 +66,9 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
         return tableDescription;
     }
 
-    protected virtual string GetFieldName(PropertyInfo fieldPropertyInfo)
+    protected virtual string GetFieldName(PropertyInfo fieldPropertyInfo, NamingConvention namingConvention)
     {
-        return fieldPropertyInfo.GetFieldName();
+        return fieldPropertyInfo.GetFieldName(namingConvention);
     }
 
     protected virtual string GetFieldDescription(PropertyInfo fieldPropertyInfo)

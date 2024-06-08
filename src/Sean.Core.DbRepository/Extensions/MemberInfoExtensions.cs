@@ -12,7 +12,7 @@ public static class MemberInfoExtensions
     /// </summary>
     /// <param name="memberInfo"></param>
     /// <returns></returns>
-    public static string GetFieldName(this MemberInfo memberInfo)
+    public static string GetFieldName(this MemberInfo memberInfo, NamingConvention namingConvention)
     {
         if (memberInfo.GetCustomAttributes<NotMappedAttribute>(false).Any())
         {
@@ -20,7 +20,7 @@ public static class MemberInfoExtensions
         }
 
         var fieldName = memberInfo.GetCustomAttributes<ColumnAttribute>(false).FirstOrDefault()?.Name;
-        return !string.IsNullOrWhiteSpace(fieldName) ? fieldName : memberInfo.Name.ToNamingConvention(DbContextConfiguration.Options.DefaultNamingConvention);
+        return !string.IsNullOrWhiteSpace(fieldName) ? fieldName : memberInfo.Name.ToNamingConvention(namingConvention);
     }
 
     public static string GetSequenceName(this MemberInfo memberInfo)

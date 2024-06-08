@@ -5,6 +5,7 @@ using Sean.Core.DbRepository;
 
 namespace Example.ADO.NETCore.Domain.Entities;
 
+//[NamingConvention(NamingConvention.SnakeCase)]
 public abstract class EntityBase : IEntityStateBase
 {
     /// <summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository;
 
@@ -10,10 +11,10 @@ public static class WhereClauseParser
 {
     public static StringBuilder Parse<TEntity>(Expression<Func<TEntity, bool>> whereExpression, WhereClauseAdhesive adhesive)
     {
-        return Parse(whereExpression.Parameters.FirstOrDefault(), whereExpression.Body, adhesive);
+        return Parse(whereExpression.Parameters.FirstOrDefault(), whereExpression.Body, adhesive, typeof(TEntity).GetNamingConvention());
     }
 
-    private static StringBuilder Parse(ParameterExpression parameterExpression, Expression expression, WhereClauseAdhesive adhesive)
+    private static StringBuilder Parse(ParameterExpression parameterExpression, Expression expression, WhereClauseAdhesive adhesive, NamingConvention namingConvention)
     {
         switch (expression)
         {
@@ -22,8 +23,8 @@ public static class WhereClauseParser
                     if (IsLogicalOperation(binaryExpression.NodeType))
                     {
                         var sb = new StringBuilder();
-                        var leftClause = Parse(parameterExpression, binaryExpression.Left, adhesive);
-                        var rightClause = Parse(parameterExpression, binaryExpression.Right, adhesive);
+                        var leftClause = Parse(parameterExpression, binaryExpression.Left, adhesive, namingConvention);
+                        var rightClause = Parse(parameterExpression, binaryExpression.Right, adhesive, namingConvention);
                         //sqlBuilder.Append($"({leftClause}) {binaryExpression.NodeType.ToSqlString()} ({rightClause})");
                         switch (binaryExpression.NodeType)
                         {
@@ -44,25 +45,25 @@ public static class WhereClauseParser
                             && parameterExpression2.Name == parameterExpression.Name)
                         {
                             // Code example: entity.UserType == UserType.Admin
-                            return ConditionBuilder.BuildCondition(parameterExpression, convertMemberExpression, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Right));
+                            return ConditionBuilder.BuildCondition(parameterExpression, convertMemberExpression, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Right), namingConvention);
                         }
                         else if (binaryExpression.Right is UnaryExpression { NodeType: ExpressionType.Convert, Operand: MemberExpression { Expression: ParameterExpression parameterExpression3 } convertMemberExpression2 }
                                  && parameterExpression3.Name == parameterExpression.Name)
                         {
                             // Code example: UserType.Admin == entity.UserType
-                            return ConditionBuilder.BuildCondition(parameterExpression, convertMemberExpression2, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Left), true);
+                            return ConditionBuilder.BuildCondition(parameterExpression, convertMemberExpression2, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Left), namingConvention, true);
                         }
                         else if (binaryExpression.Left is MemberExpression { Expression: ParameterExpression parameterExpression4 } memberExpression2
                                  && parameterExpression4.Name == parameterExpression.Name)
                         {
                             // Code example: entity.Age > 18
-                            return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Right));
+                            return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Right), namingConvention);
                         }
                         else if (binaryExpression.Right is MemberExpression { Expression: ParameterExpression parameterExpression5 } memberExpression3
                                  && parameterExpression5.Name == parameterExpression.Name)
                         {
                             // Code example: 18 < entity.Age
-                            return ConditionBuilder.BuildCondition(parameterExpression, memberExpression3, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Left), true);
+                            return ConditionBuilder.BuildCondition(parameterExpression, memberExpression3, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Left), namingConvention, true);
                         }
                     }
 
@@ -76,10 +77,10 @@ public static class WhereClauseParser
                         {
                             case nameof(string.IsNullOrEmpty) when methodCallExpression.Arguments[0] is MemberExpression { Expression: ParameterExpression parameterExpression5 } && parameterExpression5.Name == parameterExpression.Name:
                                 // Code example: entity => string.IsNullOrEmpty(entity.Email)
-                                return ConditionBuilder.BuildIsNullOrEmptyCondition(parameterExpression, methodCallExpression, adhesive);
+                                return ConditionBuilder.BuildIsNullOrEmptyCondition(parameterExpression, methodCallExpression, adhesive, namingConvention);
                             case nameof(string.Contains) or nameof(string.StartsWith) or nameof(string.EndsWith) or nameof(object.Equals) when methodCallExpression.Object is MemberExpression { Expression: ParameterExpression parameterExpression4 } && parameterExpression4.Name == parameterExpression.Name:
                                 // Code example: entity.Name.Contains("A")
-                                return ConditionBuilder.BuildLikeOrEqualCondition(parameterExpression, methodCallExpression, adhesive, false);
+                                return ConditionBuilder.BuildLikeOrEqualCondition(parameterExpression, methodCallExpression, adhesive, false, namingConvention);
                         }
                     }
                     else if (methodCallExpression.Method.Name == "Contains")
@@ -93,7 +94,7 @@ public static class WhereClauseParser
                             //"In" Condition, Support the `Contains` Method of IEnumerable<T> type
                             // Code example: string[] values = new string[]{ "foo", "bar"};
                             //             values.Contains(entity.Name)
-                            return ConditionBuilder.BuildInCondition(parameterExpression, memberExpression2, methodCallExpression.Arguments[0], adhesive);
+                            return ConditionBuilder.BuildInCondition(parameterExpression, memberExpression2, methodCallExpression.Arguments[0], adhesive, namingConvention);
                         }
                         else if (methodCallExpression.Method.DeclaringType != null
                                  && (methodCallExpression.Method.DeclaringType.IsGenericType
@@ -107,7 +108,7 @@ public static class WhereClauseParser
                             //"In" condition, Support the `Contains` extension Method of ICollection<TSource> Type
                             // Code example: List<string> values = new List<string> { "foo", "bar"};
                             //             values.Contains(entity.Name)
-                            return ConditionBuilder.BuildInCondition(parameterExpression, memberExpression3, methodCallExpression.Object, adhesive);
+                            return ConditionBuilder.BuildInCondition(parameterExpression, memberExpression3, methodCallExpression.Object, adhesive, namingConvention);
                         }
                     }
 
@@ -125,14 +126,14 @@ public static class WhereClauseParser
                             && parameterExpression2.Name == parameterExpression.Name)
                         {
                             // Code example: Nullable<>.HasValue
-                            return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, ExpressionType.NotEqual, null);
+                            return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, ExpressionType.NotEqual, null, namingConvention);
                         }
 
                         if (memberExpression.Expression is ParameterExpression parameterExpression3
                             && parameterExpression3.Name == parameterExpression.Name)
                         {
                             // Support bool type property, Code example: entity.Sex
-                            return ConditionBuilder.BuildCondition(parameterExpression, memberExpression, adhesive, ExpressionType.Equal, true);
+                            return ConditionBuilder.BuildCondition(parameterExpression, memberExpression, adhesive, ExpressionType.Equal, true, namingConvention);
                         }
                     }
 
@@ -153,11 +154,11 @@ public static class WhereClauseParser
                                                                                  && memberExpression2.Expression is MemberExpression { Expression: ParameterExpression parameterExpression2 } memberExpression3
                                                                                  && parameterExpression2.Name == parameterExpression.Name:
                                         // Code example: Nullable<>.HasValue
-                                        return ConditionBuilder.BuildCondition(parameterExpression, memberExpression3, adhesive, ExpressionType.Equal, null);
+                                        return ConditionBuilder.BuildCondition(parameterExpression, memberExpression3, adhesive, ExpressionType.Equal, null, namingConvention);
                                     case MemberExpression memberExpression2 when memberExpression2.Expression is ParameterExpression parameterExpression3
                                                                                  && parameterExpression3.Name == parameterExpression.Name:
                                         // Code example: !entity.Sex
-                                        return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, ExpressionType.Equal, false);
+                                        return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, ExpressionType.Equal, false, namingConvention);
                                     case MethodCallExpression falseMethodCallExpression:
                                         {
                                             if (falseMethodCallExpression.Method.DeclaringType == typeof(string))
@@ -166,10 +167,10 @@ public static class WhereClauseParser
                                                 {
                                                     case nameof(string.IsNullOrEmpty) when falseMethodCallExpression.Arguments[0] is MemberExpression { Expression: ParameterExpression parameterExpression3 } && parameterExpression3.Name == parameterExpression.Name:
                                                         // Code example: entity => !string.IsNullOrEmpty(entity.Email)
-                                                        return ConditionBuilder.BuildIsNullOrEmptyCondition(parameterExpression, falseMethodCallExpression, adhesive, true);
+                                                        return ConditionBuilder.BuildIsNullOrEmptyCondition(parameterExpression, falseMethodCallExpression, adhesive, namingConvention, true);
                                                     case nameof(string.Contains) or nameof(string.StartsWith) or nameof(string.EndsWith) or nameof(object.Equals) when falseMethodCallExpression.Object is MemberExpression { Expression: ParameterExpression parameterExpression2 } && parameterExpression2.Name == parameterExpression.Name:
                                                         // Code example: entity => !entity.UserName.Equals(userName)
-                                                        return ConditionBuilder.BuildLikeOrEqualCondition(parameterExpression, falseMethodCallExpression, adhesive, true);
+                                                        return ConditionBuilder.BuildLikeOrEqualCondition(parameterExpression, falseMethodCallExpression, adhesive, true, namingConvention);
                                                 }
                                             }
                                             break;

@@ -340,7 +340,7 @@ public static class DbDataReaderExtensions
             for (var i = 0; i < dataReader.FieldCount; i++)
             {
                 var fieldName = dataReader.GetName(i);
-                var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName()?.ToLower() == fieldName.ToLower() : c.GetFieldName() == fieldName);
+                var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName(type.GetNamingConvention())?.ToLower() == fieldName.ToLower() : c.GetFieldName(type.GetNamingConvention()) == fieldName);
                 if (propertyInfo != null && propertyInfo.CanWrite)
                 {
                     var value = dataReader[i];

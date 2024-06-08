@@ -1063,7 +1063,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                     }
                                 case DatabaseType.Xugu:
                                     {
-                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName())}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
+                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName(typeof(TEntity).GetNamingConvention()))}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
                                         break;
                                     }
                             }
@@ -1658,7 +1658,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                     }
                                 case DatabaseType.Xugu:
                                     {
-                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName())}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
+                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName(typeof(TEntity).GetNamingConvention()))}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
                                         break;
                                     }
                             }
