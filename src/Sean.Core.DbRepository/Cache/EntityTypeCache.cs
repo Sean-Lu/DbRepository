@@ -48,7 +48,21 @@ public static class EntityTypeCache
             return entityInfo;
         }
 
-        entityInfo.MainTableName = entityClassType.GetCustomAttributes<TableAttribute>(true).FirstOrDefault()?.Name ?? entityClassType.Name;
+        var tableName = entityClassType.GetCustomAttributes<TableAttribute>(true).FirstOrDefault()?.Name;
+        if (!string.IsNullOrWhiteSpace(tableName))
+        {
+            entityInfo.MainTableName = tableName;
+        }
+        else
+        {
+            var entityClassName = entityClassType.Name;
+            const string entityClassSuffix = "Entity";
+            if (entityClassName.EndsWith(entityClassSuffix) && entityClassName.Length > entityClassSuffix.Length)
+            {
+                entityClassName = entityClassName.Substring(0, entityClassName.Length - entityClassSuffix.Length);
+            }
+            entityInfo.MainTableName = entityClassName.ToNamingConvention(DbContextConfiguration.Options.DefaultNamingConvention);
+        }
 
         var propertyInfos = entityClassType.GetProperties();
         foreach (var propertyInfo in propertyInfos)

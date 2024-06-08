@@ -118,6 +118,7 @@ namespace Example.Dapper.Core.Domain.Extensions
 
             DbContextConfiguration.Configure(options =>
             {
+                //options.DefaultNamingConvention = NamingConvention.SnakeCase;
                 options.MapToDatabaseType = factory =>
                 {
                     return factory switch
