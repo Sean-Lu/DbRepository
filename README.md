@@ -119,7 +119,7 @@
 
     "test_SqlServer": "server=127.0.0.1;database=test;uid=sa;pwd=123456!a;DatabaseType=SqlServer",
     "test_Oracle": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XXX)));User ID=XXX;Password=XXX;Persist Security Info=True;DatabaseType=Oracle",
-    "test_SQLite": "data source=.\\test.db;version=3;DatabaseType=SQLite"
+    "test_SQLite": "data source=.\\test.db;pooling=True;journal mode=Wal;DatabaseType=SQLite"
   }
 }
 ```
@@ -340,3 +340,34 @@ entity => new { entity.Status, entity.UpdateTime }
 1. `OleDb`是Microsoft开发的一种数据库连接技术，它是面向对象的，可以连接多种类型的数据库，包括`Access`、`Excel`、`SQL Server`等等。OleDb使用COM接口连接数据库，因此只能在Windows平台上使用。
 2. `ODBC`是一种通用的数据库连接技术，它可以连接多种类型的数据库，包括`Access`、`Excel`、`SQL Server`等等。ODBC使用标准的API连接数据库，因此可以在多个平台上使用，包括Windows、Linux、Unix等等。
 
+> 怎么解决`SQLite`数据库并发读写导致的锁库问题（database is locked）？
+
+```
+问：为什么并发读写容易出现锁库问题？
+答：SQLite使用文件级锁定来管理对数据库的并发访问。这意味着在同一时间，只有一个写操作可以进行，而多个读操作可以并发进行。
+
+SQLite数据库的WAL模式是一种日志机制，它可以减少写入操作时的锁冲突，从而提高并发性能。有以下2种方式启用WAL模式：
+
+1. 在连接字符串中添加：journal mode=Wal
+
+using System.Data.SQLite;
+
+// 数据库连接字符串
+var connStringBuilder = new SQLiteConnectionStringBuilder
+{
+    DataSource = @".\test.db",
+    Pooling = true,
+    JournalMode = SQLiteJournalModeEnum.Wal
+};
+var connString = connStringBuilder.ConnectionString;// data source=.\test.db;pooling=True;journal mode=Wal
+
+2. 通过执行SQL命令来设置WAL模式：
+
+-- 查看 SQLite 数据库日志模式：
+PRAGMA journal_mode;
+-- 设置 SQLite 数据库日志模式：
+PRAGMA journal_mode = 'wal';
+
+需要注意的是，如果在多个线程或进程中对同一个数据库文件进行写入，且没有适当的同步机制，那么即使使用WAL模式，也可能会出现锁库的情况。
+WAL模式，读和写可以完全地并发执行，不会互相阻塞（但是写之间仍然不能并发）。
+```

@@ -7,6 +7,10 @@ using Microsoft.Extensions.Logging;
 using EntityFrameworkCore.UseRowNumberForPaging;
 #endif
 
+#if UseSqlite
+using Microsoft.Data.Sqlite;
+#endif
+
 #if UseMsAccess
 using EntityFrameworkCore.Jet.Data;
 #endif
@@ -43,7 +47,47 @@ namespace Example.EF.Core.ConsoleApp
         {
             base.OnConfiguring(optionsBuilder);
 
+#if UseMySQL
+            UseMySQL(optionsBuilder);
+#elif UseMariaDB
+            UseMariaDB(optionsBuilder);
+#elif UseTiDB
+            UseTiDB(optionsBuilder);
+#elif UseOceanBase
+            UseOceanBase(optionsBuilder);
+#elif UseSqlServer
+            UseSqlServer(optionsBuilder);
+#elif UseOracle
+            UseOracle(optionsBuilder);
+#elif UseSqlite
             UseSqlite(optionsBuilder);
+#elif UseMsAccess
+            UseMsAccess(optionsBuilder);
+#elif UseFirebird
+            UseFirebird(optionsBuilder);
+#elif UsePostgreSql
+            UsePostgreSql(optionsBuilder);
+#elif UseOpenGauss
+            UseOpenGauss(optionsBuilder);
+#elif UseHighgoDB
+            UseHighgoDB(optionsBuilder);
+#elif UseIvorySQL
+            UseIvorySQL(optionsBuilder);
+#elif UseDB2
+            UseDB2(optionsBuilder);
+#elif UseInformix
+            UseInformix(optionsBuilder);
+#elif UseClickHouse
+            UseClickHouse(optionsBuilder);
+#elif UseDameng
+            UseDameng(optionsBuilder);
+#elif UseKingbaseES
+            UseKingbaseES(optionsBuilder);
+#elif UseShenTong
+            UseShenTong(optionsBuilder);
+#else
+            throw new Exception("请先指定数据库类型。");
+#endif
 
             //// 设置不跟踪所有查询
             //optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
@@ -156,7 +200,12 @@ namespace Example.EF.Core.ConsoleApp
         private void UseSqlite(DbContextOptionsBuilder optionsBuilder)
         {
             // SQLite: CRUD test passed.
-            var connString = "data source=.\\test.db";
+            var connStringBuilder = new SqliteConnectionStringBuilder
+            {
+                DataSource = @".\test.db",
+                Pooling = true
+            };
+            var connString = connStringBuilder.ConnectionString;// 初始化数据库时会默认执行：PRAGMA journal_mode = 'wal';
             optionsBuilder.UseSqlite(connString);
         }
 #endif
