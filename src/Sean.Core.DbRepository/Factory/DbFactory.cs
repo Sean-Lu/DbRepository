@@ -1164,12 +1164,12 @@ public class DbFactory
         if (connection == null) throw new ArgumentNullException(nameof(connection));
 
         //var table = ExecuteDataTable(connection, commandText, parameters, commandType);
-        //return table?.ToList<T>(CaseSensitive);
+        //return table?.ToList<T>();
 
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
         using (var dataReader = command.ExecuteReader(CommandBehavior.Default, SqlMonitor))
         {
-            return dataReader.GetList<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+            return dataReader.GetList<T>();
         }
     }
     /// <summary>
@@ -1186,12 +1186,12 @@ public class DbFactory
         if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
         //var table = ExecuteDataTable(transaction, commandText, parameters, commandType);
-        //return table?.ToList<T>(CaseSensitive);
+        //return table?.ToList<T>();
 
         using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
         using (var dataReader = command.ExecuteReader(CommandBehavior.Default, SqlMonitor))
         {
-            return dataReader.GetList<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+            return dataReader.GetList<T>();
         }
     }
     /// <summary>
@@ -1203,13 +1203,13 @@ public class DbFactory
     public List<T> Query<T>(ISqlCommand sqlCommand)
     {
         //var table = ExecuteDataTable(sqlCommand);
-        //return table?.ToList<T>(CaseSensitive);
+        //return table?.ToList<T>();
 
         return ExecuteSqlCommand(sqlCommand, (command, useInternalConnection) =>
         {
             using (var dataReader = command.ExecuteReader(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
             {
-                return dataReader.GetList<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+                return dataReader.GetList<T>();
             }
         }, false);
     }
@@ -1259,12 +1259,12 @@ public class DbFactory
         if (connection == null) throw new ArgumentNullException(nameof(connection));
 
         //var table = ExecuteDataTable(connection, commandText, parameters, commandType);
-        //return table?.ToList<T>(CaseSensitive);
+        //return table?.ToList<T>();
 
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
         using (var dataReader = await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor))
         {
-            return await dataReader.GetListAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+            return await dataReader.GetListAsync<T>();
         }
     }
     /// <summary>
@@ -1281,12 +1281,12 @@ public class DbFactory
         if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
         //var table = ExecuteDataTable(transaction, commandText, parameters, commandType);
-        //return table?.ToList<T>(CaseSensitive);
+        //return table?.ToList<T>();
 
         using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
         using (var dataReader = await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor))
         {
-            return await dataReader.GetListAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+            return await dataReader.GetListAsync<T>();
         }
     }
     /// <summary>
@@ -1298,13 +1298,13 @@ public class DbFactory
     public async Task<List<T>> QueryAsync<T>(ISqlCommand sqlCommand)
     {
         //var table = await ExecuteDataTableAsync(sqlCommand);
-        //return table?.ToList<T>(CaseSensitive);
+        //return table?.ToList<T>();
 
         return await ExecuteSqlCommandAsync(sqlCommand, async (command, useInternalConnection) =>
         {
             using (var dataReader = await command.ExecuteReaderAsync(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
             {
-                return await dataReader.GetListAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+                return await dataReader.GetListAsync<T>();
             }
         }, false);
     }
@@ -1358,7 +1358,7 @@ public class DbFactory
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
         using (var dataReader = command.ExecuteReader(CommandBehavior.Default, SqlMonitor))
         {
-            return dataReader.Get<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+            return dataReader.Get<T>();
         }
     }
     /// <summary>
@@ -1377,7 +1377,7 @@ public class DbFactory
         using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
         using (var dataReader = command.ExecuteReader(CommandBehavior.Default, SqlMonitor))
         {
-            return dataReader.Get<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+            return dataReader.Get<T>();
         }
     }
     /// <summary>
@@ -1392,7 +1392,7 @@ public class DbFactory
         {
             using (var dataReader = command.ExecuteReader(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
             {
-                return dataReader.Get<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+                return dataReader.Get<T>();
             }
         }, false);
     }
@@ -1444,7 +1444,7 @@ public class DbFactory
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
         using (var dataReader = await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor))
         {
-            return await dataReader.GetAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+            return await dataReader.GetAsync<T>();
         }
     }
     /// <summary>
@@ -1463,7 +1463,7 @@ public class DbFactory
         using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
         using (var dataReader = await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor))
         {
-            return await dataReader.GetAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+            return await dataReader.GetAsync<T>();
         }
     }
     /// <summary>
@@ -1478,7 +1478,7 @@ public class DbFactory
         {
             using (var dataReader = await command.ExecuteReaderAsync(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
             {
-                return await dataReader.GetAsync<T>(DbContextConfiguration.Options.PropertyNameCaseSensitive);
+                return await dataReader.GetAsync<T>();
             }
         }, false);
     }

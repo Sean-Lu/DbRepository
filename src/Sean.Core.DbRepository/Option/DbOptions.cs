@@ -29,12 +29,6 @@ public class DbOptions
     public int? DefaultCommandTimeout { get; set; }
 
     /// <summary>
-    /// Whether the entity class property names are case-sensitive when mapping database table fields. The default value is false.
-    /// <para>映射数据库表字段时，实体类属性名是否区分大小写。默认值：false。</para>
-    /// </summary>
-    public bool PropertyNameCaseSensitive { get; set; } = false;
-
-    /// <summary>
     /// <see cref="DbProviderFactory"/> configuration file path.
     /// <para>数据库提供者工厂的配置文件路径</para>
     /// </summary>

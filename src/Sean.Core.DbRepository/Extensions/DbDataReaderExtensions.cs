@@ -18,11 +18,10 @@ public static class DbDataReaderExtensions
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="dataReader"></param>
-    /// <param name="caseSensitive">表字段匹配属性名称时，是否大小写敏感</param>
     /// <returns></returns>
-    public static T Get<T>(this IDataReader dataReader, bool caseSensitive = false)
+    public static T Get<T>(this IDataReader dataReader)
     {
-        var list = dataReader.GetList<T>(caseSensitive, 1);
+        var list = dataReader.GetList<T>(1);
         if (list == null)
         {
             return default;
@@ -34,17 +33,16 @@ public static class DbDataReaderExtensions
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="dataReader"></param>
-    /// <param name="caseSensitive">表字段匹配属性名称时，是否大小写敏感</param>
     /// <param name="readCount">读取的记录数。如果值为null，表示读取所有记录数。</param>
     /// <returns></returns>
-    public static List<T> GetList<T>(this IDataReader dataReader, bool caseSensitive = false, int? readCount = null)
+    public static List<T> GetList<T>(this IDataReader dataReader, int? readCount = null)
     {
         if (dataReader == null)
         {
             return null;
         }
 
-        //return dataReader.GetDataTable().ToList<T>(caseSensitive);
+        //return dataReader.GetDataTable().ToList<T>();
 
         var list = new List<T>();
         var count = 0;
@@ -55,7 +53,7 @@ public static class DbDataReaderExtensions
                 break;
             }
 
-            T model = GetModelInternal<T>(dataReader, caseSensitive);
+            T model = GetModelInternal<T>(dataReader);
             list.Add(model);
 
             count++;
@@ -68,7 +66,7 @@ public static class DbDataReaderExtensions
     /// </summary>
     /// <param name="dataReader"></param>
     /// <returns></returns>
-    public static DataTable GetDataTable(this IDataReader dataReader, bool allowDuplicateColumn = true)
+    public static DataTable GetDataTable(this IDataReader dataReader)
     {
         var table = new DataTable();
 
@@ -79,7 +77,7 @@ public static class DbDataReaderExtensions
         {
             var dataType = dataReader.GetFieldType(i);
             var columnName = dataReader.GetName(i);
-            if (table.Columns.Contains(columnName) && allowDuplicateColumn)
+            if (table.Columns.Contains(columnName))
             {
                 var index = 1;
                 do
@@ -117,7 +115,7 @@ public static class DbDataReaderExtensions
     /// </summary>
     /// <param name="dataReader"></param>
     /// <returns></returns>
-    public static DataSet GetDataSet(this IDataReader dataReader, bool allowDuplicateColumn = true)
+    public static DataSet GetDataSet(this IDataReader dataReader)
     {
         if (dataReader == null)
         {
@@ -128,7 +126,7 @@ public static class DbDataReaderExtensions
 
         do
         {
-            var table = GetDataTable(dataReader, allowDuplicateColumn);
+            var table = GetDataTable(dataReader);
             if (table != null)
             {
                 result.Tables.Add(table);
@@ -143,11 +141,10 @@ public static class DbDataReaderExtensions
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="dataReader"></param>
-    /// <param name="caseSensitive">表字段匹配属性名称时，是否大小写敏感</param>
     /// <returns></returns>
-    public static async Task<T> GetAsync<T>(this DbDataReader dataReader, bool caseSensitive = false)
+    public static async Task<T> GetAsync<T>(this DbDataReader dataReader)
     {
-        var list = await dataReader.GetListAsync<T>(caseSensitive, 1);
+        var list = await dataReader.GetListAsync<T>(1);
         if (list == null)
         {
             return default;
@@ -159,17 +156,16 @@ public static class DbDataReaderExtensions
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="dataReader"></param>
-    /// <param name="caseSensitive">表字段匹配属性名称时，是否大小写敏感</param>
     /// <param name="readCount">读取的记录数。如果值为null，表示读取所有记录数。</param>
     /// <returns></returns>
-    public static async Task<List<T>> GetListAsync<T>(this DbDataReader dataReader, bool caseSensitive = false, int? readCount = null)
+    public static async Task<List<T>> GetListAsync<T>(this DbDataReader dataReader, int? readCount = null)
     {
         if (dataReader == null)
         {
             return null;
         }
 
-        //return dataReader.GetDataTable().ToList<T>(caseSensitive);
+        //return dataReader.GetDataTable().ToList<T>();
 
         var list = new List<T>();
         var count = 0;
@@ -180,7 +176,7 @@ public static class DbDataReaderExtensions
                 break;
             }
 
-            T model = GetModelInternal<T>(dataReader, caseSensitive);
+            T model = GetModelInternal<T>(dataReader);
             list.Add(model);
 
             count++;
@@ -193,7 +189,7 @@ public static class DbDataReaderExtensions
     /// </summary>
     /// <param name="dataReader"></param>
     /// <returns></returns>
-    public static async Task<DataTable> GetDataTableAsync(this DbDataReader dataReader, bool allowDuplicateColumn = true)
+    public static async Task<DataTable> GetDataTableAsync(this DbDataReader dataReader)
     {
         var table = new DataTable();
 
@@ -204,7 +200,7 @@ public static class DbDataReaderExtensions
         {
             var dataType = dataReader.GetFieldType(i);
             var columnName = dataReader.GetName(i);
-            if (table.Columns.Contains(columnName) && allowDuplicateColumn)
+            if (table.Columns.Contains(columnName))
             {
                 var index = 1;
                 do
@@ -242,7 +238,7 @@ public static class DbDataReaderExtensions
     /// </summary>
     /// <param name="dataReader"></param>
     /// <returns></returns>
-    public static async Task<DataSet> GetDataSetAsync(this DbDataReader dataReader, bool allowDuplicateColumn = true)
+    public static async Task<DataSet> GetDataSetAsync(this DbDataReader dataReader)
     {
         if (dataReader == null)
         {
@@ -253,7 +249,7 @@ public static class DbDataReaderExtensions
 
         do
         {
-            var table = await GetDataTableAsync(dataReader, allowDuplicateColumn);
+            var table = await GetDataTableAsync(dataReader);
             if (table != null)
             {
                 result.Tables.Add(table);
@@ -263,7 +259,7 @@ public static class DbDataReaderExtensions
         return result;
     }
 
-    private static T GetModelInternal<T>(IDataReader dataReader, bool caseSensitive = false)
+    private static T GetModelInternal<T>(IDataReader dataReader)
     {
         T model = default;
         var type = typeof(T);
@@ -340,7 +336,7 @@ public static class DbDataReaderExtensions
             for (var i = 0; i < dataReader.FieldCount; i++)
             {
                 var fieldName = dataReader.GetName(i);
-                var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName(type.GetNamingConvention())?.ToLower() == fieldName.ToLower() : c.GetFieldName(type.GetNamingConvention()) == fieldName);
+                var propertyInfo = properties.FirstOrDefault(c => fieldName.Equals(c.Name, StringComparison.OrdinalIgnoreCase));
                 if (propertyInfo != null && propertyInfo.CanWrite)
                 {
                     var value = dataReader[i];

@@ -12,9 +12,8 @@ public static class DataTableExtensions
     /// 将<see cref="DataTable"/>转换成实体列表
     /// </summary>
     /// <param name="dt">数据表</param>
-    /// <param name="caseSensitive">表字段匹配属性名称时，是否大小写敏感</param>
     /// <returns></returns>
-    public static List<T> ToList<T>(this DataTable dt, bool caseSensitive = false)
+    public static List<T> ToList<T>(this DataTable dt)
     {
         if (dt == null)
         {
@@ -24,7 +23,7 @@ public static class DataTableExtensions
         var list = new List<T>();
         foreach (DataRow row in dt.Rows)
         {
-            var item = row.ToEntity<T>(caseSensitive);
+            var item = row.ToEntity<T>();
             list.Add(item);
         }
         return list;
@@ -34,9 +33,8 @@ public static class DataTableExtensions
     /// 将<see cref="DataTable"/>转换成实体（默认取第1个）
     /// </summary>
     /// <param name="dt">数据表</param>
-    /// <param name="caseSensitive">表字段匹配属性名称时，是否大小写敏感</param>
     /// <returns></returns>
-    public static T ToEntity<T>(this DataTable dt, bool caseSensitive = false)
+    public static T ToEntity<T>(this DataTable dt)
     {
         if (dt == null)
         {
@@ -45,7 +43,7 @@ public static class DataTableExtensions
 
         foreach (DataRow row in dt.Rows)
         {
-            return row.ToEntity<T>(caseSensitive);
+            return row.ToEntity<T>();
         }
 
         return default;

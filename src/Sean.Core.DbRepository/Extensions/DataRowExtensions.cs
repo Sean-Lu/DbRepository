@@ -16,9 +16,8 @@ public static class DataRowExtensions
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="dr">数据行</param>
-    /// <param name="caseSensitive">表字段匹配属性名称时，是否大小写敏感</param>
     /// <returns></returns>
-    public static T ToEntity<T>(this DataRow dr, bool caseSensitive = false)
+    public static T ToEntity<T>(this DataRow dr)
     {
         if (dr == null)
         {
@@ -98,7 +97,7 @@ public static class DataRowExtensions
             foreach (DataColumn column in dr.Table.Columns)
             {
                 var fieldName = column.ColumnName;
-                var propertyInfo = properties.FirstOrDefault(c => !caseSensitive ? c.GetFieldName(type.GetNamingConvention())?.ToLower() == fieldName.ToLower() : c.GetFieldName(type.GetNamingConvention()) == fieldName);
+                var propertyInfo = properties.FirstOrDefault(c => fieldName.Equals(c.Name, StringComparison.OrdinalIgnoreCase));
                 if (propertyInfo != null && propertyInfo.CanWrite)
                 {
                     var value = dr[fieldName];
