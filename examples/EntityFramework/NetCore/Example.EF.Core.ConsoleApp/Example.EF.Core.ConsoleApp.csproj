@@ -28,7 +28,7 @@
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlServer'))">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.19" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.20" />
 		<!-- SQL Server 2005 ~ 2008: UseRowNumberForPaging -->
 		<PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.5.0" />
 	</ItemGroup>
@@ -36,7 +36,7 @@
 		<PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.13" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlite'))">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.19" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.20" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMsAccess'))">
 		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.3" />
@@ -64,7 +64,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<!--<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.19">
+		<!--<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.20">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>-->
