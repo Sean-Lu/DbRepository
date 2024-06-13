@@ -343,13 +343,15 @@ entity => new { entity.Status, entity.UpdateTime }
 > 怎么解决`SQLite`数据库并发读写导致的锁库问题（database is locked）？
 
 ```
-问：为什么并发读写容易出现锁库问题？
+问：为什么SQLite并发读写容易出现锁库问题？
 答：SQLite使用文件级锁定来管理对数据库的并发访问。这意味着在同一时间，只有一个写操作可以进行，而多个读操作可以并发进行。
 
 SQLite数据库的WAL模式是一种日志机制，它可以减少写入操作时的锁冲突，从而提高并发性能。有以下2种方式启用WAL模式：
+```
 
-1. 在连接字符串中添加：journal mode=Wal
+方式1：在连接字符串中添加：journal mode=Wal
 
+```csharp
 using System.Data.SQLite;
 
 // 数据库连接字符串
@@ -360,14 +362,27 @@ var connStringBuilder = new SQLiteConnectionStringBuilder
     JournalMode = SQLiteJournalModeEnum.Wal
 };
 var connString = connStringBuilder.ConnectionString;// data source=.\test.db;pooling=True;journal mode=Wal
+```
 
-2. 通过执行SQL命令来设置WAL模式：
+方式2：通过执行SQL命令来设置WAL模式：
 
+```sql
 -- 查看 SQLite 数据库日志模式：
 PRAGMA journal_mode;
 -- 设置 SQLite 数据库日志模式：
 PRAGMA journal_mode = 'wal';
+-- 查看 WAL 文件中未被同步的页面数：
+PRAGMA wal_checkpoint;
+```
 
-需要注意的是，如果在多个线程或进程中对同一个数据库文件进行写入，且没有适当的同步机制，那么即使使用WAL模式，也可能会出现锁库的情况。
-WAL模式，读和写可以完全地并发执行，不会互相阻塞（但是写之间仍然不能并发）。
+- 需要注意的是，如果在多个线程或进程中对同一个数据库文件进行写入，且没有适当的同步机制，那么即使使用WAL模式，也可能会出现锁库的情况。WAL模式，读和写可以完全地并发执行，不会互相阻塞（但是写之间仍然不能并发）。为了解决并发写入问题，需要增加如下配置（同步锁机制）：
+
+```csharp
+DbContextConfiguration.Configure(options =>
+{
+#if UseSqlite
+    options.SynchronousWriteOptions.Enable = true;// 启用同步写入模式：解决多线程并发写入导致的锁库问题
+    options.SynchronousWriteOptions.LockTimeout = 5000;// 同步写入锁等待超时时间（单位：毫秒），默认值：5000
+#endif
+});
 ```

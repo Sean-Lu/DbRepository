@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository.Extensions;
 
@@ -22,14 +23,17 @@ public static class SqlMonitorExtensions
                 sqlMonitor.OnSqlExecuting(sqlExecutingContext);
             }
 
-            timeWatcher.Restart();
-            result = func();
-            timeWatcher.Stop();
+            result = SynchronousWriteUtil.CheckWriteLock(DbContextConfiguration.Options.SynchronousWriteOptions, connection.ConnectionString, sql, () =>
+            {
+                timeWatcher.Restart();
+                var funcResult = func();
+                timeWatcher.Stop();
+                return funcResult;
+            });
         }
         catch (Exception ex)
         {
             exception = ex;
-            //Console.WriteLine(ex);
             throw;
         }
         finally
@@ -70,14 +74,17 @@ public static class SqlMonitorExtensions
                 sqlMonitor.OnSqlExecuting(sqlExecutingContext);
             }
 
-            timeWatcher.Restart();
-            result = await func();
-            timeWatcher.Stop();
+            result = await SynchronousWriteUtil.CheckWriteLockAsync(DbContextConfiguration.Options.SynchronousWriteOptions, connection.ConnectionString, sql, async () =>
+            {
+                timeWatcher.Restart();
+                var funcResult = await func();
+                timeWatcher.Stop();
+                return funcResult;
+            });
         }
         catch (Exception ex)
         {
             exception = ex;
-            //Console.WriteLine(ex);
             throw;
         }
         finally
