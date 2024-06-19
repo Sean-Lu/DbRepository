@@ -51,7 +51,7 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
     }
     protected virtual string GetTableDescription(Type entityType)
     {
-        var tableDescription = entityType.GetCustomAttribute<DescriptionAttribute>()?.Description;
+        var tableDescription = entityType.GetCustomAttribute<DescriptionAttribute>(true)?.Description;
         if (string.IsNullOrWhiteSpace(tableDescription))
         {
             string filePath = Path.ChangeExtension(entityType.Assembly.Location, "xml");
@@ -73,7 +73,7 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
 
     protected virtual string GetFieldDescription(PropertyInfo fieldPropertyInfo)
     {
-        var fieldDescription = fieldPropertyInfo.GetCustomAttribute<DescriptionAttribute>()?.Description;
+        var fieldDescription = fieldPropertyInfo.GetCustomAttribute<DescriptionAttribute>(true)?.Description;
         if (string.IsNullOrWhiteSpace(fieldDescription))
         {
             string filePath = Path.ChangeExtension(fieldPropertyInfo.DeclaringType.Assembly.Location, "xml");
@@ -90,7 +90,7 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
 
     protected virtual object GetFieldDefaultValue(PropertyInfo fieldPropertyInfo)
     {
-        return fieldPropertyInfo.GetCustomAttribute<DefaultValueAttribute>()?.Value;
+        return fieldPropertyInfo.GetCustomAttribute<DefaultValueAttribute>(true)?.Value;
     }
 
     protected virtual List<TableFieldInfo> GetDbMissingTableFields<TEntity>(string tableName)
@@ -122,17 +122,17 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
     {
         return /*fieldPropertyInfo.PropertyType.IsValueType && !fieldPropertyInfo.PropertyType.IsNullableType()
                || */IsPrimaryKey(fieldPropertyInfo)
-               || fieldPropertyInfo.GetCustomAttributes<RequiredAttribute>(false).Any();
+               || fieldPropertyInfo.GetCustomAttributes<RequiredAttribute>(true).Any();
     }
 
     protected virtual bool IsPrimaryKey(PropertyInfo fieldPropertyInfo)
     {
-        return fieldPropertyInfo.GetCustomAttributes<KeyAttribute>(false).Any();
+        return fieldPropertyInfo.GetCustomAttributes<KeyAttribute>(true).Any();
     }
 
     protected virtual bool IsIdentity(PropertyInfo fieldPropertyInfo)
     {
-        return fieldPropertyInfo.GetCustomAttributes<DatabaseGeneratedAttribute>(false).Any(c => c.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity);
+        return fieldPropertyInfo.GetCustomAttributes<DatabaseGeneratedAttribute>(true).Any(c => c.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity);
     }
 
     protected virtual bool IsTableExists(string tableName)

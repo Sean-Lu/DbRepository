@@ -17,7 +17,7 @@ public class SqlGeneratorForSqlServer : BaseSqlGenerator, ISqlGenerator
 
     protected virtual string ConvertFieldType(PropertyInfo fieldPropertyInfo)
     {
-        var columnAttribute = fieldPropertyInfo.GetCustomAttribute<ColumnAttribute>();
+        var columnAttribute = fieldPropertyInfo.GetCustomAttribute<ColumnAttribute>(true);
         if (!string.IsNullOrWhiteSpace(columnAttribute?.TypeName))
         {
             return columnAttribute.TypeName;
@@ -38,8 +38,8 @@ public class SqlGeneratorForSqlServer : BaseSqlGenerator, ISqlGenerator
                 break;
             case not null when underlyingType == typeof(string):
                 {
-                    var maxLength = fieldPropertyInfo.GetCustomAttribute<StringLengthAttribute>()?.MaximumLength ??
-                                    fieldPropertyInfo.GetCustomAttribute<MaxLengthAttribute>()?.Length ?? 0;
+                    var maxLength = fieldPropertyInfo.GetCustomAttribute<StringLengthAttribute>(true)?.MaximumLength ??
+                                    fieldPropertyInfo.GetCustomAttribute<MaxLengthAttribute>(true)?.Length ?? 0;
                     result = maxLength > 0 ? $"nvarchar({maxLength})" : "nvarchar";
                     break;
                 }
@@ -48,7 +48,7 @@ public class SqlGeneratorForSqlServer : BaseSqlGenerator, ISqlGenerator
                 break;
             case not null when underlyingType == typeof(decimal):
                 {
-                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumericAttribute>();
+                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumericAttribute>(true);
                     result = numberAttr != null ? $"decimal({numberAttr.Precision},{numberAttr.Scale})" : "decimal";
                     break;
                 }

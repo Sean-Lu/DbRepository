@@ -74,7 +74,7 @@ public static class EntityTypeCache
         var propertyInfos = entityClassType.GetProperties();
         foreach (var propertyInfo in propertyInfos)
         {
-            if (propertyInfo.GetCustomAttributes<NotMappedAttribute>(false).Any())
+            if (propertyInfo.GetCustomAttributes<NotMappedAttribute>(true).Any())
             {
                 continue;
             }
@@ -83,9 +83,9 @@ public static class EntityTypeCache
             {
                 Property = propertyInfo,
                 FieldName = propertyInfo.GetFieldName(entityInfo.NamingConvention),
-                Order = propertyInfo.GetCustomAttributes<ColumnAttribute>(false).FirstOrDefault()?.Order,
-                PrimaryKey = propertyInfo.GetCustomAttributes<KeyAttribute>(false).Any(),
-                Identity = propertyInfo.GetCustomAttributes<DatabaseGeneratedAttribute>(false).Any(c => c.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity)
+                Order = propertyInfo.GetCustomAttributes<ColumnAttribute>(true).FirstOrDefault()?.Order,
+                PrimaryKey = propertyInfo.GetCustomAttributes<KeyAttribute>(true).Any(),
+                Identity = propertyInfo.GetCustomAttributes<DatabaseGeneratedAttribute>(true).Any(c => c.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity)
             };
             entityInfo.FieldInfos.Add(fieldInfo);
         }

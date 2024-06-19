@@ -42,7 +42,7 @@ public class DatabaseUpgrader : IDatabaseUpgrader
     {
         foreach (var assembly in assemblies)
         {
-            var types = assembly.GetTypes().Where(c => c.GetCustomAttributes<CodeFirstAttribute>(false).Any()).ToList();
+            var types = assembly.GetTypes().Where(c => c.GetCustomAttributes<CodeFirstAttribute>(true).Any()).ToList();
             types.ForEach(type =>
             {
                 Upgrade(type);

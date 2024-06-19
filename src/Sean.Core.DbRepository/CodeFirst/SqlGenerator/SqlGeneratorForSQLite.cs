@@ -16,7 +16,7 @@ public class SqlGeneratorForSQLite : BaseSqlGenerator, ISqlGenerator
 
     protected virtual string ConvertFieldType(PropertyInfo fieldPropertyInfo)
     {
-        var columnAttribute = fieldPropertyInfo.GetCustomAttribute<ColumnAttribute>();
+        var columnAttribute = fieldPropertyInfo.GetCustomAttribute<ColumnAttribute>(true);
         if (!string.IsNullOrWhiteSpace(columnAttribute?.TypeName))
         {
             return columnAttribute.TypeName;
@@ -35,7 +35,7 @@ public class SqlGeneratorForSQLite : BaseSqlGenerator, ISqlGenerator
                 break;
             case not null when underlyingType == typeof(decimal):
                 {
-                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumericAttribute>();
+                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumericAttribute>(true);
                     result = numberAttr != null ? $"DECIMAL({numberAttr.Precision},{numberAttr.Scale})" : "DECIMAL";
                     break;
                 }
