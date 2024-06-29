@@ -60,7 +60,7 @@ public class DefaultSqlAdapter<TEntity> : DefaultSqlAdapter
     {
         if (string.IsNullOrEmpty(TableName))
         {
-            TableName = typeof(TEntity).GetMainTableName();
+            TableName = typeof(TEntity).GetEntityInfo().TableName;
         }
     }
 }

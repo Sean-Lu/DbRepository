@@ -36,7 +36,7 @@ internal static class SqlBuilderUtil
 
         if (!tableFieldList.Any())
         {
-            IncludeFields(sqlAdapter, tableFieldList, typeof(TEntity).GetAllFieldNames().Except(fields).ToArray());
+            IncludeFields(sqlAdapter, tableFieldList, typeof(TEntity).GetEntityInfo().FieldInfos.Select(c => c.FieldName).Except(fields).ToArray());
             return;
         }
 
@@ -54,7 +54,7 @@ internal static class SqlBuilderUtil
             var fieldInfo = tableFieldList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
             if (fieldInfo != null)
             {
-                fieldInfo.PrimaryKey = true;
+                fieldInfo.IsPrimaryKey = true;
             }
             else
             {
@@ -62,7 +62,7 @@ internal static class SqlBuilderUtil
                 {
                     TableName = sqlAdapter.TableName,
                     FieldName = field,
-                    PrimaryKey = true
+                    IsPrimaryKey = true
                 });
             }
         }
@@ -79,7 +79,7 @@ internal static class SqlBuilderUtil
             var fieldInfo = tableFieldList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
             if (fieldInfo != null)
             {
-                fieldInfo.Identity = true;
+                fieldInfo.IsIdentityField = true;
             }
             else
             {
@@ -87,7 +87,7 @@ internal static class SqlBuilderUtil
                 {
                     TableName = sqlAdapter.TableName,
                     FieldName = field,
-                    Identity = true
+                    IsIdentityField = true
                 });
             }
         }
@@ -150,7 +150,7 @@ internal static class SqlBuilderUtil
             TableName = sqlAdapter.TableName,
             FieldName = $"MAX({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
             AliasName = aliasName,
-            FieldNameFormatted = true
+            IsFieldNameFormatted = true
         });
     }
     public static void MinField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
@@ -163,7 +163,7 @@ internal static class SqlBuilderUtil
             TableName = sqlAdapter.TableName,
             FieldName = $"MIN({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
             AliasName = aliasName,
-            FieldNameFormatted = true
+            IsFieldNameFormatted = true
         });
     }
     public static void SumField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
@@ -176,7 +176,7 @@ internal static class SqlBuilderUtil
             TableName = sqlAdapter.TableName,
             FieldName = $"SUM({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
             AliasName = aliasName,
-            FieldNameFormatted = true
+            IsFieldNameFormatted = true
         });
     }
     public static void AvgField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
@@ -189,7 +189,7 @@ internal static class SqlBuilderUtil
             TableName = sqlAdapter.TableName,
             FieldName = $"AVG({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
             AliasName = aliasName,
-            FieldNameFormatted = true
+            IsFieldNameFormatted = true
         });
     }
     public static void CountField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
@@ -202,7 +202,7 @@ internal static class SqlBuilderUtil
             TableName = sqlAdapter.TableName,
             FieldName = $"COUNT({(!fieldNameFormatted ? sqlAdapter.FormatFieldName(fieldName) : fieldName)})",
             AliasName = aliasName,
-            FieldNameFormatted = true
+            IsFieldNameFormatted = true
         });
     }
     public static void CountDistinctField(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
@@ -215,7 +215,7 @@ internal static class SqlBuilderUtil
             TableName = sqlAdapter.TableName,
             FieldName = $"COUNT(DISTINCT {sqlAdapter.FormatFieldName(fieldName)})",
             AliasName = aliasName,
-            FieldNameFormatted = true
+            IsFieldNameFormatted = true
         });
     }
     public static void DistinctFields<TEntity>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
@@ -239,7 +239,7 @@ internal static class SqlBuilderUtil
         {
             TableName = sqlAdapter.TableName,
             FieldName = $"DISTINCT {distinctFieldNames}",
-            FieldNameFormatted = true
+            IsFieldNameFormatted = true
         });
     }
     #endregion

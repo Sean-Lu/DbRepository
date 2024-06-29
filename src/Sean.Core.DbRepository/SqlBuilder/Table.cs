@@ -21,7 +21,7 @@ public class Table<TEntity> where TEntity : class
 
     public string GetTableName(Func<string, string> tableNameFactory = null)
     {
-        var tableName = _sqlAdapter.TableName ?? typeof(TEntity).GetMainTableName();
+        var tableName = _sqlAdapter.TableName ?? typeof(TEntity).GetEntityInfo().TableName;
         return tableNameFactory != null ? tableNameFactory(tableName) : _sqlAdapter.FormatTableName(tableName);
     }
 
@@ -66,7 +66,7 @@ public class Table<TEntity> where TEntity : class
 
     public static string TableName(Func<string, string> tableNameFactory = null)
     {
-        var tableName = typeof(TEntity).GetMainTableName();
+        var tableName = typeof(TEntity).GetEntityInfo().TableName;
         return tableNameFactory != null ? tableNameFactory(tableName) : tableName;
     }
 

@@ -412,14 +412,14 @@ public class ConnectionStringOptions
             return result;
         }
 
-        connectionString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList().ForEach(c =>
+        foreach (var kv in connectionString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList())
         {
-            if (string.IsNullOrWhiteSpace(c)) return;
-            var index = c.IndexOf('=');
-            var key = c.Substring(0, index).Trim();
-            var value = c.Substring(index + 1).Trim();
+            if (string.IsNullOrWhiteSpace(kv)) continue;
+            var index = kv.IndexOf('=');
+            var key = kv.Substring(0, index).Trim();
+            var value = kv.Substring(index + 1).Trim();
             result.Add(key, value);
-        });
+        }
 
         return result;
     }

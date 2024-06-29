@@ -216,7 +216,6 @@ var db = new DbFactory("Database connection string...", MySqlClientFactory.Insta
 | `System.ComponentModel.DescriptionAttribute`                                   | Property | 设置字段描述                                                   |
 | `Sean.Core.DbRepository.NumericAttribute`                                      | Property | 设置数值字段的位数和精度                                       |
 | `System.ComponentModel.DataAnnotations.MaxLengthAttribute`                     | Property | 设置字段的最大长度                                             |
-| `System.ComponentModel.DataAnnotations.StringLengthAttribute`                  | Property | 设置字段的最大长度                                             |
 | `System.ComponentModel.DataAnnotations.RequiredAttribute`                      | Property | 设置字段不允许为空                                             |
 | `System.ComponentModel.DefaultValueAttribute`                                  | Property | 设置字段默认值                                                 |
 | **`System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute`**         | Property | 标记为为忽略字段                                               |

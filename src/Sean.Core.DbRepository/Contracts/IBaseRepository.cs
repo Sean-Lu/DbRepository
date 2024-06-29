@@ -210,11 +210,6 @@ public interface IBaseRepository
 /// <typeparam name="TEntity"></typeparam>
 public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : class
 {
-    /// <summary>
-    /// Name of the master table.
-    /// </summary>
-    string MainTableName { get; }
-
     #region Synchronous method
     /// <summary>
     /// Insert entity.

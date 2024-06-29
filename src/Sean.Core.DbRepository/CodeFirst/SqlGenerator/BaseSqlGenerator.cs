@@ -1,14 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Sean.Utility.Extensions;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using System.Reflection;
 using Sean.Core.DbRepository.Extensions;
-using System.ComponentModel;
-using System.IO;
-using System.Xml;
 using Sean.Core.DbRepository.DbFirst;
 #if NETFRAMEWORK
 using System.Data.Odbc;
@@ -36,68 +29,7 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
         _db = dbFactory;
     }
 
-    protected virtual string GetTableName<TEntity>()
-    {
-        return GetTableName(typeof(TEntity));
-    }
-    protected virtual string GetTableName(Type entityType)
-    {
-        return entityType.GetMainTableName();
-    }
-
-    protected virtual string GetTableDescription<TEntity>()
-    {
-        return GetTableDescription(typeof(TEntity));
-    }
-    protected virtual string GetTableDescription(Type entityType)
-    {
-        var tableDescription = entityType.GetCustomAttribute<DescriptionAttribute>(true)?.Description;
-        if (string.IsNullOrWhiteSpace(tableDescription))
-        {
-            string filePath = Path.ChangeExtension(entityType.Assembly.Location, "xml");
-            if (File.Exists(filePath))
-            {
-                XmlDocument xmlDoc = new XmlDocument();
-                //xmlDoc.PreserveWhitespace = true;
-                xmlDoc.Load(filePath);
-                tableDescription = xmlDoc.SelectSingleNode($"//member[@name='T:{entityType.FullName}']")?.InnerText.Trim('\r', '\n', ' ');
-            }
-        }
-        return tableDescription;
-    }
-
-    protected virtual string GetFieldName(PropertyInfo fieldPropertyInfo, NamingConvention namingConvention)
-    {
-        return fieldPropertyInfo.GetFieldName(namingConvention);
-    }
-
-    protected virtual string GetFieldDescription(PropertyInfo fieldPropertyInfo)
-    {
-        var fieldDescription = fieldPropertyInfo.GetCustomAttribute<DescriptionAttribute>(true)?.Description;
-        if (string.IsNullOrWhiteSpace(fieldDescription))
-        {
-            string filePath = Path.ChangeExtension(fieldPropertyInfo.DeclaringType.Assembly.Location, "xml");
-            if (File.Exists(filePath))
-            {
-                XmlDocument xmlDoc = new XmlDocument();
-                //xmlDoc.PreserveWhitespace = true;
-                xmlDoc.Load(filePath);
-                fieldDescription = xmlDoc.SelectSingleNode($"//member[@name='P:{fieldPropertyInfo.DeclaringType.FullName}.{fieldPropertyInfo.Name}']")?.InnerText?.Trim('\r', '\n', ' ');
-            }
-        }
-        return fieldDescription;
-    }
-
-    protected virtual object GetFieldDefaultValue(PropertyInfo fieldPropertyInfo)
-    {
-        return fieldPropertyInfo.GetCustomAttribute<DefaultValueAttribute>(true)?.Value;
-    }
-
-    protected virtual List<TableFieldInfo> GetDbMissingTableFields<TEntity>(string tableName)
-    {
-        return GetDbMissingTableFields(typeof(TEntity), tableName);
-    }
-    protected virtual List<TableFieldInfo> GetDbMissingTableFields(Type entityType, string tableName)
+    protected virtual List<EntityFieldInfo> GetDbMissingTableFields(Type entityType, string tableName)
     {
         var codeGenerator = CodeGeneratorFactory.GetCodeGenerator(_dbType);
         codeGenerator.Initialize(_db);
@@ -105,10 +37,6 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
         return entityType.GetEntityInfo().FieldInfos.Where(entityTableFieldInfo => !tableFieldInfos.Exists(c => c.FieldName == entityTableFieldInfo.FieldName)).ToList();
     }
 
-    protected virtual List<TableFieldModel> GetEntityMissingTableFields<TEntity>(string tableName)
-    {
-        return GetEntityMissingTableFields(typeof(TEntity), tableName);
-    }
     protected virtual List<TableFieldModel> GetEntityMissingTableFields(Type entityType, string tableName)
     {
         var codeGenerator = CodeGeneratorFactory.GetCodeGenerator(_dbType);
@@ -116,23 +44,6 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
         var tableFieldInfos = codeGenerator.GetTableFieldInfo(tableName);
         var entityTableFieldInfos = entityType.GetEntityInfo().FieldInfos;
         return tableFieldInfos.Where(c => !entityTableFieldInfos.Exists(entityTableFieldInfo => entityTableFieldInfo.FieldName == c.FieldName)).ToList();
-    }
-
-    protected virtual bool IsNotAllowNull(PropertyInfo fieldPropertyInfo)
-    {
-        return /*fieldPropertyInfo.PropertyType.IsValueType && !fieldPropertyInfo.PropertyType.IsNullableType()
-               || */IsPrimaryKey(fieldPropertyInfo)
-               || fieldPropertyInfo.GetCustomAttributes<RequiredAttribute>(true).Any();
-    }
-
-    protected virtual bool IsPrimaryKey(PropertyInfo fieldPropertyInfo)
-    {
-        return fieldPropertyInfo.GetCustomAttributes<KeyAttribute>(true).Any();
-    }
-
-    protected virtual bool IsIdentity(PropertyInfo fieldPropertyInfo)
-    {
-        return fieldPropertyInfo.GetCustomAttributes<DatabaseGeneratedAttribute>(true).Any(c => c.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity);
     }
 
     protected virtual bool IsTableExists(string tableName)

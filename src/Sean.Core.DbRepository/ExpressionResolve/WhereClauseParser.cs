@@ -11,7 +11,7 @@ public static class WhereClauseParser
 {
     public static StringBuilder Parse<TEntity>(Expression<Func<TEntity, bool>> whereExpression, WhereClauseAdhesive adhesive)
     {
-        return Parse(whereExpression.Parameters.FirstOrDefault(), whereExpression.Body, adhesive, typeof(TEntity).GetNamingConvention());
+        return Parse(whereExpression.Parameters.FirstOrDefault(), whereExpression.Body, adhesive, typeof(TEntity).GetEntityInfo().NamingConvention);
     }
 
     private static StringBuilder Parse(ParameterExpression parameterExpression, Expression expression, WhereClauseAdhesive adhesive, NamingConvention namingConvention)

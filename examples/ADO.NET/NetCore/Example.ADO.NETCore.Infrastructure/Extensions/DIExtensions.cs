@@ -27,10 +27,10 @@ namespace Example.ADO.NETCore.Infrastructure.Extensions
             services.AddTransient<IJsonSerializer, NewJsonSerializer>();
         }
 
-        public static IServiceCollection RegisterByAssemblyInterface(this IServiceCollection services, Assembly assembly, string interfaceSuffix, ServiceLifetime serviceLifetime)
+        public static IServiceCollection RegisterByInterfaceSuffix(this IServiceCollection services, Assembly assembly, string interfaceSuffix, ServiceLifetime serviceLifetime)
         {
             var types = assembly.GetTypes();
-            var interfaceTypes = types.Where(c => c.IsInterface && c.Name.EndsWith(interfaceSuffix));
+            var interfaceTypes = types.Where(c => c.IsInterface && c.Name.EndsWith(interfaceSuffix)).ToList();
             foreach (var interfaceType in interfaceTypes)
             {
                 var implType = types.FirstOrDefault(c => c.Name == interfaceType.Name.Substring(1));
@@ -52,7 +52,7 @@ namespace Example.ADO.NETCore.Infrastructure.Extensions
             }
             return services;
         }
-        public static IServiceCollection RegisterByAssemblyClass(this IServiceCollection services, Assembly assembly, string classSuffix, ServiceLifetime serviceLifetime)
+        public static IServiceCollection RegisterByClassSuffix(this IServiceCollection services, Assembly assembly, string classSuffix, ServiceLifetime serviceLifetime)
         {
             var serviceImplList = assembly.GetTypes().Where(s => s.IsClass && !s.IsInterface && !s.IsAbstract && s.Name.EndsWith(classSuffix)).ToList();
 

@@ -15,7 +15,7 @@ namespace Example.ADO.NETCore.Application.Extensions
         {
             services.AddDomainDI();
 
-            services.RegisterByAssemblyInterface(Assembly.GetExecutingAssembly(), "Service", ServiceLifetime.Transient);
+            services.RegisterByInterfaceSuffix(Assembly.GetExecutingAssembly(), "Service", ServiceLifetime.Transient);
         }
     }
 }

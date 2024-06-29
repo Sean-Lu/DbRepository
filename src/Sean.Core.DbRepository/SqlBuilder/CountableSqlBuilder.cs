@@ -36,7 +36,7 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder, ICountable<TEntity>
     /// <returns></returns>
     public static ICountable<TEntity> Create(DatabaseType dbType, string tableName = null)
     {
-        var sqlBuilder = new CountableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
+        var sqlBuilder = new CountableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
         return sqlBuilder;
     }
 
@@ -76,22 +76,22 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder, ICountable<TEntity>
 
     public virtual ICountable<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return InnerJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual ICountable<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return LeftJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual ICountable<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return RightJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual ICountable<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return FullJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     #endregion

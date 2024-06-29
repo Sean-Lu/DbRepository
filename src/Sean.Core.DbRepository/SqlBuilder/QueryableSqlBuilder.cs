@@ -51,10 +51,10 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
     /// <returns></returns>
     public static IQueryable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
     {
-        var sqlBuilder = new QueryableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
+        var sqlBuilder = new QueryableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
         if (autoIncludeFields)
         {
-            sqlBuilder.SelectFields(typeof(TEntity).GetAllFieldNames().ToArray());
+            sqlBuilder.SelectFields(typeof(TEntity).GetEntityInfo().FieldInfos.Select(c => c.FieldName).ToArray());
         }
         return sqlBuilder;
     }
@@ -206,22 +206,22 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
 
     public virtual IQueryable<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return InnerJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual IQueryable<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return LeftJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual IQueryable<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return RightJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual IQueryable<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return FullJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     #endregion
@@ -440,7 +440,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
         var selectFields = _tableFieldList.Any() ? string.Join(", ", _tableFieldList.Select(fieldInfo =>
         {
-            if (fieldInfo.FieldNameFormatted)
+            if (fieldInfo.IsFieldNameFormatted)
             {
                 return !string.IsNullOrWhiteSpace(fieldInfo.AliasName) ? $"{fieldInfo.FieldName} AS {fieldInfo.AliasName}" : $"{fieldInfo.FieldName}";
             }
@@ -567,7 +567,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
                         return $"SELECT TOP {rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     }
 
-                    var keyFieldName = typeof(TEntity).GetPrimaryKeys()?.FirstOrDefault();
+                    var keyFieldName = typeof(TEntity).GetEntityInfo().FieldInfos.Where(c => c.IsPrimaryKey).Select(c => c.FieldName).FirstOrDefault();
                     var keyFilterSql = $"SELECT TOP {offset} {SqlAdapter.FormatFieldName(keyFieldName)} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     var sqlWhere = $"{(!string.IsNullOrEmpty(WhereSql) ? $"{WhereSql} AND" : " WHERE")} {SqlAdapter.FormatFieldName(keyFieldName)} NOT IN ({keyFilterSql})";
                     return $"SELECT TOP {rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql}";

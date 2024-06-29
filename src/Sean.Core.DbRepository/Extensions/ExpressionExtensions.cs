@@ -11,7 +11,7 @@ public static class ExpressionExtensions
     #region fieldExpression
     public static List<string> GetFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression)
     {
-        return fieldExpression?.Body.GetFieldNames(typeof(TEntity).GetNamingConvention())?.Distinct().ToList();
+        return fieldExpression?.Body.GetFieldNames(typeof(TEntity).GetEntityInfo().NamingConvention)?.Distinct().ToList();
     }
 
     public static bool IsFieldExists<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, string fieldName)

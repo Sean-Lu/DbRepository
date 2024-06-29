@@ -22,15 +22,15 @@ internal class TableFieldInfoForSqlBuilder
     /// <summary>
     /// 是否是主键字段 <see cref="KeyAttribute"/>
     /// </summary>
-    public bool PrimaryKey { get; set; }
+    public bool IsPrimaryKey { get; set; }
     /// <summary>
     /// 是否是自增字段  <see cref="DatabaseGeneratedOption.Identity"/>
     /// </summary>
-    public bool Identity { get; set; }
+    public bool IsIdentityField { get; set; }
     /// <summary>
     /// <see cref="FieldName"/> 是否已经被格式化处理
     /// </summary>
-    public bool FieldNameFormatted { get; set; }
+    public bool IsFieldNameFormatted { get; set; }
 
     public Func<string, ISqlAdapter, string> SetFieldCustomHandler { get; set; }
 }

@@ -25,7 +25,7 @@ namespace Example.ADO.NETCore.Domain.Extensions
         {
             services.AddInfrastructureDI();
 
-            services.RegisterByAssemblyInterface(Assembly.GetExecutingAssembly(), "Repository", ServiceLifetime.Transient);
+            services.RegisterByInterfaceSuffix(Assembly.GetExecutingAssembly(), "Repository", ServiceLifetime.Transient);
 
             services.AddTransient(typeof(CommonRepository));// 注册通用仓储
             services.AddTransient(typeof(CommonRepository<>));// 注册通用仓储（泛型）

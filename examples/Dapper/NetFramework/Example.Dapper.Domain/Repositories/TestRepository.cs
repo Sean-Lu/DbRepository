@@ -232,10 +232,10 @@ namespace Example.Dapper.Domain.Repositories
             // UNION ALL：合并所有分表数据
             var hexCount = 2;// 分表表名后缀16进制位数
             var sqlList = new List<string>();
-            for (var i = 0; i < Math.Pow(16, hexCount); i++)
+            var tableCount = Math.Pow(16, hexCount);
+            for (var i = 0; i < tableCount; i++)
             {
-                var tableName = $"OrderExtUser_{Convert.ToString(i, 16).PadLeft(hexCount, '0').ToLower()}";
-                sqlList.Add($"SELECT * FROM {tableName}");
+                sqlList.Add($"SELECT * FROM OrderExtUser_{Convert.ToString(i, 16).PadLeft(hexCount, '0').ToLower()}");
             }
             var sql = string.Join(" UNION ALL ", sqlList);
             var result = (await QueryAsync<dynamic>(sql))?.ToList();

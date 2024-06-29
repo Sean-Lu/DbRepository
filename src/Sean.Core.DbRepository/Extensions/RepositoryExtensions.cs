@@ -13,7 +13,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
     {
-        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
     /// <summary>
     /// Create an instance of <see cref="IReplaceable{TEntity}"/>.
@@ -25,7 +25,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
     {
-        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
 
     /// <summary>
@@ -38,7 +38,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
     {
-        return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
     /// <summary>
     /// Create an instance of <see cref="IInsertable{TEntity}"/>.
@@ -50,7 +50,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
     {
-        return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository repository, string tableName = null)
     {
-        return DeleteableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return DeleteableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
     /// <summary>
     /// Create an instance of <see cref="IDeleteable{TEntity}"/>.
@@ -73,7 +73,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null) where TEntity : class
     {
-        return DeleteableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return DeleteableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
     {
-        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
     /// <summary>
     /// Create an instance of <see cref="IUpdateable{TEntity}"/>.
@@ -98,7 +98,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
     {
-        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
     {
-        return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
     /// <summary>
     /// Create an instance of <see cref="IQueryable{TEntity}"/>.
@@ -123,7 +123,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
     {
-        return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
 
     /// <summary>
@@ -135,7 +135,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository repository, string tableName = null)
     {
-        return CountableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return CountableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
     /// <summary>
     /// Create an instance of <see cref="ICountable{TEntity}"/>.
@@ -146,7 +146,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null) where TEntity : class
     {
-        return CountableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetMainTableName());
+        return CountableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
     }
 
     /// <summary>

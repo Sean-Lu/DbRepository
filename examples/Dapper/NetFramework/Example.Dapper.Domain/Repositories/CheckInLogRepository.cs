@@ -44,7 +44,7 @@ namespace Example.Dapper.Domain.Repositories
         public override string TableName()
         {
             var tableName = SubTableDate.HasValue
-                ? $"{MainTableName}_{SubTableDate.Value:yyyyMM}"// 自定义表名规则：按时间分表
+                ? $"{base.TableName()}_{SubTableDate.Value:yyyyMM}"// 自定义表名规则：按时间分表
                 : base.TableName();
             AutoCreateTable(tableName);// 自动创建表（如果表不存在）
             return tableName;

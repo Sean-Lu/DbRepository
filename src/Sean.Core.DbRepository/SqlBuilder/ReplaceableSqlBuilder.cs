@@ -31,10 +31,10 @@ VALUES{2}";
     /// <returns></returns>
     public static IReplaceable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
     {
-        var sqlBuilder = new ReplaceableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
+        var sqlBuilder = new ReplaceableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
         if (autoIncludeFields)
         {
-            sqlBuilder.InsertFields(typeof(TEntity).GetAllFieldNames().ToArray());
+            sqlBuilder.InsertFields(typeof(TEntity).GetEntityInfo().FieldInfos.Select(c => c.FieldName).ToArray());
         }
         return sqlBuilder;
     }

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
 
@@ -15,15 +12,14 @@ public class SqlGeneratorForMySql : BaseSqlGenerator, ISqlGenerator
     {
     }
 
-    protected virtual string ConvertFieldType(PropertyInfo fieldPropertyInfo)
+    protected virtual string ConvertFieldType(EntityFieldInfo fieldInfo)
     {
-        var columnAttribute = fieldPropertyInfo.GetCustomAttribute<ColumnAttribute>(true);
-        if (!string.IsNullOrWhiteSpace(columnAttribute?.TypeName))
+        if (!string.IsNullOrWhiteSpace(fieldInfo.FieldTypeName))
         {
-            return columnAttribute.TypeName;
+            return fieldInfo.FieldTypeName;
         }
 
-        var underlyingType = Nullable.GetUnderlyingType(fieldPropertyInfo.PropertyType) ?? fieldPropertyInfo.PropertyType;
+        var underlyingType = Nullable.GetUnderlyingType(fieldInfo.Property.PropertyType) ?? fieldInfo.Property.PropertyType;
         string result;
         switch (underlyingType)
         {
@@ -38,9 +34,7 @@ public class SqlGeneratorForMySql : BaseSqlGenerator, ISqlGenerator
                 break;
             case not null when underlyingType == typeof(string):
                 {
-                    var maxLength = fieldPropertyInfo.GetCustomAttribute<StringLengthAttribute>(true)?.MaximumLength ??
-                                    fieldPropertyInfo.GetCustomAttribute<MaxLengthAttribute>(true)?.Length ?? 0;
-                    result = maxLength > 0 ? $"varchar({maxLength})" : "varchar";
+                    result = fieldInfo.MaxLength.HasValue ? $"varchar({fieldInfo.MaxLength.Value})" : "varchar";
                     break;
                 }
             case not null when underlyingType == typeof(DateTime):
@@ -48,8 +42,7 @@ public class SqlGeneratorForMySql : BaseSqlGenerator, ISqlGenerator
                 break;
             case not null when underlyingType == typeof(decimal):
                 {
-                    var numberAttr = fieldPropertyInfo.GetCustomAttribute<NumericAttribute>(true);
-                    result = numberAttr != null ? $"decimal({numberAttr.Precision},{numberAttr.Scale})" : "decimal";
+                    result = fieldInfo.NumericPrecision.HasValue ? $"decimal({fieldInfo.NumericPrecision.GetValueOrDefault()},{fieldInfo.NumericScale.GetValueOrDefault()})" : "decimal";
                     break;
                 }
             default:
@@ -68,7 +61,7 @@ public class SqlGeneratorForMySql : BaseSqlGenerator, ISqlGenerator
         var result = new List<string>();
         var sb = new StringBuilder();
         var entityInfo = entityType.GetEntityInfo();
-        var tableName = entityInfo.MainTableName;
+        var tableName = entityInfo.TableName;
         if (tableNameFunc != null)
         {
             tableName = tableNameFunc(tableName);
@@ -79,39 +72,34 @@ public class SqlGeneratorForMySql : BaseSqlGenerator, ISqlGenerator
         foreach (var fieldInfo in entityInfo.FieldInfos)
         {
             sbFieldInfo.Clear();
-            var fieldPropertyInfo = fieldInfo.Property;
-            var fieldName = fieldInfo.FieldName;
-            var fieldDescription = GetFieldDescription(fieldPropertyInfo);
-            sbFieldInfo.Append($"  {_dbType.MarkAsTableOrFieldName(fieldName)} {ConvertFieldType(fieldPropertyInfo)}");
-            if (IsNotAllowNull(fieldPropertyInfo))
+            sbFieldInfo.Append($"  {_dbType.MarkAsTableOrFieldName(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
+            if (fieldInfo.IsNotAllowNull)
             {
                 sbFieldInfo.Append(" NOT NULL");
             }
-            var fieldDefaultValue = GetFieldDefaultValue(fieldPropertyInfo);
-            if (fieldDefaultValue != null)
+            if (fieldInfo.FieldDefaultValue != null)
             {
-                sbFieldInfo.Append($" DEFAULT {ConvertFieldDefaultValue(fieldDefaultValue)}");
+                sbFieldInfo.Append($" DEFAULT {ConvertFieldDefaultValue(fieldInfo.FieldDefaultValue)}");
             }
-            if (fieldInfo.Identity)
+            if (fieldInfo.IsIdentityField)
             {
                 sbFieldInfo.Append(" AUTO_INCREMENT");
             }
-            if (!string.IsNullOrWhiteSpace(fieldDescription))
+            if (!string.IsNullOrWhiteSpace(fieldInfo.FieldDescription))
             {
-                sbFieldInfo.Append($" COMMENT '{fieldDescription}'");
+                sbFieldInfo.Append($" COMMENT '{fieldInfo.FieldDescription}'");
             }
             fieldInfoList.Add(sbFieldInfo.ToString());
         }
-        if (entityInfo.FieldInfos.Any(c => c.PrimaryKey))
+        if (entityInfo.FieldInfos.Any(c => c.IsPrimaryKey))
         {
-            fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.PrimaryKey).Select(c => _dbType.MarkAsTableOrFieldName(c.FieldName)).ToList())})");
+            fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.IsPrimaryKey).Select(c => _dbType.MarkAsTableOrFieldName(c.FieldName)).ToList())})");
         }
         sb.AppendLine(string.Join($",{Environment.NewLine}", fieldInfoList));
         sb.Append(")");
-        var tableDescription = GetTableDescription(entityType);
-        if (!string.IsNullOrWhiteSpace(tableDescription))
+        if (!string.IsNullOrWhiteSpace(entityInfo.TableDescription))
         {
-            sb.Append($" COMMENT='{tableDescription}'");
+            sb.Append($" COMMENT='{entityInfo.TableDescription}'");
         }
         sb.Append(";");
         result.Add(sb.ToString());
@@ -125,7 +113,7 @@ public class SqlGeneratorForMySql : BaseSqlGenerator, ISqlGenerator
     public List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
     {
         var entityInfo = entityType.GetEntityInfo();
-        var tableName = entityInfo.MainTableName;
+        var tableName = entityInfo.TableName;
         if (tableNameFunc != null)
         {
             tableName = tableNameFunc(tableName);
@@ -137,23 +125,21 @@ public class SqlGeneratorForMySql : BaseSqlGenerator, ISqlGenerator
         var missingTableFieldInfo = GetDbMissingTableFields(entityType, tableName);
         var result = new List<string>();
         var sb = new StringBuilder();
-        missingTableFieldInfo?.ForEach(c =>
+        missingTableFieldInfo?.ForEach(fieldInfo =>
         {
             sb.Clear();
-            var fieldDescription = GetFieldDescription(c.Property);
-            sb.Append($"ALTER TABLE {_dbType.MarkAsTableOrFieldName(tableName)} ADD {_dbType.MarkAsTableOrFieldName(c.FieldName)} {ConvertFieldType(c.Property)}");
-            if (IsNotAllowNull(c.Property))
+            sb.Append($"ALTER TABLE {_dbType.MarkAsTableOrFieldName(tableName)} ADD {_dbType.MarkAsTableOrFieldName(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
+            if (fieldInfo.IsNotAllowNull)
             {
                 sb.Append(" NOT NULL");
             }
-            var fieldDefaultValue = GetFieldDefaultValue(c.Property);
-            if (fieldDefaultValue != null)
+            if (fieldInfo.FieldDefaultValue != null)
             {
-                sb.Append($" DEFAULT {ConvertFieldDefaultValue(fieldDefaultValue)}");
+                sb.Append($" DEFAULT {ConvertFieldDefaultValue(fieldInfo.FieldDefaultValue)}");
             }
-            if (!string.IsNullOrWhiteSpace(fieldDescription))
+            if (!string.IsNullOrWhiteSpace(fieldInfo.FieldDescription))
             {
-                sb.Append($" COMMENT '{fieldDescription}'");
+                sb.Append($" COMMENT '{fieldInfo.FieldDescription}'");
             }
             sb.Append(";");
             result.Add(sb.ToString());

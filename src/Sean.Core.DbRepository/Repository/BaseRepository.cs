@@ -941,8 +941,6 @@ public abstract class BaseRepository : IBaseRepository
 
 public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<TEntity> where TEntity : class
 {
-    public virtual string MainTableName => typeof(TEntity).GetMainTableName();
-
     #region Constructors
 #if NETSTANDARD || NET5_0_OR_GREATER
     /// <summary>
@@ -998,13 +996,9 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     #endregion
 
-    /// <summary>
-    /// The name of the master table is used by default: <see cref="MainTableName"/>. This method can be overridden for the purpose of custom split tables or automatic table creation.
-    /// </summary>
-    /// <returns></returns>
     public override string TableName()
     {
-        return MainTableName;
+        return typeof(TEntity).GetEntityInfo().TableName;
     }
 
     protected override IEnumerable<string> GetCreateTableSql(string tableName)
@@ -1019,7 +1013,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         if (entity == null) return false;
 
         PropertyInfo keyIdentityProperty;
-        if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
+        if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.IsPrimaryKey && c.IsIdentityField)?.Property) != null)
         {
             switch (DbType)
             {
@@ -1063,7 +1057,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                     }
                                 case DatabaseType.Xugu:
                                     {
-                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName(typeof(TEntity).GetNamingConvention()))}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
+                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName(typeof(TEntity).GetEntityInfo().NamingConvention))}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
                                         break;
                                     }
                             }
@@ -1133,7 +1127,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     {
         if (entities == null || !entities.Any()) return false;
 
-        if (returnAutoIncrementId && typeof(TEntity).GetKeyIdentityProperty() != null)
+        if (returnAutoIncrementId && typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.IsPrimaryKey && c.IsIdentityField)?.Property != null)
         {
             //if (transaction?.Connection == null)
             //{
@@ -1210,7 +1204,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                 }
             default:
                 {
-                    var pkFields = typeof(TEntity).GetPrimaryKeys();
+                    var pkFields = typeof(TEntity).GetEntityInfo().FieldInfos.Where(c => c.IsPrimaryKey).Select(c => c.FieldName).ToList();
                     if (pkFields == null || !pkFields.Any()) throw new Exception($"The entity class '{typeof(TEntity).Name}' does not define a primary key field.");
 
                     ICountable<TEntity> countableBuilder = this.CreateCountableBuilder();
@@ -1614,7 +1608,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         if (entity == null) return false;
 
         PropertyInfo keyIdentityProperty;
-        if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetKeyIdentityProperty()) != null)
+        if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.IsPrimaryKey && c.IsIdentityField)?.Property) != null)
         {
             switch (DbType)
             {
@@ -1658,7 +1652,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                     }
                                 case DatabaseType.Xugu:
                                     {
-                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName(typeof(TEntity).GetNamingConvention()))}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
+                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName(typeof(TEntity).GetEntityInfo().NamingConvention))}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
                                         break;
                                     }
                             }
@@ -1728,7 +1722,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     {
         if (entities == null || !entities.Any()) return false;
 
-        if (returnAutoIncrementId && typeof(TEntity).GetKeyIdentityProperty() != null)
+        if (returnAutoIncrementId && typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.IsPrimaryKey && c.IsIdentityField)?.Property != null)
         {
             //if (transaction?.Connection == null)
             //{
@@ -1805,7 +1799,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                 }
             default:
                 {
-                    var pkFields = typeof(TEntity).GetPrimaryKeys();
+                    var pkFields = typeof(TEntity).GetEntityInfo().FieldInfos.Where(c => c.IsPrimaryKey).Select(c => c.FieldName).ToList();
                     if (pkFields == null || !pkFields.Any()) throw new Exception($"The entity class '{typeof(TEntity).Name}' does not define a primary key field.");
 
                     ICountable<TEntity> countableBuilder = this.CreateCountableBuilder();

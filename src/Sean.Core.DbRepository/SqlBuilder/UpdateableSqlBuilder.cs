@@ -41,11 +41,12 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     /// <returns></returns>
     public static IUpdateable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
     {
-        var sqlBuilder = new UpdateableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
+        var sqlBuilder = new UpdateableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
         if (autoIncludeFields)
         {
-            sqlBuilder.UpdateFields(typeof(TEntity).GetAllFieldNames().ToArray());
-            sqlBuilder.PrimaryKeyFields(typeof(TEntity).GetPrimaryKeys().ToArray());
+            var entityInfo = typeof(TEntity).GetEntityInfo();
+            sqlBuilder.UpdateFields(entityInfo.FieldInfos.Select(c => c.FieldName).ToArray());
+            sqlBuilder.PrimaryKeyFields(entityInfo.FieldInfos.Where(c => c.IsPrimaryKey).Select(c => c.FieldName).ToArray());
         }
         return sqlBuilder;
     }
@@ -134,22 +135,22 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
 
     public virtual IUpdateable<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return InnerJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual IUpdateable<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return LeftJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual IUpdateable<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return RightJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual IUpdateable<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return FullJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     #endregion
@@ -253,7 +254,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
     {
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
 
-        var fields = _tableFieldList.Where(c => !c.PrimaryKey).ToList();
+        var fields = _tableFieldList.Where(c => !c.IsPrimaryKey).ToList();
         if (!fields.Any())
         {
             throw new InvalidOperationException("No fields to update.");
@@ -284,10 +285,10 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
 
         if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
         {
-            #region Set the primary key field to the [where] filtering condition.
-            if (_tableFieldList.Any(c => c.PrimaryKey))
+            // Set the primary key field to the [where] filtering condition.
+            if (_tableFieldList.Any(c => c.IsPrimaryKey))
             {
-                foreach (var pks in _tableFieldList.Where(c => c.PrimaryKey))
+                foreach (var pks in _tableFieldList.Where(c => c.IsPrimaryKey).ToList())
                 {
                     var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == pks.FieldName);
                     var parameterName = findFieldInfo?.Property.Name ?? pks.FieldName;
@@ -296,14 +297,13 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity
             }
             else
             {
-                typeof(TEntity).GetPrimaryKeys().ForEach(fieldName =>
+                foreach (var fieldInfo in tableFieldInfos.Where(c => c.IsPrimaryKey).ToList())
                 {
-                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
-                    var parameterName = findFieldInfo?.Property.Name ?? fieldName;
+                    var fieldName = fieldInfo.FieldName;
+                    var parameterName = fieldInfo.Property?.Name ?? fieldName;
                     SqlBuilderUtil.WhereField<TEntity>(SqlAdapter, _where.Value, entity => fieldName, SqlOperation.Equal, paramName: parameterName);
-                });
+                }
             }
-            #endregion
         }
 
         if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))

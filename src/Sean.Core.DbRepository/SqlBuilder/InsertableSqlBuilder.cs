@@ -35,11 +35,12 @@ VALUES{2}";
     /// <returns></returns>
     public static IInsertable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
     {
-        var sqlBuilder = new InsertableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
+        var sqlBuilder = new InsertableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
         if (autoIncludeFields)
         {
-            sqlBuilder.InsertFields(typeof(TEntity).GetAllFieldNames().ToArray());
-            sqlBuilder.IdentityFields(typeof(TEntity).GetIdentityFieldNames().ToArray());
+            var entityInfo = typeof(TEntity).GetEntityInfo();
+            sqlBuilder.InsertFields(entityInfo.FieldInfos.Select(c => c.FieldName).ToArray());
+            sqlBuilder.IdentityFields(entityInfo.FieldInfos.Where(c => c.IsIdentityField).Select(c => c.FieldName).ToArray());
         }
         return sqlBuilder;
     }
@@ -112,7 +113,7 @@ VALUES{2}";
     {
         CheckIncludeIdentityFields();
 
-        var fields = _tableFieldList.Where(c => !c.Identity).ToList();
+        var fields = _tableFieldList.Where(c => !c.IsIdentityField).ToList();
         if (!fields.Any())
             return default;
 
@@ -242,13 +243,13 @@ VALUES{2}";
                 case DatabaseType.DuckDB:
                 case DatabaseType.Firebird:
                     {
-                        var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(_tableFieldList.FirstOrDefault(c => c.Identity).FieldName)}";
+                        var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(_tableFieldList.FirstOrDefault(c => c.IsIdentityField).FieldName)}";
                         sb.Append($" {returnIdSql}");
                         break;
                     }
                 case DatabaseType.Oracle:
                     {
-                        var idPropInfo = _tableFieldList.FirstOrDefault(c => c.Identity);
+                        var idPropInfo = _tableFieldList.FirstOrDefault(c => c.IsIdentityField);
                         var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == idPropInfo.FieldName);
                         var parameterName = findFieldInfo?.Property.Name ?? idPropInfo.FieldName;
                         var returnIdSql = $"RETURNING {SqlAdapter.FormatFieldName(idPropInfo.FieldName)} INTO {SqlAdapter.FormatSqlParameter(parameterName)}";
@@ -285,9 +286,9 @@ VALUES{2}";
 
     private void CheckIncludeIdentityFields()
     {
-        if (_parameter != null && _tableFieldList.Any(c => c.Identity))
+        if (_parameter != null && _tableFieldList.Any(c => c.IsIdentityField))
         {
-            var identityFieldInfos = _tableFieldList.Where(c => c.Identity);
+            var identityFieldInfos = _tableFieldList.Where(c => c.IsIdentityField).ToList();
             var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
             if (_parameter is IEnumerable<TEntity> entities)
             {
@@ -301,7 +302,7 @@ VALUES{2}";
                         var defaultValue = property.PropertyType.GetDefaultValue();
                         if (!Equals(value, defaultValue))
                         {
-                            identityFieldInfo.Identity = false;
+                            identityFieldInfo.IsIdentityField = false;
                         }
                     }
                 }
@@ -318,7 +319,7 @@ VALUES{2}";
                         var defaultValue = property.PropertyType.GetDefaultValue();
                         if (!Equals(value, defaultValue))
                         {
-                            identityFieldInfo.Identity = false;
+                            identityFieldInfo.IsIdentityField = false;
                         }
                     }
                 }

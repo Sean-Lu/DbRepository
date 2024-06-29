@@ -37,7 +37,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
     /// <returns></returns>
     public static IDeleteable<TEntity> Create(DatabaseType dbType, string tableName = null)
     {
-        var sqlBuilder = new DeleteableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetMainTableName());
+        var sqlBuilder = new DeleteableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
         return sqlBuilder;
     }
 
@@ -77,22 +77,22 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
 
     public virtual IDeleteable<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return InnerJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual IDeleteable<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return LeftJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual IDeleteable<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return RightJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     public virtual IDeleteable<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
     {
-        var joinTableName = typeof(TEntity2).GetMainTableName();
+        var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
         return FullJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
     }
     #endregion
@@ -207,15 +207,13 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity
 
         if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
         {
-            #region Set the primary key field to the [where] filtering condition.
-            var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-            typeof(TEntity).GetPrimaryKeys().ForEach(fieldName =>
+            // Set the primary key field to the [where] filtering condition.
+            foreach (var fieldInfo in typeof(TEntity).GetEntityInfo().FieldInfos.Where(c => c.IsPrimaryKey).ToList())
             {
-                var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldName);
-                var parameterName = findFieldInfo?.Property.Name ?? fieldName;
+                var fieldName = fieldInfo.FieldName;
+                var parameterName = fieldInfo.Property?.Name ?? fieldName;
                 SqlBuilderUtil.WhereField<TEntity>(SqlAdapter, _where.Value, entity => fieldName, SqlOperation.Equal, paramName: parameterName);
-            });
-            #endregion
+            }
         }
 
         if (!_allowEmptyWhereClause && string.IsNullOrWhiteSpace(WhereSql))
