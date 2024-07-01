@@ -119,7 +119,7 @@
 
     "test_SqlServer": "server=127.0.0.1;database=test;uid=sa;pwd=123456!a;DatabaseType=SqlServer",
     "test_Oracle": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XXX)));User ID=XXX;Password=XXX;Persist Security Info=True;DatabaseType=Oracle",
-    "test_SQLite": "data source=.\\test.db;pooling=True;journal mode=Wal;DatabaseType=SQLite"
+    "test_SQLite": "data source=.\\test.db;pooling=True;busytimeout=30000;journal mode=Wal;DatabaseType=SQLite"
   }
 }
 ```
@@ -358,9 +358,10 @@ var connStringBuilder = new SQLiteConnectionStringBuilder
 {
     DataSource = @".\test.db",
     Pooling = true,
+    BusyTimeout = 30000,
     JournalMode = SQLiteJournalModeEnum.Wal
 };
-var connString = connStringBuilder.ConnectionString;// data source=.\test.db;pooling=True;journal mode=Wal
+var connString = connStringBuilder.ConnectionString;// data source=.\test.db;pooling=True;busytimeout=30000;journal mode=Wal
 ```
 
 方式2：通过执行SQL命令来设置WAL模式：
@@ -374,14 +375,14 @@ PRAGMA journal_mode = 'wal';
 PRAGMA wal_checkpoint;
 ```
 
-- 需要注意的是，如果在多个线程或进程中对同一个数据库文件进行写入，且没有适当的同步机制，那么即使使用WAL模式，也可能会出现锁库的情况。WAL模式，读和写可以完全地并发执行，不会互相阻塞（但是写之间仍然不能并发）。为了解决并发写入问题，需要增加如下配置（同步锁机制）：
+- 需要注意的是，如果在多个线程或进程中对同一个数据库文件进行写入，且没有适当的同步机制，那么即使使用WAL模式，也可能会出现锁库的情况。使用WAL模式，读和写可以完全地并发执行，不会互相阻塞（但是写之间仍然不能并发）。为了解决并发写入问题，需要增加如下配置（同步锁机制）：
 
 ```csharp
 DbContextConfiguration.Configure(options =>
 {
 #if UseSqlite
     options.SynchronousWriteOptions.Enable = true;// 启用同步写入模式：解决多线程并发写入导致的锁库问题
-    options.SynchronousWriteOptions.LockTimeout = 5000;// 同步写入锁等待超时时间（单位：毫秒），默认值：5000
+    options.SynchronousWriteOptions.LockTimeout = 30000;// 同步写入锁等待超时时间（单位：毫秒），默认值：5000
 #endif
 });
 ```

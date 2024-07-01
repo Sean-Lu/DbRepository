@@ -113,7 +113,7 @@ namespace Example.Dapper.Domain.Extensions
                 //options.DefaultNamingConvention = NamingConvention.SnakeCase;
 #if UseSqlite
                 options.SynchronousWriteOptions.Enable = true;// 启用同步写入模式：解决多线程并发写入导致的锁库问题
-                options.SynchronousWriteOptions.LockTimeout = 5000;// 同步写入锁等待超时时间（单位：毫秒），默认值：5000
+                options.SynchronousWriteOptions.LockTimeout = 30000;// 同步写入锁等待超时时间（单位：毫秒），默认值：5000
 #endif
                 options.MapToDatabaseType = factory =>
                 {
