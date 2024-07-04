@@ -669,7 +669,7 @@ public class DbFactory
         var connection = CreateConnection(master);
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
         {
-            return command.ExecuteReader(CommandBehavior.CloseConnection, SqlMonitor);
+            return command.ExecuteReader(SqlMonitor, CommandBehavior.CloseConnection);
         }
     }
     /// <summary>   
@@ -685,7 +685,7 @@ public class DbFactory
         var connection = CreateConnection(connectionString);
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
         {
-            return command.ExecuteReader(CommandBehavior.CloseConnection, SqlMonitor);
+            return command.ExecuteReader(SqlMonitor, CommandBehavior.CloseConnection);
         }
     }
     /// <summary>   
@@ -703,7 +703,7 @@ public class DbFactory
 
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
         {
-            return command.ExecuteReader(CommandBehavior.Default, SqlMonitor);
+            return command.ExecuteReader(SqlMonitor, CommandBehavior.Default);
         }
     }
     /// <summary>   
@@ -721,7 +721,7 @@ public class DbFactory
 
         using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
         {
-            return command.ExecuteReader(CommandBehavior.Default, SqlMonitor);
+            return command.ExecuteReader(SqlMonitor, CommandBehavior.Default);
         }
     }
     /// <summary>
@@ -732,7 +732,7 @@ public class DbFactory
     /// <returns></returns>
     public DbDataReader ExecuteReader(ISqlCommand sqlCommand)
     {
-        return ExecuteSqlCommand(sqlCommand, (command, useInternalConnection) => command.ExecuteReader(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor), false);
+        return ExecuteSqlCommand(sqlCommand, (command, useInternalConnection) => command.ExecuteReader(SqlMonitor, useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default), false);
     }
 
     /// <summary>   
@@ -749,7 +749,7 @@ public class DbFactory
         var connection = CreateConnection(master);
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
         {
-            return await command.ExecuteReaderAsync(CommandBehavior.CloseConnection, SqlMonitor);
+            return await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.CloseConnection);
         }
     }
     /// <summary>   
@@ -765,7 +765,7 @@ public class DbFactory
         var connection = CreateConnection(connectionString);
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
         {
-            return await command.ExecuteReaderAsync(CommandBehavior.CloseConnection, SqlMonitor);
+            return await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.CloseConnection);
         }
     }
     /// <summary>   
@@ -783,7 +783,7 @@ public class DbFactory
 
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
         {
-            return await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor);
+            return await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.Default);
         }
     }
     /// <summary>   
@@ -801,7 +801,7 @@ public class DbFactory
 
         using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
         {
-            return await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor);
+            return await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.Default);
         }
     }
     /// <summary>
@@ -812,7 +812,7 @@ public class DbFactory
     /// <returns></returns>
     public async Task<DbDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand)
     {
-        return await ExecuteSqlCommandAsync(sqlCommand, async (command, useInternalConnection) => await command.ExecuteReaderAsync(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor), false);
+        return await ExecuteSqlCommandAsync(sqlCommand, async (command, useInternalConnection) => await command.ExecuteReaderAsync(SqlMonitor, useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default), false);
     }
     #endregion
 
@@ -1167,7 +1167,7 @@ public class DbFactory
         //return table?.ToList<T>();
 
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
-        using (var dataReader = command.ExecuteReader(CommandBehavior.Default, SqlMonitor))
+        using (var dataReader = command.ExecuteReader(SqlMonitor, CommandBehavior.Default))
         {
             return dataReader.GetList<T>();
         }
@@ -1189,7 +1189,7 @@ public class DbFactory
         //return table?.ToList<T>();
 
         using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
-        using (var dataReader = command.ExecuteReader(CommandBehavior.Default, SqlMonitor))
+        using (var dataReader = command.ExecuteReader(SqlMonitor, CommandBehavior.Default))
         {
             return dataReader.GetList<T>();
         }
@@ -1207,7 +1207,7 @@ public class DbFactory
 
         return ExecuteSqlCommand(sqlCommand, (command, useInternalConnection) =>
         {
-            using (var dataReader = command.ExecuteReader(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
+            using (var dataReader = command.ExecuteReader(SqlMonitor, useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default))
             {
                 return dataReader.GetList<T>();
             }
@@ -1262,7 +1262,7 @@ public class DbFactory
         //return table?.ToList<T>();
 
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
-        using (var dataReader = await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor))
+        using (var dataReader = await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.Default))
         {
             return await dataReader.GetListAsync<T>();
         }
@@ -1284,7 +1284,7 @@ public class DbFactory
         //return table?.ToList<T>();
 
         using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
-        using (var dataReader = await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor))
+        using (var dataReader = await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.Default))
         {
             return await dataReader.GetListAsync<T>();
         }
@@ -1302,7 +1302,7 @@ public class DbFactory
 
         return await ExecuteSqlCommandAsync(sqlCommand, async (command, useInternalConnection) =>
         {
-            using (var dataReader = await command.ExecuteReaderAsync(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
+            using (var dataReader = await command.ExecuteReaderAsync(SqlMonitor, useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default))
             {
                 return await dataReader.GetListAsync<T>();
             }
@@ -1356,7 +1356,7 @@ public class DbFactory
         if (connection == null) throw new ArgumentNullException(nameof(connection));
 
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
-        using (var dataReader = command.ExecuteReader(CommandBehavior.Default, SqlMonitor))
+        using (var dataReader = command.ExecuteReader(SqlMonitor, CommandBehavior.Default))
         {
             return dataReader.Get<T>();
         }
@@ -1375,7 +1375,7 @@ public class DbFactory
         if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
         using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
-        using (var dataReader = command.ExecuteReader(CommandBehavior.Default, SqlMonitor))
+        using (var dataReader = command.ExecuteReader(SqlMonitor, CommandBehavior.Default))
         {
             return dataReader.Get<T>();
         }
@@ -1390,7 +1390,7 @@ public class DbFactory
     {
         return ExecuteSqlCommand(sqlCommand, (command, useInternalConnection) =>
         {
-            using (var dataReader = command.ExecuteReader(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
+            using (var dataReader = command.ExecuteReader(SqlMonitor, useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default))
             {
                 return dataReader.Get<T>();
             }
@@ -1442,7 +1442,7 @@ public class DbFactory
         if (connection == null) throw new ArgumentNullException(nameof(connection));
 
         using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
-        using (var dataReader = await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor))
+        using (var dataReader = await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.Default))
         {
             return await dataReader.GetAsync<T>();
         }
@@ -1461,7 +1461,7 @@ public class DbFactory
         if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
         using (var command = CreateDbCommand(transaction, null, commandType, commandText, parameters))
-        using (var dataReader = await command.ExecuteReaderAsync(CommandBehavior.Default, SqlMonitor))
+        using (var dataReader = await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.Default))
         {
             return await dataReader.GetAsync<T>();
         }
@@ -1476,7 +1476,7 @@ public class DbFactory
     {
         return await ExecuteSqlCommandAsync(sqlCommand, async (command, useInternalConnection) =>
         {
-            using (var dataReader = await command.ExecuteReaderAsync(useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default, SqlMonitor))
+            using (var dataReader = await command.ExecuteReaderAsync(SqlMonitor, useInternalConnection ? CommandBehavior.CloseConnection : CommandBehavior.Default))
             {
                 return await dataReader.GetAsync<T>();
             }

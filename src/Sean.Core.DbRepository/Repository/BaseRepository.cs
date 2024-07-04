@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Sean.Core.DbRepository.CodeFirst;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 using Sean.Utility.Extensions;
 
 #if NETSTANDARD || NET5_0_OR_GREATER
@@ -388,22 +389,25 @@ public abstract class BaseRepository : IBaseRepository
 
         if (transaction != null)
         {
-            return func(transaction);
+            return SynchronousWriteUtil.CheckWriteLock(transaction.Connection, () => func(transaction), transaction);
         }
 
         return Execute(conn =>
         {
             using (var trans = conn.BeginTransaction())
             {
-                try
+                return SynchronousWriteUtil.CheckWriteLock(conn, () =>
                 {
-                    return func(trans);
-                }
-                catch
-                {
-                    trans.Rollback();
-                    throw;
-                }
+                    try
+                    {
+                        return func(trans);
+                    }
+                    catch
+                    {
+                        trans.Rollback();
+                        throw;
+                    }
+                }, trans);
             }
         }, true, connection: connection);
     }
@@ -413,29 +417,32 @@ public abstract class BaseRepository : IBaseRepository
 
         if (transaction != null)
         {
-            return func(transaction);
+            return SynchronousWriteUtil.CheckWriteLock(transaction.Connection, () => func(transaction), transaction);
         }
 
         return Execute(conn =>
         {
             using (var trans = conn.BeginTransaction())
             {
-                try
+                return SynchronousWriteUtil.CheckWriteLock(conn, () =>
                 {
-                    if (!func(trans))
+                    try
+                    {
+                        if (!func(trans))
+                        {
+                            trans.Rollback();
+                            return false;
+                        }
+
+                        trans.Commit();
+                        return true;
+                    }
+                    catch
                     {
                         trans.Rollback();
-                        return false;
+                        throw;
                     }
-
-                    trans.Commit();
-                    return true;
-                }
-                catch
-                {
-                    trans.Rollback();
-                    throw;
-                }
+                }, trans);
             }
         }, true, connection: connection);
     }
@@ -767,22 +774,25 @@ public abstract class BaseRepository : IBaseRepository
 
         if (transaction != null)
         {
-            return await func(transaction);
+            return await SynchronousWriteUtil.CheckWriteLockAsync(transaction.Connection, async () => await func(transaction), transaction);
         }
 
         return await ExecuteAsync(async conn =>
         {
             using (var trans = conn.BeginTransaction())
             {
-                try
+                return await SynchronousWriteUtil.CheckWriteLockAsync(conn, async () =>
                 {
-                    return await func(trans);
-                }
-                catch
-                {
-                    trans.Rollback();
-                    throw;
-                }
+                    try
+                    {
+                        return await func(trans);
+                    }
+                    catch
+                    {
+                        trans.Rollback();
+                        throw;
+                    }
+                }, trans);
             }
         }, true, connection: connection);
     }
@@ -792,29 +802,32 @@ public abstract class BaseRepository : IBaseRepository
 
         if (transaction != null)
         {
-            return await func(transaction);
+            return await SynchronousWriteUtil.CheckWriteLockAsync(transaction.Connection, async () => await func(transaction), transaction);
         }
 
         return await ExecuteAsync(async conn =>
         {
             using (var trans = conn.BeginTransaction())
             {
-                try
+                return await SynchronousWriteUtil.CheckWriteLockAsync(conn, async () =>
                 {
-                    if (!await func(trans))
+                    try
+                    {
+                        if (!await func(trans))
+                        {
+                            trans.Rollback();
+                            return false;
+                        }
+
+                        trans.Commit();
+                        return true;
+                    }
+                    catch
                     {
                         trans.Rollback();
-                        return false;
+                        throw;
                     }
-
-                    trans.Commit();
-                    return true;
-                }
-                catch
-                {
-                    trans.Rollback();
-                    throw;
-                }
+                }, trans);
             }
         }, true, connection: connection);
     }

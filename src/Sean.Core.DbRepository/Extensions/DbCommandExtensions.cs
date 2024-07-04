@@ -22,7 +22,7 @@ public static class DbCommandExtensions
     {
         return command.Execute(sqlMonitor, c => c.ExecuteReader());
     }
-    public static DbDataReader ExecuteReader(this DbCommand command, CommandBehavior behavior, ISqlMonitor sqlMonitor)
+    public static DbDataReader ExecuteReader(this DbCommand command, ISqlMonitor sqlMonitor, CommandBehavior behavior)
     {
         return command.Execute(sqlMonitor, c => c.ExecuteReader(behavior));
     }
@@ -38,7 +38,7 @@ public static class DbCommandExtensions
         //    return adapter.ExecuteDataSet(command, sqlMonitor);
         //}
 
-        using (var reader = command.ExecuteReader(CommandBehavior.Default, sqlMonitor))
+        using (var reader = command.ExecuteReader(sqlMonitor, CommandBehavior.Default))
         {
             return reader.GetDataSet();
         }
@@ -50,7 +50,7 @@ public static class DbCommandExtensions
         //    return adapter.ExecuteDataTable(command, sqlMonitor);
         //}
 
-        using (var reader = command.ExecuteReader(CommandBehavior.Default, sqlMonitor))
+        using (var reader = command.ExecuteReader(sqlMonitor, CommandBehavior.Default))
         {
             return reader.GetDataTable();
         }
@@ -68,7 +68,7 @@ public static class DbCommandExtensions
     {
         return await command.ExecuteAsync(sqlMonitor, async c => await c.ExecuteReaderAsync());
     }
-    public static async Task<DbDataReader> ExecuteReaderAsync(this DbCommand command, CommandBehavior behavior, ISqlMonitor sqlMonitor)
+    public static async Task<DbDataReader> ExecuteReaderAsync(this DbCommand command, ISqlMonitor sqlMonitor, CommandBehavior behavior)
     {
         return await command.ExecuteAsync(sqlMonitor, async c => await c.ExecuteReaderAsync(behavior));
     }
@@ -84,7 +84,7 @@ public static class DbCommandExtensions
         //    return await adapter.ExecuteDataSetAsync(command, sqlMonitor);
         //}
 
-        using (var reader = await command.ExecuteReaderAsync(CommandBehavior.Default, sqlMonitor))
+        using (var reader = await command.ExecuteReaderAsync(sqlMonitor, CommandBehavior.Default))
         {
             return await reader.GetDataSetAsync();
         }
@@ -96,7 +96,7 @@ public static class DbCommandExtensions
         //    return await adapter.ExecuteDataTableAsync(command, sqlMonitor);
         //}
 
-        using (var reader = await command.ExecuteReaderAsync(CommandBehavior.Default, sqlMonitor))
+        using (var reader = await command.ExecuteReaderAsync(sqlMonitor, CommandBehavior.Default))
         {
             return await reader.GetDataTableAsync();
         }

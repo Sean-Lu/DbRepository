@@ -5,14 +5,16 @@ namespace Sean.Core.DbRepository;
 
 public class SqlExecutedContext
 {
-    public SqlExecutedContext(IDbConnection connection, string sql, object sqlParameter = null)
+    public SqlExecutedContext(IDbConnection connection, IDbTransaction transaction, string sql, object sqlParameter = null)
     {
         Connection = connection;
+        Transaction = transaction;
         Sql = sql;
         SqlParameter = sqlParameter;
     }
 
     public IDbConnection Connection { get; }
+    public IDbTransaction Transaction { get; }
     public string Sql { get; }
     public object SqlParameter { get; }
 

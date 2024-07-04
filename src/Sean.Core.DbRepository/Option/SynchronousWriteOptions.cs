@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Sean.Core.DbRepository;
+﻿namespace Sean.Core.DbRepository;
 
 public class SynchronousWriteOptions
 {
@@ -13,9 +11,4 @@ public class SynchronousWriteOptions
     /// 同步写入锁等待超时时间（单位：毫秒），默认值：5000
     /// </summary>
     public int LockTimeout { get; set; } = 5000;
-    /// <summary>
-    /// <para>参数：sql</para>
-    /// <para>返回值：是否继续执行SQL</para>
-    /// </summary>
-    public Func<string, bool> OnLockTimeout { get; set; }
 }

@@ -9,7 +9,7 @@ namespace Sean.Core.DbRepository.Extensions;
 
 public static class SqlMonitorExtensions
 {
-    public static T Execute<T>(this ISqlMonitor sqlMonitor, IDbConnection connection, string sql, object sqlParameter, Func<T> func)
+    public static T Execute<T>(this ISqlMonitor sqlMonitor, IDbConnection connection, string sql, object sqlParameter, Func<T> func, IDbTransaction transaction = null)
     {
         var timeWatcher = new Stopwatch();
         Exception exception = null;
@@ -19,17 +19,17 @@ public static class SqlMonitorExtensions
         {
             if (sqlMonitor != null)
             {
-                var sqlExecutingContext = new SqlExecutingContext(connection, sql, sqlParameter);
+                var sqlExecutingContext = new SqlExecutingContext(connection, transaction, sql, sqlParameter);
                 sqlMonitor.OnSqlExecuting(sqlExecutingContext);
             }
 
-            result = SynchronousWriteUtil.CheckWriteLock(DbContextConfiguration.Options.SynchronousWriteOptions, connection.ConnectionString, sql, () =>
+            result = SynchronousWriteUtil.CheckWriteLock(connection, sql, () =>
             {
                 timeWatcher.Restart();
                 var funcResult = func();
                 timeWatcher.Stop();
                 return funcResult;
-            });
+            }, transaction);
         }
         catch (Exception ex)
         {
@@ -40,7 +40,7 @@ public static class SqlMonitorExtensions
         {
             if (sqlMonitor != null)
             {
-                var sqlExecutedContext = new SqlExecutedContext(connection, sql, sqlParameter)
+                var sqlExecutedContext = new SqlExecutedContext(connection, transaction, sql, sqlParameter)
                 {
                     ExecutionElapsed = timeWatcher.ElapsedMilliseconds,
                     Exception = exception
@@ -53,14 +53,14 @@ public static class SqlMonitorExtensions
     }
     public static T Execute<T>(this ISqlMonitor sqlMonitor, DbCommand command, Func<T> func)
     {
-        return sqlMonitor.Execute(command.Connection, command.CommandText, command.Parameters, func);
+        return sqlMonitor.Execute(command.Connection, command.CommandText, command.Parameters, func, command.Transaction);
     }
     public static T Execute<T>(this ISqlMonitor sqlMonitor, IDbConnection connection, ISqlCommand sqlCommand, Func<T> func)
     {
-        return sqlMonitor.Execute(connection, sqlCommand.Sql, sqlCommand.Parameter, func);
+        return sqlMonitor.Execute(connection, sqlCommand.Sql, sqlCommand.Parameter, func, sqlCommand.Transaction);
     }
 
-    public static async Task<T> ExecuteAsync<T>(this ISqlMonitor sqlMonitor, IDbConnection connection, string sql, object sqlParameter, Func<Task<T>> func)
+    public static async Task<T> ExecuteAsync<T>(this ISqlMonitor sqlMonitor, IDbConnection connection, string sql, object sqlParameter, Func<Task<T>> func, IDbTransaction transaction = null)
     {
         var timeWatcher = new Stopwatch();
         Exception exception = null;
@@ -70,17 +70,17 @@ public static class SqlMonitorExtensions
         {
             if (sqlMonitor != null)
             {
-                var sqlExecutingContext = new SqlExecutingContext(connection, sql, sqlParameter);
+                var sqlExecutingContext = new SqlExecutingContext(connection, transaction, sql, sqlParameter);
                 sqlMonitor.OnSqlExecuting(sqlExecutingContext);
             }
 
-            result = await SynchronousWriteUtil.CheckWriteLockAsync(DbContextConfiguration.Options.SynchronousWriteOptions, connection.ConnectionString, sql, async () =>
+            result = await SynchronousWriteUtil.CheckWriteLockAsync(connection, sql, async () =>
             {
                 timeWatcher.Restart();
                 var funcResult = await func();
                 timeWatcher.Stop();
                 return funcResult;
-            });
+            }, transaction);
         }
         catch (Exception ex)
         {
@@ -91,7 +91,7 @@ public static class SqlMonitorExtensions
         {
             if (sqlMonitor != null)
             {
-                var sqlExecutedContext = new SqlExecutedContext(connection, sql, sqlParameter)
+                var sqlExecutedContext = new SqlExecutedContext(connection, transaction, sql, sqlParameter)
                 {
                     ExecutionElapsed = timeWatcher.ElapsedMilliseconds,
                     Exception = exception
@@ -104,10 +104,10 @@ public static class SqlMonitorExtensions
     }
     public static async Task<T> ExecuteAsync<T>(this ISqlMonitor sqlMonitor, DbCommand command, Func<Task<T>> func)
     {
-        return await sqlMonitor.ExecuteAsync(command.Connection, command.CommandText, command.Parameters, func);
+        return await sqlMonitor.ExecuteAsync(command.Connection, command.CommandText, command.Parameters, func, command.Transaction);
     }
     public static async Task<T> ExecuteAsync<T>(this ISqlMonitor sqlMonitor, IDbConnection connection, ISqlCommand sqlCommand, Func<Task<T>> func)
     {
-        return await sqlMonitor.ExecuteAsync(connection, sqlCommand.Sql, sqlCommand.Parameter, func);
+        return await sqlMonitor.ExecuteAsync(connection, sqlCommand.Sql, sqlCommand.Parameter, func, sqlCommand.Transaction);
     }
 }
