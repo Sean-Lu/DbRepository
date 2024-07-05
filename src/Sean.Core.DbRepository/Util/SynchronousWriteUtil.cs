@@ -18,7 +18,7 @@ public static class SynchronousWriteUtil
             return func();// 未启用写入同步锁 或者 不是写入操作的SQL，可以直接执行
         }
 
-        return UseWriteLock(options.LockTimeout, connection, func, transaction);
+        return UseWriteLock(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
     }
     public static T CheckWriteLock<T>(IDbConnection connection, Func<T> func, IDbTransaction transaction = null)
     {
@@ -28,7 +28,7 @@ public static class SynchronousWriteUtil
             return func();// 未启用写入同步锁，可以直接执行
         }
 
-        return UseWriteLock(options.LockTimeout, connection, func, transaction);
+        return UseWriteLock(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
     }
 
     public static async Task<T> CheckWriteLockAsync<T>(IDbConnection connection, string sql, Func<Task<T>> func, IDbTransaction transaction = null)
@@ -39,7 +39,7 @@ public static class SynchronousWriteUtil
             return await func();// 未启用写入同步锁 或者 不是写入操作的SQL，可以直接执行
         }
 
-        return await UseWriteLockAsync(options.LockTimeout, connection, func, transaction);
+        return await UseWriteLockAsync(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
     }
     public static async Task<T> CheckWriteLockAsync<T>(IDbConnection connection, Func<Task<T>> func, IDbTransaction transaction = null)
     {
@@ -49,10 +49,10 @@ public static class SynchronousWriteUtil
             return await func();// 未启用写入同步锁，可以直接执行
         }
 
-        return await UseWriteLockAsync(options.LockTimeout, connection, func, transaction);
+        return await UseWriteLockAsync(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
     }
 
-    public static T UseWriteLock<T>(int lockTimeout, IDbConnection connection, Func<T> func, IDbTransaction transaction = null)
+    public static T UseWriteLock<T>(int lockTimeout, IDbConnection connection, Func<T> func, IDbTransaction transaction = null, Func<int, bool> onLockTakenFailed = null)
     {
         var locker = _databaseLocks.GetOrAdd(connection.ConnectionString, _ => new SynchronousWriteLock { Locker = new object() });
         if (locker.Connection != null)
@@ -79,6 +79,13 @@ public static class SynchronousWriteUtil
                 locker.Connection = connection;
                 locker.Transaction = transaction;
             }
+            else
+            {
+                if (onLockTakenFailed != null && !onLockTakenFailed(lockTimeout))
+                {
+                    return default;
+                }
+            }
 
             return func();
         }
@@ -92,7 +99,7 @@ public static class SynchronousWriteUtil
             }
         }
     }
-    public static async Task<T> UseWriteLockAsync<T>(int lockTimeout, IDbConnection connection, Func<Task<T>> func, IDbTransaction transaction = null)
+    public static async Task<T> UseWriteLockAsync<T>(int lockTimeout, IDbConnection connection, Func<Task<T>> func, IDbTransaction transaction = null, Func<int, bool> onLockTakenFailed = null)
     {
         var locker = _databaseLocks.GetOrAdd(connection.ConnectionString, _ => new SynchronousWriteLock { Locker = new object() });
         if (locker.Connection != null)
@@ -118,6 +125,13 @@ public static class SynchronousWriteUtil
             {
                 locker.Connection = connection;
                 locker.Transaction = transaction;
+            }
+            else
+            {
+                if (onLockTakenFailed != null && !onLockTakenFailed(lockTimeout))
+                {
+                    return default;
+                }
             }
 
             return await func();
