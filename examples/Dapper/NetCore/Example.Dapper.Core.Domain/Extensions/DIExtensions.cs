@@ -125,7 +125,7 @@ namespace Example.Dapper.Core.Domain.Extensions
                 options.SynchronousWriteOptions.OnLockTakenFailed = lockTimeout =>
                 {
                     Console.WriteLine($"######获取同步写入锁失败({lockTimeout}ms)");
-                    return false;// 返回true：继续执行（仍然可能会发生锁库问题）。返回false：不再继续执行，直接返回默认值
+                    return true;// 返回true：继续执行（仍然可能会发生锁库问题）。返回false：不再继续执行，直接返回默认值
                 };
 #endif
                 options.MapToDatabaseType = factory =>
