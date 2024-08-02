@@ -38,6 +38,11 @@ public static class SqlMonitorExtensions
         }
         finally
         {
+            if (timeWatcher.IsRunning)
+            {
+                timeWatcher.Stop();
+            }
+
             if (sqlMonitor != null)
             {
                 var sqlExecutedContext = new SqlExecutedContext(connection, transaction, sql, sqlParameter)
@@ -89,6 +94,11 @@ public static class SqlMonitorExtensions
         }
         finally
         {
+            if (timeWatcher.IsRunning)
+            {
+                timeWatcher.Stop();
+            }
+
             if (sqlMonitor != null)
             {
                 var sqlExecutedContext = new SqlExecutedContext(connection, transaction, sql, sqlParameter)
