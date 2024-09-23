@@ -77,8 +77,7 @@ public static class ExpressionExtensions
     public static string GetParameterizedWhereClause<TEntity>(this Expression<Func<TEntity, bool>> whereExpression, ISqlAdapter sqlAdapter, IDictionary<string, object> parameters)
     {
         var adhesive = new WhereClauseAdhesive(sqlAdapter, parameters);
-        var whereClause = WhereClauseParser.Parse(whereExpression, adhesive);
-        return whereClause.ToString();
+        return WhereClauseParser.Parse(whereExpression, adhesive);
     }
     /// <summary>
     /// Gets the parameterized WHERE clause.

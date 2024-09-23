@@ -521,6 +521,23 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
+        /// !Array.Contains()
+        /// </summary>
+        [TestMethod]
+        public void ValidateNotArrayContains()
+        {
+            string[] values = { "a", "b" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => !values.Contains(entity.UserName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserName", values }
+            };
+            Assert.AreEqual("`UserName` NOT IN @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
         /// List.Contains()
         /// </summary>
         [TestMethod]
@@ -534,6 +551,23 @@ namespace Sean.Core.DbRepository.Test
                 { "UserName", values }
             };
             Assert.AreEqual("`UserName` IN @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// !List.Contains()
+        /// </summary>
+        [TestMethod]
+        public void ValidateNotListContains()
+        {
+            List<long> values = new List<long> { 111, 222 };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => !values.Contains(entity.Id);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "Id", values }
+            };
+            Assert.AreEqual("`Id` NOT IN @Id", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
@@ -555,6 +589,23 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
+        /// !IList.Contains()
+        /// </summary>
+        [TestMethod]
+        public void ValidateNotIListContains()
+        {
+            IList<string> values = new List<string> { "a", "b" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => !values.Contains(entity.UserName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserName", values }
+            };
+            Assert.AreEqual("`UserName` NOT IN @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
         /// ICollection.Contains()
         /// </summary>
         [TestMethod]
@@ -572,6 +623,23 @@ namespace Sean.Core.DbRepository.Test
         }
 
         /// <summary>
+        /// !ICollection.Contains()
+        /// </summary>
+        [TestMethod]
+        public void ValidateNotICollectionContains2()
+        {
+            ICollection<string> values = new List<string> { "a", "b" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => !values.Contains(entity.UserName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserName", values }
+            };
+            Assert.AreEqual("`UserName` NOT IN @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
         /// IEnumerable.Contains()
         /// </summary>
         [TestMethod]
@@ -585,6 +653,23 @@ namespace Sean.Core.DbRepository.Test
                 { "UserName", values }
             };
             Assert.AreEqual("`UserName` IN @UserName", whereClause);
+            AssertSqlParameters(expectedParameters, parameters);
+        }
+
+        /// <summary>
+        /// !IEnumerable.Contains()
+        /// </summary>
+        [TestMethod]
+        public void ValidateNotIEnumerableContains()
+        {
+            IEnumerable<string> values = new List<string> { "a", "b" };
+            Expression<Func<TestEntity, bool>> whereExpression = entity => !values.Contains(entity.UserName);
+            var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+            var expectedParameters = new Dictionary<string, object>
+            {
+                { "UserName", values }
+            };
+            Assert.AreEqual("`UserName` NOT IN @UserName", whereClause);
             AssertSqlParameters(expectedParameters, parameters);
         }
 
