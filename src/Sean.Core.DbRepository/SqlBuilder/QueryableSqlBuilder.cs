@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder, IQueryable<TEntity>
+public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>, IQueryable<TEntity>
 {
     //private const string SqlTemplate = "SELECT {1} FROM {0}{2}";
 

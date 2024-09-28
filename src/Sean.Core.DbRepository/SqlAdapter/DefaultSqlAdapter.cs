@@ -45,7 +45,7 @@ public class DefaultSqlAdapter : ISqlAdapter
             return FormatFieldName(fieldName);
         }
 
-        return $"{FormatTableName(tableName)}.{FormatFieldName(fieldName)}";
+        return $"{DbType.MarkAsTableOrFieldName(tableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
     }
 
     public virtual string FormatSqlParameter(string parameter)

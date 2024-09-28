@@ -10,7 +10,7 @@ using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository;
 
-public class InsertableSqlBuilder<TEntity> : BaseSqlBuilder, IInsertable<TEntity>
+public class InsertableSqlBuilder<TEntity> : BaseSqlBuilder<IInsertable<TEntity>>, IInsertable<TEntity>
 {
     private const string SqlTemplate = "INSERT INTO {0}({1}) VALUES{2}";
     private const string SqlIndentedTemplate = @"INSERT INTO {0}({1}) 

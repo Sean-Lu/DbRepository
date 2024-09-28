@@ -48,11 +48,6 @@ public class Table<TEntity> where TEntity : class
     public string GetParameterizedWhereClause(Expression<Func<TEntity, bool>> whereExpression, out IDictionary<string, object> parameters)
     {
         return whereExpression.GetParameterizedWhereClause(_sqlAdapter, out parameters);
-
-        //var sqlWhereClauseBuilder = SqlWhereClauseBuilder<TEntity>.Create(_sqlAdapter)
-        //    .Where(whereExpression);
-        //parameters = sqlWhereClauseBuilder.Parameter;
-        //return sqlWhereClauseBuilder.GetParameterizedWhereClause();
     }
 
     public static Table<TEntity> Create(DatabaseType databaseType)

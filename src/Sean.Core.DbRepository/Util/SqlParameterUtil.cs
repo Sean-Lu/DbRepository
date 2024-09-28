@@ -9,7 +9,7 @@ using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository.Util;
 
-internal static class SqlParameterUtil
+public static class SqlParameterUtil
 {
     public static Dictionary<string, object> ConvertToDicParameter<TEntity>(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null)
     {
@@ -145,8 +145,8 @@ internal static class SqlParameterUtil
 
     public static string ReplaceParameter(string sql, string paraName, string replace)
     {
-        var regex = new Regex($@"[?@:]({paraName})", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
-        return regex.IsMatch(sql) ? regex.Replace(sql, replace) : sql;
+        var regex = new Regex($@"[?@:]{paraName}(?!\w)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
+        return regex.IsMatch(sql) ? regex.Replace(sql, replace, 1) : sql;
     }
 
     internal static Dictionary<string, object> ConvertToDicParameter(object instance, IEnumerable<string> fields = null)

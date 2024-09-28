@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder, IDeleteable<TEntity>
+public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>>, IDeleteable<TEntity>
 {
     private const string SqlTemplate = "DELETE FROM {0}{1}";
 

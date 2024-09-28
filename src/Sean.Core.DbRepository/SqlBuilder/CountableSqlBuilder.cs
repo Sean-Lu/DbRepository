@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class CountableSqlBuilder<TEntity> : BaseSqlBuilder, ICountable<TEntity>
+public class CountableSqlBuilder<TEntity> : BaseSqlBuilder<ICountable<TEntity>>, ICountable<TEntity>
 {
     private const string SqlTemplate = "SELECT COUNT(*) FROM {0}{1}";
 

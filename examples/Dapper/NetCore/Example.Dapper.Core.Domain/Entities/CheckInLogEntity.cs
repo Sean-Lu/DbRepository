@@ -7,7 +7,7 @@ namespace Example.Dapper.Core.Domain.Entities
     /// <summary>
     /// 签到明细日志表
     /// </summary>
-    [Table("CheckInLog")]
+    //[Table("CheckInLog")]
     public class CheckInLogEntity
     {
         /// <summary>

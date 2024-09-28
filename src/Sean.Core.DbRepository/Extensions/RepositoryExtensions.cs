@@ -150,26 +150,24 @@ public static class RepositoryExtensions
     }
 
     /// <summary>
-    /// Create an instance of <see cref="SqlWhereClauseBuilder{TEntity}"/>.
+    /// Create an instance of <see cref="WhereClauseSqlBuilder{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="entity"></param>
     /// <returns></returns>
-    public static SqlWhereClauseBuilder<TEntity> CreateSqlWhereClauseBuilder<TEntity>(this IBaseRepository repository, TEntity entity = default)
+    public static WhereClauseSqlBuilder<TEntity> CreateWhereClauseSqlBuilder<TEntity>(this IBaseRepository repository)
     {
-        return SqlWhereClauseBuilder<TEntity>.Create(repository.DbType, entity);
+        return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType);
     }
     /// <summary>
-    /// Create an instance of <see cref="SqlWhereClauseBuilder{TEntity}"/>.
+    /// Create an instance of <see cref="WhereClauseSqlBuilder{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="entity"></param>
     /// <returns></returns>
-    public static SqlWhereClauseBuilder<TEntity> CreateSqlWhereClauseBuilder<TEntity>(this IBaseRepository<TEntity> repository, TEntity entity = default) where TEntity : class
+    public static WhereClauseSqlBuilder<TEntity> CreateWhereClauseSqlBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
-        return SqlWhereClauseBuilder<TEntity>.Create(repository.DbType, entity);
+        return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType);
     }
     #endregion
 }

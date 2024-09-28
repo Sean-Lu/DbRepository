@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace Sean.Core.DbRepository;
 
-public interface IReplaceable<TEntity> : IBaseSqlBuilder
+public interface IReplaceable<TEntity> : IBaseSqlBuilder<IReplaceable<TEntity>>
 {
     #region [Field]
     /// <summary>

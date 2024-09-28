@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Sean.Core.DbRepository;
 
-public interface IInsertable<TEntity> : IBaseSqlBuilder
+public interface IInsertable<TEntity> : IBaseSqlBuilder<IInsertable<TEntity>>
 {
     #region [Field]
     /// <summary>

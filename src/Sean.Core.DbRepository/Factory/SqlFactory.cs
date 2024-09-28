@@ -33,9 +33,9 @@ public class SqlFactory
     {
         return CountableSqlBuilder<TEntity>.Create(_dbType, tableName);
     }
-    public SqlWhereClauseBuilder<TEntity> CreateSqlWhereClauseBuilder<TEntity>(TEntity entity = default)
+    public WhereClauseSqlBuilder<TEntity> CreateWhereClauseSqlBuilder<TEntity>()
     {
-        return SqlWhereClauseBuilder<TEntity>.Create(_dbType, entity);
+        return WhereClauseSqlBuilder<TEntity>.Create(_dbType);
     }
 
     public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
@@ -62,8 +62,8 @@ public class SqlFactory
     {
         return CountableSqlBuilder<TEntity>.Create(dbType, tableName);
     }
-    public static SqlWhereClauseBuilder<TEntity> CreateSqlWhereClauseBuilder<TEntity>(DatabaseType dbType, TEntity entity = default)
+    public static WhereClauseSqlBuilder<TEntity> CreateWhereClauseSqlBuilder<TEntity>(DatabaseType dbType)
     {
-        return SqlWhereClauseBuilder<TEntity>.Create(dbType, entity);
+        return WhereClauseSqlBuilder<TEntity>.Create(dbType);
     }
 }

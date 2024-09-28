@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace Sean.Core.DbRepository;
 
-public interface IQueryable<TEntity> : IBaseSqlBuilder, ISqlWhere<TEntity, IQueryable<TEntity>>, ISqlJoin<TEntity, IQueryable<TEntity>>
+public interface IQueryable<TEntity> : IBaseSqlBuilder<IQueryable<TEntity>>, ISqlWhere<TEntity, IQueryable<TEntity>>, ISqlJoin<TEntity, IQueryable<TEntity>>
 {
     #region [Field]
     /// <summary>

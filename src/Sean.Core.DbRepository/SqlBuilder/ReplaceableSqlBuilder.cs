@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class ReplaceableSqlBuilder<TEntity> : BaseSqlBuilder, IReplaceable<TEntity>
+public class ReplaceableSqlBuilder<TEntity> : BaseSqlBuilder<IReplaceable<TEntity>>, IReplaceable<TEntity>
 {
     private const string SqlTemplate = "REPLACE INTO {0}({1}) VALUES{2}";
     private const string SqlIndentedTemplate = @"REPLACE INTO {0}({1}) 

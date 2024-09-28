@@ -1,8 +1,6 @@
-﻿using System;
+﻿namespace Sean.Core.DbRepository;
 
-namespace Sean.Core.DbRepository;
-
-public abstract class BaseSqlBuilder : IBaseSqlBuilder
+public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBuild : class
 {
     /// <summary>
     /// SQL adapter.
@@ -19,13 +17,25 @@ public abstract class BaseSqlBuilder : IBaseSqlBuilder
 
     protected BaseSqlBuilder(DatabaseType dbType, string tableName)
     {
-        if (string.IsNullOrWhiteSpace(tableName))
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
-
         SqlAdapter = new DefaultSqlAdapter(dbType, tableName);
     }
+    protected BaseSqlBuilder(ISqlAdapter sqlAdapter)
+    {
+        SqlAdapter = sqlAdapter;
+    }
 
-    public ISqlCommand Build()
+    public virtual TBuild SetSqlIndented(bool sqlIndented)
+    {
+        SqlIndented = sqlIndented;
+        return this as TBuild;
+    }
+    public virtual TBuild SetSqlParameterized(bool sqlParameterized)
+    {
+        SqlParameterized = sqlParameterized;
+        return this as TBuild;
+    }
+
+    public virtual ISqlCommand Build()
     {
         var sqlCommand = BuildSqlCommand();
 

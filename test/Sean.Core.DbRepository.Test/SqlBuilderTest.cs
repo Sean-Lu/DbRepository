@@ -15,9 +15,6 @@ namespace Sean.Core.DbRepository.Test
 
         public SqlBuilderTest()
         {
-            DbContextConfiguration.Options.SqlIndented = true;
-            //DbContextConfiguration.Options.SqlParameterized = false;
-
             _sqlFactory = new SqlFactory(DatabaseType.MySql);
         }
 
@@ -28,6 +25,7 @@ namespace Sean.Core.DbRepository.Test
             var testEntity = new TestEntity();
             ISqlCommand sqlCommand = _sqlFactory.CreateInsertableBuilder<TestEntity>(true)
                 .SetParameter(testEntity)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, @"INSERT INTO `Test`(`UserId`, `UserName`, `Age`, `Sex`, `PhoneNumber`, `Email`, `IsVip`, `IsBlack`, `Country`, `AccountBalance`, `AccountBalance2`, `Status`, `Remark`, `CreateTime`, `UpdateTime`) 
 VALUES(@UserId, @UserName, @Age, @Sex, @PhoneNumber, @Email, @IsVip, @IsBlack, @Country, @AccountBalance, @AccountBalance2, @Status, @Remark, @CreateTime, @UpdateTime)");
@@ -41,6 +39,7 @@ VALUES(@UserId, @UserName, @Age, @Sex, @PhoneNumber, @Email, @IsVip, @IsBlack, @
             ISqlCommand sqlCommand = _sqlFactory.CreateInsertableBuilder<TestEntity>(true)
                 .IgnoreFields(entity => new { entity.CreateTime, entity.UpdateTime })
                 .SetParameter(testEntity)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, @"INSERT INTO `Test`(`UserId`, `UserName`, `Age`, `Sex`, `PhoneNumber`, `Email`, `IsVip`, `IsBlack`, `Country`, `AccountBalance`, `AccountBalance2`, `Status`, `Remark`) 
 VALUES(@UserId, @UserName, @Age, @Sex, @PhoneNumber, @Email, @IsVip, @IsBlack, @Country, @AccountBalance, @AccountBalance2, @Status, @Remark)");
@@ -57,6 +56,7 @@ VALUES(@UserId, @UserName, @Age, @Sex, @PhoneNumber, @Email, @IsVip, @IsBlack, @
             };
             ISqlCommand sqlCommand = _sqlFactory.CreateInsertableBuilder<TestEntity>(true)
                 .SetParameter(testEntities)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, @"INSERT INTO `Test`(`UserId`, `UserName`, `Age`, `Sex`, `PhoneNumber`, `Email`, `IsVip`, `IsBlack`, `Country`, `AccountBalance`, `AccountBalance2`, `Status`, `Remark`, `CreateTime`, `UpdateTime`) 
 VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_1, @IsBlack_1, @Country_1, @AccountBalance_1, @AccountBalance2_1, @Status_1, @Remark_1, @CreateTime_1, @UpdateTime_1), 
@@ -103,6 +103,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         {
             ISqlCommand sqlCommand = _sqlFactory.CreateDeleteableBuilder<TestEntity>()
                 .Where(entity => entity.Status == 1 && entity.IsVip && entity.Age > 18)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "DELETE FROM `Test` WHERE `Status` = @Status AND `IsVip` = @IsVip AND `Age` > @Age");
             AssertSqlParameters(new Dictionary<string, object>
@@ -119,6 +120,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
             var testEntity = new TestEntity { Id = 1 };
             ISqlCommand sqlCommand = _sqlFactory.CreateDeleteableBuilder<TestEntity>()
                 .SetParameter(testEntity)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "DELETE FROM `Test` WHERE 1=1 AND `Id` = @Id");
             Assert.AreEqual(testEntity, sqlCommand.Parameter);
@@ -129,6 +131,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         {
             ISqlCommand sqlCommand = _sqlFactory.CreateDeleteableBuilder<TestEntity>()
                 .AllowEmptyWhereClause()
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "DELETE FROM `Test`");
             Assert.IsNull(sqlCommand.Parameter);
@@ -143,6 +146,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
             ISqlCommand sqlCommand = _sqlFactory.CreateUpdateableBuilder<TestEntity>(true)
                 .Where(entity => entity.Status == 1 && entity.IsVip && entity.Age > 18)
                 .SetParameter(testEntity)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "UPDATE `Test` SET `UserId`=@UserId, `UserName`=@UserName, `Age`=@Age, `Sex`=@Sex, `PhoneNumber`=@PhoneNumber, `Email`=@Email, `IsVip`=@IsVip, `IsBlack`=@IsBlack, `Country`=@Country, `AccountBalance`=@AccountBalance, `AccountBalance2`=@AccountBalance2, `Status`=@Status, `Remark`=@Remark, `CreateTime`=@CreateTime, `UpdateTime`=@UpdateTime WHERE `Status` = @Status_2 AND `IsVip` = @IsVip_2 AND `Age` > @Age_2");
             AssertSqlParameters(new Dictionary<string, object>
@@ -172,6 +176,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .UpdateFields(entity => new { entity.AccountBalance, entity.Remark })
                 .Where(entity => entity.Status == 1 && entity.IsVip && entity.Age > 18)
                 .SetParameter(testEntity)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand2.Sql, "UPDATE `Test` SET `AccountBalance`=@AccountBalance, `Remark`=@Remark WHERE `Status` = @Status_2 AND `IsVip` = @IsVip_2 AND `Age` > @Age_2");
             AssertSqlParameters(new Dictionary<string, object>
@@ -204,6 +209,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
             var testEntity = new TestEntity { Id = 1 };
             ISqlCommand sqlCommand = _sqlFactory.CreateUpdateableBuilder<TestEntity>(true)
                 .SetParameter(testEntity)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "UPDATE `Test` SET `UserId`=@UserId, `UserName`=@UserName, `Age`=@Age, `Sex`=@Sex, `PhoneNumber`=@PhoneNumber, `Email`=@Email, `IsVip`=@IsVip, `IsBlack`=@IsBlack, `Country`=@Country, `AccountBalance`=@AccountBalance, `AccountBalance2`=@AccountBalance2, `Status`=@Status, `Remark`=@Remark, `CreateTime`=@CreateTime, `UpdateTime`=@UpdateTime WHERE 1=1 AND `Id` = @Id");
             Assert.AreEqual(testEntity, sqlCommand.Parameter);
@@ -211,6 +217,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
             ISqlCommand sqlCommand2 = _sqlFactory.CreateUpdateableBuilder<TestEntity>(false)
                 .UpdateFields(entity => new { entity.AccountBalance, entity.Remark })
                 .SetParameter(testEntity)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand2.Sql, "UPDATE `Test` SET `AccountBalance`=@AccountBalance, `Remark`=@Remark WHERE 1=1 AND `Id` = @Id");
             Assert.AreEqual(testEntity, sqlCommand2.Parameter);
@@ -226,6 +233,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
             };
             ISqlCommand sqlCommand = _sqlFactory.CreateUpdateableBuilder<TestEntity>(true)
                 .SetParameter(testEntities)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "UPDATE `Test` SET `UserId`=@UserId, `UserName`=@UserName, `Age`=@Age, `Sex`=@Sex, `PhoneNumber`=@PhoneNumber, `Email`=@Email, `IsVip`=@IsVip, `IsBlack`=@IsBlack, `Country`=@Country, `AccountBalance`=@AccountBalance, `AccountBalance2`=@AccountBalance2, `Status`=@Status, `Remark`=@Remark, `CreateTime`=@CreateTime, `UpdateTime`=@UpdateTime WHERE 1=1 AND `Id` = @Id");
             Assert.AreEqual(testEntities, sqlCommand.Parameter);
@@ -233,6 +241,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
             ISqlCommand sqlCommand2 = _sqlFactory.CreateUpdateableBuilder<TestEntity>(false)
                 .UpdateFields(entity => new { entity.AccountBalance, entity.Remark })
                 .SetParameter(testEntities)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand2.Sql, "UPDATE `Test` SET `AccountBalance`=@AccountBalance, `Remark`=@Remark WHERE 1=1 AND `Id` = @Id");
             Assert.AreEqual(testEntities, sqlCommand2.Parameter);
@@ -246,6 +255,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
             ISqlCommand sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1 && entity.IsVip && entity.Age > 18)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT `UserId` FROM `Test` WHERE `Status` = @Status AND `IsVip` = @IsVip AND `Age` > @Age");
             AssertSqlParameters(new Dictionary<string, object>
@@ -263,6 +273,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .Where(entity => entity.IsVip && entity.Age > 18)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT `UserId` FROM `Test` WHERE `Status` = @Status AND `IsVip` = @IsVip AND `Age` > @Age");
             AssertSqlParameters(new Dictionary<string, object>
@@ -280,6 +291,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .WhereIF(true, entity => entity.IsVip && entity.Age > 18)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT `UserId` FROM `Test` WHERE `Status` = @Status AND `IsVip` = @IsVip AND `Age` > @Age");
             AssertSqlParameters(new Dictionary<string, object>
@@ -293,6 +305,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .WhereIF(false, entity => entity.IsVip && entity.Age > 18)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand2.Sql, "SELECT `UserId` FROM `Test` WHERE `Status` = @Status");
             AssertSqlParameters(new Dictionary<string, object>
@@ -309,6 +322,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .MaxField(entity => entity.AccountBalance, "MaxValue")
                 .Where(entity => entity.Status == 1)
                 .GroupBy(entity => entity.UserId)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT `UserId`, MAX(`AccountBalance`) AS MaxValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`");
             AssertSqlParameters(new Dictionary<string, object>
@@ -325,6 +339,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .MinField(entity => entity.AccountBalance, "MinValue")
                 .Where(entity => entity.Status == 1)
                 .GroupBy(entity => entity.UserId)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT `UserId`, MIN(`AccountBalance`) AS MinValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`");
             AssertSqlParameters(new Dictionary<string, object>
@@ -341,6 +356,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .SumField(entity => entity.AccountBalance, "SumValue")
                 .Where(entity => entity.Status == 1)
                 .GroupBy(entity => entity.UserId)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT `UserId`, SUM(`AccountBalance`) AS SumValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`");
             AssertSqlParameters(new Dictionary<string, object>
@@ -357,6 +373,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .SumField($"`{Table<TestEntity>.Field(entity => entity.AccountBalance)}`-`{Table<TestEntity>.Field(entity => entity.AccountBalance2)}`", "SumValue", true)
                 .Where(entity => entity.Status == 1)
                 .GroupBy(entity => entity.UserId)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT `UserId`, SUM(`AccountBalance`-`AccountBalance2`) AS SumValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`");
             AssertSqlParameters(new Dictionary<string, object>
@@ -373,6 +390,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .AvgField(entity => entity.AccountBalance, "AvgValue")
                 .Where(entity => entity.Status == 1)
                 .GroupBy(entity => entity.UserId)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT `UserId`, AVG(`AccountBalance`) AS AvgValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`");
             AssertSqlParameters(new Dictionary<string, object>
@@ -389,6 +407,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .CountField(entity => entity.AccountBalance, "CountValue")
                 .Where(entity => entity.Status == 1)
                 .GroupBy(entity => entity.UserId)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT `UserId`, COUNT(`AccountBalance`) AS CountValue FROM `Test` WHERE `Status` = @Status GROUP BY `UserId`");
             AssertSqlParameters(new Dictionary<string, object>
@@ -403,6 +422,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
             ISqlCommand sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .DistinctFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT DISTINCT `UserId` FROM `Test` WHERE `Status` = @Status");
             AssertSqlParameters(new Dictionary<string, object>
@@ -417,6 +437,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
             ISqlCommand sqlCommand = _sqlFactory.CreateQueryableBuilder<TestEntity>(false)
                 .CountDistinctField(entity => entity.UserId, "CountDistinctValue")
                 .Where(entity => entity.Status == 1)
+                .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT COUNT(DISTINCT `UserId`) AS CountDistinctValue FROM `Test` WHERE `Status` = @Status");
             AssertSqlParameters(new Dictionary<string, object>

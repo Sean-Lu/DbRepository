@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder, IUpdateable<TEntity>
+public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<IUpdateable<TEntity>>, IUpdateable<TEntity>
 {
     private const string SqlTemplate = "UPDATE {0} SET {1}{2}";
     private const string SqlTemplateForClickHouse = "ALTER TABLE {0} UPDATE {1}{2}";
