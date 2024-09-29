@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Util;
@@ -22,8 +23,11 @@ namespace Sean.Core.DbRepository.Test
         [TestMethod]
         public void ValidateSingleTableSqlParameterized()
         {
+            //CountryType[] list = { CountryType.China, CountryType.America, CountryType.Russia };
+            List<CountryType> list = new List<CountryType> { CountryType.China, CountryType.America, CountryType.Russia };
             var sqlCommand = WhereClauseSqlBuilder<TestEntity>.Create(_sqlAdapter)
                 .Where(entity => entity.UserId == 10010L || entity.IsVip)
+                .Where(entity => list.Contains(entity.Country))
                 .Where(entity => !string.IsNullOrEmpty(entity.PhoneNumber))
                 .Build();
             var whereClause = sqlCommand.Sql;
@@ -31,17 +35,21 @@ namespace Sean.Core.DbRepository.Test
             var expectedParameters = new Dictionary<string, object>
             {
                 { "UserId", 10010L },
+                { "Country", list },
                 { "IsVip", true }
             };
-            Assert.AreEqual("(`UserId` = @UserId OR `IsVip` = @IsVip) AND `PhoneNumber` IS NOT NULL AND `PhoneNumber` <> ''", whereClause);
+            Assert.AreEqual("(`UserId` = @UserId OR `IsVip` = @IsVip) AND `Country` IN @Country AND `PhoneNumber` IS NOT NULL AND `PhoneNumber` <> ''", whereClause);
             AssertSqlParameters(expectedParameters, SqlParameterUtil.ConvertToDicParameter(parameters));
         }
 
         [TestMethod]
         public void ValidateSingleTableNotSqlParameterized()
         {
+            //CountryType[] list = { CountryType.China, CountryType.America, CountryType.Russia };
+            List<CountryType> list = new List<CountryType> { CountryType.China, CountryType.America, CountryType.Russia };
             var sqlCommand = WhereClauseSqlBuilder<TestEntity>.Create(_sqlAdapter)
                 .Where(entity => entity.UserId == 10010L || entity.IsVip)
+                .Where(entity => list.Contains(entity.Country))
                 .Where(entity => !string.IsNullOrEmpty(entity.PhoneNumber))
                 .SetSqlParameterized(false)
                 .Build();
@@ -50,9 +58,10 @@ namespace Sean.Core.DbRepository.Test
             var expectedParameters = new Dictionary<string, object>
             {
                 { "UserId", 10010L },
+                { "Country", list },
                 { "IsVip", true }
             };
-            Assert.AreEqual("(`UserId` = 10010 OR `IsVip` = 1) AND `PhoneNumber` IS NOT NULL AND `PhoneNumber` <> ''", whereClause);
+            Assert.AreEqual("(`UserId` = 10010 OR `IsVip` = 1) AND `Country` IN (1,2,4) AND `PhoneNumber` IS NOT NULL AND `PhoneNumber` <> ''", whereClause);
             AssertSqlParameters(expectedParameters, SqlParameterUtil.ConvertToDicParameter(parameters));
         }
 

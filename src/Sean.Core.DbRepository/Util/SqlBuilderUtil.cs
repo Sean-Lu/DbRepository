@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -340,6 +341,7 @@ internal static class SqlBuilderUtil
     /// <summary>
     /// 
     /// </summary>
+    /// <param name="dbType">Database type.</param>
     /// <param name="value"></param>
     /// <param name="convertible">Indicates whether <paramref name="value"/> is convertible.</param>
     /// <returns></returns>
@@ -357,6 +359,7 @@ internal static class SqlBuilderUtil
         {
             return $"'{value.ToString().Replace("'", "\\'")}'";
         }
+
         if (valueType == typeof(bool))
         {
             return dbType switch
@@ -367,6 +370,7 @@ internal static class SqlBuilderUtil
                 _ => (bool)value ? "1" : "0"
             };
         }
+
         if (valueType == typeof(byte)
             || valueType == typeof(sbyte)
             || valueType == typeof(short)
@@ -382,18 +386,21 @@ internal static class SqlBuilderUtil
         {
             return $"{value}";
         }
+
         if (valueType == typeof(DateTime))
         {
             return $"'{value:yyyy-MM-dd HH:mm:ss}'";
         }
+
         if (valueType.IsEnum)
         {
             return $"{(int)value}";
         }
-        if (valueType.IsArray)
+
+        if (value is IEnumerable enumerable)// 数组或集合
         {
-            convertible = false;
-            return null;
+            var valueStrings = enumerable.Cast<object>().Select(v => ConvertToSqlString(dbType, v, out _));
+            return $"({string.Join(",", valueStrings)})";
         }
 
         return $"'{value.ToString().Replace("'", "\\'")}'";
