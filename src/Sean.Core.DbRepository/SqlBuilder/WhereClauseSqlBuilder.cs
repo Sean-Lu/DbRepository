@@ -27,11 +27,11 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
     {
     }
 
-    public static WhereClauseSqlBuilder<TEntity> Create(ISqlAdapter sqlAdapter)
+    public static IWhereClause<TEntity> Create(ISqlAdapter sqlAdapter)
     {
         return new WhereClauseSqlBuilder<TEntity>(sqlAdapter);
     }
-    public static WhereClauseSqlBuilder<TEntity> Create(DatabaseType databaseType)
+    public static IWhereClause<TEntity> Create(DatabaseType databaseType)
     {
         return new WhereClauseSqlBuilder<TEntity>(databaseType);
     }

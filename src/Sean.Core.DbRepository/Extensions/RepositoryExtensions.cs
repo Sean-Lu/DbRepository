@@ -150,22 +150,22 @@ public static class RepositoryExtensions
     }
 
     /// <summary>
-    /// Create an instance of <see cref="WhereClauseSqlBuilder{TEntity}"/>.
+    /// Create an instance of <see cref="IWhereClause{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <returns></returns>
-    public static WhereClauseSqlBuilder<TEntity> CreateWhereClauseSqlBuilder<TEntity>(this IBaseRepository repository)
+    public static IWhereClause<TEntity> CreateWhereClauseSqlBuilder<TEntity>(this IBaseRepository repository)
     {
         return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType);
     }
     /// <summary>
-    /// Create an instance of <see cref="WhereClauseSqlBuilder{TEntity}"/>.
+    /// Create an instance of <see cref="IWhereClause{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <returns></returns>
-    public static WhereClauseSqlBuilder<TEntity> CreateWhereClauseSqlBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
+    public static IWhereClause<TEntity> CreateWhereClauseSqlBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
         return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType);
     }

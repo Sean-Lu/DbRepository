@@ -33,7 +33,7 @@ public class SqlFactory
     {
         return CountableSqlBuilder<TEntity>.Create(_dbType, tableName);
     }
-    public WhereClauseSqlBuilder<TEntity> CreateWhereClauseSqlBuilder<TEntity>()
+    public IWhereClause<TEntity> CreateWhereClauseSqlBuilder<TEntity>()
     {
         return WhereClauseSqlBuilder<TEntity>.Create(_dbType);
     }
@@ -62,7 +62,7 @@ public class SqlFactory
     {
         return CountableSqlBuilder<TEntity>.Create(dbType, tableName);
     }
-    public static WhereClauseSqlBuilder<TEntity> CreateWhereClauseSqlBuilder<TEntity>(DatabaseType dbType)
+    public static IWhereClause<TEntity> CreateWhereClauseSqlBuilder<TEntity>(DatabaseType dbType)
     {
         return WhereClauseSqlBuilder<TEntity>.Create(dbType);
     }
