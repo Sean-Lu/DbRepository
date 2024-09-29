@@ -127,6 +127,12 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
         return this;
     }
 
+    public IWhereClause<TEntity> IsMultiTable(bool isMultiTable)
+    {
+        _isMultiTable = isMultiTable;
+        return this;
+    }
+
     protected override ISqlCommand BuildSqlCommand()
     {
         if (_isMultiTable)
