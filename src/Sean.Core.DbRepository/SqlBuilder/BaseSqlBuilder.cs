@@ -39,19 +39,21 @@ public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBu
     {
         var sqlCommand = BuildSqlCommand();
 
-        if (sqlCommand?.Parameter != null && !SqlParameterized)
+        if (sqlCommand?.Parameter != null)
         {
-            sqlCommand.ConvertSqlToNonParameter();
-        }
-
-        if (sqlCommand?.Parameter != null && SqlAdapter.DbType is DatabaseType.MsAccess or DatabaseType.Informix or DatabaseType.DuckDB or DatabaseType.Xugu)
-        {
-            sqlCommand.BindSqlParameterType = BindSqlParameterType.BindByPosition;
-            sqlCommand.ConvertParameterToDictionary();
-            // Informix ODBC Driver.
-            if (SqlAdapter.DbType is DatabaseType.Informix or DatabaseType.DuckDB or DatabaseType.Xugu)
+            if (!SqlParameterized)
             {
-                sqlCommand.ConvertSqlToUseQuestionMarkParameter();
+                sqlCommand.ConvertSqlToNonParameter();
+            }
+            else if (SqlAdapter.DbType is DatabaseType.MsAccess or DatabaseType.Informix or DatabaseType.DuckDB or DatabaseType.Xugu)
+            {
+                sqlCommand.BindSqlParameterType = BindSqlParameterType.BindByPosition;
+                sqlCommand.ConvertParameterToDictionary();
+                // Informix ODBC Driver.
+                if (SqlAdapter.DbType is DatabaseType.Informix or DatabaseType.DuckDB or DatabaseType.Xugu)
+                {
+                    sqlCommand.ConvertSqlToUseQuestionMarkParameter();
+                }
             }
         }
 
