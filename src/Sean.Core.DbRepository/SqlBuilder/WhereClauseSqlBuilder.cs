@@ -10,13 +10,14 @@ namespace Sean.Core.DbRepository;
 
 public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntity>>, IWhereClause<TEntity>
 {
-    private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $"{_where.Value}" : string.Empty;
+    private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? _includeKeyword ? $" WHERE {_where.Value}" : _where.Value.ToString() : string.Empty;
 
     private readonly Lazy<StringBuilder> _where = new();
 
     private readonly List<Action> _whereActions = new();
 
     private bool _isMultiTable;
+    private bool _includeKeyword;
 
     private object _parameter;
 
@@ -133,6 +134,12 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
         return this;
     }
 
+    public IWhereClause<TEntity> IncludeKeyword(bool includeKeyword)
+    {
+        _includeKeyword = includeKeyword;
+        return this;
+    }
+
     protected override ISqlCommand BuildSqlCommand()
     {
         if (_isMultiTable)
@@ -143,7 +150,6 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
         if (_whereActions.Any())
         {
             _whereActions.ForEach(c => c.Invoke());
-            _whereActions.Clear();
         }
 
         var sb = new StringBuilder();

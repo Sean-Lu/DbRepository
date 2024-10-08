@@ -15,10 +15,10 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
     private readonly List<TableFieldInfoForSqlBuilder> _tableFieldList = new();
 
     private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
-    private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value.ToString()}" : string.Empty;
-    private string GroupBySql => _groupBy.IsValueCreated && _groupBy.Value.Length > 0 ? $" GROUP BY {_groupBy.Value.ToString()}" : string.Empty;
-    private string HavingSql => _having.IsValueCreated && _having.Value.Length > 0 ? $" HAVING {_having.Value.ToString()}" : string.Empty;
-    private string OrderBySql => _orderBy.IsValueCreated && _orderBy.Value.Length > 0 ? $" ORDER BY {_orderBy.Value.ToString()}" : string.Empty;
+    private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value}" : string.Empty;
+    private string GroupBySql => _groupBy.IsValueCreated && _groupBy.Value.Length > 0 ? $" GROUP BY {_groupBy.Value}" : string.Empty;
+    private string HavingSql => _having.IsValueCreated && _having.Value.Length > 0 ? $" HAVING {_having.Value}" : string.Empty;
+    private string OrderBySql => _orderBy.IsValueCreated && _orderBy.Value.Length > 0 ? $" ORDER BY {_orderBy.Value}" : string.Empty;
 
     private readonly Lazy<StringBuilder> _joinTable = new();
     private readonly Lazy<StringBuilder> _where = new();
@@ -27,6 +27,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
     private readonly Lazy<StringBuilder> _orderBy = new();
 
     private readonly List<Action> _whereActions = new();
+    private readonly List<Action> _orderByActions = new();
 
     private bool MultiTable => _joinTable.IsValueCreated && _joinTable.Value.Length > 0;
 
@@ -364,11 +365,14 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
     /// <returns></returns>
     public virtual IQueryable<TEntity> OrderBy(string orderBy)
     {
-        if (!string.IsNullOrWhiteSpace(orderBy))
+        _orderByActions.Add(() =>
         {
-            if (_orderBy.Value.Length > 0) _orderBy.Value.Append(", ");
-            _orderBy.Value.Append(orderBy);
-        }
+            if (!string.IsNullOrWhiteSpace(orderBy))
+            {
+                if (_orderBy.Value.Length > 0) _orderBy.Value.Append(", ");
+                _orderBy.Value.Append(orderBy);
+            }
+        });
         return this;
     }
     public virtual IQueryable<TEntity> OrderBy(OrderByCondition orderBy)
@@ -388,21 +392,38 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
     }
     public virtual IQueryable<TEntity> OrderBy(OrderByType type, params string[] fieldNames)
     {
-        if (fieldNames != null && fieldNames.Any())
+        _orderByActions.Add(() =>
         {
-            if (_orderBy.Value.Length > 0) _orderBy.Value.Append(", ");
-
-            if (MultiTable)
+            if (fieldNames != null && fieldNames.Any())
             {
-                SqlAdapter.MultiTable = true;
+                if (_orderBy.Value.Length > 0) _orderBy.Value.Append(", ");
+
+                _orderBy.Value.Append($"{string.Join(", ", fieldNames.Select(fieldName => SqlAdapter.FormatFieldName(fieldName)).ToList())} {type.ToSqlString()}");
             }
-            _orderBy.Value.Append($"{string.Join(", ", fieldNames.Select(fieldName => SqlAdapter.FormatFieldName(fieldName)).ToList())} {type.ToSqlString()}");
-        }
+        });
         return this;
     }
     public virtual IQueryable<TEntity> OrderBy(OrderByType type, Expression<Func<TEntity, object>> fieldExpression)
     {
         return OrderBy(type, fieldExpression.GetFieldNames().ToArray());
+    }
+    public virtual IQueryable<TEntity> OrderBy<TEntity2>(OrderByType type, Expression<Func<TEntity2, object>> fieldExpression)
+    {
+        _orderByActions.Add(() =>
+        {
+            var fieldNames = fieldExpression.GetFieldNames();
+            if (fieldNames != null && fieldNames.Any())
+            {
+                if (_orderBy.Value.Length > 0) _orderBy.Value.Append(", ");
+
+                var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+                {
+                    MultiTable = true
+                };
+                _orderBy.Value.Append($"{string.Join(", ", fieldNames.Select(fieldName => aqlAdapter.FormatFieldName(fieldName)).ToList())} {type.ToSqlString()}");
+            }
+        });
+        return this;
     }
     #endregion
 
@@ -459,7 +480,10 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
         if (_whereActions.Any())
         {
             _whereActions.ForEach(c => c.Invoke());
-            _whereActions.Clear();
+        }
+        if (_orderByActions.Any())
+        {
+            _orderByActions.ForEach(c => c.Invoke());
         }
 
         var sql = new DefaultSqlCommand(SqlAdapter.DbType);

@@ -1,6 +1,8 @@
 ﻿namespace Sean.Core.DbRepository;
 
-public interface IDeleteable<TEntity> : IBaseSqlBuilder<IDeleteable<TEntity>>, ISqlWhere<TEntity, IDeleteable<TEntity>>, ISqlJoin<TEntity, IDeleteable<TEntity>>
+public interface IDeleteable<TEntity> : IBaseSqlBuilder<IDeleteable<TEntity>>,
+    ISqlJoin<TEntity, IDeleteable<TEntity>>,
+    ISqlWhere<TEntity, IDeleteable<TEntity>>
 {
     /// <summary>
     /// Whether to allow empty WHERE clauses.

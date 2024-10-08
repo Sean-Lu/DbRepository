@@ -3,7 +3,12 @@ using System.Linq.Expressions;
 
 namespace Sean.Core.DbRepository;
 
-public interface IQueryable<TEntity> : IBaseSqlBuilder<IQueryable<TEntity>>, ISqlWhere<TEntity, IQueryable<TEntity>>, ISqlJoin<TEntity, IQueryable<TEntity>>
+public interface IQueryable<TEntity> : IBaseSqlBuilder<IQueryable<TEntity>>,
+    ISqlJoin<TEntity, IQueryable<TEntity>>,
+    ISqlWhere<TEntity, IQueryable<TEntity>>,
+    ISqlGroupBy<TEntity, IQueryable<TEntity>>,
+    ISqlHaving<TEntity, IQueryable<TEntity>>,
+    ISqlOrderBy<TEntity, IQueryable<TEntity>>
 {
     #region [Field]
     /// <summary>
@@ -139,37 +144,6 @@ public interface IQueryable<TEntity> : IBaseSqlBuilder<IQueryable<TEntity>>, ISq
     /// <param name="fieldExpression"></param>
     /// <returns></returns>
     IQueryable<TEntity> DistinctFields(Expression<Func<TEntity, object>> fieldExpression);
-    #endregion
-
-    #region [GROUP BY]
-    /// <summary>
-    /// GROUP BY column_name
-    /// </summary>
-    /// <param name="groupBy">The [GROUP BY] keyword is not included.</param>
-    /// <returns></returns>
-    IQueryable<TEntity> GroupBy(string groupBy);
-    IQueryable<TEntity> GroupBy(Expression<Func<TEntity, object>> fieldExpression);
-    #endregion
-
-    #region [HAVING]
-    /// <summary>
-    /// HAVING aggregate_function(column_name) operator value
-    /// </summary>
-    /// <param name="having">The [HAVING] keyword is not included.</param>
-    /// <returns></returns>
-    IQueryable<TEntity> Having(string having);
-    #endregion
-
-    #region [ORDER BY]
-    /// <summary>
-    /// ORDER BY column_name,column_name ASC|DESC;
-    /// </summary>
-    /// <param name="orderBy">The [ORDER BY] keyword is not included.</param>
-    /// <returns></returns>
-    IQueryable<TEntity> OrderBy(string orderBy);
-    IQueryable<TEntity> OrderBy(OrderByCondition orderBy);
-    IQueryable<TEntity> OrderBy(OrderByType type, params string[] fieldNames);
-    IQueryable<TEntity> OrderBy(OrderByType type, Expression<Func<TEntity, object>> fieldExpression);
     #endregion
 
     /// <summary>

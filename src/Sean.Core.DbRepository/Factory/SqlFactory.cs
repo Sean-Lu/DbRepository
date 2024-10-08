@@ -37,6 +37,10 @@ public class SqlFactory
     {
         return WhereClauseSqlBuilder<TEntity>.Create(_dbType);
     }
+    public IOrderByClause<TEntity> CreateOrderByClauseSqlBuilder<TEntity>()
+    {
+        return OrderByClauseSqlBuilder<TEntity>.Create(_dbType);
+    }
 
     public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
     {
@@ -65,5 +69,9 @@ public class SqlFactory
     public static IWhereClause<TEntity> CreateWhereClauseSqlBuilder<TEntity>(DatabaseType dbType)
     {
         return WhereClauseSqlBuilder<TEntity>.Create(dbType);
+    }
+    public static IOrderByClause<TEntity> CreateOrderByClauseSqlBuilder<TEntity>(DatabaseType dbType)
+    {
+        return OrderByClauseSqlBuilder<TEntity>.Create(dbType);
     }
 }

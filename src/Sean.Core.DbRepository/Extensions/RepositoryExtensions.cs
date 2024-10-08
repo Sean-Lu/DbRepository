@@ -169,5 +169,26 @@ public static class RepositoryExtensions
     {
         return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType);
     }
+
+    /// <summary>
+    /// Create an instance of <see cref="IOrderByClause{TEntity}"/>.
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <param name="repository"></param>
+    /// <returns></returns>
+    public static IOrderByClause<TEntity> CreateOrderByClauseSqlBuilder<TEntity>(this IBaseRepository repository)
+    {
+        return OrderByClauseSqlBuilder<TEntity>.Create(repository.DbType);
+    }
+    /// <summary>
+    /// Create an instance of <see cref="IOrderByClause{TEntity}"/>.
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <param name="repository"></param>
+    /// <returns></returns>
+    public static IOrderByClause<TEntity> CreateOrderByClauseSqlBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
+    {
+        return OrderByClauseSqlBuilder<TEntity>.Create(repository.DbType);
+    }
     #endregion
 }

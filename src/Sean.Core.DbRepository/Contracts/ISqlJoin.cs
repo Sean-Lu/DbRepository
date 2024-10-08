@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace Sean.Core.DbRepository;
 
-public interface ISqlJoin<TEntity, TResult>
+public interface ISqlJoin<TEntity, out TResult>
 {
     #region [Join Table]
     /// <summary>
