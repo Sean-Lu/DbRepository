@@ -25,6 +25,10 @@ public class OrderByClauseSqlBuilder<TEntity> : BaseSqlBuilder<IOrderByClause<TE
     {
     }
 
+    public static IOrderByClause<TEntity> Create()
+    {
+        return new OrderByClauseSqlBuilder<TEntity>(DatabaseType.Unknown);
+    }
     public static IOrderByClause<TEntity> Create(ISqlAdapter sqlAdapter)
     {
         return new OrderByClauseSqlBuilder<TEntity>(sqlAdapter);

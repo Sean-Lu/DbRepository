@@ -60,8 +60,5 @@ public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBu
         return sqlCommand;
     }
 
-    protected virtual ISqlCommand BuildSqlCommand()
-    {
-        return null;
-    }
+    protected abstract ISqlCommand BuildSqlCommand();
 }

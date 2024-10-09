@@ -128,38 +128,45 @@ public class DefaultSqlCommand : ISqlCommand
     {
         if (_useQuestionMarkParameter)
         {
-            var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
-            if (dicParameters != null && dicParameters.Any())
+            var pattern = @"\?";
+            if (Regex.IsMatch(Sql, pattern))
             {
-                var index = 0;
-                Sql = Regex.Replace(Sql, @"\?", match =>
+                var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
+                if (dicParameters != null && dicParameters.Any())
                 {
-                    if (index >= dicParameters.Count)
+                    var index = 0;
+                    Sql = Regex.Replace(Sql, pattern, match =>
                     {
-                        throw new Exception("Not enough sql parameters passed.");
-                    }
+                        if (index >= dicParameters.Count)
+                        {
+                            throw new Exception("Not enough sql parameters passed.");
+                        }
 
-                    var sqlParameter = dicParameters.ElementAt(index++);
-                    var convertResult = SqlBuilderUtil.ConvertToSqlString(DbType, sqlParameter.Value, out var convertible);
-                    return convertible ? convertResult : throw new Exception($"The sql parameter [{sqlParameter.Key}] cannot be converted to a string value.");
-                });
+                        var sqlParameter = dicParameters.ElementAt(index++);
+                        var convertResult = SqlBuilderUtil.ConvertToSqlString(DbType, sqlParameter.Value, out var convertible);
+                        return convertible ? convertResult : throw new Exception($"The sql parameter [{sqlParameter.Key}] cannot be converted to a string value.");
+                    });
+                }
             }
         }
         else
         {
             var sortedSqlParameters = SqlParameterUtil.ParseSqlParameters(Sql);
-            var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
-            if (sortedSqlParameters != null && sortedSqlParameters.Any() && dicParameters != null && dicParameters.Any())
+            if (sortedSqlParameters != null && sortedSqlParameters.Any())
             {
-                foreach (var keyValuePair in sortedSqlParameters)
+                var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
+                if (dicParameters != null && dicParameters.Any())
                 {
-                    var paraName = keyValuePair.Key;
-                    if (dicParameters.ContainsKey(paraName))
+                    foreach (var kv in sortedSqlParameters)
                     {
-                        var convertResult = SqlBuilderUtil.ConvertToSqlString(DbType, dicParameters[paraName], out var convertible);
-                        if (convertible)
+                        var paraName = kv.Key;
+                        if (dicParameters.ContainsKey(paraName))
                         {
-                            Sql = SqlParameterUtil.ReplaceParameter(Sql, paraName, convertResult);
+                            var convertResult = SqlBuilderUtil.ConvertToSqlString(DbType, dicParameters[paraName], out var convertible);
+                            if (convertible)
+                            {
+                                Sql = SqlParameterUtil.ReplaceParameter(Sql, paraName, convertResult);
+                            }
                         }
                     }
                 }

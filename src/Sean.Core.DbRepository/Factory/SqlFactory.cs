@@ -1,47 +1,7 @@
 ﻿namespace Sean.Core.DbRepository;
 
-public class SqlFactory
+public static class SqlFactory
 {
-    private readonly DatabaseType _dbType;
-
-    public SqlFactory(DatabaseType dbType)
-    {
-        _dbType = dbType;
-    }
-
-    public IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(bool autoIncludeFields, string tableName = null)
-    {
-        return ReplaceableSqlBuilder<TEntity>.Create(_dbType, autoIncludeFields, tableName);
-    }
-    public IInsertable<TEntity> CreateInsertableBuilder<TEntity>(bool autoIncludeFields, string tableName = null)
-    {
-        return InsertableSqlBuilder<TEntity>.Create(_dbType, autoIncludeFields, tableName);
-    }
-    public IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(string tableName = null)
-    {
-        return DeleteableSqlBuilder<TEntity>.Create(_dbType, tableName);
-    }
-    public IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(bool autoIncludeFields, string tableName = null)
-    {
-        return UpdateableSqlBuilder<TEntity>.Create(_dbType, autoIncludeFields, tableName);
-    }
-    public IQueryable<TEntity> CreateQueryableBuilder<TEntity>(bool autoIncludeFields, string tableName = null)
-    {
-        return QueryableSqlBuilder<TEntity>.Create(_dbType, autoIncludeFields, tableName);
-    }
-    public ICountable<TEntity> CreateCountableBuilder<TEntity>(string tableName = null)
-    {
-        return CountableSqlBuilder<TEntity>.Create(_dbType, tableName);
-    }
-    public IWhereClause<TEntity> CreateWhereClauseSqlBuilder<TEntity>()
-    {
-        return WhereClauseSqlBuilder<TEntity>.Create(_dbType);
-    }
-    public IOrderByClause<TEntity> CreateOrderByClauseSqlBuilder<TEntity>()
-    {
-        return OrderByClauseSqlBuilder<TEntity>.Create(_dbType);
-    }
-
     public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
     {
         return ReplaceableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields, tableName);
@@ -66,11 +26,11 @@ public class SqlFactory
     {
         return CountableSqlBuilder<TEntity>.Create(dbType, tableName);
     }
-    public static IWhereClause<TEntity> CreateWhereClauseSqlBuilder<TEntity>(DatabaseType dbType)
+    public static IWhereClause<TEntity> CreateWhereClauseBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
         return WhereClauseSqlBuilder<TEntity>.Create(dbType);
     }
-    public static IOrderByClause<TEntity> CreateOrderByClauseSqlBuilder<TEntity>(DatabaseType dbType)
+    public static IOrderByClause<TEntity> CreateOrderByClauseBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
         return OrderByClauseSqlBuilder<TEntity>.Create(dbType);
     }
