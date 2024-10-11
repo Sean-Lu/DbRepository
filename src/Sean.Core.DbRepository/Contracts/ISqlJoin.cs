@@ -37,27 +37,27 @@ public interface ISqlJoin<TEntity, out TResult>
     /// <param name="fieldExpression"></param>
     /// <param name="fieldExpression2"></param>
     /// <returns></returns>
-    TResult InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
+    TResult InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string aliasName = null);
     /// <summary>
     /// LEFT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <param name="fieldExpression2"></param>
     /// <returns></returns>
-    TResult LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
+    TResult LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string aliasName = null);
     /// <summary>
     /// RIGHT JOIN table_name2 ON table_name1.column_name=table_name2.column_name
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <param name="fieldExpression2"></param>
     /// <returns></returns>
-    TResult RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
+    TResult RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string aliasName = null);
     /// <summary>
     /// FULL JOIN table_name2 ON table_name1.column_name=table_name2.column_name
     /// </summary>
     /// <param name="fieldExpression"></param>
     /// <param name="fieldExpression2"></param>
     /// <returns></returns>
-    TResult FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2);
+    TResult FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string aliasName = null);
     #endregion
 }

@@ -21,7 +21,7 @@ public class OrderByClauseSqlBuilder<TEntity> : BaseSqlBuilder<IOrderByClause<TE
     private OrderByClauseSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
-    private OrderByClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter)
+    private OrderByClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
 
@@ -88,7 +88,7 @@ public class OrderByClauseSqlBuilder<TEntity> : BaseSqlBuilder<IOrderByClause<TE
     {
         return OrderBy(type, fieldExpression.GetFieldNames().ToArray());
     }
-    public virtual IOrderByClause<TEntity> OrderBy<TEntity2>(OrderByType type, Expression<Func<TEntity2, object>> fieldExpression)
+    public virtual IOrderByClause<TEntity> OrderBy<TEntity2>(OrderByType type, Expression<Func<TEntity2, object>> fieldExpression, string aliasName = null)
     {
         _isMultiTable = true;
         _orderByActions.Add(() =>
@@ -98,11 +98,7 @@ public class OrderByClauseSqlBuilder<TEntity> : BaseSqlBuilder<IOrderByClause<TE
             {
                 if (_orderBy.Value.Length > 0) _orderBy.Value.Append(", ");
 
-                var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
-                {
-                    MultiTable = true
-                };
-                _orderBy.Value.Append($"{string.Join(", ", fieldNames.Select(fieldName => aqlAdapter.FormatFieldName(fieldName)).ToList())} {type.ToSqlString()}");
+                _orderBy.Value.Append($"{string.Join(", ", fieldNames.Select(fieldName => SqlAdapter.FormatFieldName(fieldName, typeof(TEntity2).GetEntityInfo().TableName, aliasName)).ToList())} {type.ToSqlString()}");
             }
         });
         return this;
@@ -131,6 +127,7 @@ public class OrderByClauseSqlBuilder<TEntity> : BaseSqlBuilder<IOrderByClause<TE
         if (_orderByActions.Any())
         {
             _orderByActions.ForEach(c => c.Invoke());
+            _orderByActions.Clear();
         }
 
         var sb = new StringBuilder();

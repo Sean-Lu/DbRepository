@@ -2,10 +2,11 @@
 
 public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBuild : class
 {
+    protected string TableName { get; }
     /// <summary>
     /// SQL adapter.
     /// </summary>
-    public ISqlAdapter SqlAdapter { get; }
+    protected ISqlAdapter SqlAdapter { get; }
     /// <summary>
     /// Whether the SQL is indent. The default value is false.
     /// </summary>
@@ -18,10 +19,12 @@ public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBu
     protected BaseSqlBuilder(DatabaseType dbType, string tableName)
     {
         SqlAdapter = new DefaultSqlAdapter(dbType, tableName);
+        TableName = tableName;
     }
-    protected BaseSqlBuilder(ISqlAdapter sqlAdapter)
+    protected BaseSqlBuilder(ISqlAdapter sqlAdapter, string tableName)
     {
         SqlAdapter = sqlAdapter;
+        TableName = tableName;
     }
 
     public virtual TBuild SetSqlIndented(bool sqlIndented)

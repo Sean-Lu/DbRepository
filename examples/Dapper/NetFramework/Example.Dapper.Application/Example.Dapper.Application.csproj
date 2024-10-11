@@ -45,11 +45,13 @@
     <Compile Include="Contracts\ICheckInLogService.cs" />
     <Compile Include="Contracts\ITestService.cs" />
     <Compile Include="Contracts\ITestSimpleService.cs" />
+    <Compile Include="Contracts\IUserService.cs" />
     <Compile Include="Extensions\DIExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\CheckInLogService.cs" />
     <Compile Include="Services\TestService.cs" />
     <Compile Include="Services\TestSimpleService.cs" />
+    <Compile Include="Services\UserService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj">

@@ -21,10 +21,10 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
 
     private object _parameter;
 
-    private WhereClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter)
+    private WhereClauseSqlBuilder(DatabaseType databaseType) : base(databaseType, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
-    private WhereClauseSqlBuilder(DatabaseType databaseType) : base(databaseType, typeof(TEntity).GetEntityInfo().TableName)
+    private WhereClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
 
@@ -60,16 +60,17 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
         });
         return this;
     }
-    public virtual IWhereClause<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression)
+    public virtual IWhereClause<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression, string aliasName = null)
     {
         _isMultiTable = true;
         _whereActions.Add(() =>
         {
-            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+            var sqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
             {
+                AliasName = aliasName,
                 MultiTable = true
             };
-            SqlBuilderUtil.Where(aqlAdapter,
+            SqlBuilderUtil.Where(sqlAdapter,
                 SqlParameterUtil.ConvertToDicParameter(_parameter),
                 whereClause => SqlBuilderUtil.Where(_where.Value, whereClause),
                 dicParameters => SetParameter(dicParameters),
@@ -88,19 +89,19 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
         return Where(condition ? trueWhereExpression : falseWhereExpression);
     }
 
-    public virtual IWhereClause<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
+    public virtual IWhereClause<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression, string aliasName = null)
     {
-        return condition ? Where(whereExpression) : this;
+        return condition ? Where(whereExpression, aliasName) : this;
     }
 
-    public virtual IWhereClause<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
+    public virtual IWhereClause<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression, string trueAliasName = null, string falseAliasName = null)
     {
-        return Where(condition ? trueWhereExpression : falseWhereExpression);
+        return condition ? Where(trueWhereExpression, trueAliasName) : Where(falseWhereExpression, falseAliasName);
     }
 
-    public virtual IWhereClause<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
+    public virtual IWhereClause<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression, string trueAliasName = null, string falseAliasName = null)
     {
-        return condition ? Where(trueWhereExpression) : Where(falseWhereExpression);
+        return condition ? Where(trueWhereExpression, trueAliasName) : Where(falseWhereExpression, falseAliasName);
     }
 
     public virtual IWhereClause<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
@@ -111,16 +112,17 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
         });
         return this;
     }
-    public virtual IWhereClause<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
+    public virtual IWhereClause<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null, string aliasName = null)
     {
         _isMultiTable = true;
         _whereActions.Add(() =>
         {
-            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+            var sqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
             {
+                AliasName = aliasName,
                 MultiTable = true
             };
-            SqlBuilderUtil.WhereField(aqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+            SqlBuilderUtil.WhereField(sqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
         });
         return this;
     }
@@ -154,6 +156,7 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
         if (_whereActions.Any())
         {
             _whereActions.ForEach(c => c.Invoke());
+            _whereActions.Clear();
         }
 
         var sb = new StringBuilder();

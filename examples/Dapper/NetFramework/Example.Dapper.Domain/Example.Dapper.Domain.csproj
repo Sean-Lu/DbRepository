@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Contracts\ICheckInLogRepository.cs" />
     <Compile Include="Contracts\ITestRepository.cs" />
+    <Compile Include="Contracts\IUserRepository.cs" />
     <Compile Include="Extensions\DIExtensions.cs" />
     <Compile Include="Handler\MsAccessDateTimeHandler.cs" />
     <Compile Include="Handler\OracleBoolTypeHandler.cs" />
@@ -53,6 +54,7 @@
     <Compile Include="Repositories\CheckInLogRepository.cs" />
     <Compile Include="Repositories\CommonRepository.cs" />
     <Compile Include="Repositories\TestRepository.cs" />
+    <Compile Include="Repositories\UserRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj">

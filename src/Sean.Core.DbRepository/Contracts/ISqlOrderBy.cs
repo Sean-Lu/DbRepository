@@ -15,6 +15,6 @@ public interface ISqlOrderBy<TEntity, out TResult>
     TResult OrderBy(OrderByCondition orderBy);
     TResult OrderBy(OrderByType type, params string[] fieldNames);
     TResult OrderBy(OrderByType type, Expression<Func<TEntity, object>> fieldExpression);
-    TResult OrderBy<TEntity2>(OrderByType type, Expression<Func<TEntity2, object>> fieldExpression);
+    TResult OrderBy<TEntity2>(OrderByType type, Expression<Func<TEntity2, object>> fieldExpression, string aliasName = null);
     #endregion
 }

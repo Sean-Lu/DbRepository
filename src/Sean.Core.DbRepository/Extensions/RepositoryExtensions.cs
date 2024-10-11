@@ -150,12 +150,33 @@ public static class RepositoryExtensions
     }
 
     /// <summary>
+    /// Create an instance of <see cref="ITableNameClause{TEntity}"/>.
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <param name="repository"></param>
+    /// <returns></returns>
+    public static ITableNameClause<TEntity> CreateTableNameClauseBuilder<TEntity>(this IBaseRepository repository)
+    {
+        return TableNameClauseSqlBuilder<TEntity>.Create(repository.DbType);
+    }
+    /// <summary>
+    /// Create an instance of <see cref="ITableNameClause{TEntity}"/>.
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <param name="repository"></param>
+    /// <returns></returns>
+    public static ITableNameClause<TEntity> CreateTableNameClauseBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
+    {
+        return TableNameClauseSqlBuilder<TEntity>.Create(repository.DbType);
+    }
+
+    /// <summary>
     /// Create an instance of <see cref="IWhereClause{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <returns></returns>
-    public static IWhereClause<TEntity> CreateWhereClauseSqlBuilder<TEntity>(this IBaseRepository repository)
+    public static IWhereClause<TEntity> CreateWhereClauseBuilder<TEntity>(this IBaseRepository repository)
     {
         return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType);
     }
@@ -165,7 +186,7 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <returns></returns>
-    public static IWhereClause<TEntity> CreateWhereClauseSqlBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
+    public static IWhereClause<TEntity> CreateWhereClauseBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
         return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType);
     }
@@ -176,7 +197,7 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <returns></returns>
-    public static IOrderByClause<TEntity> CreateOrderByClauseSqlBuilder<TEntity>(this IBaseRepository repository)
+    public static IOrderByClause<TEntity> CreateOrderByClauseBuilder<TEntity>(this IBaseRepository repository)
     {
         return OrderByClauseSqlBuilder<TEntity>.Create(repository.DbType);
     }
@@ -186,7 +207,7 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <returns></returns>
-    public static IOrderByClause<TEntity> CreateOrderByClauseSqlBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
+    public static IOrderByClause<TEntity> CreateOrderByClauseBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
         return OrderByClauseSqlBuilder<TEntity>.Create(repository.DbType);
     }

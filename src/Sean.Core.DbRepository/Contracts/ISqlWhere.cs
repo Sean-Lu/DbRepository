@@ -19,13 +19,13 @@ public interface ISqlWhere<TEntity, out TResult>
     /// <param name="whereExpression">Lambda expression representing an SQL WHERE condition.</param>
     /// <returns></returns>
     TResult Where(Expression<Func<TEntity, bool>> whereExpression);
-    TResult Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression);
+    TResult Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression, string aliasName = null);
 
     TResult WhereIF(bool condition, Expression<Func<TEntity, bool>> whereExpression);
     TResult WhereIF(bool condition, Expression<Func<TEntity, bool>> trueWhereExpression, Expression<Func<TEntity, bool>> falseWhereExpression);
-    TResult WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression);
-    TResult WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression);
-    TResult WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression);
+    TResult WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression, string aliasName = null);
+    TResult WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression, string trueAliasName = null, string falseAliasName = null);
+    TResult WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression, string trueAliasName = null, string falseAliasName = null);
 
     /// <summary>
     /// WHERE column_name operator value
@@ -36,6 +36,6 @@ public interface ISqlWhere<TEntity, out TResult>
     /// <param name="paramName"></param>
     /// <returns></returns>
     TResult WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null);
-    TResult WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null);
+    TResult WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null, string aliasName = null);
     #endregion
 }

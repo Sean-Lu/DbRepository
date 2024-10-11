@@ -3,11 +3,10 @@ using System.Threading.Tasks;
 using Example.Dapper.Core.Domain.Entities;
 using Sean.Core.DbRepository;
 
-namespace Example.Dapper.Core.Domain.Contracts
+namespace Example.Dapper.Core.Domain.Contracts;
+
+public interface ITestRepository : IBaseRepository<TestEntity>
 {
-    public interface ITestRepository : IBaseRepository<TestEntity>
-    {
-        Task<bool> TestCRUDAsync(IDbTransaction trans = null);
-        Task<bool> TestCRUDWithTransactionAsync();
-    }
+    Task<bool> TestCRUDAsync(IDbTransaction trans = null);
+    Task<bool> TestCRUDWithTransactionAsync();
 }

@@ -26,6 +26,11 @@ public static class SqlFactory
     {
         return CountableSqlBuilder<TEntity>.Create(dbType, tableName);
     }
+    
+    public static ITableNameClause<TEntity> CreateTableNameClauseBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
+    {
+        return TableNameClauseSqlBuilder<TEntity>.Create(dbType);
+    }
     public static IWhereClause<TEntity> CreateWhereClauseBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
         return WhereClauseSqlBuilder<TEntity>.Create(dbType);

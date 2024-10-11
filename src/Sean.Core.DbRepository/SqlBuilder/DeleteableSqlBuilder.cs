@@ -75,25 +75,25 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>
         return this;
     }
 
-    public virtual IDeleteable<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
+    public virtual IDeleteable<TEntity> InnerJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string aliasName = null)
     {
         var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
-        return InnerJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
+        return InnerJoin($"{SqlAdapter.FormatTableName(joinTableName)}{(!string.IsNullOrWhiteSpace(aliasName) ? $" {aliasName}" : string.Empty)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, aliasName)}");
     }
-    public virtual IDeleteable<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
+    public virtual IDeleteable<TEntity> LeftJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string aliasName = null)
     {
         var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
-        return LeftJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
+        return LeftJoin($"{SqlAdapter.FormatTableName(joinTableName)}{(!string.IsNullOrWhiteSpace(aliasName) ? $" {aliasName}" : string.Empty)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, aliasName)}");
     }
-    public virtual IDeleteable<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
+    public virtual IDeleteable<TEntity> RightJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string aliasName = null)
     {
         var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
-        return RightJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
+        return RightJoin($"{SqlAdapter.FormatTableName(joinTableName)}{(!string.IsNullOrWhiteSpace(aliasName) ? $" {aliasName}" : string.Empty)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, aliasName)}");
     }
-    public virtual IDeleteable<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2)
+    public virtual IDeleteable<TEntity> FullJoin<TEntity2>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string aliasName = null)
     {
         var joinTableName = typeof(TEntity2).GetEntityInfo().TableName;
-        return FullJoin($"{SqlAdapter.FormatTableName(joinTableName)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, joinTableName)}");
+        return FullJoin($"{SqlAdapter.FormatTableName(joinTableName)}{(!string.IsNullOrWhiteSpace(aliasName) ? $" {aliasName}" : string.Empty)} ON {SqlBuilderUtil.GetJoinFields(SqlAdapter, fieldExpression, fieldExpression2, aliasName)}");
     }
     #endregion
 
@@ -116,15 +116,16 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>
         });
         return this;
     }
-    public virtual IDeleteable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression)
+    public virtual IDeleteable<TEntity> Where<TEntity2>(Expression<Func<TEntity2, bool>> whereExpression, string aliasName = null)
     {
         _whereActions.Add(() =>
         {
-            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+            var sqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
             {
+                AliasName = aliasName,
                 MultiTable = true
             };
-            SqlBuilderUtil.Where(aqlAdapter,
+            SqlBuilderUtil.Where(sqlAdapter,
                 SqlParameterUtil.ConvertToDicParameter(_parameter),
                 whereClause => SqlBuilderUtil.Where(_where.Value, whereClause),
                 dicParameters => SetParameter(dicParameters),
@@ -143,19 +144,19 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>
         return Where(condition ? trueWhereExpression : falseWhereExpression);
     }
 
-    public virtual IDeleteable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression)
+    public virtual IDeleteable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> whereExpression, string aliasName = null)
     {
-        return condition ? Where(whereExpression) : this;
+        return condition ? Where(whereExpression, aliasName) : this;
     }
 
-    public virtual IDeleteable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression)
+    public virtual IDeleteable<TEntity> WhereIF<TEntity2>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity2, bool>> falseWhereExpression, string trueAliasName = null, string falseAliasName = null)
     {
-        return Where(condition ? trueWhereExpression : falseWhereExpression);
+        return condition ? Where(trueWhereExpression, trueAliasName) : Where(falseWhereExpression, falseAliasName);
     }
 
-    public virtual IDeleteable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression)
+    public virtual IDeleteable<TEntity> WhereIF<TEntity2, TEntity3>(bool condition, Expression<Func<TEntity2, bool>> trueWhereExpression, Expression<Func<TEntity3, bool>> falseWhereExpression, string trueAliasName = null, string falseAliasName = null)
     {
-        return condition ? Where(trueWhereExpression) : Where(falseWhereExpression);
+        return condition ? Where(trueWhereExpression, trueAliasName) : Where(falseWhereExpression, falseAliasName);
     }
 
     public virtual IDeleteable<TEntity> WhereField(Expression<Func<TEntity, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
@@ -166,15 +167,16 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>
         });
         return this;
     }
-    public virtual IDeleteable<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null)
+    public virtual IDeleteable<TEntity> WhereField<TEntity2>(Expression<Func<TEntity2, object>> fieldExpression, SqlOperation operation, WhereSqlKeyword keyword = WhereSqlKeyword.And, Include include = Include.None, string paramName = null, string aliasName = null)
     {
         _whereActions.Add(() =>
         {
-            var aqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
+            var sqlAdapter = new DefaultSqlAdapter<TEntity2>(SqlAdapter.DbType)
             {
+                AliasName = aliasName,
                 MultiTable = true
             };
-            SqlBuilderUtil.WhereField(aqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
+            SqlBuilderUtil.WhereField(sqlAdapter, _where.Value, fieldExpression, operation, keyword, include, paramName);
         });
         return this;
     }
@@ -220,7 +222,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
         var sb = new StringBuilder();
-        sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", WhereSql));
+        sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName(TableName)}{JoinTableSql}", WhereSql));
 
         var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {

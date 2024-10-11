@@ -2,7 +2,6 @@
 
 public interface IBaseSqlBuilder<out TBuild>
 {
-    ISqlAdapter SqlAdapter { get; }
     bool SqlIndented { get; set; }
     bool SqlParameterized { get; set; }
 

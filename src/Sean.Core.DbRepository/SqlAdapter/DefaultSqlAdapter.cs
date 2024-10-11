@@ -6,6 +6,7 @@ public class DefaultSqlAdapter : ISqlAdapter
 {
     public DatabaseType DbType { get; set; }
     public string TableName { get; set; }
+    public string AliasName { get; set; }
     public bool MultiTable { get; set; }
 
     public DefaultSqlAdapter(DatabaseType dbType, string tableName)
@@ -14,38 +15,28 @@ public class DefaultSqlAdapter : ISqlAdapter
         TableName = tableName;
     }
 
-    public virtual string FormatTableName()
-    {
-        return FormatTableName(TableName);
-    }
     public virtual string FormatTableName(string tableName)
     {
         return DbType.MarkAsTableOrFieldName(tableName);
     }
 
-    public string FormatFieldName(string fieldName)
+    public string FormatFieldName(string fieldName, string tableName = null, string aliasName = null)
     {
-        return FormatFieldName(fieldName, false);
-    }
-
-    public virtual string FormatFieldName(string fieldName, bool multiTable)
-    {
-        if (multiTable || MultiTable)
+        if (!string.IsNullOrWhiteSpace(aliasName))
         {
-            return FormatFieldName(fieldName, TableName);
+            return $"{aliasName}.{DbType.MarkAsTableOrFieldName(fieldName)}";
         }
-
+        if (!string.IsNullOrWhiteSpace(tableName))
+        {
+            return $"{DbType.MarkAsTableOrFieldName(tableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
+        }
+        if (MultiTable)
+        {
+            return !string.IsNullOrWhiteSpace(AliasName) 
+                ? $"{AliasName}.{DbType.MarkAsTableOrFieldName(fieldName)}" 
+                : $"{DbType.MarkAsTableOrFieldName(TableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
+        }
         return DbType.MarkAsTableOrFieldName(fieldName);
-    }
-
-    public virtual string FormatFieldName(string fieldName, string tableName)
-    {
-        if (string.IsNullOrWhiteSpace(tableName))
-        {
-            return FormatFieldName(fieldName);
-        }
-
-        return $"{DbType.MarkAsTableOrFieldName(tableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
     }
 
     public virtual string FormatSqlParameter(string parameter)

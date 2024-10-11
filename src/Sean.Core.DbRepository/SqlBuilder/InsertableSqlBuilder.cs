@@ -165,7 +165,7 @@ VALUES{2}";
             SetParameter(paramDic);
             #endregion
 
-            sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
+            sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(TableName), string.Join(", ", formatFields), bulkInsertValuesString));
         }
         else
         {
@@ -190,7 +190,7 @@ VALUES{2}";
                 var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
                 return SqlAdapter.FormatSqlParameter(parameterName);
             }).ToList();
-            sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
+            sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(TableName), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
         }
 
         if (_returnLastInsertId)

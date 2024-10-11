@@ -246,7 +246,7 @@ internal static class SqlBuilderUtil
     #endregion
 
     #region [Join Table]
-    public static string GetJoinFields<TEntity, TEntity2>(ISqlAdapter sqlAdapter, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string joinTableName)
+    public static string GetJoinFields<TEntity, TEntity2>(ISqlAdapter sqlAdapter, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string aliasName = null)
     {
         var fields = fieldExpression.GetFieldNames();
         var fields2 = fieldExpression2.GetFieldNames();
@@ -262,7 +262,7 @@ internal static class SqlBuilderUtil
         var list = new List<string>();
         for (var i = 0; i < fields.Count; i++)
         {
-            list.Add($"{sqlAdapter.FormatFieldName(fields[i], true)}={sqlAdapter.FormatFieldName(fields2[i], joinTableName)}");
+            list.Add($"{sqlAdapter.FormatFieldName(fields[i], typeof(TEntity).GetEntityInfo().TableName)}={sqlAdapter.FormatFieldName(fields2[i], typeof(TEntity2).GetEntityInfo().TableName, aliasName)}");
         }
 
         return string.Join(" AND ", list);

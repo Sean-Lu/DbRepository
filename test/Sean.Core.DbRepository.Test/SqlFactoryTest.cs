@@ -441,6 +441,83 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         }
         #endregion
 
+
+
+        #region TABLE NAME Clause
+        [TestMethod]
+        public void TestSingleTableName()
+        {
+            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .Build();
+            var tableNameClause = sqlCommand.Sql;
+            Assert.AreEqual("`Test`", tableNameClause);
+        }
+
+        [TestMethod]
+        public void TestInnerJoinTableName()
+        {
+            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
+                .Build();
+            var tableNameClause = sqlCommand.Sql;
+            Assert.AreEqual("`Test` INNER JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause);
+
+            var sqlCommand2 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .Build();
+            var tableNameClause2 = sqlCommand2.Sql;
+            Assert.AreEqual("`Test` INNER JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause2);
+        }
+
+        [TestMethod]
+        public void TestLeftJoinTableName()
+        {
+            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .LeftJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
+                .Build();
+            var tableNameClause = sqlCommand.Sql;
+            Assert.AreEqual("`Test` LEFT JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause);
+
+            var sqlCommand2 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .LeftJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .Build();
+            var tableNameClause2 = sqlCommand2.Sql;
+            Assert.AreEqual("`Test` LEFT JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause2);
+        }
+
+        [TestMethod]
+        public void TestRightJoinTableName()
+        {
+            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .RightJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
+                .Build();
+            var tableNameClause = sqlCommand.Sql;
+            Assert.AreEqual("`Test` RIGHT JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause);
+
+            var sqlCommand2 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .RightJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .Build();
+            var tableNameClause2 = sqlCommand2.Sql;
+            Assert.AreEqual("`Test` RIGHT JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause2);
+        }
+
+        [TestMethod]
+        public void TestFullJoinTableName()
+        {
+            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .FullJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
+                .Build();
+            var tableNameClause = sqlCommand.Sql;
+            Assert.AreEqual("`Test` FULL JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause);
+
+            var sqlCommand2 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .FullJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .Build();
+            var tableNameClause2 = sqlCommand2.Sql;
+            Assert.AreEqual("`Test` FULL JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause2);
+        }
+        #endregion
+
         #region WHERE Clause
         [TestMethod]
         public void TestSingleTableSqlParameterized()
@@ -668,8 +745,8 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .OrderBy(OrderByType.Desc, entity => entity.CreateTime)
                 .OrderBy(OrderByType.Desc, entity => entity.Id)
                 .Build();
-            var whereClause = sqlCommand.Sql;
-            Assert.AreEqual("`CreateTime` DESC, `Id` DESC", whereClause);
+            var orderByClause = sqlCommand.Sql;
+            Assert.AreEqual("`CreateTime` DESC, `Id` DESC", orderByClause);
         }
 
         [TestMethod]
@@ -679,8 +756,8 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .OrderBy(OrderByType.Desc, entity => new { entity.CreateTime, entity.UserId })
                 .OrderBy(OrderByType.Desc, entity => entity.Id)
                 .Build();
-            var whereClause = sqlCommand.Sql;
-            Assert.AreEqual("`CreateTime`, `UserId` DESC, `Id` DESC", whereClause);
+            var orderByClause = sqlCommand.Sql;
+            Assert.AreEqual("`CreateTime`, `UserId` DESC, `Id` DESC", orderByClause);
         }
 
         [TestMethod]
@@ -691,8 +768,8 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .OrderBy(OrderByType.Desc, entity => entity.Id)
                 .IsMultiTable(true)
                 .Build();
-            var whereClause = sqlCommand.Sql;
-            Assert.AreEqual("`Test`.`CreateTime` DESC, `Test`.`Id` DESC", whereClause);
+            var orderByClause = sqlCommand.Sql;
+            Assert.AreEqual("`Test`.`CreateTime` DESC, `Test`.`Id` DESC", orderByClause);
         }
 
         [TestMethod]
@@ -702,8 +779,8 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .OrderBy(OrderByType.Desc, entity => entity.CreateTime)
                 .OrderBy<CheckInLogEntity>(OrderByType.Desc, entity => entity.Id)
                 .Build();
-            var whereClause = sqlCommand.Sql;
-            Assert.AreEqual("`Test`.`CreateTime` DESC, `CheckInLog`.`Id` DESC", whereClause);
+            var orderByClause = sqlCommand.Sql;
+            Assert.AreEqual("`Test`.`CreateTime` DESC, `CheckInLog`.`Id` DESC", orderByClause);
         }
         #endregion
     }
