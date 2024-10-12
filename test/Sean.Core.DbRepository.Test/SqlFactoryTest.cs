@@ -447,74 +447,131 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSingleTableName()
         {
-            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>()
                 .Build();
             var tableNameClause = sqlCommand.Sql;
-            Assert.AreEqual("`Test`", tableNameClause);
+            Assert.AreEqual("Test", tableNameClause);
+
+            var sqlCommand2 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .Build();
+            var tableNameClause2 = sqlCommand2.Sql;
+            Assert.AreEqual("`Test`", tableNameClause2);
         }
 
         [TestMethod]
         public void TestInnerJoinTableName()
         {
-            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>()
                 .InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
                 .Build();
             var tableNameClause = sqlCommand.Sql;
-            Assert.AreEqual("`Test` INNER JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause);
+            Assert.AreEqual("Test INNER JOIN User ON Test.UserId=User.Id", tableNameClause);
 
             var sqlCommand2 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
-                .InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
                 .Build();
             var tableNameClause2 = sqlCommand2.Sql;
-            Assert.AreEqual("`Test` INNER JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause2);
+            Assert.AreEqual("`Test` INNER JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause2);
+
+            var sqlCommand3 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .Build();
+            var tableNameClause3 = sqlCommand3.Sql;
+            Assert.AreEqual("`Test` INNER JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause3);
+
+            var sqlCommand4 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .InnerJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .InnerJoin<UserEntity, CheckInLogEntity>(entity => entity.Id, entity2 => entity2.UserId, "a", "b")
+                .Build();
+            var tableNameClause4 = sqlCommand4.Sql;
+            Assert.AreEqual("`Test` INNER JOIN `User` a ON `Test`.`UserId`=a.`Id` INNER JOIN `CheckInLog` b ON a.`Id`=b.`UserId`", tableNameClause4);
         }
 
         [TestMethod]
         public void TestLeftJoinTableName()
         {
-            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>()
                 .LeftJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
                 .Build();
             var tableNameClause = sqlCommand.Sql;
-            Assert.AreEqual("`Test` LEFT JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause);
+            Assert.AreEqual("Test LEFT JOIN User ON Test.UserId=User.Id", tableNameClause);
 
             var sqlCommand2 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
-                .LeftJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .LeftJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
                 .Build();
             var tableNameClause2 = sqlCommand2.Sql;
-            Assert.AreEqual("`Test` LEFT JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause2);
+            Assert.AreEqual("`Test` LEFT JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause2);
+
+            var sqlCommand3 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .LeftJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .Build();
+            var tableNameClause3 = sqlCommand3.Sql;
+            Assert.AreEqual("`Test` LEFT JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause3);
+
+            var sqlCommand4 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .LeftJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .LeftJoin<UserEntity, CheckInLogEntity>(entity => entity.Id, entity2 => entity2.UserId, "a", "b")
+                .Build();
+            var tableNameClause4 = sqlCommand4.Sql;
+            Assert.AreEqual("`Test` LEFT JOIN `User` a ON `Test`.`UserId`=a.`Id` LEFT JOIN `CheckInLog` b ON a.`Id`=b.`UserId`", tableNameClause4);
         }
 
         [TestMethod]
         public void TestRightJoinTableName()
         {
-            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>()
                 .RightJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
                 .Build();
             var tableNameClause = sqlCommand.Sql;
-            Assert.AreEqual("`Test` RIGHT JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause);
+            Assert.AreEqual("Test RIGHT JOIN User ON Test.UserId=User.Id", tableNameClause);
 
             var sqlCommand2 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
-                .RightJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .RightJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
                 .Build();
             var tableNameClause2 = sqlCommand2.Sql;
-            Assert.AreEqual("`Test` RIGHT JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause2);
+            Assert.AreEqual("`Test` RIGHT JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause2);
+
+            var sqlCommand3 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .RightJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .Build();
+            var tableNameClause3 = sqlCommand3.Sql;
+            Assert.AreEqual("`Test` RIGHT JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause3);
+
+            var sqlCommand4 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .RightJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .RightJoin<UserEntity, CheckInLogEntity>(entity => entity.Id, entity2 => entity2.UserId, "a", "b")
+                .Build();
+            var tableNameClause4 = sqlCommand4.Sql;
+            Assert.AreEqual("`Test` RIGHT JOIN `User` a ON `Test`.`UserId`=a.`Id` RIGHT JOIN `CheckInLog` b ON a.`Id`=b.`UserId`", tableNameClause4);
         }
 
         [TestMethod]
         public void TestFullJoinTableName()
         {
-            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+            var sqlCommand = SqlFactory.CreateTableNameClauseBuilder<TestEntity>()
                 .FullJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
                 .Build();
             var tableNameClause = sqlCommand.Sql;
-            Assert.AreEqual("`Test` FULL JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause);
+            Assert.AreEqual("Test FULL JOIN User ON Test.UserId=User.Id", tableNameClause);
 
             var sqlCommand2 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
-                .FullJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .FullJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id)
                 .Build();
             var tableNameClause2 = sqlCommand2.Sql;
-            Assert.AreEqual("`Test` FULL JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause2);
+            Assert.AreEqual("`Test` FULL JOIN `User` ON `Test`.`UserId`=`User`.`Id`", tableNameClause2);
+
+            var sqlCommand3 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .FullJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .Build();
+            var tableNameClause3 = sqlCommand3.Sql;
+            Assert.AreEqual("`Test` FULL JOIN `User` a ON `Test`.`UserId`=a.`Id`", tableNameClause3);
+
+            var sqlCommand4 = SqlFactory.CreateTableNameClauseBuilder<TestEntity>(DatabaseType.MySql)
+                .FullJoin<UserEntity>(entity => entity.UserId, entity2 => entity2.Id, "a")
+                .FullJoin<UserEntity, CheckInLogEntity>(entity => entity.Id, entity2 => entity2.UserId, "a", "b")
+                .Build();
+            var tableNameClause4 = sqlCommand4.Sql;
+            Assert.AreEqual("`Test` FULL JOIN `User` a ON `Test`.`UserId`=a.`Id` FULL JOIN `CheckInLog` b ON a.`Id`=b.`UserId`", tableNameClause4);
         }
         #endregion
 

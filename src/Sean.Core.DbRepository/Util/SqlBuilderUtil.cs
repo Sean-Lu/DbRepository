@@ -246,26 +246,23 @@ internal static class SqlBuilderUtil
     #endregion
 
     #region [Join Table]
-    public static string GetJoinFields<TEntity, TEntity2>(ISqlAdapter sqlAdapter, Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity2, object>> fieldExpression2, string aliasName = null)
+    public static string GetJoinSql<TEntity, TEntity2>(ISqlAdapter sqlAdapter, Expression<Func<TEntity, object>> leftTableFieldExpression, Expression<Func<TEntity2, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
     {
-        var fields = fieldExpression.GetFieldNames();
-        var fields2 = fieldExpression2.GetFieldNames();
-        if (!fields.Any())
+        var leftTableFields = leftTableFieldExpression.GetFieldNames();
+        if (!leftTableFields.Any())
         {
             throw new InvalidOperationException("The specified number of fields must be greater than 0.");
         }
-        if (fields.Count != fields2.Count)
+        var rightTableFields = rightTableFieldExpression.GetFieldNames();
+        if (leftTableFields.Count != rightTableFields.Count)
         {
             throw new InvalidOperationException("The specified number of fields must be equal.");
         }
 
-        var list = new List<string>();
-        for (var i = 0; i < fields.Count; i++)
-        {
-            list.Add($"{sqlAdapter.FormatFieldName(fields[i], typeof(TEntity).GetEntityInfo().TableName)}={sqlAdapter.FormatFieldName(fields2[i], typeof(TEntity2).GetEntityInfo().TableName, aliasName)}");
-        }
-
-        return string.Join(" AND ", list);
+        var leftTableName = typeof(TEntity).GetEntityInfo().TableName;
+        var rightTableName = typeof(TEntity2).GetEntityInfo().TableName;
+        var list = leftTableFields.Select((field, i) => $"{sqlAdapter.FormatFieldName(field, leftTableName, leftTableAliasName)}={sqlAdapter.FormatFieldName(rightTableFields[i], rightTableName, rightTableAliasName)}").ToList();
+        return $"{sqlAdapter.FormatTableName(rightTableName)}{(!string.IsNullOrWhiteSpace(rightTableAliasName) ? $" {rightTableAliasName}" : string.Empty)} ON {string.Join(" AND ", list)}";
     }
     #endregion
 
