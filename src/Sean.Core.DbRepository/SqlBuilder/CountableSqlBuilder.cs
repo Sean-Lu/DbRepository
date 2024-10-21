@@ -91,19 +91,19 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder<ICountable<TEntity>>,
         return FullJoin(SqlBuilderUtil.GetJoinSql(SqlAdapter, leftTableFieldExpression, rightTableFieldExpression, SqlAdapter.AliasName, rightTableAliasName));
     }
 
-    public ICountable<TEntity> InnerJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
+    public virtual ICountable<TEntity> InnerJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
     {
         return InnerJoin(SqlBuilderUtil.GetJoinSql(SqlAdapter, leftTableFieldExpression, rightTableFieldExpression, leftTableAliasName, rightTableAliasName));
     }
-    public ICountable<TEntity> LeftJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
+    public virtual ICountable<TEntity> LeftJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
     {
         return LeftJoin(SqlBuilderUtil.GetJoinSql(SqlAdapter, leftTableFieldExpression, rightTableFieldExpression, leftTableAliasName, rightTableAliasName));
     }
-    public ICountable<TEntity> RightJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
+    public virtual ICountable<TEntity> RightJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
     {
         return RightJoin(SqlBuilderUtil.GetJoinSql(SqlAdapter, leftTableFieldExpression, rightTableFieldExpression, leftTableAliasName, rightTableAliasName));
     }
-    public ICountable<TEntity> FullJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
+    public virtual ICountable<TEntity> FullJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
     {
         return FullJoin(SqlBuilderUtil.GetJoinSql(SqlAdapter, leftTableFieldExpression, rightTableFieldExpression, leftTableAliasName, rightTableAliasName));
     }

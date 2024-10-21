@@ -72,37 +72,37 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
         return this;
     }
 
-    public IQueryable<TEntity> MaxField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
+    public virtual IQueryable<TEntity> MaxField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
         SqlBuilderUtil.MaxField(SqlAdapter, _tableFieldList, fieldName, aliasName, fieldNameFormatted);
         return this;
     }
-    public IQueryable<TEntity> MinField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
+    public virtual IQueryable<TEntity> MinField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
         SqlBuilderUtil.MinField(SqlAdapter, _tableFieldList, fieldName, aliasName, fieldNameFormatted);
         return this;
     }
-    public IQueryable<TEntity> SumField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
+    public virtual IQueryable<TEntity> SumField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
         SqlBuilderUtil.SumField(SqlAdapter, _tableFieldList, fieldName, aliasName, fieldNameFormatted);
         return this;
     }
-    public IQueryable<TEntity> AvgField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
+    public virtual IQueryable<TEntity> AvgField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
         SqlBuilderUtil.AvgField(SqlAdapter, _tableFieldList, fieldName, aliasName, fieldNameFormatted);
         return this;
     }
-    public IQueryable<TEntity> CountField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
+    public virtual IQueryable<TEntity> CountField(string fieldName, string aliasName = null, bool fieldNameFormatted = false)
     {
         SqlBuilderUtil.CountField(SqlAdapter, _tableFieldList, fieldName, aliasName, fieldNameFormatted);
         return this;
     }
-    public IQueryable<TEntity> CountDistinctField(string fieldName, string aliasName = null)
+    public virtual IQueryable<TEntity> CountDistinctField(string fieldName, string aliasName = null)
     {
         SqlBuilderUtil.CountDistinctField(SqlAdapter, _tableFieldList, fieldName, aliasName);
         return this;
     }
-    public IQueryable<TEntity> DistinctFields(params string[] fields)
+    public virtual IQueryable<TEntity> DistinctFields(params string[] fields)
     {
         SqlBuilderUtil.DistinctFields<TEntity>(SqlAdapter, _tableFieldList, fields);
         return this;
@@ -121,49 +121,49 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
         return IgnoreFields(fields);
     }
 
-    public IQueryable<TEntity> MaxField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
+    public virtual IQueryable<TEntity> MaxField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
     {
         if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => MaxField(fieldName, aliasName, fieldNameFormatted));
         return this;
     }
-    public IQueryable<TEntity> MinField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
+    public virtual IQueryable<TEntity> MinField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
     {
         if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => MinField(fieldName, aliasName, fieldNameFormatted));
         return this;
     }
-    public IQueryable<TEntity> SumField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
+    public virtual IQueryable<TEntity> SumField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
     {
         if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => SumField(fieldName, aliasName, fieldNameFormatted));
         return this;
     }
-    public IQueryable<TEntity> AvgField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
+    public virtual IQueryable<TEntity> AvgField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
     {
         if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => AvgField(fieldName, aliasName, fieldNameFormatted));
         return this;
     }
-    public IQueryable<TEntity> CountField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
+    public virtual IQueryable<TEntity> CountField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
     {
         if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => CountField(fieldName, aliasName, fieldNameFormatted));
         return this;
     }
-    public IQueryable<TEntity> CountDistinctField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null)
+    public virtual IQueryable<TEntity> CountDistinctField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null)
     {
         if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => CountDistinctField(fieldName, aliasName));
         return this;
     }
-    public IQueryable<TEntity> DistinctFields(Expression<Func<TEntity, object>> fieldExpression)
+    public virtual IQueryable<TEntity> DistinctFields(Expression<Func<TEntity, object>> fieldExpression)
     {
         if (fieldExpression == null) return this;
         var fields = fieldExpression.GetFieldNames().ToArray();
@@ -222,19 +222,19 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
         return FullJoin(SqlBuilderUtil.GetJoinSql(SqlAdapter, leftTableFieldExpression, rightTableFieldExpression, SqlAdapter.AliasName, rightTableAliasName));
     }
 
-    public IQueryable<TEntity> InnerJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
+    public virtual IQueryable<TEntity> InnerJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
     {
         return InnerJoin(SqlBuilderUtil.GetJoinSql(SqlAdapter, leftTableFieldExpression, rightTableFieldExpression, leftTableAliasName, rightTableAliasName));
     }
-    public IQueryable<TEntity> LeftJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
+    public virtual IQueryable<TEntity> LeftJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
     {
         return LeftJoin(SqlBuilderUtil.GetJoinSql(SqlAdapter, leftTableFieldExpression, rightTableFieldExpression, leftTableAliasName, rightTableAliasName));
     }
-    public IQueryable<TEntity> RightJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
+    public virtual IQueryable<TEntity> RightJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
     {
         return RightJoin(SqlBuilderUtil.GetJoinSql(SqlAdapter, leftTableFieldExpression, rightTableFieldExpression, leftTableAliasName, rightTableAliasName));
     }
-    public IQueryable<TEntity> FullJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
+    public virtual IQueryable<TEntity> FullJoin<TEntity2, TEntity3>(Expression<Func<TEntity2, object>> leftTableFieldExpression, Expression<Func<TEntity3, object>> rightTableFieldExpression, string leftTableAliasName = null, string rightTableAliasName = null)
     {
         return FullJoin(SqlBuilderUtil.GetJoinSql(SqlAdapter, leftTableFieldExpression, rightTableFieldExpression, leftTableAliasName, rightTableAliasName));
     }

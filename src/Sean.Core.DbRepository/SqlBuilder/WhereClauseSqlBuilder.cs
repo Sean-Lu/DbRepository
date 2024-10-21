@@ -134,13 +134,13 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
         return this;
     }
 
-    public IWhereClause<TEntity> IsMultiTable(bool isMultiTable)
+    public virtual IWhereClause<TEntity> IsMultiTable(bool isMultiTable)
     {
         _isMultiTable = isMultiTable;
         return this;
     }
 
-    public IWhereClause<TEntity> IncludeKeyword(bool includeKeyword)
+    public virtual IWhereClause<TEntity> IncludeKeyword(bool includeKeyword)
     {
         _includeKeyword = includeKeyword;
         return this;

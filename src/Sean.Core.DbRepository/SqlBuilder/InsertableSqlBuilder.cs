@@ -88,7 +88,7 @@ VALUES{2}";
         return this;
     }
 
-    public IInsertable<TEntity> OutputParameter(TEntity outputTarget, PropertyInfo outputPropertyInfo)
+    public virtual IInsertable<TEntity> OutputParameter(TEntity outputTarget, PropertyInfo outputPropertyInfo)
     {
         _outputParameterOptions = new OutputParameterOptions
         {
@@ -98,7 +98,7 @@ VALUES{2}";
         return this;
     }
 
-    public IInsertable<TEntity> OutputParameterIF(bool condition, TEntity outputTarget, PropertyInfo outputPropertyInfo)
+    public virtual IInsertable<TEntity> OutputParameterIF(bool condition, TEntity outputTarget, PropertyInfo outputPropertyInfo)
     {
         return condition ? OutputParameter(outputTarget, outputPropertyInfo) : this;
     }

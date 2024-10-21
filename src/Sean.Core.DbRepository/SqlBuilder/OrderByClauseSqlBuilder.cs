@@ -105,13 +105,13 @@ public class OrderByClauseSqlBuilder<TEntity> : BaseSqlBuilder<IOrderByClause<TE
     }
     #endregion
 
-    public IOrderByClause<TEntity> IsMultiTable(bool isMultiTable)
+    public virtual IOrderByClause<TEntity> IsMultiTable(bool isMultiTable)
     {
         _isMultiTable = isMultiTable;
         return this;
     }
 
-    public IOrderByClause<TEntity> IncludeKeyword(bool includeKeyword)
+    public virtual IOrderByClause<TEntity> IncludeKeyword(bool includeKeyword)
     {
         _includeKeyword = includeKeyword;
         return this;
