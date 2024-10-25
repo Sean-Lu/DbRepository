@@ -5,11 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Example.Dapper.Application.Extensions;
+using Example.Dapper.ConsoleApp.Contracts;
 using Example.Dapper.ConsoleApp.Impls;
 using Example.Dapper.Infrastructure;
 using Example.Dapper.Infrastructure.Helper;
 using Sean.Core.DependencyInjection;
-using Sean.Utility.Contracts;
 
 namespace Example.Dapper.ConsoleApp
 {

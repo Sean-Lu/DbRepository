@@ -20,43 +20,17 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2'">
-		<!--<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />-->
-		<!--<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />-->
 		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-		<!--<PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />-->
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-		<!--<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />-->
-		<!--<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />-->
 		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-		<!--<PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />-->
-	</ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'net6'">
-		<!--<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />-->
-		<!--<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />-->
-		<!--<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />-->
-		<!--<PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />-->
 	</ItemGroup>
 
 	<ItemGroup>
-		<!--<None Include="docs\README.md" Pack="true" PackagePath="\" />-->
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
-
-		<!--<None Update="dllconfigs\Sean.Core.DbRepository.dll.config">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-
-		<Content Include="dllconfigs\Sean.Core.DbRepository.dll.config">
-			<Pack>true</Pack>
-			<PackagePath>content\dllconfigs</PackagePath>
-		</Content>
-		<Content Include="dllconfigs\Sean.Core.DbRepository.dll.config">
-			<Pack>true</Pack>
-			<PackagePath>contentFiles\any\any\dllconfigs</PackagePath>
-		</Content>-->
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Sean.Utility" Version="2.1.5" />
+		<PackageReference Include="Sean.Utility" Version="2.1.6" />
 	</ItemGroup>
 </Project>

@@ -1,18 +1,18 @@
 ﻿#if UseQuestDB
 using Microsoft.Extensions.Configuration;
 using Npgsql;
-using Sean.Utility.Contracts;
 using System;
+using Example.ADO.NETCore.Infrastructure;
 
 namespace Example.ADO.NETCore.Domain.DBTest
 {
-    public class QuestDBTest : ISimpleDo
+    public class QuestDBTest
     {
         private readonly IConfiguration _configuration;
 
-        public QuestDBTest(IConfiguration configuration)
+        public QuestDBTest()
         {
-            _configuration = configuration;//DIManager.GetService<IConfiguration>();
+            _configuration = DIManager.GetService<IConfiguration>();
         }
 
         public void Execute()

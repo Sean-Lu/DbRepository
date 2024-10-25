@@ -6,17 +6,16 @@ using Example.Dapper.Core.Domain.Entities;
 using Example.Dapper.Core.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Oracle.ManagedDataAccess.Client;
-using Sean.Utility.Contracts;
 
 namespace Example.Dapper.Core.Domain.DBTest
 {
-    public class OracleTest : ISimpleDo
+    public class OracleTest
     {
         private readonly IConfiguration _configuration;
 
-        public OracleTest(IConfiguration configuration)
+        public OracleTest()
         {
-            _configuration = configuration;//DIManager.GetService<IConfiguration>();
+            _configuration = DIManager.GetService<IConfiguration>();
         }
 
         public void Execute()

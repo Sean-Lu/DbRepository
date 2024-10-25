@@ -1,4 +1,5 @@
 ﻿using Example.Dapper.Core.Application.Contracts;
+using Example.Dapper.Core.ConsoleApp.Contracts;
 using Microsoft.Extensions.Configuration;
 using Sean.Utility.Contracts;
 

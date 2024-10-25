@@ -1,4 +1,5 @@
 ﻿using Example.ADO.NETCore.Application.Contracts;
+using Example.ADO.NETCore.ConsoleApp.Contracts;
 using Microsoft.Extensions.Configuration;
 using Sean.Utility.Contracts;
 

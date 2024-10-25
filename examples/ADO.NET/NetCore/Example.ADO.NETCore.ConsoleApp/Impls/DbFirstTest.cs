@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Example.ADO.NETCore.ConsoleApp.Contracts;
+using Microsoft.Extensions.Configuration;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.DbFirst;
-using Sean.Utility.Contracts;
 
 namespace Example.ADO.NETCore.ConsoleApp.Impls
 {

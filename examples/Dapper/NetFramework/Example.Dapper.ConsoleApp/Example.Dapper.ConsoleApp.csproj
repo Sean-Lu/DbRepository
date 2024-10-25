@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Contracts\ISimpleDo.cs" />
     <Compile Include="Impls\DBTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -58,7 +59,7 @@
       <Version>13.0.3</Version>
     </PackageReference>
     <PackageReference Include="Sean.Utility">
-      <Version>2.1.5</Version>
+      <Version>2.1.6</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

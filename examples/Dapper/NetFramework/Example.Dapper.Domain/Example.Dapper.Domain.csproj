@@ -114,7 +114,7 @@
     <When Condition="$(DefineConstants.Contains('UseSqlite'))">
       <ItemGroup>
         <PackageReference Include="System.Data.SQLite.Core">
-          <Version>1.0.118</Version>
+          <Version>1.0.119</Version>
         </PackageReference>
       </ItemGroup>
     </When>

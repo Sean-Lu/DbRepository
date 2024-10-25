@@ -3,10 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Example.ADO.NETCore.Application.Extensions;
+using Example.ADO.NETCore.ConsoleApp.Contracts;
 using Example.ADO.NETCore.ConsoleApp.Impls;
 using Example.ADO.NETCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Sean.Utility.Contracts;
 
 namespace Example.ADO.NETCore.ConsoleApp
 {
@@ -29,7 +29,6 @@ namespace Example.ADO.NETCore.ConsoleApp
 
             //ISimpleDo test = DIManager.GetService<DbFirstTest>();
             //ISimpleDo test = DIManager.GetService<CodeFirstTest>();
-            //ISimpleDo test = DIManager.GetService<Domain.DBTest.OracleTest>();
             ISimpleDo test = DIManager.GetService<DBTest>();
             test.Execute();
 

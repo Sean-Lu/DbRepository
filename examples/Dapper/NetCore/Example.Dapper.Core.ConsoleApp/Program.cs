@@ -3,10 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Example.Dapper.Core.Application.Extensions;
+using Example.Dapper.Core.ConsoleApp.Contracts;
 using Example.Dapper.Core.ConsoleApp.Impls;
 using Example.Dapper.Core.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Sean.Utility.Contracts;
 
 namespace Example.Dapper.Core.ConsoleApp
 {
@@ -27,7 +27,6 @@ namespace Example.Dapper.Core.ConsoleApp
                 });
             });
 
-            //ISimpleDo test = DIManager.GetService<Domain.DBTest.OracleTest>();
             ISimpleDo test = DIManager.GetService<DBTest>();
             test.Execute();
 

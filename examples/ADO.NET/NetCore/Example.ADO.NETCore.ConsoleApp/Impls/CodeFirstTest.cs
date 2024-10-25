@@ -3,9 +3,9 @@ using Example.Common;
 using Microsoft.Extensions.Configuration;
 using Sean.Core.DbRepository;
 using Sean.Core.DbRepository.CodeFirst;
-using Sean.Utility.Contracts;
 using System;
 using System.Reflection;
+using Example.ADO.NETCore.ConsoleApp.Contracts;
 
 namespace Example.ADO.NETCore.ConsoleApp.Impls
 {

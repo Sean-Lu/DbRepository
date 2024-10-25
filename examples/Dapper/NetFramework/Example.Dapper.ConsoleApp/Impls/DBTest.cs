@@ -1,4 +1,5 @@
 ﻿using Example.Dapper.Application.Contracts;
+using Example.Dapper.ConsoleApp.Contracts;
 using Sean.Utility.Contracts;
 
 namespace Example.Dapper.ConsoleApp.Impls

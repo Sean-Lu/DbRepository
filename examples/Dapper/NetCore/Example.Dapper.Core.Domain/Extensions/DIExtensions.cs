@@ -29,12 +29,6 @@ namespace Example.Dapper.Core.Domain.Extensions
             services.AddTransient(typeof(CommonRepository));// 注册通用仓储
             services.AddTransient(typeof(CommonRepository<>));// 注册通用仓储（泛型）
 
-            var types = Assembly.GetExecutingAssembly().GetTypes().Where(c => c.IsClass && typeof(ISimpleDo).IsAssignableFrom(c)).ToList();
-            types.ForEach(c =>
-            {
-                services.AddTransient(c);
-            });
-
             #region Database configuration.
 
             #region 配置数据库和数据库提供者工厂之间的映射关系
