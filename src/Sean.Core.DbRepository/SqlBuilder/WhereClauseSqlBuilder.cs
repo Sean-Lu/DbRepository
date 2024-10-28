@@ -24,7 +24,7 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
     private WhereClauseSqlBuilder(DatabaseType databaseType) : base(databaseType, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
-    private WhereClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter, typeof(TEntity).GetEntityInfo().TableName)
+    private WhereClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter)
     {
     }
 

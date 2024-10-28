@@ -28,7 +28,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<IUpdateable<TEntity>
     private bool _allowEmptyWhereClause;
     private object _parameter;
 
-    private UpdateableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
+    private UpdateableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
 
@@ -37,11 +37,10 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<IUpdateable<TEntity>
     /// </summary>
     /// <param name="dbType">Database type.</param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IUpdateable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+    public static IUpdateable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields)
     {
-        var sqlBuilder = new UpdateableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
+        var sqlBuilder = new UpdateableSqlBuilder<TEntity>(dbType);
         if (autoIncludeFields)
         {
             var entityInfo = typeof(TEntity).GetEntityInfo();

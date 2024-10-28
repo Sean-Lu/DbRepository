@@ -9,11 +9,10 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
+    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields)
     {
-        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IReplaceable{TEntity}"/>.
@@ -21,11 +20,10 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
+    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields) where TEntity : class
     {
-        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -34,11 +32,10 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
+    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields)
     {
-        return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IInsertable{TEntity}"/>.
@@ -46,11 +43,10 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
+    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields) where TEntity : class
     {
-        return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -58,22 +54,20 @@ public static class RepositoryExtensions
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository repository, string tableName = null)
+    public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository repository)
     {
-        return DeleteableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return DeleteableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IDeleteable{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null) where TEntity : class
+    public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
-        return DeleteableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return DeleteableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -82,11 +76,10 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
+    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields)
     {
-        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IUpdateable{TEntity}"/>.
@@ -94,11 +87,10 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
+    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields) where TEntity : class
     {
-        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -107,11 +99,10 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields, string tableName = null)
+    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields)
     {
-        return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IQueryable{TEntity}"/>.
@@ -119,11 +110,10 @@ public static class RepositoryExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields, string tableName = null) where TEntity : class
+    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields) where TEntity : class
     {
-        return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -131,22 +121,20 @@ public static class RepositoryExtensions
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository repository, string tableName = null)
+    public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository repository)
     {
-        return CountableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return CountableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="ICountable{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository<TEntity> repository, string tableName = null) where TEntity : class
+    public static ICountable<TEntity> CreateCountableBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
-        return CountableSqlBuilder<TEntity>.Create(repository.DbType, tableName ?? repository.TableName() ?? typeof(TEntity).GetEntityInfo().TableName);
+        return CountableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -157,7 +145,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static ITableNameClause<TEntity> CreateTableNameClauseBuilder<TEntity>(this IBaseRepository repository)
     {
-        return TableNameClauseSqlBuilder<TEntity>.Create(repository.DbType);
+        return TableNameClauseSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="ITableNameClause{TEntity}"/>.
@@ -167,7 +155,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static ITableNameClause<TEntity> CreateTableNameClauseBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
-        return TableNameClauseSqlBuilder<TEntity>.Create(repository.DbType);
+        return TableNameClauseSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -178,7 +166,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IWhereClause<TEntity> CreateWhereClauseBuilder<TEntity>(this IBaseRepository repository)
     {
-        return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType);
+        return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IWhereClause{TEntity}"/>.
@@ -188,7 +176,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IWhereClause<TEntity> CreateWhereClauseBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
-        return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType);
+        return WhereClauseSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -199,7 +187,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IOrderByClause<TEntity> CreateOrderByClauseBuilder<TEntity>(this IBaseRepository repository)
     {
-        return OrderByClauseSqlBuilder<TEntity>.Create(repository.DbType);
+        return OrderByClauseSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IOrderByClause{TEntity}"/>.
@@ -209,7 +197,7 @@ public static class RepositoryExtensions
     /// <returns></returns>
     public static IOrderByClause<TEntity> CreateOrderByClauseBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
-        return OrderByClauseSqlBuilder<TEntity>.Create(repository.DbType);
+        return OrderByClauseSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
     #endregion
 }

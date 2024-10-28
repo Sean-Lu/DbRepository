@@ -24,7 +24,7 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder<ICountable<TEntity>>,
 
     private object _parameter;
 
-    private CountableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
+    private CountableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
 
@@ -32,11 +32,10 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder<ICountable<TEntity>>,
     /// Create an instance of <see cref="ICountable{TEntity}"/>.
     /// </summary>
     /// <param name="dbType">Database type.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static ICountable<TEntity> Create(DatabaseType dbType, string tableName = null)
+    public static ICountable<TEntity> Create(DatabaseType dbType)
     {
-        var sqlBuilder = new CountableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
+        var sqlBuilder = new CountableSqlBuilder<TEntity>(dbType);
         return sqlBuilder;
     }
 

@@ -39,7 +39,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
     private int? _offset;
     private int? _rows;
 
-    private QueryableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
+    private QueryableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
 
@@ -48,11 +48,10 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
     /// </summary>
     /// <param name="dbType">Database type.</param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IQueryable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+    public static IQueryable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields)
     {
-        var sqlBuilder = new QueryableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
+        var sqlBuilder = new QueryableSqlBuilder<TEntity>(dbType);
         if (autoIncludeFields)
         {
             sqlBuilder.SelectFields(typeof(TEntity).GetEntityInfo().FieldInfos.Select(c => c.FieldName).ToArray());

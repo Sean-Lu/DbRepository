@@ -21,7 +21,7 @@ public class OrderByClauseSqlBuilder<TEntity> : BaseSqlBuilder<IOrderByClause<TE
     private OrderByClauseSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
-    private OrderByClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter, typeof(TEntity).GetEntityInfo().TableName)
+    private OrderByClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter)
     {
     }
 

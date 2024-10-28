@@ -19,7 +19,7 @@ public class TableNameClauseSqlBuilder<TEntity> : BaseSqlBuilder<ITableNameClaus
     private TableNameClauseSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
-    private TableNameClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter, typeof(TEntity).GetEntityInfo().TableName)
+    private TableNameClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter)
     {
     }
 

@@ -2,31 +2,31 @@
 
 public static class SqlFactory
 {
-    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(bool autoIncludeFields, DatabaseType dbType = DatabaseType.Unknown)
     {
-        return ReplaceableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields, tableName);
+        return ReplaceableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields);
     }
-    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(bool autoIncludeFields, DatabaseType dbType = DatabaseType.Unknown)
     {
-        return InsertableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields, tableName);
+        return InsertableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields);
     }
-    public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(DatabaseType dbType, string tableName = null)
+    public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
-        return DeleteableSqlBuilder<TEntity>.Create(dbType, tableName);
+        return DeleteableSqlBuilder<TEntity>.Create(dbType);
     }
-    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(bool autoIncludeFields, DatabaseType dbType = DatabaseType.Unknown)
     {
-        return UpdateableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields, tableName);
+        return UpdateableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields);
     }
-    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(bool autoIncludeFields, DatabaseType dbType = DatabaseType.Unknown)
     {
-        return QueryableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields, tableName);
+        return QueryableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields);
     }
-    public static ICountable<TEntity> CreateCountableBuilder<TEntity>(DatabaseType dbType, string tableName = null)
+    public static ICountable<TEntity> CreateCountableBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
-        return CountableSqlBuilder<TEntity>.Create(dbType, tableName);
+        return CountableSqlBuilder<TEntity>.Create(dbType);
     }
-    
+
     public static ITableNameClause<TEntity> CreateTableNameClauseBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
         return TableNameClauseSqlBuilder<TEntity>.Create(dbType);

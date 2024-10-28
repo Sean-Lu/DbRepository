@@ -25,7 +25,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>
     private bool _allowEmptyWhereClause;
     private object _parameter;
 
-    private DeleteableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
+    private DeleteableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
     {
     }
 
@@ -33,11 +33,10 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>
     /// Create an instance of <see cref="IDeleteable{TEntity}"/>.
     /// </summary>
     /// <param name="dbType">Database type.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IDeleteable<TEntity> Create(DatabaseType dbType, string tableName = null)
+    public static IDeleteable<TEntity> Create(DatabaseType dbType)
     {
-        var sqlBuilder = new DeleteableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
+        var sqlBuilder = new DeleteableSqlBuilder<TEntity>(dbType);
         return sqlBuilder;
     }
 

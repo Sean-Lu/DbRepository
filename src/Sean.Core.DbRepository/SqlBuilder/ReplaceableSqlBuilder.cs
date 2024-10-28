@@ -17,7 +17,7 @@ VALUES{2}";
     private readonly List<TableFieldInfoForSqlBuilder> _tableFieldList = new();
     private object _parameter;
 
-    private ReplaceableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
+    private ReplaceableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
     {
 
     }
@@ -27,11 +27,10 @@ VALUES{2}";
     /// </summary>
     /// <param name="dbType">Database type.</param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IReplaceable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+    public static IReplaceable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields)
     {
-        var sqlBuilder = new ReplaceableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
+        var sqlBuilder = new ReplaceableSqlBuilder<TEntity>(dbType);
         if (autoIncludeFields)
         {
             sqlBuilder.InsertFields(typeof(TEntity).GetEntityInfo().FieldInfos.Select(c => c.FieldName).ToArray());

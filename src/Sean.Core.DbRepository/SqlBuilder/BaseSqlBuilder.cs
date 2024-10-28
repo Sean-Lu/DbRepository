@@ -2,7 +2,7 @@
 
 public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBuild : class
 {
-    protected string TableName { get; }
+    protected string TableName => SqlAdapter.TableName;
     /// <summary>
     /// SQL adapter.
     /// </summary>
@@ -19,14 +19,20 @@ public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBu
     protected BaseSqlBuilder(DatabaseType dbType, string tableName)
     {
         SqlAdapter = new DefaultSqlAdapter(dbType, tableName);
-        TableName = tableName;
     }
-    protected BaseSqlBuilder(ISqlAdapter sqlAdapter, string tableName)
+    protected BaseSqlBuilder(ISqlAdapter sqlAdapter)
     {
         SqlAdapter = sqlAdapter;
-        TableName = tableName;
     }
 
+    public virtual TBuild SetTableName(string tableName)
+    {
+        if (!string.IsNullOrWhiteSpace(tableName))
+        {
+            SqlAdapter.TableName = tableName;
+        }
+        return this as TBuild;
+    }
     public virtual TBuild SetSqlIndented(bool sqlIndented)
     {
         SqlIndented = sqlIndented;

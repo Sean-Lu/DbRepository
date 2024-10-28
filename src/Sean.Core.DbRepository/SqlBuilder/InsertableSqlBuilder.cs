@@ -21,7 +21,7 @@ VALUES{2}";
     private object _parameter;
     private OutputParameterOptions _outputParameterOptions;
 
-    private InsertableSqlBuilder(DatabaseType dbType, string tableName) : base(dbType, tableName)
+    private InsertableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
     {
 
     }
@@ -31,11 +31,10 @@ VALUES{2}";
     /// </summary>
     /// <param name="dbType">Database type.</param>
     /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
-    /// <param name="tableName">The table name.</param>
     /// <returns></returns>
-    public static IInsertable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields, string tableName = null)
+    public static IInsertable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields)
     {
-        var sqlBuilder = new InsertableSqlBuilder<TEntity>(dbType, tableName ?? typeof(TEntity).GetEntityInfo().TableName);
+        var sqlBuilder = new InsertableSqlBuilder<TEntity>(dbType);
         if (autoIncludeFields)
         {
             var entityInfo = typeof(TEntity).GetEntityInfo();
