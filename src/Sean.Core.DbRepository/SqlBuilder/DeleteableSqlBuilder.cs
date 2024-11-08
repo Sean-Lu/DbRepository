@@ -32,12 +32,19 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>
     /// <summary>
     /// Create an instance of <see cref="IDeleteable{TEntity}"/>.
     /// </summary>
+    /// <returns></returns>
+    public static IDeleteable<TEntity> Create()
+    {
+        return new DeleteableSqlBuilder<TEntity>(DatabaseType.Unknown);
+    }
+    /// <summary>
+    /// Create an instance of <see cref="IDeleteable{TEntity}"/>.
+    /// </summary>
     /// <param name="dbType">Database type.</param>
     /// <returns></returns>
     public static IDeleteable<TEntity> Create(DatabaseType dbType)
     {
-        var sqlBuilder = new DeleteableSqlBuilder<TEntity>(dbType);
-        return sqlBuilder;
+        return new DeleteableSqlBuilder<TEntity>(dbType);
     }
 
     #region [Join Table]

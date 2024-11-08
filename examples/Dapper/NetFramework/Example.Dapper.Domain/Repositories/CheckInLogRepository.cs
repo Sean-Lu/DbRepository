@@ -36,7 +36,7 @@ public class CheckInLogRepository : DapperBaseRepository<CheckInLogEntity>, IChe
 
     private async Task TestDapperQueryAsync()
     {
-        var sqlCommand = this.CreateQueryableBuilder(true)
+        var sqlCommand = this.CreateQueryableBuilder()
             .Where(entity => entity.UserId == 100000)
             .Build();
 

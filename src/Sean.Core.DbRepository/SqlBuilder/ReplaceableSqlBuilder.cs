@@ -25,28 +25,30 @@ VALUES{2}";
     /// <summary>
     /// Create an instance of <see cref="IReplaceable{TEntity}"/>.
     /// </summary>
-    /// <param name="dbType">Database type.</param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IReplaceable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields)
+    public static IReplaceable<TEntity> Create()
     {
-        var sqlBuilder = new ReplaceableSqlBuilder<TEntity>(dbType);
-        if (autoIncludeFields)
-        {
-            sqlBuilder.InsertFields(typeof(TEntity).GetEntityInfo().FieldInfos.Select(c => c.FieldName).ToArray());
-        }
-        return sqlBuilder;
+        return new ReplaceableSqlBuilder<TEntity>(DatabaseType.Unknown);
+    }
+    /// <summary>
+    /// Create an instance of <see cref="IReplaceable{TEntity}"/>.
+    /// </summary>
+    /// <param name="dbType">Database type.</param>
+    /// <returns></returns>
+    public static IReplaceable<TEntity> Create(DatabaseType dbType)
+    {
+        return new ReplaceableSqlBuilder<TEntity>(dbType);
     }
 
     #region [Field]
     public virtual IReplaceable<TEntity> InsertFields(params string[] fields)
     {
-        SqlBuilderUtil.IncludeFields(SqlAdapter, _tableFieldList, fields);
+        SqlBuilderUtil.IncludeFields(TableName, _tableFieldList, fields);
         return this;
     }
     public virtual IReplaceable<TEntity> IgnoreFields(params string[] fields)
     {
-        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _tableFieldList, fields);
+        SqlBuilderUtil.IgnoreFields<TEntity>(TableName, _tableFieldList, fields);
         return this;
     }
 
@@ -72,10 +74,12 @@ VALUES{2}";
 
     protected override ISqlCommand BuildSqlCommand()
     {
-        var fields = _tableFieldList;
-        if (!fields.Any())
-            return default;
+        if (!_tableFieldList.Any())
+        {
+            SqlBuilderUtil.IncludeFields<TEntity>(_tableFieldList);
+        }
 
+        var fields = _tableFieldList;
         var sb = new StringBuilder();
         var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName)).ToList();
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;

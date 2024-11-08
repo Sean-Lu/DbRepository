@@ -46,28 +46,30 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
     /// <summary>
     /// Create an instance of <see cref="IQueryable{TEntity}"/>.
     /// </summary>
-    /// <param name="dbType">Database type.</param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IQueryable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields)
+    public static IQueryable<TEntity> Create()
     {
-        var sqlBuilder = new QueryableSqlBuilder<TEntity>(dbType);
-        if (autoIncludeFields)
-        {
-            sqlBuilder.SelectFields(typeof(TEntity).GetEntityInfo().FieldInfos.Select(c => c.FieldName).ToArray());
-        }
-        return sqlBuilder;
+        return new QueryableSqlBuilder<TEntity>(DatabaseType.Unknown);
+    }
+    /// <summary>
+    /// Create an instance of <see cref="IQueryable{TEntity}"/>.
+    /// </summary>
+    /// <param name="dbType">Database type.</param>
+    /// <returns></returns>
+    public static IQueryable<TEntity> Create(DatabaseType dbType)
+    {
+        return new QueryableSqlBuilder<TEntity>(dbType);
     }
 
     #region [Field]
     public virtual IQueryable<TEntity> SelectFields(params string[] fields)
     {
-        SqlBuilderUtil.IncludeFields(SqlAdapter, _tableFieldList, fields);
+        SqlBuilderUtil.IncludeFields(TableName, _tableFieldList, fields);
         return this;
     }
     public virtual IQueryable<TEntity> IgnoreFields(params string[] fields)
     {
-        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _tableFieldList, fields);
+        SqlBuilderUtil.IgnoreFields<TEntity>(TableName, _tableFieldList, fields);
         return this;
     }
 
@@ -466,6 +468,11 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
         if (MultiTable)
         {
             SqlAdapter.MultiTable = true;
+        }
+
+        if (!_tableFieldList.Any())
+        {
+            SqlBuilderUtil.IncludeFields<TEntity>(_tableFieldList);
         }
 
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;

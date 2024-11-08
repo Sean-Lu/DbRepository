@@ -11,7 +11,29 @@ namespace Sean.Core.DbRepository.Util;
 internal static class SqlBuilderUtil
 {
     #region [Field]
-    public static void IncludeFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
+    public static void IncludeFields<TEntity>(List<TableFieldInfoForSqlBuilder> tableFieldList, IEnumerable<string> ignoreFieldNames = null)
+    {
+        var entityInfo = typeof(TEntity).GetEntityInfo();
+        foreach (var field in entityInfo.FieldInfos)
+        {
+            if (ignoreFieldNames != null && ignoreFieldNames.Any(c => c == field.FieldName))
+            {
+                continue;
+            }
+
+            if (!tableFieldList.Exists(c => c.TableName == entityInfo.TableName && c.FieldName == field.FieldName))
+            {
+                tableFieldList.Add(new TableFieldInfoForSqlBuilder
+                {
+                    TableName = entityInfo.TableName,
+                    FieldName = field.FieldName,
+                    IsPrimaryKey = field.IsPrimaryKey,
+                    IsIdentityField = field.IsIdentityField
+                });
+            }
+        }
+    }
+    public static void IncludeFields(string tableName, List<TableFieldInfoForSqlBuilder> tableFieldList,
         params string[] fields)
     {
         if (fields == null || !fields.Any()) return;
@@ -20,30 +42,30 @@ internal static class SqlBuilderUtil
         {
             if (string.IsNullOrWhiteSpace(field)) continue;
 
-            if (!tableFieldList.Exists(c => c.TableName == sqlAdapter.TableName && c.FieldName == field))
+            if (!tableFieldList.Exists(c => c.TableName == tableName && c.FieldName == field))
             {
                 tableFieldList.Add(new TableFieldInfoForSqlBuilder
                 {
-                    TableName = sqlAdapter.TableName,
+                    TableName = tableName,
                     FieldName = field
                 });
             }
         }
     }
-    public static void IgnoreFields<TEntity>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
+    public static void IgnoreFields<TEntity>(string tableName, List<TableFieldInfoForSqlBuilder> tableFieldList,
         params string[] fields)
     {
         if (fields == null || !fields.Any()) return;
 
         if (!tableFieldList.Any())
         {
-            IncludeFields(sqlAdapter, tableFieldList, typeof(TEntity).GetEntityInfo().FieldInfos.Select(c => c.FieldName).Except(fields).ToArray());
+            IncludeFields<TEntity>(tableFieldList, fields);
             return;
         }
 
-        tableFieldList.RemoveAll(c => c.TableName == sqlAdapter.TableName && fields.Contains(c.FieldName));
+        tableFieldList.RemoveAll(c => c.TableName == tableName && fields.Contains(c.FieldName));
     }
-    public static void PrimaryKeyFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
+    public static void PrimaryKeyFields(string tableName, List<TableFieldInfoForSqlBuilder> tableFieldList,
         params string[] fields)
     {
         if (fields == null || !fields.Any()) return;
@@ -52,7 +74,7 @@ internal static class SqlBuilderUtil
         {
             if (string.IsNullOrWhiteSpace(field)) continue;
 
-            var fieldInfo = tableFieldList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
+            var fieldInfo = tableFieldList.Find(c => c.TableName == tableName && c.FieldName == field);
             if (fieldInfo != null)
             {
                 fieldInfo.IsPrimaryKey = true;
@@ -61,14 +83,14 @@ internal static class SqlBuilderUtil
             {
                 tableFieldList.Add(new TableFieldInfoForSqlBuilder
                 {
-                    TableName = sqlAdapter.TableName,
+                    TableName = tableName,
                     FieldName = field,
                     IsPrimaryKey = true
                 });
             }
         }
     }
-    public static void IdentityFields(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> tableFieldList,
+    public static void IdentityFields(string tableName, List<TableFieldInfoForSqlBuilder> tableFieldList,
         params string[] fields)
     {
         if (fields == null || !fields.Any()) return;
@@ -77,7 +99,7 @@ internal static class SqlBuilderUtil
         {
             if (string.IsNullOrWhiteSpace(field)) continue;
 
-            var fieldInfo = tableFieldList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
+            var fieldInfo = tableFieldList.Find(c => c.TableName == tableName && c.FieldName == field);
             if (fieldInfo != null)
             {
                 fieldInfo.IsIdentityField = true;
@@ -86,14 +108,14 @@ internal static class SqlBuilderUtil
             {
                 tableFieldList.Add(new TableFieldInfoForSqlBuilder
                 {
-                    TableName = sqlAdapter.TableName,
+                    TableName = tableName,
                     FieldName = field,
                     IsIdentityField = true
                 });
             }
         }
     }
-    public static void IncrementFields<TEntity, TValue>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void IncrementFields<TEntity, TValue>(string tableName, List<TableFieldInfoForSqlBuilder> includeFieldsList,
         Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
         var fields = fieldExpression.GetFieldNames();
@@ -101,7 +123,7 @@ internal static class SqlBuilderUtil
         {
             if (string.IsNullOrWhiteSpace(field)) continue;
 
-            var fieldInfo = includeFieldsList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
+            var fieldInfo = includeFieldsList.Find(c => c.TableName == tableName && c.FieldName == field);
             if (fieldInfo != null)
             {
                 fieldInfo.SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}";
@@ -110,14 +132,14 @@ internal static class SqlBuilderUtil
             {
                 includeFieldsList.Add(new TableFieldInfoForSqlBuilder
                 {
-                    TableName = sqlAdapter.TableName,
+                    TableName = tableName,
                     FieldName = field,
                     SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}"
                 });
             }
         }
     }
-    public static void DecrementFields<TEntity, TValue>(ISqlAdapter sqlAdapter, List<TableFieldInfoForSqlBuilder> includeFieldsList,
+    public static void DecrementFields<TEntity, TValue>(string tableName, List<TableFieldInfoForSqlBuilder> includeFieldsList,
         Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
         var fields = fieldExpression.GetFieldNames();
@@ -125,7 +147,7 @@ internal static class SqlBuilderUtil
         {
             if (string.IsNullOrWhiteSpace(field)) continue;
 
-            var fieldInfo = includeFieldsList.Find(c => c.TableName == sqlAdapter.TableName && c.FieldName == field);
+            var fieldInfo = includeFieldsList.Find(c => c.TableName == tableName && c.FieldName == field);
             if (fieldInfo != null)
             {
                 fieldInfo.SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}";
@@ -134,7 +156,7 @@ internal static class SqlBuilderUtil
             {
                 includeFieldsList.Add(new TableFieldInfoForSqlBuilder
                 {
-                    TableName = sqlAdapter.TableName,
+                    TableName = tableName,
                     FieldName = field,
                     SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}"
                 });

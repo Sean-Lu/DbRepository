@@ -29,35 +29,35 @@ VALUES{2}";
     /// <summary>
     /// Create an instance of <see cref="IInsertable{TEntity}"/>.
     /// </summary>
-    /// <param name="dbType">Database type.</param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IInsertable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields)
+    public static IInsertable<TEntity> Create()
     {
-        var sqlBuilder = new InsertableSqlBuilder<TEntity>(dbType);
-        if (autoIncludeFields)
-        {
-            var entityInfo = typeof(TEntity).GetEntityInfo();
-            sqlBuilder.InsertFields(entityInfo.FieldInfos.Select(c => c.FieldName).ToArray());
-            sqlBuilder.IdentityFields(entityInfo.FieldInfos.Where(c => c.IsIdentityField).Select(c => c.FieldName).ToArray());
-        }
-        return sqlBuilder;
+        return new InsertableSqlBuilder<TEntity>(DatabaseType.Unknown);
+    }
+    /// <summary>
+    /// Create an instance of <see cref="IInsertable{TEntity}"/>.
+    /// </summary>
+    /// <param name="dbType">Database type.</param>
+    /// <returns></returns>
+    public static IInsertable<TEntity> Create(DatabaseType dbType)
+    {
+        return new InsertableSqlBuilder<TEntity>(dbType);
     }
 
     #region [Field]
     public virtual IInsertable<TEntity> InsertFields(params string[] fields)
     {
-        SqlBuilderUtil.IncludeFields(SqlAdapter, _tableFieldList, fields);
+        SqlBuilderUtil.IncludeFields(TableName, _tableFieldList, fields);
         return this;
     }
     public virtual IInsertable<TEntity> IgnoreFields(params string[] fields)
     {
-        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _tableFieldList, fields);
+        SqlBuilderUtil.IgnoreFields<TEntity>(TableName, _tableFieldList, fields);
         return this;
     }
     public virtual IInsertable<TEntity> IdentityFields(params string[] fields)
     {
-        SqlBuilderUtil.IdentityFields(SqlAdapter, _tableFieldList, fields);
+        SqlBuilderUtil.IdentityFields(TableName, _tableFieldList, fields);
         return this;
     }
 
@@ -110,6 +110,11 @@ VALUES{2}";
 
     protected override ISqlCommand BuildSqlCommand()
     {
+        if (!_tableFieldList.Any())
+        {
+            SqlBuilderUtil.IncludeFields<TEntity>(_tableFieldList);
+        }
+
         CheckIncludeIdentityFields();
 
         var fields = _tableFieldList.Where(c => !c.IsIdentityField).ToList();

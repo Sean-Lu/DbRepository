@@ -41,7 +41,7 @@ public class CheckInLogRepository : DapperBaseRepository<CheckInLogEntity>, IChe
     {
         #region 自定义 SqlCommand 示例
         // SqlCommand 示例1：
-        var sql = this.CreateQueryableBuilder(true)
+        var sql = this.CreateQueryableBuilder()
             .Page(pageNumber, pageSize)
             .Where($"{nameof(CheckInLogEntity.UserId)} = @{nameof(CheckInLogEntity.UserId)} AND {nameof(CheckInLogEntity.CheckInType)} IN @{nameof(CheckInLogEntity.CheckInType)}")
             .OrderBy($"{nameof(CheckInLogEntity.UserId)} ASC, {nameof(CheckInLogEntity.CreateTime)} DESC")
@@ -50,7 +50,7 @@ public class CheckInLogRepository : DapperBaseRepository<CheckInLogEntity>, IChe
         sql.Master = false;// 查询结果来自从库
 
         // SqlCommand 示例2：
-        var sql2 = this.CreateQueryableBuilder(true)
+        var sql2 = this.CreateQueryableBuilder()
             .Page(pageNumber, pageSize)
             .WhereField(entity => entity.UserId, SqlOperation.Equal)
             .WhereField(entity => nameof(CheckInLogEntity.CheckInType), SqlOperation.In)
@@ -61,7 +61,7 @@ public class CheckInLogRepository : DapperBaseRepository<CheckInLogEntity>, IChe
         sql2.Master = false;// 查询结果来自从库
 
         // SqlCommand 示例3：
-        var sql3 = this.CreateQueryableBuilder(true)
+        var sql3 = this.CreateQueryableBuilder()
             .Page(pageNumber, pageSize)
             .WhereField(entity => entity.UserId, SqlOperation.Equal)
             .WhereField(entity => entity.CheckInType, SqlOperation.In)

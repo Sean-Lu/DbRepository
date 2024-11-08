@@ -35,35 +35,35 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<IUpdateable<TEntity>
     /// <summary>
     /// Create an instance of <see cref="IUpdateable{TEntity}"/>.
     /// </summary>
-    /// <param name="dbType">Database type.</param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IUpdateable<TEntity> Create(DatabaseType dbType, bool autoIncludeFields)
+    public static IUpdateable<TEntity> Create()
     {
-        var sqlBuilder = new UpdateableSqlBuilder<TEntity>(dbType);
-        if (autoIncludeFields)
-        {
-            var entityInfo = typeof(TEntity).GetEntityInfo();
-            sqlBuilder.UpdateFields(entityInfo.FieldInfos.Select(c => c.FieldName).ToArray());
-            sqlBuilder.PrimaryKeyFields(entityInfo.FieldInfos.Where(c => c.IsPrimaryKey).Select(c => c.FieldName).ToArray());
-        }
-        return sqlBuilder;
+        return new UpdateableSqlBuilder<TEntity>(DatabaseType.Unknown);
+    }
+    /// <summary>
+    /// Create an instance of <see cref="IUpdateable{TEntity}"/>.
+    /// </summary>
+    /// <param name="dbType">Database type.</param>
+    /// <returns></returns>
+    public static IUpdateable<TEntity> Create(DatabaseType dbType)
+    {
+        return new UpdateableSqlBuilder<TEntity>(dbType);
     }
 
     #region [Field]
     public virtual IUpdateable<TEntity> UpdateFields(params string[] fields)
     {
-        SqlBuilderUtil.IncludeFields(SqlAdapter, _tableFieldList, fields);
+        SqlBuilderUtil.IncludeFields(TableName, _tableFieldList, fields);
         return this;
     }
     public virtual IUpdateable<TEntity> IgnoreFields(params string[] fields)
     {
-        SqlBuilderUtil.IgnoreFields<TEntity>(SqlAdapter, _tableFieldList, fields);
+        SqlBuilderUtil.IgnoreFields<TEntity>(TableName, _tableFieldList, fields);
         return this;
     }
     public virtual IUpdateable<TEntity> PrimaryKeyFields(params string[] fields)
     {
-        SqlBuilderUtil.PrimaryKeyFields(SqlAdapter, _tableFieldList, fields);
+        SqlBuilderUtil.PrimaryKeyFields(TableName, _tableFieldList, fields);
         return this;
     }
 
@@ -88,12 +88,12 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<IUpdateable<TEntity>
 
     public virtual IUpdateable<TEntity> IncrementFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
-        SqlBuilderUtil.IncrementFields(SqlAdapter, _tableFieldList, fieldExpression, value);
+        SqlBuilderUtil.IncrementFields(TableName, _tableFieldList, fieldExpression, value);
         return this;
     }
     public virtual IUpdateable<TEntity> DecrementFields<TValue>(Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
-        SqlBuilderUtil.DecrementFields(SqlAdapter, _tableFieldList, fieldExpression, value);
+        SqlBuilderUtil.DecrementFields(TableName, _tableFieldList, fieldExpression, value);
         return this;
     }
     #endregion
@@ -266,6 +266,11 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<IUpdateable<TEntity>
 
     protected override ISqlCommand BuildSqlCommand()
     {
+        if (!_tableFieldList.Any())
+        {
+            SqlBuilderUtil.IncludeFields<TEntity>(_tableFieldList);
+        }
+
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
 
         var fields = _tableFieldList.Where(c => !c.IsPrimaryKey).ToList();

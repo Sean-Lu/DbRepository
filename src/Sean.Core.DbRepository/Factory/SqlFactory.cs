@@ -2,25 +2,25 @@
 
 public static class SqlFactory
 {
-    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(bool autoIncludeFields, DatabaseType dbType = DatabaseType.Unknown)
+    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
-        return ReplaceableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields);
+        return ReplaceableSqlBuilder<TEntity>.Create(dbType);
     }
-    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(bool autoIncludeFields, DatabaseType dbType = DatabaseType.Unknown)
+    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
-        return InsertableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields);
+        return InsertableSqlBuilder<TEntity>.Create(dbType);
     }
     public static IDeleteable<TEntity> CreateDeleteableBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
         return DeleteableSqlBuilder<TEntity>.Create(dbType);
     }
-    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(bool autoIncludeFields, DatabaseType dbType = DatabaseType.Unknown)
+    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
-        return UpdateableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields);
+        return UpdateableSqlBuilder<TEntity>.Create(dbType);
     }
-    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(bool autoIncludeFields, DatabaseType dbType = DatabaseType.Unknown)
+    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {
-        return QueryableSqlBuilder<TEntity>.Create(dbType, autoIncludeFields);
+        return QueryableSqlBuilder<TEntity>.Create(dbType);
     }
     public static ICountable<TEntity> CreateCountableBuilder<TEntity>(DatabaseType dbType = DatabaseType.Unknown)
     {

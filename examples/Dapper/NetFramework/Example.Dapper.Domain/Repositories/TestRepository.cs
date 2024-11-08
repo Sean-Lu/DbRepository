@@ -174,7 +174,7 @@ public class TestRepository : DapperBaseRepository<TestEntity>, ITestRepository/
         var getResult = await GetAsync(entity => entity.UserId == 10001);
         _logger.LogDebug($"######Get result: {JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
 
-        var sqlCommand = this.CreateQueryableBuilder(true)
+        var sqlCommand = this.CreateQueryableBuilder()
             .Where(entity => entity.Age >= 18 && entity.IsVip)
             .OrderBy(OrderByType.Desc, entity => entity.CreateTime)
             .Page(1, 3)
@@ -182,7 +182,7 @@ public class TestRepository : DapperBaseRepository<TestEntity>, ITestRepository/
         var executeDataTableResult = await ExecuteDataTableAsync(sqlCommand);
         _logger.LogDebug($"######ExecuteDataTable result: {JsonConvert.SerializeObject(executeDataTableResult, Formatting.Indented)}");
 
-        var sqlCommand2 = this.CreateQueryableBuilder(false)
+        var sqlCommand2 = this.CreateQueryableBuilder()
             .SelectFields(entity => new { entity.Id, entity.UserId, entity.Email })
             .Where(entity => entity.Id == testModel.Id)
             .Build();

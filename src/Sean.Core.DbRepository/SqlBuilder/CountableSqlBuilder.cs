@@ -31,12 +31,19 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder<ICountable<TEntity>>,
     /// <summary>
     /// Create an instance of <see cref="ICountable{TEntity}"/>.
     /// </summary>
+    /// <returns></returns>
+    public static ICountable<TEntity> Create()
+    {
+        return new CountableSqlBuilder<TEntity>(DatabaseType.Unknown);
+    }
+    /// <summary>
+    /// Create an instance of <see cref="ICountable{TEntity}"/>.
+    /// </summary>
     /// <param name="dbType">Database type.</param>
     /// <returns></returns>
     public static ICountable<TEntity> Create(DatabaseType dbType)
     {
-        var sqlBuilder = new CountableSqlBuilder<TEntity>(dbType);
-        return sqlBuilder;
+        return new CountableSqlBuilder<TEntity>(dbType);
     }
 
     #region [Join Table]

@@ -134,7 +134,7 @@ namespace Example.Dapper.Core.Application.Services
             var getResult = await _testRepository.GetAsync(entity => entity.UserId == 10001);
             _logger.LogDebug($"######Get result: {JsonConvert.SerializeObject(getResult, Formatting.Indented)}");
 
-            var sqlCommand = _testRepository.CreateQueryableBuilder(true)
+            var sqlCommand = _testRepository.CreateQueryableBuilder()
                 .Where(entity => entity.Age >= 18 && entity.IsVip)
                 .OrderBy(OrderByType.Desc, entity => entity.CreateTime)
                 .Page(1, 3)

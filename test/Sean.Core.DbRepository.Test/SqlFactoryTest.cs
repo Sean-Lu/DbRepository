@@ -17,20 +17,30 @@ namespace Sean.Core.DbRepository.Test
         public void TestInsert()
         {
             var testEntity = new TestEntity();
-            ISqlCommand sqlCommand = SqlFactory.CreateInsertableBuilder<TestEntity>(true, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateInsertableBuilder<TestEntity>(DatabaseType.MySql)
                 .SetParameter(testEntity)
                 .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, @"INSERT INTO `Test`(`UserId`, `UserName`, `Age`, `Sex`, `PhoneNumber`, `Email`, `IsVip`, `IsBlack`, `Country`, `AccountBalance`, `AccountBalance2`, `Status`, `Remark`, `CreateTime`, `UpdateTime`) 
 VALUES(@UserId, @UserName, @Age, @Sex, @PhoneNumber, @Email, @IsVip, @IsBlack, @Country, @AccountBalance, @AccountBalance2, @Status, @Remark, @CreateTime, @UpdateTime)");
             Assert.AreEqual(testEntity, sqlCommand.Parameter);
+
+            testEntity.Id = 10001L;
+
+            ISqlCommand sqlCommand2 = SqlFactory.CreateInsertableBuilder<TestEntity>(DatabaseType.MySql)
+                .SetParameter(testEntity)
+                .SetSqlIndented(true)
+                .Build();
+            Assert.AreEqual(sqlCommand2.Sql, @"INSERT INTO `Test`(`Id`, `UserId`, `UserName`, `Age`, `Sex`, `PhoneNumber`, `Email`, `IsVip`, `IsBlack`, `Country`, `AccountBalance`, `AccountBalance2`, `Status`, `Remark`, `CreateTime`, `UpdateTime`) 
+VALUES(@Id, @UserId, @UserName, @Age, @Sex, @PhoneNumber, @Email, @IsVip, @IsBlack, @Country, @AccountBalance, @AccountBalance2, @Status, @Remark, @CreateTime, @UpdateTime)");
+            Assert.AreEqual(testEntity, sqlCommand2.Parameter);
         }
 
         [TestMethod]
         public void TestInsertIgnoreFields()
         {
             var testEntity = new TestEntity();
-            ISqlCommand sqlCommand = SqlFactory.CreateInsertableBuilder<TestEntity>(true, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateInsertableBuilder<TestEntity>(DatabaseType.MySql)
                 .IgnoreFields(entity => new { entity.CreateTime, entity.UpdateTime })
                 .SetParameter(testEntity)
                 .SetSqlIndented(true)
@@ -38,6 +48,17 @@ VALUES(@UserId, @UserName, @Age, @Sex, @PhoneNumber, @Email, @IsVip, @IsBlack, @
             Assert.AreEqual(sqlCommand.Sql, @"INSERT INTO `Test`(`UserId`, `UserName`, `Age`, `Sex`, `PhoneNumber`, `Email`, `IsVip`, `IsBlack`, `Country`, `AccountBalance`, `AccountBalance2`, `Status`, `Remark`) 
 VALUES(@UserId, @UserName, @Age, @Sex, @PhoneNumber, @Email, @IsVip, @IsBlack, @Country, @AccountBalance, @AccountBalance2, @Status, @Remark)");
             Assert.AreEqual(testEntity, sqlCommand.Parameter);
+            
+            testEntity.Id = 10001L;
+
+            ISqlCommand sqlCommand2 = SqlFactory.CreateInsertableBuilder<TestEntity>(DatabaseType.MySql)
+                .IgnoreFields(entity => new { entity.CreateTime, entity.UpdateTime })
+                .SetParameter(testEntity)
+                .SetSqlIndented(true)
+                .Build();
+            Assert.AreEqual(sqlCommand2.Sql, @"INSERT INTO `Test`(`Id`, `UserId`, `UserName`, `Age`, `Sex`, `PhoneNumber`, `Email`, `IsVip`, `IsBlack`, `Country`, `AccountBalance`, `AccountBalance2`, `Status`, `Remark`) 
+VALUES(@Id, @UserId, @UserName, @Age, @Sex, @PhoneNumber, @Email, @IsVip, @IsBlack, @Country, @AccountBalance, @AccountBalance2, @Status, @Remark)");
+            Assert.AreEqual(testEntity, sqlCommand2.Parameter);
         }
 
         [TestMethod]
@@ -48,7 +69,7 @@ VALUES(@UserId, @UserName, @Age, @Sex, @PhoneNumber, @Email, @IsVip, @IsBlack, @
                 new TestEntity(),
                 new TestEntity()
             };
-            ISqlCommand sqlCommand = SqlFactory.CreateInsertableBuilder<TestEntity>(true, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateInsertableBuilder<TestEntity>(DatabaseType.MySql)
                 .SetParameter(testEntities)
                 .SetSqlIndented(true)
                 .Build();
@@ -137,7 +158,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         public void TestUpdateWhere()
         {
             var testEntity = new TestEntity { Id = 1 };
-            ISqlCommand sqlCommand = SqlFactory.CreateUpdateableBuilder<TestEntity>(true, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateUpdateableBuilder<TestEntity>(DatabaseType.MySql)
                 .Where(entity => entity.Status == 1 && entity.IsVip && entity.Age > 18)
                 .SetParameter(testEntity)
                 .SetSqlIndented(true)
@@ -166,7 +187,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 {"Status_2",1},
             }, sqlCommand.Parameter as Dictionary<string, object>);
 
-            ISqlCommand sqlCommand2 = SqlFactory.CreateUpdateableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand2 = SqlFactory.CreateUpdateableBuilder<TestEntity>(DatabaseType.MySql)
                 .UpdateFields(entity => new { entity.AccountBalance, entity.Remark })
                 .Where(entity => entity.Status == 1 && entity.IsVip && entity.Age > 18)
                 .SetParameter(testEntity)
@@ -201,14 +222,14 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         public void TestUpdateById()
         {
             var testEntity = new TestEntity { Id = 1 };
-            ISqlCommand sqlCommand = SqlFactory.CreateUpdateableBuilder<TestEntity>(true, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateUpdateableBuilder<TestEntity>(DatabaseType.MySql)
                 .SetParameter(testEntity)
                 .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "UPDATE `Test` SET `UserId`=@UserId, `UserName`=@UserName, `Age`=@Age, `Sex`=@Sex, `PhoneNumber`=@PhoneNumber, `Email`=@Email, `IsVip`=@IsVip, `IsBlack`=@IsBlack, `Country`=@Country, `AccountBalance`=@AccountBalance, `AccountBalance2`=@AccountBalance2, `Status`=@Status, `Remark`=@Remark, `CreateTime`=@CreateTime, `UpdateTime`=@UpdateTime WHERE 1=1 AND `Id` = @Id");
             Assert.AreEqual(testEntity, sqlCommand.Parameter);
 
-            ISqlCommand sqlCommand2 = SqlFactory.CreateUpdateableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand2 = SqlFactory.CreateUpdateableBuilder<TestEntity>(DatabaseType.MySql)
                 .UpdateFields(entity => new { entity.AccountBalance, entity.Remark })
                 .SetParameter(testEntity)
                 .SetSqlIndented(true)
@@ -225,14 +246,14 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 new TestEntity(),
                 new TestEntity()
             };
-            ISqlCommand sqlCommand = SqlFactory.CreateUpdateableBuilder<TestEntity>(true, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateUpdateableBuilder<TestEntity>(DatabaseType.MySql)
                 .SetParameter(testEntities)
                 .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "UPDATE `Test` SET `UserId`=@UserId, `UserName`=@UserName, `Age`=@Age, `Sex`=@Sex, `PhoneNumber`=@PhoneNumber, `Email`=@Email, `IsVip`=@IsVip, `IsBlack`=@IsBlack, `Country`=@Country, `AccountBalance`=@AccountBalance, `AccountBalance2`=@AccountBalance2, `Status`=@Status, `Remark`=@Remark, `CreateTime`=@CreateTime, `UpdateTime`=@UpdateTime WHERE 1=1 AND `Id` = @Id");
             Assert.AreEqual(testEntities, sqlCommand.Parameter);
 
-            ISqlCommand sqlCommand2 = SqlFactory.CreateUpdateableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand2 = SqlFactory.CreateUpdateableBuilder<TestEntity>(DatabaseType.MySql)
                 .UpdateFields(entity => new { entity.AccountBalance, entity.Remark })
                 .SetParameter(testEntities)
                 .SetSqlIndented(true)
@@ -246,7 +267,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectWhere()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1 && entity.IsVip && entity.Age > 18)
                 .SetSqlIndented(true)
@@ -263,7 +284,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectMultiWhere()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .Where(entity => entity.IsVip && entity.Age > 18)
@@ -281,7 +302,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectWhereIF()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .WhereIF(true, entity => entity.IsVip && entity.Age > 18)
@@ -295,7 +316,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 {"Age",18},
             }, sqlCommand.Parameter as Dictionary<string, object>);
 
-            ISqlCommand sqlCommand2 = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand2 = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .SelectFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .WhereIF(false, entity => entity.IsVip && entity.Age > 18)
@@ -311,7 +332,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectMaxField()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .SelectFields(entity => entity.UserId)
                 .MaxField(entity => entity.AccountBalance, "MaxValue")
                 .Where(entity => entity.Status == 1)
@@ -328,7 +349,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectMinField()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .SelectFields(entity => entity.UserId)
                 .MinField(entity => entity.AccountBalance, "MinValue")
                 .Where(entity => entity.Status == 1)
@@ -345,7 +366,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectSumField()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .SelectFields(entity => entity.UserId)
                 .SumField(entity => entity.AccountBalance, "SumValue")
                 .Where(entity => entity.Status == 1)
@@ -362,7 +383,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectSumField2()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .SelectFields(entity => entity.UserId)
                 .SumField($"`{Table<TestEntity>.Field(entity => entity.AccountBalance)}`-`{Table<TestEntity>.Field(entity => entity.AccountBalance2)}`", "SumValue", true)
                 .Where(entity => entity.Status == 1)
@@ -379,7 +400,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectAvgField()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .SelectFields(entity => entity.UserId)
                 .AvgField(entity => entity.AccountBalance, "AvgValue")
                 .Where(entity => entity.Status == 1)
@@ -396,7 +417,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectCountField()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .SelectFields(entity => entity.UserId)
                 .CountField(entity => entity.AccountBalance, "CountValue")
                 .Where(entity => entity.Status == 1)
@@ -413,7 +434,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectDistinctField()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .DistinctFields(entity => entity.UserId)
                 .Where(entity => entity.Status == 1)
                 .SetSqlIndented(true)
@@ -428,7 +449,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         [TestMethod]
         public void TestSelectCountDistinctField()
         {
-            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(false, DatabaseType.MySql)
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.MySql)
                 .CountDistinctField(entity => entity.UserId, "CountDistinctValue")
                 .Where(entity => entity.Status == 1)
                 .SetSqlIndented(true)

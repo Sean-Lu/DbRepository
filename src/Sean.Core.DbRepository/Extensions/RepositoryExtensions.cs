@@ -8,22 +8,20 @@ public static class RepositoryExtensions
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields)
+    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository repository)
     {
-        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
+        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IReplaceable{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields) where TEntity : class
+    public static IReplaceable<TEntity> CreateReplaceableBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
-        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
+        return ReplaceableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -31,22 +29,20 @@ public static class RepositoryExtensions
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields)
+    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository repository)
     {
-        return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
+        return InsertableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IInsertable{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields) where TEntity : class
+    public static IInsertable<TEntity> CreateInsertableBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
-        return InsertableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
+        return InsertableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -75,22 +71,20 @@ public static class RepositoryExtensions
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields)
+    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository repository)
     {
-        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
+        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IUpdateable{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields) where TEntity : class
+    public static IUpdateable<TEntity> CreateUpdateableBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
-        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
+        return UpdateableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
 
     /// <summary>
@@ -98,22 +92,20 @@ public static class RepositoryExtensions
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository repository, bool autoIncludeFields)
+    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository repository)
     {
-        return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
+        return QueryableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
     /// <summary>
     /// Create an instance of <see cref="IQueryable{TEntity}"/>.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="repository"></param>
-    /// <param name="autoIncludeFields">Whether all table fields are automatically resolved from <typeparamref name="TEntity"/>.</param>
     /// <returns></returns>
-    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository<TEntity> repository, bool autoIncludeFields) where TEntity : class
+    public static IQueryable<TEntity> CreateQueryableBuilder<TEntity>(this IBaseRepository<TEntity> repository) where TEntity : class
     {
-        return QueryableSqlBuilder<TEntity>.Create(repository.DbType, autoIncludeFields).SetTableName(repository.TableName());
+        return QueryableSqlBuilder<TEntity>.Create(repository.DbType).SetTableName(repository.TableName());
     }
 
     /// <summary>
