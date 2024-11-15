@@ -23,6 +23,7 @@ public abstract class EntityBase : IEntityStateBase
     /// <summary>
     /// 更新时间
     /// </summary>
+    [AutoUpdateCurrentTimestamp(true)]
     public virtual DateTime? UpdateTime { get; set; }
 
     [NotMapped]

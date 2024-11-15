@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
 
@@ -81,6 +82,18 @@ public class SqlGeneratorForMySql : BaseSqlGenerator, ISqlGenerator
             {
                 sbFieldInfo.Append($" DEFAULT {ConvertFieldDefaultValue(fieldInfo.FieldDefaultValue)}");
             }
+            var autoUpdateFieldAttribute = fieldInfo.Property.GetCustomAttribute<AutoUpdateCurrentTimestampAttribute>(true);
+            if (autoUpdateFieldAttribute != null)
+            {
+                if (!autoUpdateFieldAttribute.SetDefault)
+                {
+                    sbFieldInfo.Append(" ON UPDATE CURRENT_TIMESTAMP");
+                }
+                else if (fieldInfo.FieldDefaultValue == null)
+                {
+                    sbFieldInfo.Append(" DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                }
+            }
             if (fieldInfo.IsIdentityField)
             {
                 sbFieldInfo.Append(" AUTO_INCREMENT");
@@ -136,6 +149,18 @@ public class SqlGeneratorForMySql : BaseSqlGenerator, ISqlGenerator
             if (fieldInfo.FieldDefaultValue != null)
             {
                 sb.Append($" DEFAULT {ConvertFieldDefaultValue(fieldInfo.FieldDefaultValue)}");
+            }
+            var autoUpdateFieldAttribute = fieldInfo.Property.GetCustomAttribute<AutoUpdateCurrentTimestampAttribute>(true);
+            if (autoUpdateFieldAttribute != null)
+            {
+                if (!autoUpdateFieldAttribute.SetDefault)
+                {
+                    sb.Append(" ON UPDATE CURRENT_TIMESTAMP");
+                }
+                else if (fieldInfo.FieldDefaultValue == null)
+                {
+                    sb.Append(" DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                }
             }
             if (!string.IsNullOrWhiteSpace(fieldInfo.FieldDescription))
             {
