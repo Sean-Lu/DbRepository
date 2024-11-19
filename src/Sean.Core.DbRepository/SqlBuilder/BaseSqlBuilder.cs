@@ -65,7 +65,7 @@ public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBu
                             break;
                         }
                     case DatabaseType.Informix:// Informix ODBC Driver.
-                    case DatabaseType.DuckDB:
+                    //case DatabaseType.DuckDB:
                     case DatabaseType.Xugu:
                         {
                             sqlCommand.ConvertParameterToDictionaryByPosition(true);

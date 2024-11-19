@@ -58,6 +58,8 @@ public static class DatabaseTypeExtensions
             case DatabaseType.Oracle:
             case DatabaseType.Dameng:
                 return $":{parameter}";
+            case DatabaseType.DuckDB:
+                return $"${parameter}";
             default:
                 return $"@{parameter}";
         }

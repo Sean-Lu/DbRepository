@@ -11,6 +11,8 @@ namespace Sean.Core.DbRepository.Util;
 
 public static class SqlParameterUtil
 {
+    public const string SqlParameterNamePrefixRegex = "[?@:$]";
+
     public static Dictionary<string, object> ConvertToDicParameter<TEntity>(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null)
     {
         var fields = fieldExpression?.GetFieldNames();
@@ -96,7 +98,7 @@ public static class SqlParameterUtil
         var list = new List<PropertyInfo>();
         foreach (var p in parameters)
         {
-            if (Regex.IsMatch(sql, $@"[?@:]{p.Name}([^\p{{L}}\p{{N}}_]+|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant))
+            if (Regex.IsMatch(sql, $@"{SqlParameterNamePrefixRegex}{p.Name}([^\p{{L}}\p{{N}}_]+|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant))
                 list.Add(p);
         }
         return list;
@@ -106,7 +108,7 @@ public static class SqlParameterUtil
         var list = new List<string>();
         foreach (var p in parameters)
         {
-            if (Regex.IsMatch(sql, $@"[?@:]{p}([^\p{{L}}\p{{N}}_]+|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant))
+            if (Regex.IsMatch(sql, $@"{SqlParameterNamePrefixRegex}{p}([^\p{{L}}\p{{N}}_]+|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant))
                 list.Add(p);
         }
         return list;
@@ -116,7 +118,7 @@ public static class SqlParameterUtil
         for (var i = parameters.Count - 1; i >= 0; i--)
         {
             var item = parameters.ElementAt(i);
-            if (!Regex.IsMatch(sql, $@"[?@:]{item.Key}([^\p{{L}}\p{{N}}_]+|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant))
+            if (!Regex.IsMatch(sql, $@"{SqlParameterNamePrefixRegex}{item.Key}([^\p{{L}}\p{{N}}_]+|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant))
                 parameters.Remove(item.Key);
         }
     }
@@ -125,7 +127,7 @@ public static class SqlParameterUtil
     {
         var dict = new Dictionary<string, int>(16);
         var index = 0;
-        var regex = new Regex(@"[?@:](\w+)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
+        var regex = new Regex($@"{SqlParameterNamePrefixRegex}(\w+)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
         foreach (Match match in regex.Matches(sql))
         {
             var name = match.Groups[1].Value;
@@ -139,13 +141,13 @@ public static class SqlParameterUtil
 
     public static string UseQuestionMarkParameter(string sql)
     {
-        var regex = new Regex(@"[?@:](\w+)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
+        var regex = new Regex($@"{SqlParameterNamePrefixRegex}(\w+)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
         return regex.Replace(sql, "?");
     }
 
     public static string ReplaceParameter(string sql, string paraName, string replace)
     {
-        var regex = new Regex($@"[?@:]{paraName}(?!\w)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
+        var regex = new Regex($@"{SqlParameterNamePrefixRegex}{paraName}(?!\w)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant);
         return regex.IsMatch(sql) ? regex.Replace(sql, replace, 1) : sql;
     }
 
