@@ -10,7 +10,7 @@ using System.Data.OleDb;
 
 namespace Sean.Core.DbRepository.CodeFirst;
 
-public abstract class BaseSqlGenerator : IBaseSqlGenerator
+public abstract class BaseSqlGenerator : ISqlGenerator
 {
     protected DbFactory _db;
     protected readonly DatabaseType _dbType;
@@ -107,4 +107,16 @@ public abstract class BaseSqlGenerator : IBaseSqlGenerator
             _ => defaultValue.ToString()
         };
     }
+
+    public virtual List<string> GetCreateTableSql<TEntity>(bool ignoreIfExists = false, Func<string, string> tableNameFunc = null)
+    {
+        return GetCreateTableSql(typeof(TEntity), ignoreIfExists, tableNameFunc);
+    }
+    public abstract List<string> GetCreateTableSql(Type entityType, bool ignoreIfExists = false, Func<string, string> tableNameFunc = null);
+
+    public virtual List<string> GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
+    {
+        return GetUpgradeSql(typeof(TEntity), tableNameFunc);
+    }
+    public abstract List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null);
 }

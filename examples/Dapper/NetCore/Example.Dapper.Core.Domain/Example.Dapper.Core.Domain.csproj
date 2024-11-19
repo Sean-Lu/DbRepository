@@ -29,7 +29,7 @@
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
 	</ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('UseDuckDB'))">
-    <PackageReference Include="DuckDB.NET.Data.Full" Version="0.10.2" />
+    <PackageReference Include="DuckDB.NET.Data.Full" Version="1.1.3" />
   </ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMsAccess'))">
 		<PackageReference Include="System.Data.OleDb" Version="8.0.0" />

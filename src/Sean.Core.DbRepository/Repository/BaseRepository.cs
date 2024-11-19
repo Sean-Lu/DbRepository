@@ -1017,7 +1017,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     protected override IEnumerable<string> GetCreateTableSql(string tableName)
     {
         ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DbType);
-        return sqlGenerator?.GetCreateTableSql<TEntity>(_ => tableName);
+        return sqlGenerator?.GetCreateTableSql<TEntity>(false, _ => tableName);
     }
 
     #region Synchronous method

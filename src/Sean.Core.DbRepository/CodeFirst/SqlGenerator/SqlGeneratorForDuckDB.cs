@@ -6,7 +6,7 @@ using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository.CodeFirst;
 
-public class SqlGeneratorForDuckDB : BaseSqlGenerator, ISqlGenerator
+public class SqlGeneratorForDuckDB : BaseSqlGenerator
 {
     public SqlGeneratorForDuckDB() : base(DatabaseType.DuckDB)
     {
@@ -52,11 +52,7 @@ public class SqlGeneratorForDuckDB : BaseSqlGenerator, ISqlGenerator
         return result;
     }
 
-    public virtual List<string> GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
-    {
-        return GetCreateTableSql(typeof(TEntity), tableNameFunc);
-    }
-    public List<string> GetCreateTableSql(Type entityType, Func<string, string> tableNameFunc = null)
+    public override List<string> GetCreateTableSql(Type entityType, bool ignoreIfExists = false, Func<string, string> tableNameFunc = null)
     {
         var result = new List<string>();
         var sb = new StringBuilder();
@@ -69,9 +65,9 @@ public class SqlGeneratorForDuckDB : BaseSqlGenerator, ISqlGenerator
         var sequenceName = $"SQ_{tableName}";
         if (entityInfo.FieldInfos.Exists(c => c.IsIdentityField))
         {
-            result.Add($"CREATE SEQUENCE {_dbType.MarkAsTableOrFieldName(sequenceName)};");
+            result.Add($"CREATE SEQUENCE{(ignoreIfExists ? " IF NOT EXISTS" : string.Empty)} {_dbType.MarkAsTableOrFieldName(sequenceName)};");
         }
-        sb.AppendLine($"CREATE TABLE {_dbType.MarkAsTableOrFieldName(tableName)} (");
+        sb.AppendLine($"CREATE TABLE{(ignoreIfExists ? " IF NOT EXISTS" : string.Empty)} {_dbType.MarkAsTableOrFieldName(tableName)} (");
         var fieldInfoList = new List<string>();
         var sbFieldInfo = new StringBuilder();
         foreach (var fieldInfo in entityInfo.FieldInfos)
@@ -102,11 +98,7 @@ public class SqlGeneratorForDuckDB : BaseSqlGenerator, ISqlGenerator
         return result;
     }
 
-    public virtual List<string> GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
-    {
-        return GetUpgradeSql(typeof(TEntity), tableNameFunc);
-    }
-    public List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
+    public override List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
     {
         var entityInfo = entityType.GetEntityInfo();
         var tableName = entityInfo.TableName;
@@ -116,7 +108,7 @@ public class SqlGeneratorForDuckDB : BaseSqlGenerator, ISqlGenerator
         }
         if (!IsTableExists(tableName))
         {
-            return GetCreateTableSql(entityType, _ => tableName);
+            return GetCreateTableSql(entityType, false, _ => tableName);
         }
         var missingTableFieldInfo = GetDbMissingTableFields(entityType, tableName);
         var result = new List<string>();

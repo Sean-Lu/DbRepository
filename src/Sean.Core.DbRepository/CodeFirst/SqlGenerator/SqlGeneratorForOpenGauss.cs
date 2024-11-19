@@ -6,7 +6,7 @@ using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository.CodeFirst;
 
-public class SqlGeneratorForOpenGauss : BaseSqlGenerator, ISqlGenerator
+public class SqlGeneratorForOpenGauss : BaseSqlGenerator
 {
     public SqlGeneratorForOpenGauss() : base(DatabaseType.OpenGauss)
     {
@@ -52,11 +52,7 @@ public class SqlGeneratorForOpenGauss : BaseSqlGenerator, ISqlGenerator
         return result;
     }
 
-    public virtual List<string> GetCreateTableSql<TEntity>(Func<string, string> tableNameFunc = null)
-    {
-        return GetCreateTableSql(typeof(TEntity), tableNameFunc);
-    }
-    public List<string> GetCreateTableSql(Type entityType, Func<string, string> tableNameFunc = null)
+    public override List<string> GetCreateTableSql(Type entityType, bool ignoreIfExists = false, Func<string, string> tableNameFunc = null)
     {
         var result = new List<string>();
         var sb = new StringBuilder();
@@ -113,11 +109,7 @@ public class SqlGeneratorForOpenGauss : BaseSqlGenerator, ISqlGenerator
         return result;
     }
 
-    public virtual List<string> GetUpgradeSql<TEntity>(Func<string, string> tableNameFunc = null)
-    {
-        return GetUpgradeSql(typeof(TEntity), tableNameFunc);
-    }
-    public List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
+    public override List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
     {
         var entityInfo = entityType.GetEntityInfo();
         var tableName = entityInfo.TableName;
@@ -127,7 +119,7 @@ public class SqlGeneratorForOpenGauss : BaseSqlGenerator, ISqlGenerator
         }
         if (!IsTableExists(tableName))
         {
-            return GetCreateTableSql(entityType, _ => tableName);
+            return GetCreateTableSql(entityType, false, _ => tableName);
         }
         var missingTableFieldInfo = GetDbMissingTableFields(entityType, tableName);
         var result = new List<string>();
