@@ -54,14 +54,23 @@ public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBu
             {
                 sqlCommand.ConvertSqlToNonParameter();
             }
-            else if (SqlAdapter.DbType is DatabaseType.MsAccess or DatabaseType.Informix or DatabaseType.DuckDB or DatabaseType.Xugu)
+            else
             {
-                sqlCommand.BindSqlParameterType = BindSqlParameterType.BindByPosition;
-                sqlCommand.ConvertParameterToDictionary();
-                // Informix ODBC Driver.
-                if (SqlAdapter.DbType is DatabaseType.Informix or DatabaseType.DuckDB or DatabaseType.Xugu)
+
+                switch (SqlAdapter.DbType)
                 {
-                    sqlCommand.ConvertSqlToUseQuestionMarkParameter();
+                    case DatabaseType.MsAccess:
+                        {
+                            sqlCommand.ConvertParameterToDictionaryByPosition(false);
+                            break;
+                        }
+                    case DatabaseType.Informix:// Informix ODBC Driver.
+                    case DatabaseType.DuckDB:
+                    case DatabaseType.Xugu:
+                        {
+                            sqlCommand.ConvertParameterToDictionaryByPosition(true);
+                            break;
+                        }
                 }
             }
         }

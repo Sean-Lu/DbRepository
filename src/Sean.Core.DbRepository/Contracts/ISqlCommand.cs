@@ -43,7 +43,8 @@ public interface ISqlCommand
     bool SqlParameterSorted { get; }
     bool UseQuestionMarkParameter { get; }
 
-    void ConvertParameterToDictionary(bool removeUnusedParameter = true);
+    void ConvertParameterToDictionaryByName(bool removeUnusedParameter);
+    void ConvertParameterToDictionaryByPosition(bool useQuestionMarkParameter);
     void ConvertSqlToUseQuestionMarkParameter();
     void ConvertSqlToNonParameter();
 }
