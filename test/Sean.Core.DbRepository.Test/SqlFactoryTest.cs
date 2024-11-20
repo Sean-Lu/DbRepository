@@ -745,7 +745,7 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 { "CreateTime", DateTime.Parse("2024-09-25 12:00:00") },
                 { "UserId_2", 101L },
             };
-            Assert.AreEqual("(\"Test\".\"UserId\" = ? OR \"Test\".\"IsVip\" = ?) AND \"CheckInLog\".\"CreateTime\" > ? AND \"CheckInLog\".\"UserId\" = ?", whereClause);
+            Assert.AreEqual("(\"Test\".\"UserId\" = $UserId OR \"Test\".\"IsVip\" = $IsVip) AND \"CheckInLog\".\"CreateTime\" > $CreateTime AND \"CheckInLog\".\"UserId\" = $UserId_2", whereClause);
             AssertSqlParameters(expectedParameters, SqlParameterUtil.ConvertToDicParameter(parameters));
         }
 
