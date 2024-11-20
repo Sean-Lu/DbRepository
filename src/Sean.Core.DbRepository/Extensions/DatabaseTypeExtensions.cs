@@ -55,9 +55,11 @@ public static class DatabaseTypeExtensions
 
         switch (databaseType)
         {
+            //case DatabaseType.SQLite:// √
             case DatabaseType.Oracle:
             case DatabaseType.Dameng:
                 return $":{parameter}";
+            //case DatabaseType.SQLite:// √
             case DatabaseType.DuckDB:
                 return $"${parameter}";
             default:
