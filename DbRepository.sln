@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Dapper.Core.Console
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository.Dapper", "src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj", "{B5FAD732-D95C-47C8-9D52-4C971938B850}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository.Tools", "src\Sean.Core.DbRepository.Tools\Sean.Core.DbRepository.Tools.csproj", "{706FABC9-D675-49F4-81B9-B65CC1FC81C5}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Dapper.Core.Application", "examples\Dapper\NetCore\Example.Dapper.Core.Application\Example.Dapper.Core.Application.csproj", "{9B41EC71-5BD4-4565-848B-DAF1EEDB0EAA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Dapper.Core.Domain", "examples\Dapper\NetCore\Example.Dapper.Core.Domain\Example.Dapper.Core.Domain.csproj", "{1B582E10-1A19-4299-8212-5D4FAC414C1C}"
@@ -69,9 +67,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Common", "examples\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository.EntityFrameworkCore", "src\Sean.Core.DbRepository.EntityFrameworkCore\Sean.Core.DbRepository.EntityFrameworkCore.csproj", "{A3E3564E-B172-4E4E-9AF4-238E96A13C86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sean.Core.DbRepository.FreeSql", "src\Sean.Core.DbRepository.FreeSql\Sean.Core.DbRepository.FreeSql.csproj", "{FE5D4963-7BE5-4D17-9128-A6A588E8BB04}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository.FreeSql", "src\Sean.Core.DbRepository.FreeSql\Sean.Core.DbRepository.FreeSql.csproj", "{FE5D4963-7BE5-4D17-9128-A6A588E8BB04}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sean.Core.DbRepository.SqlSugar", "src\Sean.Core.DbRepository.SqlSugar\Sean.Core.DbRepository.SqlSugar.csproj", "{3E4AA3E6-2B97-446F-BA8C-3D6101DE38BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sean.Core.DbRepository.SqlSugar", "src\Sean.Core.DbRepository.SqlSugar\Sean.Core.DbRepository.SqlSugar.csproj", "{3E4AA3E6-2B97-446F-BA8C-3D6101DE38BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,10 +89,6 @@ Global
 		{B5FAD732-D95C-47C8-9D52-4C971938B850}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5FAD732-D95C-47C8-9D52-4C971938B850}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5FAD732-D95C-47C8-9D52-4C971938B850}.Release|Any CPU.Build.0 = Release|Any CPU
-		{706FABC9-D675-49F4-81B9-B65CC1FC81C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{706FABC9-D675-49F4-81B9-B65CC1FC81C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{706FABC9-D675-49F4-81B9-B65CC1FC81C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{706FABC9-D675-49F4-81B9-B65CC1FC81C5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9B41EC71-5BD4-4565-848B-DAF1EEDB0EAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9B41EC71-5BD4-4565-848B-DAF1EEDB0EAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B41EC71-5BD4-4565-848B-DAF1EEDB0EAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
