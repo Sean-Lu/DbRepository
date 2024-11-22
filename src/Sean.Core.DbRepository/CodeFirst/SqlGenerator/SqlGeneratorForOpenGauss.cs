@@ -62,7 +62,7 @@ public class SqlGeneratorForOpenGauss : BaseSqlGenerator
         {
             tableName = tableNameFunc(tableName);
         }
-        sb.AppendLine($"CREATE TABLE {_dbType.MarkAsTableOrFieldName(tableName)} (");
+        sb.AppendLine($"CREATE TABLE{(ignoreIfExists ? " IF NOT EXISTS" : string.Empty)} {_dbType.MarkAsTableOrFieldName(tableName)} (");
         var fieldInfoList = new List<string>();
         var sbFieldInfo = new StringBuilder();
         var fieldDescriptionDic = new Dictionary<string, string>();
