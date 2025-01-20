@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using Sean.Utility.Extensions;
 using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository.Extensions;
@@ -261,53 +262,24 @@ public static class DbDataReaderExtensions
 
     private static T GetModelInternal<T>(IDataReader dataReader)
     {
-        T model = default;
         var type = typeof(T);
         if (type.IsGenericType)
         {
             var genericType = type.GetGenericTypeDefinition();
-            if (genericType.Name.StartsWith("Tuple"))// Tuple<>
+            if (genericType.Name.StartsWith("Tuple") // Tuple<>
+                || genericType.Name.StartsWith("ValueTuple"))// 匿名类：ValueTuple<>
             {
-                var itemCount = type.GetProperties().Count(c => c.Name.StartsWith("Item"));
-                if (itemCount > 0)
+                var typeParameters = type.GetGenericArguments();
+                if (typeParameters.Length > 0)
                 {
-                    var values = new object[itemCount];// dataReader.FieldCount
+                    var values = new object[typeParameters.Length];
                     dataReader.GetValues(values);
-                    if (values.Any(c => c == DBNull.Value))
+                    for (var i = 0; i < values.Length; i++)
                     {
-                        for (var i = 0; i < values.Length; i++)
-                        {
-                            if (values[i] == DBNull.Value)
-                            {
-                                //var propertyInfo = type.GetProperty($"Item{i + 1}");
-                                //values[i] = propertyInfo != null ? propertyInfo.PropertyType.GetDefaultValue() : null;
-                                values[i] = null;
-                            }
-                        }
+                        var value = values[i];
+                        values[i] = value != null && value != DBNull.Value ? ObjectConvert.ChangeType(value, typeParameters[i]) : typeParameters[i].GetDefaultValue();
                     }
-                    model = (T)Activator.CreateInstance(typeof(T), values);
-                }
-            }
-            else if (genericType.Name.StartsWith("ValueTuple"))// 匿名类：ValueTuple<>
-            {
-                var itemCount = type.GetFields().Count(c => c.Name.StartsWith("Item"));
-                if (itemCount > 0)
-                {
-                    var values = new object[itemCount];// dataReader.FieldCount
-                    dataReader.GetValues(values);
-                    if (values.Any(c => c == DBNull.Value))
-                    {
-                        for (var i = 0; i < values.Length; i++)
-                        {
-                            if (values[i] == DBNull.Value)
-                            {
-                                //var fieldInfo = type.GetField($"Item{i + 1}");
-                                //values[i] = fieldInfo != null ? fieldInfo.FieldType.GetDefaultValue() : null;
-                                values[i] = null;
-                            }
-                        }
-                    }
-                    model = (T)Activator.CreateInstance(typeof(T), values);
+                    return (T)Activator.CreateInstance(typeof(T), values);
                 }
             }
         }
@@ -316,7 +288,7 @@ public static class DbDataReaderExtensions
             var value = dataReader[0];
             if (value != DBNull.Value)
             {
-                model = ObjectConvert.ChangeType<T>(value);
+                return ObjectConvert.ChangeType<T>(value);
             }
         }
         else if (type == typeof(object))// dynamic动态类型
@@ -327,11 +299,11 @@ public static class DbDataReaderExtensions
                 dic.Add(dataReader.GetName(i), dataReader[i]);
             }
             var json = DbContextConfiguration.Options.JsonSerializer.Serialize(dic);
-            model = DbContextConfiguration.Options.JsonSerializer.Deserialize<T>(json);
+            return DbContextConfiguration.Options.JsonSerializer.Deserialize<T>(json);
         }
         else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)// 实体类
         {
-            model = Activator.CreateInstance<T>();
+            var model = Activator.CreateInstance<T>();
             var properties = type.GetProperties();
             for (var i = 0; i < dataReader.FieldCount; i++)
             {
@@ -346,12 +318,13 @@ public static class DbDataReaderExtensions
                     }
                 }
             }
+            return model;
         }
         else
         {
             throw new NotSupportedException($"Unsupported type: {type.FullName}");
         }
 
-        return model;
+        return default;
     }
 }
