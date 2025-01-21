@@ -163,6 +163,7 @@ VALUES{2}";
                     sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(TableName), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
                 }
                 break;
+            case DatabaseType.Oracle:
             case DatabaseType.QuestDB:
             case DatabaseType.DuckDB:
             case DatabaseType.Xugu:

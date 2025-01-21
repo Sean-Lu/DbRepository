@@ -189,8 +189,8 @@ namespace Example.EF.Core.ConsoleApp
         private void UseOracle(DbContextOptionsBuilder optionsBuilder)
         {
             // Oracle: CRUD test passed.
-            //var connString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XE)));User ID=SYSTEM;Password=12345!a;Persist Security Info=True";
-            var connString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XE)));User ID=TEST;Password=12345!a;Persist Security Info=True";
+            //var connString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XE)));User ID=TEST;Password=12345!a;Persist Security Info=True";
+            var connString = "Data Source=127.0.0.1:1521/FREEPDB1;User Id=TEST;Password=12345!a";// Connection string format: Data Source=[hostname]:[port]/[DB service name];User Id=[username];Password=[password]
             optionsBuilder.UseOracle(connString, builder => builder.UseOracleSQLCompatibility("11"));// 指定数据库版本：Oracle Database 11g
             //optionsBuilder.UseOracle(connString, builder => builder.UseOracleSQLCompatibility("12"));// 指定数据库版本：Oracle Database 12c
         }

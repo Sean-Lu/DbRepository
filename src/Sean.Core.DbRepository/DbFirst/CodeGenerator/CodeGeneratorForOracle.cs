@@ -37,8 +37,8 @@ WHERE ut.table_name = '{tableName}' AND uo.object_type = 'TABLE'";
     utc.data_scale AS ""{nameof(TableFieldModel.NumericScale)}"",
     utc.char_length AS ""{nameof(TableFieldModel.StringMaxLength)}"",
     CASE WHEN utc.nullable = 'Y' THEN 1 ELSE 0 END AS ""{nameof(TableFieldModel.IsNullable)}"",
-    CASE WHEN ucc.constraint_type = 'P' THEN 1 ELSE 0 END AS ""{nameof(TableFieldModel.IsPrimaryKey)}"",
-    CASE WHEN ucc.constraint_type = 'R' THEN 1 ELSE 0 END AS ""{nameof(TableFieldModel.IsForeignKey)}"",
+    CASE WHEN uco.constraint_type = 'P' THEN 1 ELSE 0 END AS ""{nameof(TableFieldModel.IsPrimaryKey)}"",
+    CASE WHEN uco.constraint_type = 'R' THEN 1 ELSE 0 END AS ""{nameof(TableFieldModel.IsForeignKey)}"",
     CASE WHEN utc.identity_column = 'YES' THEN 1 ELSE 0 END AS ""{nameof(TableFieldModel.IsAutoIncrement)}""
 FROM
     user_tab_columns utc
@@ -54,7 +54,7 @@ LEFT JOIN
     INNER JOIN
         user_constraints uc ON ucc.constraint_name = uc.constraint_name
     WHERE
-        uc.constraint_type IN ('P', 'R')) ucc ON utc.table_name = ucc.table_name AND utc.column_name = ucc.column_name
+        uc.constraint_type IN ('P', 'R')) uco ON utc.table_name = uco.table_name AND utc.column_name = uco.column_name
 WHERE utc.table_name = '{tableName}'
 ORDER BY utc.column_id";
         return _db.Query<TableFieldModel>(sql);
