@@ -43,32 +43,48 @@ public static class ExpressionExtensions
         return fields != null && matchFields != null && matchFields.TrueForAll(fieldName => fields.Exists(c => c == fieldName));
     }
 
-    public static Expression<Func<TEntity, object>> AddFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, params string[] fieldNames)
+    public static Expression<Func<TEntity, object>> AddFields<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, params string[] addFieldNames)
     {
-        if (fieldExpression == null || fieldNames == null || !fieldNames.Any())
+        if (fieldExpression == null || addFieldNames == null || !addFieldNames.Any())
         {
             return fieldExpression;
         }
 
-        var fields = fieldExpression.GetFieldNames();
-        fields.AddRange(fieldNames);
-        return ExpressionUtil.CreateFieldExpression<TEntity>(fields.Distinct());
+        var fieldNames = fieldExpression.GetFieldNames();
+        fieldNames.AddRange(addFieldNames);
+        return FieldExpressionUtil.Create<TEntity>(fieldNames.Distinct().ToList());
     }
-    public static Expression<Func<TEntity, object>> AddFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, object>> addFieldExpression)
+    public static Expression<Func<TEntity, object>> AddFields<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, object>> addFieldExpression)
     {
         if (fieldExpression == null || addFieldExpression == null)
         {
             return fieldExpression;
         }
 
-        var fields = fieldExpression.GetFieldNames();
-        var addFields = addFieldExpression.GetFieldNames();
-        if (addFields == null || !addFields.Any())
+        var addFieldNames = addFieldExpression.GetFieldNames();
+        if (addFieldNames == null || !addFieldNames.Any())
         {
             return fieldExpression;
         }
-        fields.AddRange(addFields);
-        return ExpressionUtil.CreateFieldExpression<TEntity>(fields.Distinct());
+        var fieldNames = fieldExpression.GetFieldNames();
+        fieldNames.AddRange(addFieldNames);
+        return FieldExpressionUtil.Create<TEntity>(fieldNames.Distinct().ToList());
+    }
+
+    public static Expression<Func<TEntity, object>> IgnoreFields<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, object>> ignoreFieldExpression)
+    {
+        if (fieldExpression == null || ignoreFieldExpression == null)
+        {
+            return fieldExpression;
+        }
+
+        var ignoreFieldNames = ignoreFieldExpression.GetFieldNames();
+        if (ignoreFieldNames == null || !ignoreFieldNames.Any())
+        {
+            return fieldExpression;
+        }
+        var fieldNames = fieldExpression.GetFieldNames();
+        return FieldExpressionUtil.Create<TEntity>(fieldNames.Except(ignoreFieldNames).ToList());
     }
     #endregion
 

@@ -5,6 +5,7 @@ using System.Text;
 using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Extensions;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository.Test
 {
@@ -319,12 +320,12 @@ namespace Sean.Core.DbRepository.Test
         #endregion
 
         [TestMethod]
-        public void ValidateDynamicAddFields()
+        public void TestDynamicAddFields()
         {
             Expression<Func<TestEntity, object>> fieldExpression = entity => new { entity.Status, entity.UpdateTime };
             var isFieldExists = fieldExpression.IsFieldExists(entity => entity.Age);
             Assert.AreEqual(false, isFieldExists);
-            fieldExpression = fieldExpression.AddFieldNames(entity => entity.Age);
+            fieldExpression = fieldExpression.AddFields(entity => entity.Age);
             var isFieldExists2 = fieldExpression.IsFieldExists(entity => entity.Age);
             Assert.AreEqual(true, isFieldExists2);
             var fields = fieldExpression.GetFieldNames();
@@ -333,6 +334,44 @@ namespace Sean.Core.DbRepository.Test
                 "Status",
                 "UpdateTime",
                 "Age"
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        [TestMethod]
+        public void TestIgnoreFields()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.IgnoreFields<TestEntity>(entity => new { entity.CreateTime, entity.UpdateTime });
+            var fields = fieldExpression.GetFieldNames();
+            var expectedFields = new List<string>
+            {
+                "Id",
+                "UserId",
+                "UserName",
+                "Age",
+                "Sex",
+                "PhoneNumber",
+                "Email",
+                "IsVip",
+                "IsBlack",
+                "Country",
+                "AccountBalance",
+                "AccountBalance2",
+                "Status",
+                "Remark"
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        [TestMethod]
+        public void TestIgnoreFields2()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.Create<TestEntity>(entity => new { entity.Id, entity.Status, entity.CreateTime, entity.UpdateTime }).IgnoreFields(entity => new { entity.CreateTime, entity.UpdateTime });
+            var fields = fieldExpression.GetFieldNames();
+            var expectedFields = new List<string>
+            {
+                "Id",
+                "Status"
             };
             AssertFields(expectedFields, fields);
         }
