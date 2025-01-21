@@ -28,7 +28,7 @@ public static class CodeGeneratorFactory
         SetCodeGenerator(DatabaseType.DB2, null);
         SetCodeGenerator(DatabaseType.Informix, null);
         SetCodeGenerator(DatabaseType.ClickHouse, null);
-        SetCodeGenerator(DatabaseType.Dameng, null);
+        SetCodeGenerator(DatabaseType.Dameng, new CodeGeneratorForDameng());
         SetCodeGenerator(DatabaseType.KingbaseES, null);
         SetCodeGenerator(DatabaseType.ShenTong, null);
         SetCodeGenerator(DatabaseType.Xugu, null);

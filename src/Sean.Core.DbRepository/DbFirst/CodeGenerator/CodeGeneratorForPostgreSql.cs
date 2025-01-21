@@ -55,10 +55,8 @@ LEFT JOIN
         JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
                                                        AND tc.table_schema = kcu.table_schema
                                                        AND tc.table_name = kcu.table_name
-        WHERE tc.constraint_type = 'PRIMARY KEY'
-    ) pk ON c.table_schema = pk.table_schema
-           AND c.table_name = pk.table_name
-           AND c.column_name = pk.column_name
+        WHERE tc.constraint_type = 'PRIMARY KEY' AND tc.table_name = '{tableName}'
+    ) pk ON c.table_schema = pk.table_schema AND c.column_name = pk.column_name
 LEFT JOIN
     (
         SELECT
@@ -70,10 +68,8 @@ LEFT JOIN
         JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
                                                        AND tc.table_schema = kcu.table_schema
                                                        AND tc.table_name = kcu.table_name
-        WHERE tc.constraint_type = 'FOREIGN KEY'
-    ) fk ON c.table_schema = fk.table_schema
-           AND c.table_name = fk.table_name
-           AND c.column_name = fk.column_name
+        WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_name = '{tableName}'
+    ) fk ON c.table_schema = fk.table_schema AND c.column_name = fk.column_name
 WHERE c.table_catalog = current_database()
     AND c.table_schema = current_schema()
     AND c.table_name = '{tableName}'

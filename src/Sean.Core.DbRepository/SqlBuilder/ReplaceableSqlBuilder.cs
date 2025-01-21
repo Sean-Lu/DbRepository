@@ -166,6 +166,7 @@ VALUES{2}";
             case DatabaseType.Oracle:
             case DatabaseType.QuestDB:
             case DatabaseType.DuckDB:
+            case DatabaseType.Dameng:
             case DatabaseType.Xugu:
             default:
                 throw new NotSupportedException($"[{SqlAdapter.DbType}]The database does not support the 'REPLACE INTO' SQL syntax.");

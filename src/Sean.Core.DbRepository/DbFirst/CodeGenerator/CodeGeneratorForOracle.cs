@@ -14,6 +14,7 @@ public class CodeGeneratorForOracle : BaseCodeGenerator, ICodeGenerator
     public virtual TableInfoModel GetTableInfo(string tableName)
     {
         var sql = $@"SELECT
+    -- ut.owner AS {nameof(TableInfoModel.TableSchema)},-- all_tables.owner
     ut.table_name AS {nameof(TableInfoModel.TableName)},
     utc.comments AS {nameof(TableInfoModel.TableComment)},
     uo.created AS {nameof(TableInfoModel.CreateTime)}
@@ -27,7 +28,7 @@ WHERE ut.table_name = '{tableName}' AND uo.object_type = 'TABLE'";
     public virtual List<TableFieldModel> GetTableFieldInfo(string tableName)
     {
         var sql = $@"SELECT
-    -- utc.owner AS ""{nameof(TableFieldModel.TableSchema)}"",
+    -- utc.owner AS ""{nameof(TableFieldModel.TableSchema)}"",-- all_tab_columns.owner
     utc.table_name AS ""{nameof(TableFieldModel.TableName)}"",
     utc.column_name AS ""{nameof(TableFieldModel.FieldName)}"",
     ucc.comments AS ""{nameof(TableFieldModel.FieldComment)}"",
@@ -54,7 +55,7 @@ LEFT JOIN
     INNER JOIN
         user_constraints uc ON ucc.constraint_name = uc.constraint_name
     WHERE
-        uc.constraint_type IN ('P', 'R')) uco ON utc.table_name = uco.table_name AND utc.column_name = uco.column_name
+        uc.constraint_type IN ('P', 'R') AND uc.table_name='{tableName}') uco ON utc.column_name = uco.column_name
 WHERE utc.table_name = '{tableName}'
 ORDER BY utc.column_id";
         return _db.Query<TableFieldModel>(sql);

@@ -55,7 +55,7 @@
 | `DB2`        | ✅       |         | ✅       |              |
 | `Informix`   | ✅       |         | ✅       |              |
 | `ClickHouse` | ✅       |         | ✅       |              |
-| `Dameng`     | ✅       |         | ✅       | 达梦         |
+| `Dameng`     | ✅       | ✅      | ✅       | 达梦         |
 | `KingbaseES` | ✅       |         | ✅       | 人大金仓     |
 | `ShenTong`   | ✅       |         | ✅       | 神通数据库   |
 | `Xugu`       | ✅       |         | ✅       | 虚谷数据库   |

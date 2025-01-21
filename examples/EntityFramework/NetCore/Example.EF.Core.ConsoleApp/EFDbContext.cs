@@ -381,7 +381,16 @@ namespace Example.EF.Core.ConsoleApp
         private void UseDameng(DbContextOptionsBuilder optionsBuilder)
         {
             // Dameng（达梦）: CRUD test passed.
-            var connString = "SERVER=127.0.0.1;PORT=5236;USER=SYSDBA;PASSWORD=SYSDBA";
+            var sb = new Dm.DmConnectionStringBuilder
+            {
+                Server = "127.0.0.1",
+                Port = 5236,
+                Schema = "test",
+                User = "SYSDBA",
+                Password = "SYSDBA"
+            };
+            var connString = sb.ConnectionString;
+            //var connString = "server=127.0.0.1;port=5236;schema=test;user=SYSDBA;password=SYSDBA";
             optionsBuilder.UseDm(connString);
         }
 #endif
