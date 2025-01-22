@@ -10,9 +10,9 @@ public class SynchronousWriteOptions
     /// </summary>
     public bool Enable { get; set; } = false;
     /// <summary>
-    /// 同步写入锁等待超时时间（单位：毫秒），默认值：5000
+    /// 同步写入锁等待超时时间（单位：毫秒），默认值：10000
     /// </summary>
-    public int LockTimeout { get; set; } = 5000;
+    public int LockTimeout { get; set; } = 10000;
     /// <summary>
     /// <para>参数：<see cref="LockTimeout"/></para>
     /// <para>返回值：是否继续执行SQL</para>

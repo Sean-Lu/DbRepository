@@ -23,7 +23,7 @@ public static class SqlMonitorExtensions
                 sqlMonitor.OnSqlExecuting(sqlExecutingContext);
             }
 
-            result = SynchronousWriteUtil.CheckWriteLock(connection, sql, () =>
+            result = SynchronousWriteUtil.UseDatabaseWriteLock(connection, sql, () =>
             {
                 timeWatcher.Restart();
                 var funcResult = func();
@@ -79,7 +79,7 @@ public static class SqlMonitorExtensions
                 sqlMonitor.OnSqlExecuting(sqlExecutingContext);
             }
 
-            result = await SynchronousWriteUtil.CheckWriteLockAsync(connection, sql, async () =>
+            result = await SynchronousWriteUtil.UseDatabaseWriteLockAsync(connection, sql, async () =>
             {
                 timeWatcher.Restart();
                 var funcResult = await func();

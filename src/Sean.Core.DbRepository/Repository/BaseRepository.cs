@@ -389,14 +389,14 @@ public abstract class BaseRepository : IBaseRepository
 
         if (transaction != null)
         {
-            return SynchronousWriteUtil.CheckWriteLock(transaction.Connection, () => func(transaction), transaction);
+            return SynchronousWriteUtil.UseDatabaseLock(transaction.Connection, () => func(transaction), transaction);
         }
 
         return Execute(conn =>
         {
             using (var trans = conn.BeginTransaction())
             {
-                return SynchronousWriteUtil.CheckWriteLock(conn, () =>
+                return SynchronousWriteUtil.UseDatabaseLock(conn, () =>
                 {
                     try
                     {
@@ -417,14 +417,14 @@ public abstract class BaseRepository : IBaseRepository
 
         if (transaction != null)
         {
-            return SynchronousWriteUtil.CheckWriteLock(transaction.Connection, () => func(transaction), transaction);
+            return SynchronousWriteUtil.UseDatabaseLock(transaction.Connection, () => func(transaction), transaction);
         }
 
         return Execute(conn =>
         {
             using (var trans = conn.BeginTransaction())
             {
-                return SynchronousWriteUtil.CheckWriteLock(conn, () =>
+                return SynchronousWriteUtil.UseDatabaseLock(conn, () =>
                 {
                     try
                     {
@@ -774,14 +774,14 @@ public abstract class BaseRepository : IBaseRepository
 
         if (transaction != null)
         {
-            return await SynchronousWriteUtil.CheckWriteLockAsync(transaction.Connection, async () => await func(transaction), transaction);
+            return await SynchronousWriteUtil.UseDatabaseLockAsync(transaction.Connection, async () => await func(transaction), transaction);
         }
 
         return await ExecuteAsync(async conn =>
         {
             using (var trans = conn.BeginTransaction())
             {
-                return await SynchronousWriteUtil.CheckWriteLockAsync(conn, async () =>
+                return await SynchronousWriteUtil.UseDatabaseLockAsync(conn, async () =>
                 {
                     try
                     {
@@ -802,14 +802,14 @@ public abstract class BaseRepository : IBaseRepository
 
         if (transaction != null)
         {
-            return await SynchronousWriteUtil.CheckWriteLockAsync(transaction.Connection, async () => await func(transaction), transaction);
+            return await SynchronousWriteUtil.UseDatabaseLockAsync(transaction.Connection, async () => await func(transaction), transaction);
         }
 
         return await ExecuteAsync(async conn =>
         {
             using (var trans = conn.BeginTransaction())
             {
-                return await SynchronousWriteUtil.CheckWriteLockAsync(conn, async () =>
+                return await SynchronousWriteUtil.UseDatabaseLockAsync(conn, async () =>
                 {
                     try
                     {

@@ -10,7 +10,7 @@ public static class SynchronousWriteUtil
 {
     private static readonly ConcurrentDictionary<string, SynchronousWriteLock> _databaseLocks = new();
 
-    public static T CheckWriteLock<T>(IDbConnection connection, string sql, Func<T> func, IDbTransaction transaction = null)
+    public static T UseDatabaseWriteLock<T>(IDbConnection connection, string sql, Func<T> func, IDbTransaction transaction = null)
     {
         var options = DbContextConfiguration.Options.SynchronousWriteOptions;
         if (!options.Enable || !SqlMatchUtil.IsWriteOperation(sql))
@@ -18,9 +18,9 @@ public static class SynchronousWriteUtil
             return func();// 未启用写入同步锁 或者 不是写入操作的SQL，可以直接执行
         }
 
-        return UseWriteLock(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
+        return UseDatabaseLock(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
     }
-    public static T CheckWriteLock<T>(IDbConnection connection, Func<T> func, IDbTransaction transaction = null)
+    public static T UseDatabaseLock<T>(IDbConnection connection, Func<T> func, IDbTransaction transaction = null)
     {
         var options = DbContextConfiguration.Options.SynchronousWriteOptions;
         if (!options.Enable)
@@ -28,10 +28,10 @@ public static class SynchronousWriteUtil
             return func();// 未启用写入同步锁，可以直接执行
         }
 
-        return UseWriteLock(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
+        return UseDatabaseLock(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
     }
 
-    public static async Task<T> CheckWriteLockAsync<T>(IDbConnection connection, string sql, Func<Task<T>> func, IDbTransaction transaction = null)
+    public static async Task<T> UseDatabaseWriteLockAsync<T>(IDbConnection connection, string sql, Func<Task<T>> func, IDbTransaction transaction = null)
     {
         var options = DbContextConfiguration.Options.SynchronousWriteOptions;
         if (!options.Enable || !SqlMatchUtil.IsWriteOperation(sql))
@@ -39,9 +39,9 @@ public static class SynchronousWriteUtil
             return await func();// 未启用写入同步锁 或者 不是写入操作的SQL，可以直接执行
         }
 
-        return await UseWriteLockAsync(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
+        return await UseDatabaseLockAsync(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
     }
-    public static async Task<T> CheckWriteLockAsync<T>(IDbConnection connection, Func<Task<T>> func, IDbTransaction transaction = null)
+    public static async Task<T> UseDatabaseLockAsync<T>(IDbConnection connection, Func<Task<T>> func, IDbTransaction transaction = null)
     {
         var options = DbContextConfiguration.Options.SynchronousWriteOptions;
         if (!options.Enable)
@@ -49,42 +49,33 @@ public static class SynchronousWriteUtil
             return await func();// 未启用写入同步锁，可以直接执行
         }
 
-        return await UseWriteLockAsync(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
+        return await UseDatabaseLockAsync(options.LockTimeout, connection, func, transaction, options.OnLockTakenFailed);
     }
 
-    public static T UseWriteLock<T>(int lockTimeout, IDbConnection connection, Func<T> func, IDbTransaction transaction = null, Func<int, bool> onLockTakenFailed = null)
+    public static T UseDatabaseLock<T>(int lockTimeout, IDbConnection connection, Func<T> func, IDbTransaction transaction = null, Func<int, bool> onLockTakenFailed = null)
     {
-        var locker = _databaseLocks.GetOrAdd(connection.ConnectionString, _ => new SynchronousWriteLock { Locker = new object() });
-        if (locker.Connection != null)
+        var locker = _databaseLocks.GetOrAdd(connection.ConnectionString, _ => new SynchronousWriteLock { Semaphore = new SemaphoreSlim(1, 1) });
+        if (locker.Connection != null && locker.Connection == connection)
         {
-            if (locker.Connection == connection)
-            {
-                return func();// 使用同一个连接，不需要加锁，可以直接执行
-            }
+            return func();// 使用同一个连接，不需要加锁，可以直接执行
         }
-        if (locker.Transaction != null)
+        if (locker.Transaction != null && locker.Transaction == transaction)
         {
-            if (locker.Transaction == transaction)
-            {
-                return func();// 使用同一个事务，不需要加锁，可以直接执行
-            }
+            return func();// 使用同一个事务，不需要加锁，可以直接执行
         }
 
         var lockAcquired = false;
         try
         {
-            Monitor.TryEnter(locker.Locker, lockTimeout, ref lockAcquired);
+            lockAcquired = locker.Semaphore.Wait(lockTimeout);
             if (lockAcquired)
             {
                 locker.Connection = connection;
                 locker.Transaction = transaction;
             }
-            else
+            else if (onLockTakenFailed != null && !onLockTakenFailed(lockTimeout))
             {
-                if (onLockTakenFailed != null && !onLockTakenFailed(lockTimeout))
-                {
-                    return default;
-                }
+                return default;
             }
 
             return func();
@@ -95,54 +86,47 @@ public static class SynchronousWriteUtil
             {
                 locker.Connection = null;
                 locker.Transaction = null;
-                Monitor.Exit(locker.Locker);
+                locker.Semaphore.Release();
             }
         }
     }
-    public static async Task<T> UseWriteLockAsync<T>(int lockTimeout, IDbConnection connection, Func<Task<T>> func, IDbTransaction transaction = null, Func<int, bool> onLockTakenFailed = null)
+    public static async Task<T> UseDatabaseLockAsync<T>(int lockTimeout, IDbConnection connection, Func<Task<T>> func, IDbTransaction transaction = null, Func<int, bool> onLockTakenFailed = null)
     {
-        var locker = _databaseLocks.GetOrAdd(connection.ConnectionString, _ => new SynchronousWriteLock { Locker = new object() });
-        if (locker.Connection != null)
+        var locker = _databaseLocks.GetOrAdd(connection.ConnectionString, _ => new SynchronousWriteLock { Semaphore = new SemaphoreSlim(1, 1) });
+        if (locker.Connection != null && locker.Connection == connection)
         {
-            if (locker.Connection == connection)
-            {
-                return await func();// 使用同一个连接，不需要加锁，可以直接执行
-            }
+            return await func();// 使用同一个连接，不需要加锁，可以直接执行
         }
-        if (locker.Transaction != null)
+        if (locker.Transaction != null && locker.Transaction == transaction)
         {
-            if (locker.Transaction == transaction)
-            {
-                return await func();// 使用同一个事务，不需要加锁，可以直接执行
-            }
+            return await func();// 使用同一个事务，不需要加锁，可以直接执行
         }
 
         var lockAcquired = false;
         try
         {
-            Monitor.TryEnter(locker.Locker, lockTimeout, ref lockAcquired);
+            lockAcquired = await locker.Semaphore.WaitAsync(lockTimeout);
             if (lockAcquired)
             {
                 locker.Connection = connection;
                 locker.Transaction = transaction;
             }
-            else
+            else if (onLockTakenFailed != null && !onLockTakenFailed(lockTimeout))
             {
-                if (onLockTakenFailed != null && !onLockTakenFailed(lockTimeout))
-                {
-                    return default;
-                }
+                return default;
             }
 
+            //var curThreadId = Thread.CurrentThread.ManagedThreadId;
             return await func();
         }
         finally
         {
             if (lockAcquired)
             {
+                //var curThreadId = Thread.CurrentThread.ManagedThreadId;
                 locker.Connection = null;
                 locker.Transaction = null;
-                Monitor.Exit(locker.Locker);
+                locker.Semaphore.Release();
             }
         }
     }
@@ -150,7 +134,7 @@ public static class SynchronousWriteUtil
 
 internal class SynchronousWriteLock
 {
-    public object Locker { get; set; }
+    public SemaphoreSlim Semaphore { get; set; }
     public IDbConnection Connection { get; set; }
     public IDbTransaction Transaction { get; set; }
 }
