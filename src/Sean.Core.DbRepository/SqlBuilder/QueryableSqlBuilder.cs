@@ -111,62 +111,89 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
 
     public virtual IQueryable<TEntity> SelectFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return SelectFields(fields);
     }
     public virtual IQueryable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return IgnoreFields(fields);
     }
 
     public virtual IQueryable<TEntity> MaxField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => MaxField(fieldName, aliasName, fieldNameFormatted));
         return this;
     }
     public virtual IQueryable<TEntity> MinField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => MinField(fieldName, aliasName, fieldNameFormatted));
         return this;
     }
     public virtual IQueryable<TEntity> SumField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => SumField(fieldName, aliasName, fieldNameFormatted));
         return this;
     }
     public virtual IQueryable<TEntity> AvgField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => AvgField(fieldName, aliasName, fieldNameFormatted));
         return this;
     }
     public virtual IQueryable<TEntity> CountField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null, bool fieldNameFormatted = false)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => CountField(fieldName, aliasName, fieldNameFormatted));
         return this;
     }
     public virtual IQueryable<TEntity> CountDistinctField(Expression<Func<TEntity, object>> fieldExpression, string aliasName = null)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames();
         fields.ForEach(fieldName => CountDistinctField(fieldName, aliasName));
         return this;
     }
     public virtual IQueryable<TEntity> DistinctFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return DistinctFields(fields);
     }

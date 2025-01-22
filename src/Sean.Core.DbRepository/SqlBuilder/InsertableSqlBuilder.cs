@@ -63,19 +63,28 @@ VALUES{2}";
 
     public virtual IInsertable<TEntity> InsertFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return InsertFields(fields);
     }
     public virtual IInsertable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return IgnoreFields(fields);
     }
     public virtual IInsertable<TEntity> IdentityFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return IdentityFields(fields);
     }

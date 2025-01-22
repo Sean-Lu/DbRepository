@@ -54,13 +54,19 @@ VALUES{2}";
 
     public virtual IReplaceable<TEntity> InsertFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return InsertFields(fields);
     }
     public virtual IReplaceable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return IgnoreFields(fields);
     }

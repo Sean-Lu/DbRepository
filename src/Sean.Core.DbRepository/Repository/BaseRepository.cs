@@ -1020,11 +1020,33 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         return sqlGenerator?.GetCreateTableSql<TEntity>(false, _ => tableName);
     }
 
+    protected virtual void BeforeEntityAdded(TEntity entity)
+    {
+
+    }
+    protected virtual void BeforeEntitiesAdded(IEnumerable<TEntity> entities)
+    {
+
+    }
+
+    protected virtual void BeforeEntityUpdated(TEntity entity, ref Expression<Func<TEntity, object>> fieldExpression)
+    {
+
+    }
+    protected virtual void BeforeEntitiesUpdated(IEnumerable<TEntity> entities, ref Expression<Func<TEntity, object>> fieldExpression)
+    {
+
+    }
+
     #region Synchronous method
     public virtual bool Add(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entity == null) return false;
+        if (entity == null)
+        {
+            return false;
+        }
 
+        BeforeEntityAdded(entity);
         PropertyInfo keyIdentityProperty;
         if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.IsPrimaryKey && c.IsIdentityField)?.Property) != null)
         {
@@ -1138,7 +1160,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool Add(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any()) return false;
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
 
         if (returnAutoIncrementId && typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.IsPrimaryKey && c.IsIdentityField)?.Property != null)
         {
@@ -1173,6 +1198,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         {
             return entities.PagingExecute(bulkCountLimit.Value, (pageNumber, models) =>
             {
+                BeforeEntitiesAdded(models);
                 var sqlCommand = this.CreateInsertableBuilder()
                     .InsertFields(fieldExpression)
                     .SetParameter(models)
@@ -1184,6 +1210,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
             });
         }
 
+        BeforeEntitiesAdded(entities);
         var sqlCommand = this.CreateInsertableBuilder()
             .InsertFields(fieldExpression)
             .SetParameter(entities)
@@ -1196,7 +1223,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
     public virtual bool AddOrUpdate(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entity == null) return false;
+        if (entity == null)
+        {
+            return false;
+        }
 
         switch (DbType)
         {
@@ -1248,7 +1278,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool AddOrUpdate(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any()) return false;
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
 
         switch (DbType)
         {
@@ -1325,7 +1358,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool Delete(IEnumerable<TEntity> entities, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any()) return false;
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
 
         foreach (var entity in entities)
         {
@@ -1354,6 +1390,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
     public virtual int Update(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
+        BeforeEntityUpdated(entity, ref fieldExpression);
         var sqlCommand = this.CreateUpdateableBuilder()
             .UpdateFields(fieldExpression)
             .Where(whereExpression)
@@ -1366,7 +1403,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any()) return false;
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
 
         //if (transaction?.Connection == null)
         //{
@@ -1618,8 +1658,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     #region Asynchronous method
     public virtual async Task<bool> AddAsync(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entity == null) return false;
+        if (entity == null)
+        {
+            return false;
+        }
 
+        BeforeEntityAdded(entity);
         PropertyInfo keyIdentityProperty;
         if (returnAutoIncrementId && (keyIdentityProperty = typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.IsPrimaryKey && c.IsIdentityField)?.Property) != null)
         {
@@ -1733,7 +1777,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any()) return false;
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
 
         if (returnAutoIncrementId && typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.IsPrimaryKey && c.IsIdentityField)?.Property != null)
         {
@@ -1768,6 +1815,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         {
             return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageNumber, models) =>
             {
+                BeforeEntitiesAdded(models);
                 var sqlCommand = this.CreateInsertableBuilder()
                     .InsertFields(fieldExpression)
                     .SetParameter(models)
@@ -1779,6 +1827,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
             });
         }
 
+        BeforeEntitiesAdded(entities);
         var sqlCommand = this.CreateInsertableBuilder()
             .InsertFields(fieldExpression)
             .SetParameter(entities)
@@ -1791,7 +1840,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
     public virtual async Task<bool> AddOrUpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entity == null) return false;
+        if (entity == null)
+        {
+            return false;
+        }
 
         switch (DbType)
         {
@@ -1843,7 +1895,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> AddOrUpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any()) return false;
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
 
         switch (DbType)
         {
@@ -1920,7 +1975,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> DeleteAsync(IEnumerable<TEntity> entities, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any()) return false;
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
 
         foreach (var entity in entities)
         {
@@ -1949,6 +2007,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
     public virtual async Task<int> UpdateAsync(TEntity entity, Expression<Func<TEntity, object>> fieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
     {
+        BeforeEntityUpdated(entity, ref fieldExpression);
         var sqlCommand = this.CreateUpdateableBuilder()
             .UpdateFields(fieldExpression)
             .Where(whereExpression)
@@ -1961,7 +2020,10 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any()) return false;
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
 
         //if (transaction?.Connection == null)
         //{

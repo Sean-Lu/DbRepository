@@ -69,19 +69,28 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<IUpdateable<TEntity>
 
     public virtual IUpdateable<TEntity> UpdateFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return UpdateFields(fields);
     }
     public virtual IUpdateable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return IgnoreFields(fields);
     }
     public virtual IUpdateable<TEntity> PrimaryKeyFields(Expression<Func<TEntity, object>> fieldExpression)
     {
-        if (fieldExpression == null) return this;
+        if (fieldExpression == null)
+        {
+            return this;
+        }
         var fields = fieldExpression.GetFieldNames().ToArray();
         return PrimaryKeyFields(fields);
     }
