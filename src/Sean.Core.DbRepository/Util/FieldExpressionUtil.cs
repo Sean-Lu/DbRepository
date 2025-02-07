@@ -48,6 +48,15 @@ public class FieldExpressionUtil
         return fieldExpression.AddFields(addFieldExpression);
     }
 
+    public static Expression<Func<TEntity, object>> AddFieldsIfNotExists<TEntity>(Expression<Func<TEntity, object>> fieldExpression, params string[] addFieldNames)
+    {
+        return fieldExpression.AddFieldsIfNotExists(addFieldNames);
+    }
+    public static Expression<Func<TEntity, object>> AddFieldsIfNotExists<TEntity>(Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, object>> addFieldExpression)
+    {
+        return fieldExpression.AddFieldsIfNotExists(addFieldExpression);
+    }
+
     public static Expression<Func<TEntity, object>> IgnoreFields<TEntity>(Expression<Func<TEntity, object>> ignoreFieldExpression)
     {
         var allFieldNames = typeof(TEntity).GetEntityInfo().FieldInfos.Select(c => c.FieldName).ToList();

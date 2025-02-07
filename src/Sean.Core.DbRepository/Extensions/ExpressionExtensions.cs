@@ -8,7 +8,7 @@ namespace Sean.Core.DbRepository.Extensions;
 
 public static class ExpressionExtensions
 {
-    #region fieldExpression
+    #region FieldExpression
     public static List<string> GetFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression)
     {
         if (fieldExpression == null)
@@ -71,6 +71,54 @@ public static class ExpressionExtensions
         return FieldExpressionUtil.Create<TEntity>(fieldNames.Distinct().ToList());
     }
 
+    public static Expression<Func<TEntity, object>> AddFieldsIfNotExists<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, params string[] addFieldNames)
+    {
+        if (fieldExpression == null || addFieldNames == null || !addFieldNames.Any())
+        {
+            return fieldExpression;
+        }
+
+        var fieldNames = fieldExpression.GetFieldNames();
+        if (addFieldNames.All(c => fieldNames.Exists(o => o == c)))
+        {
+            return fieldExpression;
+        }
+        foreach (var addFieldName in addFieldNames)
+        {
+            if (!fieldNames.Exists(c => c == addFieldName))
+            {
+                fieldNames.Add(addFieldName);
+            }
+        }
+        return FieldExpressionUtil.Create<TEntity>(fieldNames.Distinct().ToList());
+    }
+    public static Expression<Func<TEntity, object>> AddFieldsIfNotExists<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, object>> addFieldExpression)
+    {
+        if (fieldExpression == null || addFieldExpression == null)
+        {
+            return fieldExpression;
+        }
+
+        var addFieldNames = addFieldExpression.GetFieldNames();
+        if (addFieldNames == null || !addFieldNames.Any())
+        {
+            return fieldExpression;
+        }
+        var fieldNames = fieldExpression.GetFieldNames();
+        if (addFieldNames.All(c => fieldNames.Exists(o => o == c)))
+        {
+            return fieldExpression;
+        }
+        foreach (var addFieldName in addFieldNames)
+        {
+            if (!fieldNames.Exists(c => c == addFieldName))
+            {
+                fieldNames.Add(addFieldName);
+            }
+        }
+        return FieldExpressionUtil.Create<TEntity>(fieldNames.Distinct().ToList());
+    }
+
     public static Expression<Func<TEntity, object>> IgnoreFields<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, Expression<Func<TEntity, object>> ignoreFieldExpression)
     {
         if (fieldExpression == null || ignoreFieldExpression == null)
@@ -88,7 +136,7 @@ public static class ExpressionExtensions
     }
     #endregion
 
-    #region whereExpression
+    #region WhereExpression
     /// <summary>
     /// Gets the parameterized WHERE clause.
     /// </summary>
