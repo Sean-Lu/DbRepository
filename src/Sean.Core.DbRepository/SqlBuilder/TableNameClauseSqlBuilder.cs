@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Sean.Core.DbRepository;
 
-public class TableNameClauseSqlBuilder<TEntity> : BaseSqlBuilder<ITableNameClause<TEntity>>, ITableNameClause<TEntity>
+public class TableNameClauseSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, ITableNameClause<TEntity>>, ITableNameClause<TEntity>
 {
     private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
 
@@ -16,20 +16,13 @@ public class TableNameClauseSqlBuilder<TEntity> : BaseSqlBuilder<ITableNameClaus
 
     private bool _includeKeyword;
 
-    private TableNameClauseSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
-    {
-    }
-    private TableNameClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter)
+    private TableNameClauseSqlBuilder(DatabaseType dbType) : base(dbType)
     {
     }
 
     public static ITableNameClause<TEntity> Create()
     {
         return new TableNameClauseSqlBuilder<TEntity>(DatabaseType.Unknown);
-    }
-    public static ITableNameClause<TEntity> Create(ISqlAdapter sqlAdapter)
-    {
-        return new TableNameClauseSqlBuilder<TEntity>(sqlAdapter);
     }
     public static ITableNameClause<TEntity> Create(DatabaseType databaseType)
     {
@@ -114,7 +107,7 @@ public class TableNameClauseSqlBuilder<TEntity> : BaseSqlBuilder<ITableNameClaus
     protected override ISqlCommand BuildSqlCommand()
     {
         var sb = new StringBuilder();
-        sb.Append($"{(_includeKeyword ? " FROM " : string.Empty)}{SqlAdapter.FormatTableName(TableName)}{JoinTableSql}");
+        sb.Append($"{(_includeKeyword ? " FROM " : string.Empty)}{SqlAdapter.FormatTableName()}{JoinTableSql}");
 
         var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {

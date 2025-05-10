@@ -88,6 +88,38 @@ public class TestEntity : EntityBase
     #endregion
 }
 
+/// <summary>
+/// 测试表
+/// </summary>
+[Table("Test")]
+[LeftJoin(typeof(UserEntity), nameof(UserId), nameof(UserEntity.Id), "u")]
+public class Test2Entity : EntityBase
+{
+    /// <summary>
+    /// 用户主键
+    /// </summary>
+    public virtual long UserId { get; set; }
+
+    /// <summary>
+    /// 用户名称（关联User用户表）
+    /// </summary>
+    [NotMapped]
+    [LeftJoinField("u", nameof(UserEntity.Name))]
+    public virtual string UserName { get; set; }
+    /// <summary>
+    /// 用户编码（关联User用户表）
+    /// </summary>
+    [NotMapped]
+    [LeftJoinField("u", nameof(UserEntity.Code))]
+    public virtual string UserCode { get; set; }
+    /// <summary>
+    /// 用户邮箱（关联User用户表）
+    /// </summary>
+    [NotMapped]
+    [LeftJoinField("u", nameof(UserEntity.Email))]
+    public virtual string UserEmail { get; set; }
+}
+
 public enum SexType
 {
     Unknown = 0,

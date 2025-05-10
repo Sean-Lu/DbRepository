@@ -1,6 +1,6 @@
 ﻿namespace Sean.Core.DbRepository;
 
-public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBuild : class
+public abstract class BaseSqlBuilder<TEntity, TBuild> : IBaseSqlBuilder<TBuild> where TBuild : class
 {
     protected string TableName => SqlAdapter.TableName;
     /// <summary>
@@ -16,13 +16,11 @@ public abstract class BaseSqlBuilder<TBuild> : IBaseSqlBuilder<TBuild> where TBu
     /// </summary>
     public bool SqlParameterized { get; set; } = DbContextConfiguration.Options.SqlParameterized;
 
-    protected BaseSqlBuilder(DatabaseType dbType, string tableName)
+    protected const string MainTableDefaultAlias = "t_";
+
+    protected BaseSqlBuilder(DatabaseType dbType)
     {
-        SqlAdapter = new DefaultSqlAdapter(dbType, tableName);
-    }
-    protected BaseSqlBuilder(ISqlAdapter sqlAdapter)
-    {
-        SqlAdapter = sqlAdapter;
+        SqlAdapter = new DefaultSqlAdapter<TEntity>(dbType);
     }
 
     public virtual TBuild SetTableName(string tableName)

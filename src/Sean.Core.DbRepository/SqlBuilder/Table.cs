@@ -14,15 +14,10 @@ public class Table<TEntity> where TEntity : class
     {
         _sqlAdapter = new DefaultSqlAdapter<TEntity>(databaseType);
     }
-    public Table(ISqlAdapter sqlAdapter)
-    {
-        _sqlAdapter = sqlAdapter;
-    }
 
     public string GetTableName(Func<string, string> tableNameFactory = null)
     {
-        var tableName = _sqlAdapter.TableName ?? typeof(TEntity).GetEntityInfo().TableName;
-        return tableNameFactory != null ? tableNameFactory(tableName) : _sqlAdapter.FormatTableName(tableName);
+        return tableNameFactory != null ? tableNameFactory(_sqlAdapter.TableName) : _sqlAdapter.FormatTableName();
     }
 
     public string GetField(Expression<Func<TEntity, object>> fieldExpression, string alias = null)
@@ -53,10 +48,6 @@ public class Table<TEntity> where TEntity : class
     public static Table<TEntity> Create(DatabaseType databaseType)
     {
         return new Table<TEntity>(databaseType);
-    }
-    public static Table<TEntity> Create(ISqlAdapter sqlAdapter)
-    {
-        return new Table<TEntity>(sqlAdapter);
     }
 
     public static string TableName(Func<string, string> tableNameFactory = null)

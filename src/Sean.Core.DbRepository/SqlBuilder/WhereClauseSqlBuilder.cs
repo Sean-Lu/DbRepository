@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntity>>, IWhereClause<TEntity>
+public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IWhereClause<TEntity>>, IWhereClause<TEntity>
 {
     private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? _includeKeyword ? $" WHERE {_where.Value}" : _where.Value.ToString() : string.Empty;
 
@@ -21,20 +21,13 @@ public class WhereClauseSqlBuilder<TEntity> : BaseSqlBuilder<IWhereClause<TEntit
 
     private object _parameter;
 
-    private WhereClauseSqlBuilder(DatabaseType databaseType) : base(databaseType, typeof(TEntity).GetEntityInfo().TableName)
-    {
-    }
-    private WhereClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter)
+    private WhereClauseSqlBuilder(DatabaseType databaseType) : base(databaseType)
     {
     }
 
     public static IWhereClause<TEntity> Create()
     {
         return new WhereClauseSqlBuilder<TEntity>(DatabaseType.Unknown);
-    }
-    public static IWhereClause<TEntity> Create(ISqlAdapter sqlAdapter)
-    {
-        return new WhereClauseSqlBuilder<TEntity>(sqlAdapter);
     }
     public static IWhereClause<TEntity> Create(DatabaseType databaseType)
     {

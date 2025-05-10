@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>, IQueryable<TEntity>
+public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<TEntity>>, IQueryable<TEntity>
 {
     //private const string SqlTemplate = "SELECT {1} FROM {0}{2}";
 
@@ -39,7 +40,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
     private int? _offset;
     private int? _rows;
 
-    private QueryableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
+    private QueryableSqlBuilder(DatabaseType dbType) : base(dbType)
     {
     }
 
@@ -492,14 +493,66 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
 
     protected override ISqlCommand BuildSqlCommand()
     {
-        if (MultiTable)
-        {
-            SqlAdapter.MultiTable = true;
-        }
+        var selectJoinFields = new List<string>();
 
         if (!_tableFieldList.Any())
         {
             SqlBuilderUtil.IncludeFields<TEntity>(_tableFieldList);
+
+            var joinInfos = typeof(TEntity).GetEntityInfo().JoinInfos;
+            if (joinInfos != null && joinInfos.Any())
+            {
+                var usingJoinInfos = new List<JoinDescriptor>();
+                foreach (var prop in typeof(TEntity).GetProperties())
+                {
+                    var leftJoinFieldAttr = prop.GetCustomAttribute<LeftJoinFieldAttribute>();
+                    if (leftJoinFieldAttr == null || string.IsNullOrWhiteSpace(leftJoinFieldAttr.JoinAlias))
+                    {
+                        continue;
+                    }
+
+                    var joinDescriptor = joinInfos.Find(c => c.Alias == leftJoinFieldAttr.JoinAlias);
+                    if (joinDescriptor == null)
+                    {
+                        throw new InvalidOperationException($"未找到别名为 {leftJoinFieldAttr.JoinAlias} 的Join配置");
+                    }
+
+                    if (!usingJoinInfos.Contains(joinDescriptor))
+                    {
+                        usingJoinInfos.Add(joinDescriptor);
+                    }
+                    var joinTargetFieldName = joinDescriptor.JoinTableType.GetEntityInfo().FieldInfos.FirstOrDefault(c => c.PropertyName == leftJoinFieldAttr.TargetPropertyName)?.FieldName;
+                    if (!string.IsNullOrWhiteSpace(joinTargetFieldName))
+                    {
+                        selectJoinFields.Add($"{SqlAdapter.FormatFieldName(joinTargetFieldName, joinDescriptor.GetTableName(), joinDescriptor.Alias)} AS {prop.Name}");
+                    }
+                }
+
+                if (usingJoinInfos.Any())
+                {
+                    SqlAdapter.MultiTable = true;
+                    if (string.IsNullOrWhiteSpace(SqlAdapter.AliasName))
+                    {
+                        SqlAdapter.AliasName = MainTableDefaultAlias;
+                    }
+                    usingJoinInfos.ForEach(j =>
+                    {
+                        var joinLocalFieldName = typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.PropertyName == j.LocalKey)?.FieldName;
+                        var joinForeignFieldName = j.JoinTableType.GetEntityInfo().FieldInfos.FirstOrDefault(c => c.PropertyName == j.ForeignKey)?.FieldName;
+                        var joinCondition = $"{SqlAdapter.FormatFieldName(joinLocalFieldName)} = {SqlAdapter.FormatFieldName(joinForeignFieldName, j.GetTableName(), j.Alias)}";
+                        LeftJoin($"{SqlAdapter.FormatTableName(j.GetTableName(), j.Alias)} ON {joinCondition}");
+                    });
+                }
+            }
+        }
+
+        if (MultiTable)
+        {
+            SqlAdapter.MultiTable = true;
+            if (string.IsNullOrWhiteSpace(SqlAdapter.AliasName))
+            {
+                SqlAdapter.AliasName = MainTableDefaultAlias;
+            }
         }
 
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
@@ -519,7 +572,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
             return findFieldInfo != null && findFieldInfo.Property.Name != fieldInfo.FieldName
                 ? $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)} AS {findFieldInfo.Property.Name}"
                 : $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}";
-        }).ToList()) : "*";
+        }).Concat(selectJoinFields).ToList()) : "*";
 
         if (_whereActions.Any())
         {
@@ -553,23 +606,23 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
                 case DatabaseType.KingbaseES:
                 case DatabaseType.ShenTong:
                 case DatabaseType.Xugu:
-                    sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber}";
+                    sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber}";
                     break;
                 case DatabaseType.SqlServer:
                 case DatabaseType.MsAccess:
                 case DatabaseType.Dameng:
-                    sql.Sql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+                    sql.Sql = $"SELECT TOP {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     break;
                 case DatabaseType.Firebird:
                 case DatabaseType.Informix:
-                    sql.Sql = $"SELECT FIRST {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+                    sql.Sql = $"SELECT FIRST {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     break;
                 case DatabaseType.Oracle:
                     var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {_topNumber}" : $"{WhereSql} AND ROWNUM <= {_topNumber}";
-                    sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql}";
+                    sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql}";
                     break;
                 default:
-                    sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber}";
+                    sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber}";
                     break;
             }
         }
@@ -588,7 +641,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
         else
         {
             // 普通查询
-            sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+            sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
         }
 
         sql.Parameter = _parameter;
@@ -605,7 +658,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
             case DatabaseType.OceanBase:
             case DatabaseType.SQLite:
             case DatabaseType.ClickHouse:
-                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows}";
+                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows}";
             case DatabaseType.PostgreSql:
             case DatabaseType.OpenGauss:
             case DatabaseType.HighgoDB:
@@ -614,9 +667,9 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
             case DatabaseType.ShenTong:
             case DatabaseType.Xugu:
             case DatabaseType.DuckDB:
-                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {rows} OFFSET {offset}";
+                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {rows} OFFSET {offset}";
             case DatabaseType.QuestDB:
-                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows + offset}";
+                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows + offset}";
             case DatabaseType.SqlServer:
                 {
                     if (DbContextConfiguration.SqlServerOptions is { UseRowNumberForPaging: true })
@@ -634,18 +687,18 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
                 {
                     if (offset == 0)
                     {
-                        return $"SELECT TOP {rows} {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+                        return $"SELECT TOP {rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     }
 
                     var keyFieldName = typeof(TEntity).GetEntityInfo().FieldInfos.Where(c => c.IsPrimaryKey).Select(c => c.FieldName).FirstOrDefault();
-                    var keyFilterSql = $"SELECT TOP {offset} {SqlAdapter.FormatFieldName(keyFieldName)} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+                    var keyFilterSql = $"SELECT TOP {offset} {SqlAdapter.FormatFieldName(keyFieldName)} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     var sqlWhere = $"{(!string.IsNullOrEmpty(WhereSql) ? $"{WhereSql} AND" : " WHERE")} {SqlAdapter.FormatFieldName(keyFieldName)} NOT IN ({keyFilterSql})";
-                    return $"SELECT TOP {rows} {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql}";
+                    return $"SELECT TOP {rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql}";
                 }
             case DatabaseType.Firebird:
-                return $"SELECT FIRST {rows} SKIP {offset} {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+                return $"SELECT FIRST {rows} SKIP {offset} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
             case DatabaseType.Informix:
-                return $"SELECT SKIP {offset} FIRST {rows} {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+                return $"SELECT SKIP {offset} FIRST {rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
             case DatabaseType.Oracle:
                 {
                     if (!string.IsNullOrWhiteSpace(OrderBySql))
@@ -654,10 +707,10 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
                     }
 
                     var sqlWhere = $"{(!string.IsNullOrEmpty(WhereSql) ? $"{WhereSql} AND" : " WHERE")} ROWNUM <= {offset + rows}";
-                    return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset}";
+                    return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset}";
                 }
             default:
-                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows}";
+                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows}";
         }
     }
 
@@ -669,7 +722,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
             orderBy = " ORDER BY (SELECT 1)";
         }
 
-        return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({orderBy}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {offset + rows}";
+        return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({orderBy}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {offset + rows}";
     }
     private string GetOffsetQuerySql(string selectFields, int offset, int rows, bool setDefaultOrderByIfNull = true)
     {
@@ -679,6 +732,6 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<IQueryable<TEntity>>,
             orderBy = " ORDER BY (SELECT 1)";
         }
 
-        return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName(TableName)}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{orderBy} OFFSET {offset} ROWS FETCH NEXT {rows} ROWS ONLY";
+        return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{orderBy} OFFSET {offset} ROWS FETCH NEXT {rows} ROWS ONLY";
     }
 }

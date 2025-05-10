@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class ReplaceableSqlBuilder<TEntity> : BaseSqlBuilder<IReplaceable<TEntity>>, IReplaceable<TEntity>
+public class ReplaceableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IReplaceable<TEntity>>, IReplaceable<TEntity>
 {
     private const string SqlTemplate = "REPLACE INTO {0}({1}) VALUES{2}";
     private const string SqlIndentedTemplate = @"REPLACE INTO {0}({1}) 
@@ -17,7 +17,7 @@ VALUES{2}";
     private readonly List<TableFieldInfoForSqlBuilder> _tableFieldList = new();
     private object _parameter;
 
-    private ReplaceableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
+    private ReplaceableSqlBuilder(DatabaseType dbType) : base(dbType)
     {
 
     }
@@ -141,7 +141,7 @@ VALUES{2}";
                     SetParameter(paramDic);
                     #endregion
 
-                    sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(TableName), string.Join(", ", formatFields), bulkInsertValuesString));
+                    sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
                 }
                 else
                 {
@@ -166,7 +166,7 @@ VALUES{2}";
                         var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
                         return SqlAdapter.FormatSqlParameter(parameterName);
                     }).ToList();
-                    sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(TableName), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
+                    sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
                 }
                 break;
             case DatabaseType.Oracle:

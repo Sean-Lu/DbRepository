@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class CountableSqlBuilder<TEntity> : BaseSqlBuilder<ICountable<TEntity>>, ICountable<TEntity>
+public class CountableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, ICountable<TEntity>>, ICountable<TEntity>
 {
     private const string SqlTemplate = "SELECT COUNT(*) FROM {0}{1}";
 
@@ -24,7 +24,7 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder<ICountable<TEntity>>,
 
     private object _parameter;
 
-    private CountableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
+    private CountableSqlBuilder(DatabaseType dbType) : base(dbType)
     {
     }
 
@@ -220,7 +220,7 @@ public class CountableSqlBuilder<TEntity> : BaseSqlBuilder<ICountable<TEntity>>,
         }
 
         var sb = new StringBuilder();
-        sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName(TableName)}{JoinTableSql}", WhereSql));
+        sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", WhereSql));
 
         var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {

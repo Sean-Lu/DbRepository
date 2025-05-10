@@ -284,7 +284,7 @@ internal static class SqlBuilderUtil
         var leftTableName = typeof(TEntity).GetEntityInfo().TableName;
         var rightTableName = typeof(TEntity2).GetEntityInfo().TableName;
         var list = leftTableFields.Select((field, i) => $"{sqlAdapter.FormatFieldName(field, leftTableName, leftTableAliasName)}={sqlAdapter.FormatFieldName(rightTableFields[i], rightTableName, rightTableAliasName)}").ToList();
-        return $"{sqlAdapter.FormatTableName(rightTableName)}{(!string.IsNullOrWhiteSpace(rightTableAliasName) ? $" {rightTableAliasName}" : string.Empty)} ON {string.Join(" AND ", list)}";
+        return $"{sqlAdapter.FormatTableName(rightTableName, rightTableAliasName)} ON {string.Join(" AND ", list)}";
     }
     #endregion
 

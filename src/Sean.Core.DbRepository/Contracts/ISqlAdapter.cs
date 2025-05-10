@@ -7,9 +7,11 @@ public interface ISqlAdapter
     string AliasName { get; set; }
     bool MultiTable { get; set; }
 
-    string FormatTableName(string tableName);
+    string FormatTableName();
+    string FormatTableName(string tableName, string aliasName = null);
 
-    string FormatFieldName(string fieldName, string tableName = null, string aliasName = null);
+    string FormatFieldName(string fieldName);
+    string FormatFieldName(string fieldName, string tableName, string aliasName = null);
 
     string FormatSqlParameter(string parameter);
 }

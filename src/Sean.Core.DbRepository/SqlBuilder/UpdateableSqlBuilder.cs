@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<IUpdateable<TEntity>>, IUpdateable<TEntity>
+public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IUpdateable<TEntity>>, IUpdateable<TEntity>
 {
     private const string SqlTemplate = "UPDATE {0} SET {1}{2}";
     private const string SqlTemplateForClickHouse = "ALTER TABLE {0} UPDATE {1}{2}";
@@ -28,7 +28,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<IUpdateable<TEntity>
     private bool _allowEmptyWhereClause;
     private object _parameter;
 
-    private UpdateableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
+    private UpdateableSqlBuilder(DatabaseType dbType) : base(dbType)
     {
     }
 
@@ -338,7 +338,7 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<IUpdateable<TEntity>
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
         var sb = new StringBuilder();
-        sb.Append(string.Format(SqlAdapter.DbType == DatabaseType.ClickHouse ? SqlTemplateForClickHouse : SqlTemplate, $"{SqlAdapter.FormatTableName(TableName)}{JoinTableSql}", string.Join(", ", updateFields), WhereSql));
+        sb.Append(string.Format(SqlAdapter.DbType == DatabaseType.ClickHouse ? SqlTemplateForClickHouse : SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", string.Join(", ", updateFields), WhereSql));
 
         var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {

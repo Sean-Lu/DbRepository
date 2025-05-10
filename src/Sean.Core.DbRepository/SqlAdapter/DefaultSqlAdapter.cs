@@ -15,12 +15,30 @@ public class DefaultSqlAdapter : ISqlAdapter
         TableName = tableName;
     }
 
-    public virtual string FormatTableName(string tableName)
+    public virtual string FormatTableName()
     {
-        return DbType.MarkAsTableOrFieldName(tableName);
+        return !string.IsNullOrWhiteSpace(AliasName) ?
+            $"{DbType.MarkAsTableOrFieldName(TableName)} {AliasName}"
+            : DbType.MarkAsTableOrFieldName(TableName);
+    }
+    public virtual string FormatTableName(string tableName, string aliasName = null)
+    {
+        return !string.IsNullOrWhiteSpace(aliasName) ?
+            $"{DbType.MarkAsTableOrFieldName(tableName)} {aliasName}"
+            : DbType.MarkAsTableOrFieldName(tableName);
     }
 
-    public string FormatFieldName(string fieldName, string tableName = null, string aliasName = null)
+    public string FormatFieldName(string fieldName)
+    {
+        if (MultiTable)
+        {
+            return !string.IsNullOrWhiteSpace(AliasName)
+                ? $"{AliasName}.{DbType.MarkAsTableOrFieldName(fieldName)}"
+                : $"{DbType.MarkAsTableOrFieldName(TableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
+        }
+        return DbType.MarkAsTableOrFieldName(fieldName);
+    }
+    public string FormatFieldName(string fieldName, string tableName, string aliasName = null)
     {
         if (!string.IsNullOrWhiteSpace(aliasName))
         {
@@ -29,12 +47,6 @@ public class DefaultSqlAdapter : ISqlAdapter
         if (!string.IsNullOrWhiteSpace(tableName))
         {
             return $"{DbType.MarkAsTableOrFieldName(tableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
-        }
-        if (MultiTable)
-        {
-            return !string.IsNullOrWhiteSpace(AliasName) 
-                ? $"{AliasName}.{DbType.MarkAsTableOrFieldName(fieldName)}" 
-                : $"{DbType.MarkAsTableOrFieldName(TableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
         }
         return DbType.MarkAsTableOrFieldName(fieldName);
     }

@@ -11,7 +11,7 @@ namespace Example.ADO.NETCore.Domain.Repositories;
 /// 通用仓储
 /// </summary>
 public class CommonRepository : BaseRepository// Using ADO.NET
-    //public class CommonRepository : DapperBaseRepository// Using Dapper
+//public class CommonRepository : DapperBaseRepository// Using Dapper
 {
     private readonly ILogger _logger;
 

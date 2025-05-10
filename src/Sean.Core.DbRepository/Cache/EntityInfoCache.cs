@@ -39,7 +39,8 @@ public static class EntityInfoCache
             return null;
         }
 
-        if (_entityInfoCache.TryGetValue(entityClassType, out var entityInfo) && entityInfo != null)// Try to get entity info from cache.
+        // Try to get entity info from cache.
+        if (_entityInfoCache.TryGetValue(entityClassType, out var entityInfo) && entityInfo != null)
         {
             return entityInfo;
         }
@@ -85,6 +86,24 @@ public static class EntityInfoCache
                 entityClassName = entityClassName.Substring(0, entityClassName.Length - entityClassSuffix.Length);
             }
             entityInfo.TableName = entityClassName.ToNamingConvention(entityInfo.NamingConvention);
+        }
+
+        entityInfo.JoinInfos = new List<JoinDescriptor>();
+        var leftJoinAttributes = entityClassType.GetCustomAttributes<LeftJoinAttribute>();
+        foreach (var leftJoinAttr in leftJoinAttributes)
+        {
+            if (!string.IsNullOrWhiteSpace(leftJoinAttr.Alias) && entityInfo.JoinInfos.Exists(c => c.Alias == leftJoinAttr.Alias))
+            {
+                throw new Exception($"别名为 {leftJoinAttr.Alias} 的Join配置重复");
+            }
+
+            entityInfo.JoinInfos.Add(new JoinDescriptor
+            {
+                JoinTableType = leftJoinAttr.JoinTableType,
+                LocalKey = leftJoinAttr.LocalKey,
+                ForeignKey = leftJoinAttr.ForeignKey,
+                Alias = leftJoinAttr.Alias
+            });
         }
 
         entityInfo.TableDescription = GetTableDescription(entityClassType);
@@ -134,7 +153,8 @@ public static class EntityInfoCache
             entityInfo.FieldInfos = orderedFieldInfos.Concat(nonOrderedFieldInfos).ToList();
         }
 
-        _entityInfoCache.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);// Save entity info into cache.
+        // Save entity info into cache.
+        _entityInfoCache.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);
         return entityInfo;
     }
 
@@ -191,10 +211,25 @@ public class EntityInfo
     public string TableName { get; set; }
     public string TableDescription { get; set; }
 
+    public List<JoinDescriptor> JoinInfos { get; set; }
+
     /// <summary>
     /// 所有字段信息
     /// </summary>
     public List<EntityFieldInfo> FieldInfos { get; set; }
+}
+
+public class JoinDescriptor
+{
+    public Type JoinTableType { get; set; }
+    public string LocalKey { get; set; }
+    public string ForeignKey { get; set; }
+    public string Alias { get; set; }
+
+    public string GetTableName()
+    {
+        return JoinTableType.GetEntityInfo().TableName;
+    }
 }
 
 public class EntityFieldInfo

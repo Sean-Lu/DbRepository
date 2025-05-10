@@ -3,7 +3,7 @@
 namespace Sean.Core.DbRepository;
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
-public class SequenceAttribute : BaseAttribute
+public class SequenceAttribute : Attribute
 {
     public SequenceAttribute(string name)
     {

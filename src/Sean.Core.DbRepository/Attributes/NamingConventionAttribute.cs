@@ -3,7 +3,7 @@
 namespace Sean.Core.DbRepository;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class NamingConventionAttribute : BaseAttribute
+public class NamingConventionAttribute : Attribute
 {
     public NamingConventionAttribute(NamingConvention namingConvention)
     {

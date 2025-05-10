@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Sean.Core.DbRepository;
 
-public class OrderByClauseSqlBuilder<TEntity> : BaseSqlBuilder<IOrderByClause<TEntity>>, IOrderByClause<TEntity>
+public class OrderByClauseSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IOrderByClause<TEntity>>, IOrderByClause<TEntity>
 {
     private string OrderBySql => _orderBy.IsValueCreated && _orderBy.Value.Length > 0 ? _includeKeyword ? $" ORDER BY {_orderBy.Value}" : _orderBy.Value.ToString() : string.Empty;
 
@@ -18,20 +18,13 @@ public class OrderByClauseSqlBuilder<TEntity> : BaseSqlBuilder<IOrderByClause<TE
     private bool _isMultiTable;
     private bool _includeKeyword;
 
-    private OrderByClauseSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
-    {
-    }
-    private OrderByClauseSqlBuilder(ISqlAdapter sqlAdapter) : base(sqlAdapter)
+    private OrderByClauseSqlBuilder(DatabaseType dbType) : base(dbType)
     {
     }
 
     public static IOrderByClause<TEntity> Create()
     {
         return new OrderByClauseSqlBuilder<TEntity>(DatabaseType.Unknown);
-    }
-    public static IOrderByClause<TEntity> Create(ISqlAdapter sqlAdapter)
-    {
-        return new OrderByClauseSqlBuilder<TEntity>(sqlAdapter);
     }
     public static IOrderByClause<TEntity> Create(DatabaseType databaseType)
     {

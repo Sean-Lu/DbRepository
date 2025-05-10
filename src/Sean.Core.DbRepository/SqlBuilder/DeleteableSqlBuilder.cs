@@ -8,7 +8,7 @@ using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository;
 
-public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>>, IDeleteable<TEntity>
+public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IDeleteable<TEntity>>, IDeleteable<TEntity>
 {
     private const string SqlTemplate = "DELETE FROM {0}{1}";
 
@@ -25,7 +25,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>
     private bool _allowEmptyWhereClause;
     private object _parameter;
 
-    private DeleteableSqlBuilder(DatabaseType dbType) : base(dbType, typeof(TEntity).GetEntityInfo().TableName)
+    private DeleteableSqlBuilder(DatabaseType dbType) : base(dbType)
     {
     }
 
@@ -241,7 +241,7 @@ public class DeleteableSqlBuilder<TEntity> : BaseSqlBuilder<IDeleteable<TEntity>
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(WhereSql));
 
         var sb = new StringBuilder();
-        sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName(TableName)}{JoinTableSql}", WhereSql));
+        sb.Append(string.Format(SqlTemplate, $"{SqlAdapter.FormatTableName()}{JoinTableSql}", WhereSql));
 
         var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {

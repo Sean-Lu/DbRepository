@@ -6,7 +6,7 @@ namespace Sean.Core.DbRepository;
 /// MySQL: DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
-public class AutoUpdateCurrentTimestampAttribute : BaseAttribute
+public class AutoUpdateCurrentTimestampAttribute : Attribute
 {
     public bool SetDefault { get; }
 
