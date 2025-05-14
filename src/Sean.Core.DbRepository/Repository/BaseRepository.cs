@@ -549,7 +549,7 @@ public abstract class BaseRepository : IBaseRepository
             return;
         }
 
-        Execute($"ALTER TABLE {DbType.MarkAsTableOrFieldName(tableName)} ADD {DbType.MarkAsTableOrFieldName(fieldName)} {fieldType}", master: master);
+        Execute($"ALTER TABLE {DbType.MarkAsIdentifier(tableName)} ADD {DbType.MarkAsIdentifier(fieldName)} {fieldType}", master: master);
     }
 
     public virtual int DeleteAll(string tableName, IDbTransaction transaction = null)
@@ -557,12 +557,12 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(tableName))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
-        return Execute($"DELETE FROM {DbType.MarkAsTableOrFieldName(tableName)}", transaction: transaction);
+        return Execute($"DELETE FROM {DbType.MarkAsIdentifier(tableName)}", transaction: transaction);
     }
 
     public virtual int DropTable(params string[] tableNames)
     {
-        return Execute($"DROP TABLE {string.Join(", ", tableNames.Select(tableName => DbType.MarkAsTableOrFieldName(tableName)).ToList())}");
+        return Execute($"DROP TABLE {string.Join(", ", tableNames.Select(tableName => DbType.MarkAsIdentifier(tableName)).ToList())}");
     }
     #endregion
 
@@ -934,7 +934,7 @@ public abstract class BaseRepository : IBaseRepository
             return;
         }
 
-        await ExecuteAsync($"ALTER TABLE {DbType.MarkAsTableOrFieldName(tableName)} ADD {DbType.MarkAsTableOrFieldName(fieldName)} {fieldType}", master: master);
+        await ExecuteAsync($"ALTER TABLE {DbType.MarkAsIdentifier(tableName)} ADD {DbType.MarkAsIdentifier(fieldName)} {fieldType}", master: master);
     }
 
     public virtual async Task<int> DeleteAllAsync(string tableName, IDbTransaction transaction = null)
@@ -942,12 +942,12 @@ public abstract class BaseRepository : IBaseRepository
         if (string.IsNullOrWhiteSpace(tableName))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
-        return await ExecuteAsync($"DELETE FROM {DbType.MarkAsTableOrFieldName(tableName)}", transaction: transaction);
+        return await ExecuteAsync($"DELETE FROM {DbType.MarkAsIdentifier(tableName)}", transaction: transaction);
     }
 
     public virtual async Task<int> DropTableAsync(params string[] tableNames)
     {
-        return await ExecuteAsync($"DROP TABLE {string.Join(", ", tableNames.Select(tableName => DbType.MarkAsTableOrFieldName(tableName)).ToList())}");
+        return await ExecuteAsync($"DROP TABLE {string.Join(", ", tableNames.Select(tableName => DbType.MarkAsIdentifier(tableName)).ToList())}");
     }
     #endregion
 }
@@ -1092,7 +1092,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                     }
                                 case DatabaseType.Xugu:
                                     {
-                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName(typeof(TEntity).GetEntityInfo().NamingConvention))}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
+                                        returnIdSql = $"SELECT MAX({DbType.MarkAsIdentifier(keyIdentityProperty.GetFieldName(typeof(TEntity).GetEntityInfo().NamingConvention))}) FROM {DbType.MarkAsIdentifier(TableName())}";
                                         break;
                                     }
                             }
@@ -1709,7 +1709,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                     }
                                 case DatabaseType.Xugu:
                                     {
-                                        returnIdSql = $"SELECT MAX({DbType.MarkAsTableOrFieldName(keyIdentityProperty.GetFieldName(typeof(TEntity).GetEntityInfo().NamingConvention))}) FROM {DbType.MarkAsTableOrFieldName(TableName())}";
+                                        returnIdSql = $"SELECT MAX({DbType.MarkAsIdentifier(keyIdentityProperty.GetFieldName(typeof(TEntity).GetEntityInfo().NamingConvention))}) FROM {DbType.MarkAsIdentifier(TableName())}";
                                         break;
                                     }
                             }

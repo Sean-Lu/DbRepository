@@ -12,6 +12,25 @@ namespace Sean.Core.DbRepository.CodeFirst;
 
 public abstract class BaseSqlGenerator : ISqlGenerator
 {
+    /// <summary>
+    /// 支持使用 CREATE INDEX IF NOT EXISTS 语法创建索引的数据库
+    /// </summary>
+    private static readonly List<DatabaseType> CreateIndexSupportIfNotExistsDatabaseTypes = new()
+    {
+        //DatabaseType.MySql,// 不支持
+        DatabaseType.TiDB,
+        //DatabaseType.SqlServer,// 不支持
+        DatabaseType.SQLite,// SQLite 3.3.0+
+        DatabaseType.DuckDB,
+        //DatabaseType.MsAccess,// 不支持
+        DatabaseType.PostgreSql,// PostgreSQL 9.5+
+        //DatabaseType.OpenGauss,// 不支持
+        DatabaseType.HighgoDB,
+        DatabaseType.IvorySQL,
+        DatabaseType.Dameng,
+        DatabaseType.KingbaseES
+    };
+
     protected DbFactory _db;
     protected readonly DatabaseType _dbType;
 
@@ -106,6 +125,64 @@ public abstract class BaseSqlGenerator : ISqlGenerator
             Enum enumValue => Convert.ToInt32(enumValue).ToString(),
             _ => defaultValue.ToString()
         };
+    }
+
+    protected virtual List<string> GetCreateIndexSql(Type entityType, bool ignoreIfExists = false, string tableName = null)
+    {
+        var entityInfo = entityType.GetEntityInfo();
+        if (string.IsNullOrWhiteSpace(tableName))
+        {
+            tableName = entityInfo.TableName;
+        }
+        var indexInfos = entityInfo.IndexInfos;
+        if (indexInfos == null || !indexInfos.Any())
+        {
+            return null;
+        }
+
+        var sqlList = new List<string>();
+        foreach (var indexDescriptor in indexInfos)
+        {
+            var indexPropertyNames = indexDescriptor.IndexPropertyNames;
+            var indexName = indexDescriptor.IndexName;
+            var indexType = indexDescriptor.IndexType;
+            if (indexPropertyNames == null || !indexPropertyNames.Any())
+            {
+                continue;
+            }
+
+            var indexFieldNames = entityInfo.FieldInfos.Where(c => indexPropertyNames.Contains(c.PropertyName)).Select(c => c.FieldName).ToArray();
+            if (!indexFieldNames.Any())
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(indexName))
+            {
+                indexName = $"IDX_{tableName}_{string.Join("_", indexFieldNames)}";
+            }
+
+            var sql = GetCreateIndexSql(indexType, indexName, tableName, indexFieldNames, ignoreIfExists);
+            if (!string.IsNullOrWhiteSpace(sql))
+            {
+                sqlList.Add(sql);
+            }
+        }
+
+        return sqlList;
+    }
+
+    protected virtual string GetCreateIndexSql(DbIndexType indexType, string indexName, string tableName, IEnumerable<string> indexFieldNames, bool ignoreIfExists = false)
+    {
+        switch (indexType)
+        {
+            case DbIndexType.Normal:
+                return $"CREATE INDEX{(ignoreIfExists && CreateIndexSupportIfNotExistsDatabaseTypes.Contains(_dbType) ? " IF NOT EXISTS" : string.Empty)} {_dbType.MarkAsIdentifier(indexName)} ON {_dbType.MarkAsIdentifier(tableName)} ({string.Join(",", indexFieldNames.Select(c => _dbType.MarkAsIdentifier(c)).ToList())})";
+            case DbIndexType.Unique:
+                return $"CREATE UNIQUE INDEX{(ignoreIfExists && CreateIndexSupportIfNotExistsDatabaseTypes.Contains(_dbType) ? " IF NOT EXISTS" : string.Empty)} {_dbType.MarkAsIdentifier(indexName)} ON {_dbType.MarkAsIdentifier(tableName)} ({string.Join(",", indexFieldNames.Select(c => _dbType.MarkAsIdentifier(c)).ToList())})";
+            default:
+                throw new NotImplementedException($"不支持的索引类型：{indexType}");
+        }
     }
 
     public virtual List<string> GetCreateTableSql<TEntity>(bool ignoreIfExists = false, Func<string, string> tableNameFunc = null)

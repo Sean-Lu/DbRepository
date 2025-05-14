@@ -12,6 +12,9 @@ public class SqlGeneratorForMySql : BaseSqlGenerator
     public SqlGeneratorForMySql() : base(DatabaseType.MySql)
     {
     }
+    public SqlGeneratorForMySql(DatabaseType compatibleDbType) : base(compatibleDbType)
+    {
+    }
 
     protected virtual string ConvertFieldType(EntityFieldInfo fieldInfo)
     {
@@ -58,18 +61,14 @@ public class SqlGeneratorForMySql : BaseSqlGenerator
         var result = new List<string>();
         var sb = new StringBuilder();
         var entityInfo = entityType.GetEntityInfo();
-        var tableName = entityInfo.TableName;
-        if (tableNameFunc != null)
-        {
-            tableName = tableNameFunc(tableName);
-        }
-        sb.AppendLine($"CREATE TABLE{(ignoreIfExists ? " IF NOT EXISTS" : string.Empty)} {_dbType.MarkAsTableOrFieldName(tableName)} (");
+        var tableName = tableNameFunc != null ? tableNameFunc(entityInfo.TableName) : entityInfo.TableName;
+        sb.AppendLine($"CREATE TABLE{(ignoreIfExists ? " IF NOT EXISTS" : string.Empty)} {_dbType.MarkAsIdentifier(tableName)} (");
         var fieldInfoList = new List<string>();
         var sbFieldInfo = new StringBuilder();
         foreach (var fieldInfo in entityInfo.FieldInfos)
         {
             sbFieldInfo.Clear();
-            sbFieldInfo.Append($"  {_dbType.MarkAsTableOrFieldName(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
+            sbFieldInfo.Append($"  {_dbType.MarkAsIdentifier(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
             if (fieldInfo.IsNotAllowNull)
             {
                 sbFieldInfo.Append(" NOT NULL");
@@ -102,7 +101,7 @@ public class SqlGeneratorForMySql : BaseSqlGenerator
         }
         if (entityInfo.FieldInfos.Any(c => c.IsPrimaryKey))
         {
-            fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.IsPrimaryKey).Select(c => _dbType.MarkAsTableOrFieldName(c.FieldName)).ToList())})");
+            fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.IsPrimaryKey).Select(c => _dbType.MarkAsIdentifier(c.FieldName)).ToList())})");
         }
         sb.AppendLine(string.Join($",{Environment.NewLine}", fieldInfoList));
         sb.Append(")");
@@ -110,7 +109,12 @@ public class SqlGeneratorForMySql : BaseSqlGenerator
         {
             sb.Append($" COMMENT='{entityInfo.TableDescription}'");
         }
-        sb.Append(";");
+        sb.AppendLine(";");
+        var createIndexSql = GetCreateIndexSql(entityType, ignoreIfExists, tableName);
+        createIndexSql?.ForEach(sql =>
+        {
+            sb.AppendLine($"{sql};");
+        });
         result.Add(sb.ToString());
         return result;
     }
@@ -118,11 +122,7 @@ public class SqlGeneratorForMySql : BaseSqlGenerator
     public override List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
     {
         var entityInfo = entityType.GetEntityInfo();
-        var tableName = entityInfo.TableName;
-        if (tableNameFunc != null)
-        {
-            tableName = tableNameFunc(tableName);
-        }
+        var tableName = tableNameFunc != null ? tableNameFunc(entityInfo.TableName) : entityInfo.TableName;
         if (!IsTableExists(tableName))
         {
             return GetCreateTableSql(entityType, false, _ => tableName);
@@ -133,7 +133,7 @@ public class SqlGeneratorForMySql : BaseSqlGenerator
         missingTableFieldInfo?.ForEach(fieldInfo =>
         {
             sb.Clear();
-            sb.Append($"ALTER TABLE {_dbType.MarkAsTableOrFieldName(tableName)} ADD {_dbType.MarkAsTableOrFieldName(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
+            sb.Append($"ALTER TABLE {_dbType.MarkAsIdentifier(tableName)} ADD {_dbType.MarkAsIdentifier(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
             if (fieldInfo.IsNotAllowNull)
             {
                 sb.Append(" NOT NULL");

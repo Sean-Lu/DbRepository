@@ -11,9 +11,9 @@ public static class SqlGeneratorFactory
     {
         #region Set default implement for ISqlGenerator.
         SetSqlGenerator(DatabaseType.MySql, new SqlGeneratorForMySql());
-        SetSqlGenerator(DatabaseType.MariaDB, new SqlGeneratorForMySql());
-        SetSqlGenerator(DatabaseType.TiDB, new SqlGeneratorForMySql());
-        SetSqlGenerator(DatabaseType.OceanBase, new SqlGeneratorForMySql());
+        SetSqlGenerator(DatabaseType.MariaDB, new SqlGeneratorForMySql(DatabaseType.MariaDB));
+        SetSqlGenerator(DatabaseType.TiDB, new SqlGeneratorForMySql(DatabaseType.TiDB));
+        SetSqlGenerator(DatabaseType.OceanBase, new SqlGeneratorForMySql(DatabaseType.OceanBase));
         SetSqlGenerator(DatabaseType.SqlServer, new SqlGeneratorForSqlServer());
         SetSqlGenerator(DatabaseType.Oracle, new SqlGeneratorForOracle());
         SetSqlGenerator(DatabaseType.SQLite, new SqlGeneratorForSQLite());
@@ -22,14 +22,14 @@ public static class SqlGeneratorFactory
         SetSqlGenerator(DatabaseType.Firebird, new SqlGeneratorForFirebird());
         SetSqlGenerator(DatabaseType.PostgreSql, new SqlGeneratorForPostgreSql());
         SetSqlGenerator(DatabaseType.OpenGauss, new SqlGeneratorForOpenGauss());
-        SetSqlGenerator(DatabaseType.HighgoDB, new SqlGeneratorForPostgreSql());
-        SetSqlGenerator(DatabaseType.IvorySQL, new SqlGeneratorForPostgreSql());
+        SetSqlGenerator(DatabaseType.HighgoDB, new SqlGeneratorForPostgreSql(DatabaseType.HighgoDB));
+        SetSqlGenerator(DatabaseType.IvorySQL, new SqlGeneratorForPostgreSql(DatabaseType.IvorySQL));
         SetSqlGenerator(DatabaseType.QuestDB, new SqlGeneratorForQuestDB());
         SetSqlGenerator(DatabaseType.DB2, new SqlGeneratorForDB2());
         SetSqlGenerator(DatabaseType.Informix, new SqlGeneratorForInformix());
         SetSqlGenerator(DatabaseType.ClickHouse, new SqlGeneratorForClickHouse());
         SetSqlGenerator(DatabaseType.Dameng, new SqlGeneratorForDameng());
-        SetSqlGenerator(DatabaseType.KingbaseES, new SqlGeneratorForPostgreSql());
+        SetSqlGenerator(DatabaseType.KingbaseES, new SqlGeneratorForPostgreSql(DatabaseType.KingbaseES));
         SetSqlGenerator(DatabaseType.ShenTong, new SqlGeneratorForShenTong());
         SetSqlGenerator(DatabaseType.Xugu, new SqlGeneratorForXugu());
         #endregion

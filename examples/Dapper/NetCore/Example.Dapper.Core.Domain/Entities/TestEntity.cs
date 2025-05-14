@@ -10,6 +10,8 @@ namespace Example.Dapper.Core.Domain.Entities;
 /// </summary>
 //[Table("Test")]
 [CodeFirst]
+[Index(nameof(PhoneNumber), IndexType = DbIndexType.Unique)]
+[Index(nameof(Email), IndexType = DbIndexType.Unique)]
 public class TestEntity : EntityBase
 {
     /// <summary>

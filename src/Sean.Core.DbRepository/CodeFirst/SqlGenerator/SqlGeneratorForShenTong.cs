@@ -57,12 +57,8 @@ public class SqlGeneratorForShenTong : BaseSqlGenerator
         var result = new List<string>();
         var sb = new StringBuilder();
         var entityInfo = entityType.GetEntityInfo();
-        var tableName = entityInfo.TableName;
-        if (tableNameFunc != null)
-        {
-            tableName = tableNameFunc(tableName);
-        }
-        sb.AppendLine($"CREATE TABLE {_dbType.MarkAsTableOrFieldName(tableName)} (");
+        var tableName = tableNameFunc != null ? tableNameFunc(entityInfo.TableName) : entityInfo.TableName;
+        sb.AppendLine($"CREATE TABLE {_dbType.MarkAsIdentifier(tableName)} (");
         var fieldInfoList = new List<string>();
         var sbFieldInfo = new StringBuilder();
         //var fieldDescriptionDic = new Dictionary<string, string>();
@@ -73,7 +69,7 @@ public class SqlGeneratorForShenTong : BaseSqlGenerator
             //{
             //    fieldDescriptionDic.Add(fieldInfo.FieldName, fieldInfo.FieldDescription);
             //}
-            sbFieldInfo.Append($"  {_dbType.MarkAsTableOrFieldName(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
+            sbFieldInfo.Append($"  {_dbType.MarkAsIdentifier(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
             if (fieldInfo.IsIdentityField)
             {
                 sbFieldInfo.Append(" AUTO_INCREMENT");
@@ -90,18 +86,23 @@ public class SqlGeneratorForShenTong : BaseSqlGenerator
         }
         if (entityInfo.FieldInfos.Any(c => c.IsPrimaryKey))
         {
-            fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.IsPrimaryKey).Select(c => _dbType.MarkAsTableOrFieldName(c.FieldName)).ToList())})");
+            fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.IsPrimaryKey).Select(c => _dbType.MarkAsIdentifier(c.FieldName)).ToList())})");
         }
         sb.AppendLine(string.Join($",{Environment.NewLine}", fieldInfoList));
-        sb.Append(");");
+        sb.AppendLine(");");
         //if (!string.IsNullOrWhiteSpace(entityInfo.TableDescription))
         //{
-        //    sb.AppendLine($"COMMENT ON TABLE {_dbType.MarkAsTableOrFieldName(tableName)} IS '{entityInfo.TableDescription}';");
+        //    sb.AppendLine($"COMMENT ON TABLE {_dbType.MarkAsIdentifier(tableName)} IS '{entityInfo.TableDescription}';");
         //}
         //foreach (var kv in fieldDescriptionDic)
         //{
-        //    sb.AppendLine($"COMMENT ON COLUMN {_dbType.MarkAsTableOrFieldName(tableName)}.{_dbType.MarkAsTableOrFieldName(kv.Key)} IS '{kv.Value}';");
+        //    sb.AppendLine($"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS '{kv.Value}';");
         //}
+        var createIndexSql = GetCreateIndexSql(entityType, ignoreIfExists, tableName);
+        createIndexSql?.ForEach(sql =>
+        {
+            sb.AppendLine($"{sql};");
+        });
         result.Add(sb.ToString());
         return result;
     }
@@ -109,11 +110,7 @@ public class SqlGeneratorForShenTong : BaseSqlGenerator
     public override List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
     {
         var entityInfo = entityType.GetEntityInfo();
-        var tableName = entityInfo.TableName;
-        if (tableNameFunc != null)
-        {
-            tableName = tableNameFunc(tableName);
-        }
+        var tableName = tableNameFunc != null ? tableNameFunc(entityInfo.TableName) : entityInfo.TableName;
         if (!IsTableExists(tableName))
         {
             return GetCreateTableSql(entityType, false, _ => tableName);
@@ -129,7 +126,7 @@ public class SqlGeneratorForShenTong : BaseSqlGenerator
             //{
             //    fieldDescriptionDic.Add(fieldInfo.FieldName, fieldInfo.FieldDescription);
             //}
-            sb.Append($"ALTER TABLE {_dbType.MarkAsTableOrFieldName(tableName)} ADD {_dbType.MarkAsTableOrFieldName(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
+            sb.Append($"ALTER TABLE {_dbType.MarkAsIdentifier(tableName)} ADD {_dbType.MarkAsIdentifier(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
             if (fieldInfo.IsNotAllowNull)
             {
                 sb.Append(" NOT NULL");
@@ -143,7 +140,7 @@ public class SqlGeneratorForShenTong : BaseSqlGenerator
         });
         //foreach (var kv in fieldDescriptionDic)
         //{
-        //    result.Add($"COMMENT ON COLUMN {_dbType.MarkAsTableOrFieldName(tableName)}.{_dbType.MarkAsTableOrFieldName(kv.Key)} IS '{kv.Value}';");
+        //    result.Add($"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS '{kv.Value}';");
         //}
         return result;
     }

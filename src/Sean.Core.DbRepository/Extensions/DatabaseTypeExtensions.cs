@@ -33,12 +33,6 @@ public static class DatabaseTypeExtensions
     }
     #endregion
 
-    /// <summary>
-    /// Mark as SQL input parameter.
-    /// </summary>
-    /// <param name="databaseType"></param>
-    /// <param name="parameter"></param>
-    /// <returns></returns>
     public static string MarkAsSqlParameter(this DatabaseType databaseType, string parameter)
     {
         if (string.IsNullOrWhiteSpace(parameter))
@@ -67,13 +61,7 @@ public static class DatabaseTypeExtensions
         }
     }
 
-    /// <summary>
-    /// Mark as table or field name to avoid conflict with keyword.
-    /// </summary>
-    /// <param name="databaseType"></param>
-    /// <param name="name"></param>
-    /// <returns></returns>
-    public static string MarkAsTableOrFieldName(this DatabaseType databaseType, string name)
+    public static string MarkAsIdentifier(this DatabaseType databaseType, string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));

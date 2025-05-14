@@ -206,3 +206,18 @@ public enum NamingConvention
     /// </summary>
     UpperSnakeCase
 }
+
+/// <summary>
+/// 数据库索引类型
+/// </summary>
+public enum DbIndexType
+{
+    /// <summary>
+    /// 普通索引
+    /// </summary>
+    Normal,
+    /// <summary>
+    /// 唯一索引
+    /// </summary>
+    Unique
+}

@@ -106,6 +106,18 @@ public static class EntityInfoCache
             });
         }
 
+        entityInfo.IndexInfos = new List<IndexDescriptor>();
+        var indexAttributes = entityClassType.GetCustomAttributes<IndexAttribute>();
+        foreach (var indexAttribute in indexAttributes)
+        {
+            entityInfo.IndexInfos.Add(new IndexDescriptor
+            {
+                IndexPropertyNames = indexAttribute.IndexPropertyNames,
+                IndexName = indexAttribute.IndexName,
+                IndexType = indexAttribute.IndexType
+            });
+        }
+
         entityInfo.TableDescription = GetTableDescription(entityClassType);
 
         var propertyInfos = entityClassType.GetProperties();
@@ -213,6 +225,8 @@ public class EntityInfo
 
     public List<JoinDescriptor> JoinInfos { get; set; }
 
+    public List<IndexDescriptor> IndexInfos { get; set; }
+
     /// <summary>
     /// 所有字段信息
     /// </summary>
@@ -231,6 +245,14 @@ public class JoinDescriptor
         return JoinTableType.GetEntityInfo().TableName;
     }
 }
+
+public class IndexDescriptor
+{
+    public string[] IndexPropertyNames { get; set; }
+    public string IndexName { get; set; }
+    public DbIndexType IndexType { get; set; }
+}
+
 
 public class EntityFieldInfo
 {

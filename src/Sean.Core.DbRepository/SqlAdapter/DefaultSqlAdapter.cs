@@ -18,14 +18,14 @@ public class DefaultSqlAdapter : ISqlAdapter
     public virtual string FormatTableName()
     {
         return !string.IsNullOrWhiteSpace(AliasName) ?
-            $"{DbType.MarkAsTableOrFieldName(TableName)} {AliasName}"
-            : DbType.MarkAsTableOrFieldName(TableName);
+            $"{DbType.MarkAsIdentifier(TableName)} {AliasName}"
+            : DbType.MarkAsIdentifier(TableName);
     }
     public virtual string FormatTableName(string tableName, string aliasName = null)
     {
         return !string.IsNullOrWhiteSpace(aliasName) ?
-            $"{DbType.MarkAsTableOrFieldName(tableName)} {aliasName}"
-            : DbType.MarkAsTableOrFieldName(tableName);
+            $"{DbType.MarkAsIdentifier(tableName)} {aliasName}"
+            : DbType.MarkAsIdentifier(tableName);
     }
 
     public string FormatFieldName(string fieldName)
@@ -33,22 +33,22 @@ public class DefaultSqlAdapter : ISqlAdapter
         if (MultiTable)
         {
             return !string.IsNullOrWhiteSpace(AliasName)
-                ? $"{AliasName}.{DbType.MarkAsTableOrFieldName(fieldName)}"
-                : $"{DbType.MarkAsTableOrFieldName(TableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
+                ? $"{AliasName}.{DbType.MarkAsIdentifier(fieldName)}"
+                : $"{DbType.MarkAsIdentifier(TableName)}.{DbType.MarkAsIdentifier(fieldName)}";
         }
-        return DbType.MarkAsTableOrFieldName(fieldName);
+        return DbType.MarkAsIdentifier(fieldName);
     }
     public string FormatFieldName(string fieldName, string tableName, string aliasName = null)
     {
         if (!string.IsNullOrWhiteSpace(aliasName))
         {
-            return $"{aliasName}.{DbType.MarkAsTableOrFieldName(fieldName)}";
+            return $"{aliasName}.{DbType.MarkAsIdentifier(fieldName)}";
         }
         if (!string.IsNullOrWhiteSpace(tableName))
         {
-            return $"{DbType.MarkAsTableOrFieldName(tableName)}.{DbType.MarkAsTableOrFieldName(fieldName)}";
+            return $"{DbType.MarkAsIdentifier(tableName)}.{DbType.MarkAsIdentifier(fieldName)}";
         }
-        return DbType.MarkAsTableOrFieldName(fieldName);
+        return DbType.MarkAsIdentifier(fieldName);
     }
 
     public virtual string FormatSqlParameter(string parameter)

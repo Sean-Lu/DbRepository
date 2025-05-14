@@ -57,20 +57,16 @@ public class SqlGeneratorForInformix : BaseSqlGenerator
         var result = new List<string>();
         var sb = new StringBuilder();
         var entityInfo = entityType.GetEntityInfo();
-        var tableName = entityInfo.TableName;
-        if (tableNameFunc != null)
-        {
-            tableName = tableNameFunc(tableName);
-        }
-        sb.AppendLine($"CREATE TABLE {_dbType.MarkAsTableOrFieldName(tableName)} (");
+        var tableName = tableNameFunc != null ? tableNameFunc(entityInfo.TableName) : entityInfo.TableName;
+        sb.AppendLine($"CREATE TABLE {_dbType.MarkAsIdentifier(tableName)} (");
         var fieldInfoList = new List<string>();
         var sbFieldInfo = new StringBuilder();
         foreach (var fieldInfo in entityInfo.FieldInfos)
         {
             sbFieldInfo.Clear();
             sbFieldInfo.Append(fieldInfo.IsIdentityField
-                ? $"  {_dbType.MarkAsTableOrFieldName(fieldInfo.FieldName)} SERIAL"
-                : $"  {_dbType.MarkAsTableOrFieldName(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
+                ? $"  {_dbType.MarkAsIdentifier(fieldInfo.FieldName)} SERIAL"
+                : $"  {_dbType.MarkAsIdentifier(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
             if (fieldInfo.IsNotAllowNull)
             {
                 sbFieldInfo.Append(" NOT NULL");
@@ -87,7 +83,7 @@ public class SqlGeneratorForInformix : BaseSqlGenerator
         }
         if (entityInfo.FieldInfos.Any(c => c.IsPrimaryKey))
         {
-            fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.IsPrimaryKey).Select(c => _dbType.MarkAsTableOrFieldName(c.FieldName)).ToList())})");
+            fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.IsPrimaryKey).Select(c => _dbType.MarkAsIdentifier(c.FieldName)).ToList())})");
         }
         sb.AppendLine(string.Join($",{Environment.NewLine}", fieldInfoList));
         sb.Append(")");
@@ -95,7 +91,12 @@ public class SqlGeneratorForInformix : BaseSqlGenerator
         //{
         //    sb.Append($" COMMENT '{entityInfo.TableDescription}'");
         //}
-        sb.Append(";");
+        sb.AppendLine(";");
+        var createIndexSql = GetCreateIndexSql(entityType, ignoreIfExists, tableName);
+        createIndexSql?.ForEach(sql =>
+        {
+            sb.AppendLine($"{sql};");
+        });
         result.Add(sb.ToString());
         return result;
     }
@@ -103,11 +104,7 @@ public class SqlGeneratorForInformix : BaseSqlGenerator
     public override List<string> GetUpgradeSql(Type entityType, Func<string, string> tableNameFunc = null)
     {
         var entityInfo = entityType.GetEntityInfo();
-        var tableName = entityInfo.TableName;
-        if (tableNameFunc != null)
-        {
-            tableName = tableNameFunc(tableName);
-        }
+        var tableName = tableNameFunc != null ? tableNameFunc(entityInfo.TableName) : entityInfo.TableName;
         if (!IsTableExists(tableName))
         {
             return GetCreateTableSql(entityType, false, _ => tableName);
@@ -118,7 +115,7 @@ public class SqlGeneratorForInformix : BaseSqlGenerator
         missingTableFieldInfo?.ForEach(fieldInfo =>
         {
             sb.Clear();
-            sb.Append($"ALTER TABLE {_dbType.MarkAsTableOrFieldName(tableName)} ADD {_dbType.MarkAsTableOrFieldName(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
+            sb.Append($"ALTER TABLE {_dbType.MarkAsIdentifier(tableName)} ADD {_dbType.MarkAsIdentifier(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
             if (fieldInfo.IsNotAllowNull)
             {
                 sb.Append(" NOT NULL");
