@@ -442,7 +442,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
             {
                 if (_orderBy.Value.Length > 0) _orderBy.Value.Append(", ");
 
-                _orderBy.Value.Append($"{string.Join(", ", fieldNames.Select(fieldName => SqlAdapter.FormatFieldName(fieldName)).ToList())} {type.ToSqlString()}");
+                _orderBy.Value.Append(string.Join(", ", fieldNames.Select(fieldName => $"{SqlAdapter.FormatFieldName(fieldName)} {type.ToSqlString()}").ToList()));
             }
         });
         return this;
@@ -460,7 +460,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
             {
                 if (_orderBy.Value.Length > 0) _orderBy.Value.Append(", ");
 
-                _orderBy.Value.Append($"{string.Join(", ", fieldNames.Select(fieldName => SqlAdapter.FormatFieldName(fieldName, typeof(TEntity2).GetEntityInfo().TableName, aliasName)).ToList())} {type.ToSqlString()}");
+                _orderBy.Value.Append(string.Join(", ", fieldNames.Select(fieldName => $"{SqlAdapter.FormatFieldName(fieldName, typeof(TEntity2).GetEntityInfo().TableName, aliasName)} {type.ToSqlString()}").ToList()));
             }
         });
         return this;
