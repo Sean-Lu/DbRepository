@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository.Extensions;
@@ -9,7 +10,7 @@ namespace Sean.Core.DbRepository.Extensions;
 public static class ExpressionExtensions
 {
     #region FieldExpression
-    public static List<string> GetFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression)
+    public static List<string> GetFieldNames<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, Func<MemberInfo, bool> handleNotMapped = null)
     {
         if (fieldExpression == null)
         {
@@ -18,7 +19,7 @@ public static class ExpressionExtensions
         //ParameterExpression parameterExpression = fieldExpression.Parameters.FirstOrDefault();
         Expression expressionBody = fieldExpression.Body;
         NamingConvention namingConvention = typeof(TEntity).GetEntityInfo().NamingConvention;
-        return expressionBody.GetFieldNames(namingConvention);
+        return expressionBody.GetFieldNames(namingConvention, handleNotMapped);
     }
 
     public static bool IsFieldExists<TEntity>(this Expression<Func<TEntity, object>> fieldExpression, string fieldName)
@@ -203,16 +204,18 @@ public static class ExpressionExtensions
         return Expression.Lambda<T>(merge(first.Body, secondBody), first.Parameters);
     }
 
-    private static List<string> GetFieldNames(this Expression fieldExpression, NamingConvention namingConvention)
+    private static List<string> GetFieldNames(this Expression fieldExpression, NamingConvention namingConvention, Func<MemberInfo, bool> handleNotMapped = null)
     {
         if (fieldExpression == null) throw new ArgumentNullException(nameof(fieldExpression));
 
         var result = new List<string>();
+        var isSupportConvert = false;
         if (fieldExpression is ConstantExpression constantExpression2)
         {
             var value = constantExpression2.Value;
             if (value is IEnumerable<string> fieldNames)
             {
+                isSupportConvert = true;
                 foreach (var fieldName in fieldNames)
                 {
                     if (!result.Contains(fieldName))
@@ -223,6 +226,7 @@ public static class ExpressionExtensions
             }
             else if (value is string fieldName)
             {
+                isSupportConvert = true;
                 if (!result.Contains(fieldName))
                 {
                     result.Add(fieldName);
@@ -231,9 +235,10 @@ public static class ExpressionExtensions
         }
         else if (fieldExpression is NewArrayExpression newArrayExpression)// 数组
         {
+            isSupportConvert = true;
             foreach (var subExpression in newArrayExpression.Expressions)
             {
-                var memberName = subExpression.GetFieldName(namingConvention);
+                var memberName = subExpression.GetFieldName(namingConvention, handleNotMapped);
                 if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                 {
                     result.Add(memberName);
@@ -242,11 +247,12 @@ public static class ExpressionExtensions
         }
         else if (fieldExpression is ListInitExpression listInitExpression)// List泛型集合
         {
+            isSupportConvert = true;
             foreach (var initializer in listInitExpression.Initializers)
             {
                 foreach (var argument in initializer.Arguments)
                 {
-                    var memberName = argument.GetFieldName(namingConvention);
+                    var memberName = argument.GetFieldName(namingConvention, handleNotMapped);
                     if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                     {
                         result.Add(memberName);
@@ -256,17 +262,10 @@ public static class ExpressionExtensions
         }
         else if (fieldExpression is NewExpression newExpression)// 匿名类型
         {
-            //foreach (var memberInfo in newExpression.Members)
-            //{
-            //    var memberName = memberInfo.GetFieldName();
-            //    if (!result.Contains(memberName))
-            //    {
-            //        result.Add(memberName);
-            //    }
-            //}
+            isSupportConvert = true;
             foreach (var argument in newExpression.Arguments)
             {
-                var memberName = argument.GetFieldName(namingConvention);
+                var memberName = argument.GetFieldName(namingConvention, handleNotMapped);
                 if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
                 {
                     result.Add(memberName);
@@ -277,7 +276,8 @@ public static class ExpressionExtensions
         {
             if (memberExpression.Expression is ParameterExpression parameterExpression)
             {
-                var fieldName = memberExpression.Member.GetFieldName(namingConvention);
+                isSupportConvert = true;
+                var fieldName = memberExpression.Member.GetFieldName(namingConvention, handleNotMapped);
                 if (!string.IsNullOrWhiteSpace(fieldName) && !result.Contains(fieldName))
                 {
                     result.Add(fieldName);
@@ -295,6 +295,7 @@ public static class ExpressionExtensions
                         var actualValue = fieldInfo.GetValue(value);
                         if (actualValue is string strValue)
                         {
+                            isSupportConvert = true;
                             if (!result.Contains(strValue))
                             {
                                 result.Add(strValue);
@@ -302,6 +303,7 @@ public static class ExpressionExtensions
                         }
                         else if (actualValue is IEnumerable<string> fields)
                         {
+                            isSupportConvert = true;
                             foreach (var field in fields)
                             {
                                 if (!string.IsNullOrWhiteSpace(field) && !result.Contains(field))
@@ -318,6 +320,7 @@ public static class ExpressionExtensions
                 var value = ConstantExtractor.ParseConstant(memberExpression);
                 if (value is string strValue)
                 {
+                    isSupportConvert = true;
                     if (!result.Contains(strValue))
                     {
                         result.Add(strValue);
@@ -325,6 +328,7 @@ public static class ExpressionExtensions
                 }
                 else if (value is IEnumerable<string> fields)
                 {
+                    isSupportConvert = true;
                     foreach (var field in fields)
                     {
                         if (!string.IsNullOrWhiteSpace(field) && !result.Contains(field))
@@ -340,6 +344,7 @@ public static class ExpressionExtensions
             var value = ConstantExtractor.ParseConstant(methodCallExpression);
             if (value is IEnumerable<string> fields)
             {
+                isSupportConvert = true;
                 foreach (var field in fields)
                 {
                     if (!string.IsNullOrWhiteSpace(field) && !result.Contains(field))
@@ -350,52 +355,56 @@ public static class ExpressionExtensions
             }
         }
 
-        if (!result.Any())
+        if (!isSupportConvert)
         {
-            var memberName = fieldExpression.GetFieldName(namingConvention);
+            var memberName = fieldExpression.GetFieldName(namingConvention, handleNotMapped);
             if (!string.IsNullOrWhiteSpace(memberName) && !result.Contains(memberName))
             {
                 result.Add(memberName);
             }
         }
 
-        if (!result.Any())
-        {
-            throw new NotSupportedException($"Unsupported expression type: {fieldExpression.GetType()}");
-        }
-
         return result;
     }
-    private static string GetFieldName(this Expression expression, NamingConvention namingConvention)
+    private static string GetFieldName(this Expression expression, NamingConvention namingConvention, Func<MemberInfo, bool> handleNotMapped = null)
     {
         if (expression == null) throw new ArgumentNullException(nameof(expression));
 
         string result = null;
+        var isSupportConvert = false;
         if (expression is UnaryExpression unaryExpression)
         {
             if (unaryExpression.Operand is MemberExpression memberExpression)
             {
-                result = memberExpression.Member.GetFieldName(namingConvention);
+                isSupportConvert = true;
+                result = memberExpression.Member.GetFieldName(namingConvention, handleNotMapped);
             }
         }
         else if (expression is ConstantExpression constantExpression)
         {
+            isSupportConvert = true;
             result = constantExpression.Value as string;
         }
         else if (expression is MemberExpression memberExpression)
         {
             if (memberExpression.Expression is ParameterExpression)
             {
-                result = memberExpression.Member.GetFieldName(namingConvention);
+                isSupportConvert = true;
+                result = memberExpression.Member.GetFieldName(namingConvention, handleNotMapped);
             }
             else
             {
-                var value = ConstantExtractor.ParseConstant(memberExpression);
-                result = value as string;
+                isSupportConvert = true;
+                result = ConstantExtractor.ParseConstant(memberExpression) as string;
             }
         }
 
-        return result ?? throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
+        if (!isSupportConvert)
+        {
+            throw new NotSupportedException($"Unsupported expression type: {expression.GetType()}");
+        }
+
+        return result;
     }
     #endregion
 }

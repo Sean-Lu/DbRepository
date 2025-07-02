@@ -14,6 +14,8 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
     //private const string SqlTemplate = "SELECT {1} FROM {0}{2}";
 
     private readonly List<TableFieldInfoForSqlBuilder> _tableFieldList = new();
+    private readonly List<string> _selectJoinFields = new();
+    private readonly List<JoinDescriptor> _usingJoinInfos = new List<JoinDescriptor>();
 
     private string JoinTableSql => _joinTable.IsValueCreated && _joinTable.Value.Length > 0 ? _joinTable.Value.ToString() : string.Empty;
     private string WhereSql => _where.IsValueCreated && _where.Value.Length > 0 ? $" WHERE {_where.Value}" : string.Empty;
@@ -116,7 +118,21 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
         {
             return this;
         }
-        var fields = fieldExpression.GetFieldNames().ToArray();
+
+        var joinFieldMembers = new List<MemberInfo>();
+        var fields = fieldExpression.GetFieldNames(handleNotMapped: memberInfo =>
+        {
+            if (memberInfo.GetCustomAttributes<LeftJoinFieldAttribute>(true).Any())
+            {
+                joinFieldMembers.Add(memberInfo);
+                return true;
+            }
+            return false;
+        }).ToArray();
+        if (joinFieldMembers.Any())
+        {
+            HandleJoinField(joinFieldMembers);
+        }
         return SelectFields(fields);
     }
     public virtual IQueryable<TEntity> IgnoreFields(Expression<Func<TEntity, object>> fieldExpression)
@@ -493,57 +509,11 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
 
     protected override ISqlCommand BuildSqlCommand()
     {
-        var selectJoinFields = new List<string>();
-
-        if (!_tableFieldList.Any())
+        if (!_tableFieldList.Any() && !_selectJoinFields.Any())
         {
             SqlBuilderUtil.IncludeFields<TEntity>(_tableFieldList);
 
-            var joinInfos = typeof(TEntity).GetEntityInfo().JoinInfos;
-            if (joinInfos != null && joinInfos.Any())
-            {
-                var usingJoinInfos = new List<JoinDescriptor>();
-                foreach (var prop in typeof(TEntity).GetProperties())
-                {
-                    var leftJoinFieldAttr = prop.GetCustomAttribute<LeftJoinFieldAttribute>();
-                    if (leftJoinFieldAttr == null || string.IsNullOrWhiteSpace(leftJoinFieldAttr.JoinAlias))
-                    {
-                        continue;
-                    }
-
-                    var joinDescriptor = joinInfos.Find(c => c.Alias == leftJoinFieldAttr.JoinAlias);
-                    if (joinDescriptor == null)
-                    {
-                        throw new InvalidOperationException($"未找到别名为 {leftJoinFieldAttr.JoinAlias} 的Join配置");
-                    }
-
-                    if (!usingJoinInfos.Contains(joinDescriptor))
-                    {
-                        usingJoinInfos.Add(joinDescriptor);
-                    }
-                    var joinTargetFieldName = joinDescriptor.JoinTableType.GetEntityInfo().FieldInfos.FirstOrDefault(c => c.PropertyName == leftJoinFieldAttr.TargetPropertyName)?.FieldName;
-                    if (!string.IsNullOrWhiteSpace(joinTargetFieldName))
-                    {
-                        selectJoinFields.Add($"{SqlAdapter.FormatFieldName(joinTargetFieldName, joinDescriptor.GetTableName(), joinDescriptor.Alias)} AS {prop.Name}");
-                    }
-                }
-
-                if (usingJoinInfos.Any())
-                {
-                    SqlAdapter.MultiTable = true;
-                    if (string.IsNullOrWhiteSpace(SqlAdapter.AliasName))
-                    {
-                        SqlAdapter.AliasName = MainTableDefaultAlias;
-                    }
-                    usingJoinInfos.ForEach(j =>
-                    {
-                        var joinLocalFieldName = typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.PropertyName == j.LocalKey)?.FieldName;
-                        var joinForeignFieldName = j.JoinTableType.GetEntityInfo().FieldInfos.FirstOrDefault(c => c.PropertyName == j.ForeignKey)?.FieldName;
-                        var joinCondition = $"{SqlAdapter.FormatFieldName(joinLocalFieldName)} = {SqlAdapter.FormatFieldName(joinForeignFieldName, j.GetTableName(), j.Alias)}";
-                        LeftJoin($"{SqlAdapter.FormatTableName(j.GetTableName(), j.Alias)} ON {joinCondition}");
-                    });
-                }
-            }
+            HandleJoinField(typeof(TEntity).GetProperties().Where(c => c.GetCustomAttributes<LeftJoinFieldAttribute>(true).Any()).ToList());
         }
 
         if (MultiTable)
@@ -572,7 +542,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
             return findFieldInfo != null && findFieldInfo.Property.Name != fieldInfo.FieldName
                 ? $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)} AS {findFieldInfo.Property.Name}"
                 : $"{SqlAdapter.FormatFieldName(fieldInfo.FieldName)}";
-        }).Concat(selectJoinFields).ToList()) : "*";
+        }).Concat(_selectJoinFields).ToList()) : "*";
 
         if (_whereActions.Any())
         {
@@ -733,5 +703,60 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
         }
 
         return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{orderBy} OFFSET {offset} ROWS FETCH NEXT {rows} ROWS ONLY";
+    }
+
+    private void HandleJoinField(IEnumerable<MemberInfo> memberInfos)
+    {
+        if (memberInfos == null || !memberInfos.Any())
+        {
+            return;
+        }
+
+        var joinInfos = typeof(TEntity).GetEntityInfo().JoinInfos;
+        if (joinInfos != null && joinInfos.Any())
+        {
+            var usingJoinInfos = new List<JoinDescriptor>();
+            foreach (var memberInfo in memberInfos)
+            {
+                var leftJoinFieldAttr = memberInfo.GetCustomAttribute<LeftJoinFieldAttribute>();
+                if (leftJoinFieldAttr == null || string.IsNullOrWhiteSpace(leftJoinFieldAttr.JoinAlias))
+                {
+                    continue;
+                }
+
+                var joinDescriptor = joinInfos.Find(c => c.Alias == leftJoinFieldAttr.JoinAlias);
+                if (joinDescriptor == null)
+                {
+                    throw new InvalidOperationException($"未找到别名为 {leftJoinFieldAttr.JoinAlias} 的Join配置");
+                }
+
+                if (!usingJoinInfos.Contains(joinDescriptor) && !_usingJoinInfos.Contains(joinDescriptor))
+                {
+                    usingJoinInfos.Add(joinDescriptor);
+                    _usingJoinInfos.Add(joinDescriptor);
+                }
+                var joinTargetFieldName = joinDescriptor.JoinTableType.GetEntityInfo().FieldInfos.FirstOrDefault(c => c.PropertyName == leftJoinFieldAttr.TargetPropertyName)?.FieldName;
+                if (!string.IsNullOrWhiteSpace(joinTargetFieldName))
+                {
+                    _selectJoinFields.Add($"{SqlAdapter.FormatFieldName(joinTargetFieldName, joinDescriptor.GetTableName(), joinDescriptor.Alias)} AS {memberInfo.Name}");
+                }
+            }
+
+            if (usingJoinInfos.Any())
+            {
+                SqlAdapter.MultiTable = true;
+                if (string.IsNullOrWhiteSpace(SqlAdapter.AliasName))
+                {
+                    SqlAdapter.AliasName = MainTableDefaultAlias;
+                }
+                usingJoinInfos.ForEach(j =>
+                {
+                    var joinLocalFieldName = typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.PropertyName == j.LocalKey)?.FieldName;
+                    var joinForeignFieldName = j.JoinTableType.GetEntityInfo().FieldInfos.FirstOrDefault(c => c.PropertyName == j.ForeignKey)?.FieldName;
+                    var joinCondition = $"{SqlAdapter.FormatFieldName(joinLocalFieldName)} = {SqlAdapter.FormatFieldName(joinForeignFieldName, j.GetTableName(), j.Alias)}";
+                    LeftJoin($"{SqlAdapter.FormatTableName(j.GetTableName(), j.Alias)} ON {joinCondition}");
+                });
+            }
+        }
     }
 }

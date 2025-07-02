@@ -1,11 +1,8 @@
 ﻿using System;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
 
 namespace Sean.Core.DbRepository.Extensions;
 
@@ -15,11 +12,17 @@ public static class MemberInfoExtensions
     /// Gets the database table field name.
     /// </summary>
     /// <param name="memberInfo"></param>
+    /// <param name="namingConvention"></param>
+    /// <param name="handleNotMapped"></param>
     /// <returns></returns>
-    public static string GetFieldName(this MemberInfo memberInfo, NamingConvention namingConvention)
+    public static string GetFieldName(this MemberInfo memberInfo, NamingConvention namingConvention, Func<MemberInfo, bool> handleNotMapped = null)
     {
         if (memberInfo.IsNotMappedField())
         {
+            if (handleNotMapped != null && handleNotMapped(memberInfo))
+            {
+                return null;
+            }
             throw new InvalidOperationException($"The member [{memberInfo.DeclaringType?.Name}.{memberInfo.Name}] is not a database table field.");
         }
 
