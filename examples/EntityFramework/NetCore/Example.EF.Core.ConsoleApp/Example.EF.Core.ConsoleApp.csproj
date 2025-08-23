@@ -7,10 +7,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
-		<TargetFramework>net6.0-windows</TargetFramework>
+		<TargetFramework>net8.0-windows</TargetFramework>
 		<PlatformTarget>x64</PlatformTarget>
 	</PropertyGroup>
 
@@ -28,7 +28,7 @@
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlServer'))">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.20" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
 		<!-- SQL Server 2005 ~ 2008: UseRowNumberForPaging -->
 		<PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.5.0" />
 	</ItemGroup>
@@ -36,7 +36,7 @@
 		<PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.13" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlite'))">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.20" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMsAccess'))">
 		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.3" />
@@ -64,7 +64,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<!--<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.20">
+		<!--<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>-->
