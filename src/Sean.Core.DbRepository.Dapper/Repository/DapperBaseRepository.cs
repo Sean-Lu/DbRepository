@@ -41,6 +41,14 @@ public abstract class DapperBaseRepository : BaseRepository
     /// <summary>
     /// Single database.
     /// </summary>
+    /// <param name="option"></param>
+    protected DapperBaseRepository(ConnectionStringOptions option) : base(option)
+    {
+
+    }
+    /// <summary>
+    /// Single database.
+    /// </summary>
     /// <param name="connString"></param>
     /// <param name="type"></param>
     protected DapperBaseRepository(string connString, DatabaseType type) : base(connString, type)
@@ -207,6 +215,14 @@ public abstract class DapperBaseRepository<TEntity> : BaseRepository<TEntity> wh
     /// <param name="connectionSettings"></param>
     protected DapperBaseRepository(MultiConnectionSettings connectionSettings) : base(connectionSettings)
     {
+    }
+    /// <summary>
+    /// Single database.
+    /// </summary>
+    /// <param name="option"></param>
+    protected DapperBaseRepository(ConnectionStringOptions option) : base(option)
+    {
+
     }
     /// <summary>
     /// Single database.

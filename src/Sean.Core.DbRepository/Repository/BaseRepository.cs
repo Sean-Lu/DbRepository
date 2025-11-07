@@ -89,6 +89,14 @@ public abstract class BaseRepository : IBaseRepository
     /// <summary>
     /// Single database.
     /// </summary>
+    /// <param name="option"></param>
+    protected BaseRepository(ConnectionStringOptions option) : this(new MultiConnectionSettings(option))
+    {
+
+    }
+    /// <summary>
+    /// Single database.
+    /// </summary>
     /// <param name="connString"></param>
     /// <param name="type"></param>
     protected BaseRepository(string connString, DatabaseType type) : this(new MultiConnectionSettings(ConnectionStringOptions.Create(connString, type)))
@@ -979,6 +987,14 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     /// <param name="connectionSettings"></param>
     protected BaseRepository(MultiConnectionSettings connectionSettings) : base(connectionSettings)
     {
+    }
+    /// <summary>
+    /// Single database.
+    /// </summary>
+    /// <param name="option"></param>
+    protected BaseRepository(ConnectionStringOptions option) : base(option)
+    {
+
     }
     /// <summary>
     /// Single database.
