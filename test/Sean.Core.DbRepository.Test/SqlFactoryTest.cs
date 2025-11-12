@@ -474,7 +474,6 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 {"UserId",1001L},
             }, sqlCommand.Parameter as Dictionary<string, object>);
         }
-
         [TestMethod]
         public void TestSelectJoinTable2()
         {
@@ -485,6 +484,20 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
                 .SetSqlIndented(true)
                 .Build();
             Assert.AreEqual(sqlCommand.Sql, "SELECT t_.`UserId`, u.`Name` AS UserName, u.`Code` AS UserCode FROM `Test` t_ LEFT JOIN `User` u ON t_.`UserId` = u.`Id` WHERE t_.`UserId` = @UserId");
+            AssertSqlParameters(new Dictionary<string, object>
+            {
+                {"UserId",1001L},
+            }, sqlCommand.Parameter as Dictionary<string, object>);
+        }
+        [TestMethod]
+        public void TestSelectJoinTable3()
+        {
+            ISqlCommand sqlCommand = SqlFactory.CreateQueryableBuilder<Test2Entity>(DatabaseType.MySql)
+                .SelectFields(entity => new { entity.Id, entity.UserId })
+                .Where(entity => entity.UserId == 1001)
+                .SetSqlIndented(true)
+                .Build();
+            Assert.AreEqual(sqlCommand.Sql, "SELECT `Id`, `UserId` FROM `Test` WHERE `UserId` = @UserId");
             AssertSqlParameters(new Dictionary<string, object>
             {
                 {"UserId",1001L},
