@@ -2,19 +2,19 @@
   <Import Project="../../config/Common.props" />
 
   <PropertyGroup>
-		<TargetFrameworks>net46;netstandard2.1;net6</TargetFrameworks>
+		<TargetFrameworks>net46;netstandard2.1;net8</TargetFrameworks>
 		<Description>ORM framework: SqlSugar</Description>
 		<Version>2.1.10</Version>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net46'">
-		<PackageReference Include="SqlSugar" Version="5.1.4.200" />
+		<PackageReference Include="SqlSugar" Version="5.1.4.207" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-		<PackageReference Include="SqlSugarCore" Version="5.1.4.200" />
+		<PackageReference Include="SqlSugarCore" Version="5.1.4.214" />
 	</ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'net6'">
-		<PackageReference Include="SqlSugarCore" Version="5.1.4.200" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8'">
+		<PackageReference Include="SqlSugarCore" Version="5.1.4.214" />
 	</ItemGroup>
 
 </Project>

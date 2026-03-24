@@ -1300,7 +1300,7 @@ namespace Sean.Core.DbRepository.Test
         public void ValidateIsNullOrWhiteSpace()
         {
             Expression<Func<TestEntity, bool>> whereExpression = entity => string.IsNullOrWhiteSpace(entity.Email);
-            Assert.ThrowsException<NotSupportedException>(() =>
+            Assert.Throws<NotSupportedException>(() =>
             {
                 var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
             });
