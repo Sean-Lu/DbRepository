@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+using Example.Dapper.Core.Application.Dtos;
 using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Extensions;
@@ -372,6 +373,54 @@ namespace Sean.Core.DbRepository.Test
             {
                 "Id",
                 "Status"
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        [TestMethod]
+        public void TestCreateFromDto()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.CreateFromDto<TestDto, TestEntity>();// 不设置忽略字段
+            var fields = fieldExpression.GetFieldNames();
+            var expectedFields = new List<string>
+            {
+                "UserId",
+                "UserName",
+                "Email",
+                "IsBlack",
+                "Remark",
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        [TestMethod]
+        public void TestCreateFromDto2()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.CreateFromDto<TestDto, TestEntity>(c => c.UserId);// 设置忽略字段（单属性）
+            var fields = fieldExpression.GetFieldNames();
+            var expectedFields = new List<string>
+            {
+                //"UserId",
+                "UserName",
+                "Email",
+                "IsBlack",
+                "Remark",
+            };
+            AssertFields(expectedFields, fields);
+        }
+
+        [TestMethod]
+        public void TestCreateFromDto3()
+        {
+            Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.CreateFromDto<TestDto, TestEntity>(c => new { c.UserId, c.Remark });// 设置忽略字段（多属性）
+            var fields = fieldExpression.GetFieldNames();
+            var expectedFields = new List<string>
+            {
+                //"UserId",
+                "UserName",
+                "Email",
+                "IsBlack",
+                //"Remark",
             };
             AssertFields(expectedFields, fields);
         }
