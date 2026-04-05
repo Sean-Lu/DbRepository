@@ -1054,6 +1054,28 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
     }
 
+    protected virtual TEntity MapDtoToEntity<TDto>(TDto dto)
+    {
+        if (dto == null) return default;
+        TEntity entity = Activator.CreateInstance<TEntity>();
+        var entityFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
+
+        foreach (var dtoProp in typeof(TDto).GetProperties())
+        {
+            var mapping = entityFieldInfos.FirstOrDefault(c => c.PropertyName == dtoProp.Name);
+            if (mapping != null)
+            {
+                var entityProp = typeof(TEntity).GetProperty(mapping.PropertyName);
+                if (entityProp != null && entityProp.CanWrite)
+                {
+                    var dtoValue = dtoProp.GetValue(dto);
+                    if (dtoValue != null) entityProp.SetValue(entity, dtoValue);
+                }
+            }
+        }
+        return entity;
+    }
+
     #region Synchronous method
     public virtual bool Add(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
@@ -1447,6 +1469,77 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
             }
         }
 
+        return true;
+    }
+
+    public virtual int UpdateByDto<TDto>(TDto dto, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
+    {
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        return Update(MapDtoToEntity(dto), fieldExpression, whereExpression, transaction);
+    }
+    public virtual int UpdateByDto<TDto>(TDto dto, Func<TDto, TEntity> customMapFunc, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
+    {
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        TEntity entity = customMapFunc != null ? customMapFunc(dto) : MapDtoToEntity(dto);
+        return Update(entity, fieldExpression, whereExpression, transaction);
+    }
+    public virtual bool UpdateByDto<TDto>(IEnumerable<TDto> dtos, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
+    {
+        if (dtos == null || !dtos.Any())
+        {
+            return false;
+        }
+
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        var entities = dtos.Select(MapDtoToEntity);
+        foreach (var entity in entities)
+        {
+            if (Update(entity, fieldExpression, null, transaction) <= 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    public virtual bool UpdateByDto<TDto>(IEnumerable<TDto> dtos, Func<TDto, TEntity> customMapFunc, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
+    {
+        if (dtos == null || !dtos.Any())
+        {
+            return false;
+        }
+
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        var entities = dtos.Select(dto => customMapFunc != null ? customMapFunc(dto) : MapDtoToEntity(dto));
+        foreach (var entity in entities)
+        {
+            if (Update(entity, fieldExpression, null, transaction) <= 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public virtual int UpdateByDto<TDto>(TEntity entity, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
+    {
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        return Update(entity, fieldExpression, whereExpression, transaction);
+    }
+    public virtual bool UpdateByDto<TDto>(IEnumerable<TEntity> entities, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
+    {
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
+
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        foreach (var entity in entities)
+        {
+            if (Update(entity, fieldExpression, null, transaction) <= 0)
+            {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -2064,6 +2157,77 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
             }
         }
 
+        return true;
+    }
+
+    public virtual async Task<int> UpdateByDtoAsync<TDto>(TDto dto, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
+    {
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        return await UpdateAsync(MapDtoToEntity(dto), fieldExpression, whereExpression, transaction);
+    }
+    public virtual async Task<int> UpdateByDtoAsync<TDto>(TDto dto, Func<TDto, TEntity> customMapFunc, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
+    {
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        TEntity entity = customMapFunc != null ? customMapFunc(dto) : MapDtoToEntity(dto);
+        return await UpdateAsync(entity, fieldExpression, whereExpression, transaction);
+    }
+    public virtual async Task<bool> UpdateByDtoAsync<TDto>(IEnumerable<TDto> dtos, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
+    {
+        if (dtos == null || !dtos.Any())
+        {
+            return false;
+        }
+
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        var entities = dtos.Select(MapDtoToEntity);
+        foreach (var entity in entities)
+        {
+            if (await UpdateAsync(entity, fieldExpression, null, transaction) <= 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    public virtual async Task<bool> UpdateByDtoAsync<TDto>(IEnumerable<TDto> dtos, Func<TDto, TEntity> customMapFunc, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
+    {
+        if (dtos == null || !dtos.Any())
+        {
+            return false;
+        }
+
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        var entities = dtos.Select(dto => customMapFunc != null ? customMapFunc(dto) : MapDtoToEntity(dto));
+        foreach (var entity in entities)
+        {
+            if (await UpdateAsync(entity, fieldExpression, null, transaction) <= 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public virtual async Task<int> UpdateByDtoAsync<TDto>(TEntity entity, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null)
+    {
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        return await UpdateAsync(entity, fieldExpression, whereExpression, transaction);
+    }
+    public virtual async Task<bool> UpdateByDtoAsync<TDto>(IEnumerable<TEntity> entities, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
+    {
+        if (entities == null || !entities.Any())
+        {
+            return false;
+        }
+
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
+        foreach (var entity in entities)
+        {
+            if (await UpdateAsync(entity, fieldExpression, null, transaction) <= 0)
+            {
+                return false;
+            }
+        }
         return true;
     }
 

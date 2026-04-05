@@ -314,6 +314,67 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
 
     /// <summary>
+    /// 单条更新 (内部默认映射)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="dto"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="whereExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    int UpdateByDto<TDto>(TDto dto, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null);
+    /// <summary>
+    /// 单条更新 (外部自定义映射)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="dto"></param>
+    /// <param name="customMapFunc"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="whereExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    int UpdateByDto<TDto>(TDto dto, Func<TDto, TEntity> customMapFunc, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null);
+    /// <summary>
+    /// 批量更新 (内部默认映射)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="dtos"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    bool UpdateByDto<TDto>(IEnumerable<TDto> dtos, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null);
+    /// <summary>
+    /// 批量更新 (外部自定义映射)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="dtos"></param>
+    /// <param name="customMapFunc"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    bool UpdateByDto<TDto>(IEnumerable<TDto> dtos, Func<TDto, TEntity> customMapFunc, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null);
+
+    /// <summary>
+    /// 单条更新 (外部传 Entity，通过 TDto 限定字段)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="entity"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="whereExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    int UpdateByDto<TDto>(TEntity entity, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null);
+    /// <summary>
+    /// 批量更新 (外部传 Entity 集合，通过 TDto 限定字段)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="entities"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    bool UpdateByDto<TDto>(IEnumerable<TEntity> entities, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null);
+
+    /// <summary>
     /// Increments the value of numeric field.
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
@@ -553,6 +614,67 @@ public interface IBaseRepository<TEntity> : IBaseRepository where TEntity : clas
     /// <param name="transaction">The transaction to use for this command.</param>
     /// <returns>Whether the command is executed successfully.</returns>
     Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null);
+
+    /// <summary>
+    /// 单条更新 (内部默认映射)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="dto"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="whereExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    Task<int> UpdateByDtoAsync<TDto>(TDto dto, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null);
+    /// <summary>
+    /// 单条更新 (外部自定义映射)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="dto"></param>
+    /// <param name="customMapFunc"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="whereExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    Task<int> UpdateByDtoAsync<TDto>(TDto dto, Func<TDto, TEntity> customMapFunc, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null);
+    /// <summary>
+    /// 批量更新 (内部默认映射)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="dtos"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    Task<bool> UpdateByDtoAsync<TDto>(IEnumerable<TDto> dtos, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null);
+    /// <summary>
+    /// 批量更新 (外部自定义映射)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="dtos"></param>
+    /// <param name="customMapFunc"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    Task<bool> UpdateByDtoAsync<TDto>(IEnumerable<TDto> dtos, Func<TDto, TEntity> customMapFunc, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null);
+
+    /// <summary>
+    /// 单条更新 (外部传 Entity，通过 TDto 限定字段)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="entity"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="whereExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    Task<int> UpdateByDtoAsync<TDto>(TEntity entity, Expression<Func<TDto, object>> ignoreFieldExpression = null, Expression<Func<TEntity, bool>> whereExpression = null, IDbTransaction transaction = null);
+    /// <summary>
+    /// 批量更新 (外部传 Entity 集合，通过 TDto 限定字段)
+    /// </summary>
+    /// <typeparam name="TDto"></typeparam>
+    /// <param name="entities"></param>
+    /// <param name="ignoreFieldExpression"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
+    Task<bool> UpdateByDtoAsync<TDto>(IEnumerable<TEntity> entities, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null);
 
     /// <summary>
     /// Increments the value of numeric field.
