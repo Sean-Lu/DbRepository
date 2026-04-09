@@ -7,115 +7,108 @@ using Example.ADO.NETCore.Domain.Contracts;
 using Example.ADO.NETCore.Domain.Entities;
 using Sean.Utility.Contracts;
 
-namespace Example.ADO.NETCore.Application.Services
+namespace Example.ADO.NETCore.Application.Services;
+
+public class TestService(
+    ISimpleLogger<TestService> logger,
+    ITestRepository testRepository
+    ) : ITestService
 {
-    public class TestService : ITestService
+    private readonly ILogger _logger = logger;
+
+    public async Task<bool> AddAsync(TestEntity model)
     {
-        private readonly ILogger _logger;
-        private readonly ITestRepository _testRepository;
+        return await testRepository.AddAsync(model);
+    }
 
-        public TestService(
-            ISimpleLogger<TestService> logger,
-            ITestRepository testRepository)
-        {
-            _logger = logger;
-            _testRepository = testRepository;
-        }
+    public async Task<bool> AddAsync(IEnumerable<TestEntity> list)
+    {
+        return await testRepository.AddAsync(list);
+        //return await list.PagingExecuteAsync(200, async (pageNumber, models) => await testRepository.AddAsync(mapper.Map<List<TestEntity>>(models)));
+    }
 
-        public async Task<bool> AddAsync(TestEntity model)
-        {
-            return await _testRepository.AddAsync(model);
-        }
+    public async Task<bool> AddOrUpdateAsync(TestEntity model)
+    {
+        return await testRepository.AddOrUpdateAsync(model);
+    }
 
-        public async Task<bool> AddAsync(IEnumerable<TestEntity> list)
-        {
-            return await _testRepository.AddAsync(list);
-            //return await list.PagingExecuteAsync(200, async (pageNumber, models) => await _testRepository.AddAsync(_mapper.Map<List<TestEntity>>(models)));
-        }
+    public async Task<bool> AddOrUpdateAsync(IEnumerable<TestEntity> list)
+    {
+        return await testRepository.AddOrUpdateAsync(list);
+        //return await list.PagingExecuteAsync(200, async (pageNumber, models) => await testRepository.AddOrUpdateAsync(mapper.Map<List<TestEntity>>(models)));
+    }
 
-        public async Task<bool> AddOrUpdateAsync(TestEntity model)
-        {
-            return await _testRepository.AddOrUpdateAsync(model);
-        }
+    public async Task<bool> DeleteByIdAsync(long id)
+    {
+        return await testRepository.DeleteAsync(entity => entity.Id == id) > 0;
+    }
 
-        public async Task<bool> AddOrUpdateAsync(IEnumerable<TestEntity> list)
-        {
-            return await _testRepository.AddOrUpdateAsync(list);
-            //return await list.PagingExecuteAsync(200, async (pageNumber, models) => await _testRepository.AddOrUpdateAsync(_mapper.Map<List<TestEntity>>(models)));
-        }
+    public async Task<int> DeleteAllAsync()
+    {
+        //return await testRepository.DeleteAsync(entity => true);
+        return await testRepository.DeleteAllAsync();
+    }
 
-        public async Task<bool> DeleteByIdAsync(long id)
+    public async Task<bool> UpdateStatusAsync(long id, int status)
+    {
+        return await testRepository.UpdateAsync(new TestEntity
         {
-            return await _testRepository.DeleteAsync(entity => entity.Id == id) > 0;
-        }
+            Id = id,
+            Status = status
+        }, entity => new { entity.Status }) > 0;
+    }
 
-        public async Task<int> DeleteAllAsync()
-        {
-            //return await _testRepository.DeleteAsync(entity => true);
-            return await _testRepository.DeleteAllAsync();
-        }
+    public async Task<TestEntity> GetByIdAsync(long id)
+    {
+        return await testRepository.GetAsync(entity => entity.Id == id);
+    }
 
-        public async Task<bool> UpdateStatusAsync(long id, int status)
+    public async Task<List<TestEntity>> GetAllAsync()
+    {
+        return (await testRepository.QueryAsync(entity => true))?.ToList();
+    }
+
+    public async Task<bool> TestCRUDAsync()
+    {
+        return await testRepository.TestCRUDAsync();
+    }
+
+    public async Task<bool> TestCRUDWithTransactionAsync()
+    {
+        return await testRepository.TestCRUDWithTransactionAsync();
+    }
+
+    public async Task<bool> ExecuteAutoTransactionTest()
+    {
+        try
         {
-            return await _testRepository.UpdateAsync(new TestEntity
+            return await testRepository.ExecuteAutoTransactionAsync(async trans =>
             {
-                Id = id,
-                Status = status
-            }, entity => new { entity.Status }) > 0;
-        }
-
-        public async Task<TestEntity> GetByIdAsync(long id)
-        {
-            return await _testRepository.GetAsync(entity => entity.Id == id);
-        }
-
-        public async Task<List<TestEntity>> GetAllAsync()
-        {
-            return (await _testRepository.QueryAsync(entity => true))?.ToList();
-        }
-
-        public async Task<bool> TestCRUDAsync()
-        {
-            return await _testRepository.TestCRUDAsync();
-        }
-
-        public async Task<bool> TestCRUDWithTransactionAsync()
-        {
-            return await _testRepository.TestCRUDWithTransactionAsync();
-        }
-
-        public async Task<bool> ExecuteAutoTransactionTest()
-        {
-            try
-            {
-                return await _testRepository.ExecuteAutoTransactionAsync(async trans =>
+                var testEntity = new TestEntity
                 {
-                    var testEntity = new TestEntity
-                    {
-                        Id = 124,
-                        AccountBalance = 100,
-                        IsVip = true
-                    };
+                    Id = 124,
+                    AccountBalance = 100,
+                    IsVip = true
+                };
 
-                    if (!await _testRepository.AddAsync(testEntity, transaction: trans))
-                    {
-                        return false;
-                    }
+                if (!await testRepository.AddAsync(testEntity, transaction: trans))
+                {
+                    return false;
+                }
 
-                    testEntity.AccountBalance = 999;
-                    if (await _testRepository.UpdateAsync(testEntity, entity => entity.AccountBalance, transaction: trans) < 1)
-                    {
-                        return false;
-                    }
+                testEntity.AccountBalance = 999;
+                if (await testRepository.UpdateAsync(testEntity, entity => entity.AccountBalance, transaction: trans) < 1)
+                {
+                    return false;
+                }
 
-                    return true;
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("ExecuteAutoTransactionTest 执行异常", ex);
-                return false;
-            }
+                return true;
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("ExecuteAutoTransactionTest 执行异常", ex);
+            return false;
         }
     }
 }

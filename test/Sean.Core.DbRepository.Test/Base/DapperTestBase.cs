@@ -1,16 +1,15 @@
 ﻿using Example.Dapper.Core.Application.Extensions;
 using Example.Dapper.Core.Infrastructure;
 
-namespace Sean.Core.DbRepository.Test
+namespace Sean.Core.DbRepository.Test;
+
+public abstract class DapperTestBase : TestBase
 {
-    public abstract class DapperTestBase : TestBase
+    static DapperTestBase()
     {
-        static DapperTestBase()
+        DIManager.ConfigureServices((services, configuration) =>
         {
-            DIManager.ConfigureServices((services, configuration) =>
-            {
-                services.AddApplicationDI();
-            });
-        }
+            services.AddApplicationDI();
+        });
     }
 }

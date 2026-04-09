@@ -8,29 +8,28 @@ using Example.Dapper.Core.ConsoleApp.Impls;
 using Example.Dapper.Core.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Example.Dapper.Core.ConsoleApp
+namespace Example.Dapper.Core.ConsoleApp;
+
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
+        Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置当前工作目录：@".\"
+
+        DIManager.ConfigureServices((services, configuration) =>
         {
-            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);// 设置当前工作目录：@".\"
+            services.AddApplicationDI();
 
-            DIManager.ConfigureServices((services, configuration) =>
+            var types = Assembly.GetExecutingAssembly().GetTypes().Where(c => c.IsClass && typeof(ISimpleDo).IsAssignableFrom(c)).ToList();
+            types.ForEach(c =>
             {
-                services.AddApplicationDI();
-
-                var types = Assembly.GetExecutingAssembly().GetTypes().Where(c => c.IsClass && typeof(ISimpleDo).IsAssignableFrom(c)).ToList();
-                types.ForEach(c =>
-                {
-                    services.AddTransient(c);
-                });
+                services.AddTransient(c);
             });
+        });
 
-            ISimpleDo test = DIManager.GetService<DBTest>();
-            test.Execute();
+        ISimpleDo test = DIManager.GetService<DBTest>();
+        test.Execute();
 
-            Console.ReadLine();
-        }
+        Console.ReadLine();
     }
 }

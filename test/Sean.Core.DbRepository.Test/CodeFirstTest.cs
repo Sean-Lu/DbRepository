@@ -3,17 +3,17 @@ using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.CodeFirst;
 
-namespace Sean.Core.DbRepository.Test
+namespace Sean.Core.DbRepository.Test;
+
+[TestClass]
+public class CodeFirstTest : TestBase
 {
-    [TestClass]
-    public class CodeFirstTest : TestBase
+    [TestMethod]
+    public void TestCreatTableSqlForMySQL()
     {
-        [TestMethod]
-        public void TestCreatTableSqlForMySQL()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.MySql);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.MySql);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
   `Id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
   `UserId` bigint COMMENT '用户主键',
   `UserName` varchar(50) COMMENT '用户名称',
@@ -35,14 +35,14 @@ namespace Sean.Core.DbRepository.Test
 CREATE UNIQUE INDEX `IDX_Test_PhoneNumber` ON `Test` (`PhoneNumber`);
 CREATE UNIQUE INDEX `IDX_Test_Email` ON `Test` (`Email`);
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForMariaDB()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.MariaDB);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
+    [TestMethod]
+    public void TestCreatTableSqlForMariaDB()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.MariaDB);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
   `Id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
   `UserId` bigint COMMENT '用户主键',
   `UserName` varchar(50) COMMENT '用户名称',
@@ -64,14 +64,14 @@ CREATE UNIQUE INDEX `IDX_Test_Email` ON `Test` (`Email`);
 CREATE UNIQUE INDEX `IDX_Test_PhoneNumber` ON `Test` (`PhoneNumber`);
 CREATE UNIQUE INDEX `IDX_Test_Email` ON `Test` (`Email`);
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForTiDB()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.TiDB);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
+    [TestMethod]
+    public void TestCreatTableSqlForTiDB()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.TiDB);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
   `Id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
   `UserId` bigint COMMENT '用户主键',
   `UserName` varchar(50) COMMENT '用户名称',
@@ -93,14 +93,14 @@ CREATE UNIQUE INDEX `IDX_Test_Email` ON `Test` (`Email`);
 CREATE UNIQUE INDEX IF NOT EXISTS `IDX_Test_PhoneNumber` ON `Test` (`PhoneNumber`);
 CREATE UNIQUE INDEX IF NOT EXISTS `IDX_Test_Email` ON `Test` (`Email`);
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForOceanBase()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.OceanBase);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
+    [TestMethod]
+    public void TestCreatTableSqlForOceanBase()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.OceanBase);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
   `Id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
   `UserId` bigint COMMENT '用户主键',
   `UserName` varchar(50) COMMENT '用户名称',
@@ -122,14 +122,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS `IDX_Test_Email` ON `Test` (`Email`);
 CREATE UNIQUE INDEX `IDX_Test_PhoneNumber` ON `Test` (`PhoneNumber`);
 CREATE UNIQUE INDEX `IDX_Test_Email` ON `Test` (`Email`);
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForSqlServer()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.SqlServer);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE type='u' AND name='Test') CREATE TABLE [Test] (
+    [TestMethod]
+    public void TestCreatTableSqlForSqlServer()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.SqlServer);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE type='u' AND name='Test') CREATE TABLE [Test] (
   [Id] bigint NOT NULL IDENTITY,
   [UserId] bigint,
   [UserName] nvarchar(50),
@@ -168,14 +168,14 @@ EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'更新时间',
 CREATE UNIQUE INDEX [IDX_Test_PhoneNumber] ON [Test] ([PhoneNumber]);
 CREATE UNIQUE INDEX [IDX_Test_Email] ON [Test] ([Email]);
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForOracle()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.Oracle);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"BEGIN
+    [TestMethod]
+    public void TestCreatTableSqlForOracle()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.Oracle);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"BEGIN
 execute immediate 'CREATE TABLE ""Test"" (
   ""Id"" NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
   ""UserId"" NUMBER(19),
@@ -215,14 +215,14 @@ execute immediate 'COMMENT ON COLUMN ""Test"".""UpdateTime"" IS ''更新时间''
 execute immediate 'CREATE UNIQUE INDEX ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"")';
 execute immediate 'CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"")';
 END;", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForSQLite()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.SQLite);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
+    [TestMethod]
+    public void TestCreatTableSqlForSQLite()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.SQLite);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
   `Id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   `UserId` INTEGER,
   `UserName` TEXT,
@@ -243,14 +243,14 @@ END;", string.Join(Environment.NewLine, sql));
 CREATE UNIQUE INDEX IF NOT EXISTS `IDX_Test_PhoneNumber` ON `Test` (`PhoneNumber`);
 CREATE UNIQUE INDEX IF NOT EXISTS `IDX_Test_Email` ON `Test` (`Email`);
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForDuckDB()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.DuckDB);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE SEQUENCE IF NOT EXISTS ""SQ_Test"";
+    [TestMethod]
+    public void TestCreatTableSqlForDuckDB()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.DuckDB);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE SEQUENCE IF NOT EXISTS ""SQ_Test"";
 CREATE TABLE IF NOT EXISTS ""Test"" (
   ""Id"" BIGINT NOT NULL DEFAULT nextval('SQ_Test'),
   ""UserId"" BIGINT,
@@ -273,14 +273,14 @@ CREATE TABLE IF NOT EXISTS ""Test"" (
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForMsAccess()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.MsAccess);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE [Test] (
+    [TestMethod]
+    public void TestCreatTableSqlForMsAccess()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.MsAccess);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE [Test] (
   [Id] AUTOINCREMENT NOT NULL,
   [UserId] LONG,
   [UserName] VARCHAR(50),
@@ -302,14 +302,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
 CREATE UNIQUE INDEX [IDX_Test_PhoneNumber] ON [Test] ([PhoneNumber]);
 CREATE UNIQUE INDEX [IDX_Test_Email] ON [Test] ([Email]);
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForFirebird()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.Firebird);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForFirebird()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.Firebird);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE ""Test"" (
   ""Id"" BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
   ""UserId"" BIGINT,
   ""UserName"" BLOB SUB_TYPE TEXT,
@@ -347,14 +347,14 @@ COMMENT ON COLUMN ""Test"".""CreateTime"" IS '创建时间';
 COMMENT ON COLUMN ""Test"".""UpdateTime"" IS '更新时间';
 CREATE UNIQUE INDEX ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForPostgreSql()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.PostgreSql);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForPostgreSql()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.PostgreSql);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
   ""Id"" bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL,
   ""UserId"" bigint,
   ""UserName"" varchar(50),
@@ -393,14 +393,14 @@ COMMENT ON COLUMN ""Test"".""UpdateTime"" IS '更新时间';
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForOpenGauss()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.OpenGauss);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForOpenGauss()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.OpenGauss);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
   ""Id"" SERIAL,
   ""UserId"" bigint,
   ""UserName"" varchar(50),
@@ -439,14 +439,14 @@ COMMENT ON COLUMN ""Test"".""UpdateTime"" IS '更新时间';
 CREATE UNIQUE INDEX ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForHighgoDB()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.HighgoDB);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForHighgoDB()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.HighgoDB);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
   ""Id"" bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL,
   ""UserId"" bigint,
   ""UserName"" varchar(50),
@@ -485,14 +485,14 @@ COMMENT ON COLUMN ""Test"".""UpdateTime"" IS '更新时间';
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForIvorySQL()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.IvorySQL);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForIvorySQL()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.IvorySQL);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
   ""Id"" bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL,
   ""UserId"" bigint,
   ""UserName"" varchar(50),
@@ -531,14 +531,14 @@ COMMENT ON COLUMN ""Test"".""UpdateTime"" IS '更新时间';
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForQuestDB()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.QuestDB);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForQuestDB()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.QuestDB);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE ""Test"" (
   ""Id"" LONG NOT NULL,
   ""UserId"" LONG,
   ""UserName"" STRING,
@@ -559,14 +559,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
 CREATE UNIQUE INDEX ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForDB2()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.DB2);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForDB2()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.DB2);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE ""Test"" (
   ""Id"" BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
   ""UserId"" BIGINT,
   ""UserName"" VARCHAR(50),
@@ -588,14 +588,14 @@ CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 CREATE UNIQUE INDEX ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForInformix()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.Informix);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForInformix()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.Informix);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE ""Test"" (
   ""Id"" SERIAL NOT NULL,
   ""UserId"" BIGINT,
   ""UserName"" VARCHAR(50),
@@ -617,14 +617,14 @@ CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 CREATE UNIQUE INDEX ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForClickHouse()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.ClickHouse);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
+    [TestMethod]
+    public void TestCreatTableSqlForClickHouse()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.ClickHouse);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
   `Id` Int64 NOT NULL COMMENT '主键',
   `UserId` Nullable(Int64) COMMENT '用户主键',
   `UserName` Nullable(String) COMMENT '用户名称',
@@ -646,14 +646,14 @@ CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 CREATE UNIQUE INDEX `IDX_Test_PhoneNumber` ON `Test` (`PhoneNumber`);
 CREATE UNIQUE INDEX `IDX_Test_Email` ON `Test` (`Email`);
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForDameng()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.Dameng);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForDameng()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.Dameng);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
   ""Id"" BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
   ""UserId"" BIGINT COMMENT '用户主键',
   ""UserName"" VARCHAR(50) COMMENT '用户名称',
@@ -675,14 +675,14 @@ CREATE UNIQUE INDEX `IDX_Test_Email` ON `Test` (`Email`);
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForKingbaseES()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.KingbaseES);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForKingbaseES()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.KingbaseES);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS ""Test"" (
   ""Id"" bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL,
   ""UserId"" bigint,
   ""UserName"" varchar(50),
@@ -721,14 +721,14 @@ COMMENT ON COLUMN ""Test"".""UpdateTime"" IS '更新时间';
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForShenTong()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.ShenTong);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForShenTong()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.ShenTong);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE ""Test"" (
   ""Id"" INT8 AUTO_INCREMENT NOT NULL,
   ""UserId"" INT8,
   ""UserName"" CLOB,
@@ -750,14 +750,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
 CREATE UNIQUE INDEX ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
+    }
 
-        [TestMethod]
-        public void TestCreatTableSqlForXugu()
-        {
-            ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.Xugu);
-            var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-            Assert.AreEqual(@"CREATE TABLE ""Test"" (
+    [TestMethod]
+    public void TestCreatTableSqlForXugu()
+    {
+        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.Xugu);
+        var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
+        Assert.AreEqual(@"CREATE TABLE ""Test"" (
   ""Id"" bigint IDENTITY(1,1) COMMENT '主键',
   ""UserId"" bigint COMMENT '用户主键',
   ""UserName"" varchar(50) COMMENT '用户名称',
@@ -779,6 +779,5 @@ CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 CREATE UNIQUE INDEX ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
 CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
-        }
     }
 }

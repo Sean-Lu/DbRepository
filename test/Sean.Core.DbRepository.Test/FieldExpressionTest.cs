@@ -8,430 +8,429 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Core.DbRepository.Util;
 
-namespace Sean.Core.DbRepository.Test
+namespace Sean.Core.DbRepository.Test;
+
+/// <summary>
+/// Expression表达式树测试：fieldExpression
+/// </summary>
+[TestClass]
+public class FieldExpressionTest : TestBase
 {
-    /// <summary>
-    /// Expression表达式树测试：fieldExpression
-    /// </summary>
-    [TestClass]
-    public class FieldExpressionTest : TestBase
+    //private readonly TestEntity _model;
+
+    public FieldExpressionTest()
     {
-        //private readonly TestEntity _model;
+        //_model = new TestEntity
+        //{
+        //    UserId = 10001
+        //};
+    }
 
-        public FieldExpressionTest()
+    #region 通过 TEntity 返回字段（推荐）
+    /// <summary>
+    /// 单个字段
+    /// </summary>
+    [TestMethod]
+    public void ValidateSingleField()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = entity => entity.Status;
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            //_model = new TestEntity
-            //{
-            //    UserId = 10001
-            //};
-        }
+            "Status"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        #region 通过 TEntity 返回字段（推荐）
-        /// <summary>
-        /// 单个字段
-        /// </summary>
-        [TestMethod]
-        public void ValidateSingleField()
+    /// <summary>
+    /// 多个字段（匿名类型）
+    /// </summary>
+    [TestMethod]
+    public void ValidateMultiField()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = entity => new { entity.Status, entity.UpdateTime };
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => entity.Status;
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        /// <summary>
-        /// 多个字段（匿名类型）
-        /// </summary>
-        [TestMethod]
-        public void ValidateMultiField()
+    /// <summary>
+    /// 多个字段（数组）
+    /// </summary>
+    [TestMethod]
+    public void ValidateMultiField2()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = entity => new object[] { entity.Status, entity.UpdateTime };// 建议使用匿名类型代替
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => new { entity.Status, entity.UpdateTime };
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        /// <summary>
-        /// 多个字段（数组）
-        /// </summary>
-        [TestMethod]
-        public void ValidateMultiField2()
+    /// <summary>
+    /// 多个字段（IEnumerable）
+    /// </summary>
+    [TestMethod]
+    public void ValidateMultiField3()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = entity => new List<object> { entity.Status, entity.UpdateTime };// 建议使用匿名类型代替
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => new object[] { entity.Status, entity.UpdateTime };// 建议使用匿名类型代替
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
+    #endregion
 
-        /// <summary>
-        /// 多个字段（IEnumerable）
-        /// </summary>
-        [TestMethod]
-        public void ValidateMultiField3()
+    #region 不通过 TEntity 返回字段
+    [TestMethod]
+    public void ValidateConstant()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = entity => "Status";
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => new List<object> { entity.Status, entity.UpdateTime };// 建议使用匿名类型代替
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
-        #endregion
+            "Status"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        #region 不通过 TEntity 返回字段
-        [TestMethod]
-        public void ValidateConstant()
+    [TestMethod]
+    public void ValidateNameof()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = entity => nameof(TestEntity.Status);
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => "Status";
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        [TestMethod]
-        public void ValidateNameof()
+    [TestMethod]
+    public void ValidateVariable()
+    {
+        var field = "Status";
+        Expression<Func<TestEntity, object>> fieldExpression = entity => field;
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => nameof(TestEntity.Status);
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        [TestMethod]
-        public void ValidateVariable()
+    [TestMethod]
+    public void ValidateVariable2()
+    {
+        var model = new TestEntity
         {
-            var field = "Status";
-            Expression<Func<TestEntity, object>> fieldExpression = entity => field;
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            Remark = "Status"
+        };
+        var field = model.Remark;
+        Expression<Func<TestEntity, object>> fieldExpression = entity => field;
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
+        {
+            "Status"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        [TestMethod]
-        public void ValidateVariable2()
+    [TestMethod]
+    public void ValidateMemberAccess()
+    {
+        var model = new TestEntity
         {
-            var model = new TestEntity
-            {
-                Remark = "Status"
-            };
-            var field = model.Remark;
-            Expression<Func<TestEntity, object>> fieldExpression = entity => field;
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            Remark = "Status"
+        };
+        Expression<Func<TestEntity, object>> fieldExpression = entity => model.Remark;
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
+        {
+            "Status"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        [TestMethod]
-        public void ValidateMemberAccess()
+    /// <summary>
+    /// List
+    /// </summary>
+    [TestMethod]
+    public void ValidateList()
+    {
+        List<string> fieldList = new List<string>
         {
-            var model = new TestEntity
-            {
-                Remark = "Status"
-            };
-            Expression<Func<TestEntity, object>> fieldExpression = entity => model.Remark;
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        };
+        Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
+        {
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        /// <summary>
-        /// List
-        /// </summary>
-        [TestMethod]
-        public void ValidateList()
+    /// <summary>
+    /// List
+    /// </summary>
+    [TestMethod]
+    public void ValidateList2()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = entity => new List<string>
         {
-            List<string> fieldList = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        };
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
+        {
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        /// <summary>
-        /// List
-        /// </summary>
-        [TestMethod]
-        public void ValidateList2()
+    /// <summary>
+    /// List
+    /// </summary>
+    [TestMethod]
+    public void ValidateListFromMethod()
+    {
+        List<string> fieldList = GetFieldList();
+        Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        /// <summary>
-        /// List
-        /// </summary>
-        [TestMethod]
-        public void ValidateListFromMethod()
+    /// <summary>
+    /// List
+    /// </summary>
+    [TestMethod]
+    public void ValidateListFromMethod2()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = entity => GetFieldList();
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            List<string> fieldList = GetFieldList();
-            Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        /// <summary>
-        /// List
-        /// </summary>
-        [TestMethod]
-        public void ValidateListFromMethod2()
+    /// <summary>
+    /// IList
+    /// </summary>
+    [TestMethod]
+    public void ValidateIList()
+    {
+        IList<string> fieldList = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => GetFieldList();
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        };
+        Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
+        {
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        /// <summary>
-        /// IList
-        /// </summary>
-        [TestMethod]
-        public void ValidateIList()
+    /// <summary>
+    /// IEnumerable
+    /// </summary>
+    [TestMethod]
+    public void ValidateIEnumerable()
+    {
+        IEnumerable<string> fieldList = new List<string>
         {
-            IList<string> fieldList = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        };
+        Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
+        {
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        /// <summary>
-        /// IEnumerable
-        /// </summary>
-        [TestMethod]
-        public void ValidateIEnumerable()
+    /// <summary>
+    /// Array
+    /// </summary>
+    [TestMethod]
+    public void ValidateArray()
+    {
+        string[] fieldList = new List<string>
         {
-            IEnumerable<string> fieldList = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        }.ToArray();
+        Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
+        {
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        /// <summary>
-        /// Array
-        /// </summary>
-        [TestMethod]
-        public void ValidateArray()
+    /// <summary>
+    /// Array
+    /// </summary>
+    [TestMethod]
+    public void ValidateArray2()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = entity => new string[]
         {
-            string[] fieldList = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            }.ToArray();
-            Expression<Func<TestEntity, object>> fieldExpression = entity => fieldList;
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Status",
+            "UpdateTime"
+        };
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
+        {
+            "Status",
+            "UpdateTime"
+        };
+        AssertFields(expectedFields, fields);
+    }
+    #endregion
 
-        /// <summary>
-        /// Array
-        /// </summary>
-        [TestMethod]
-        public void ValidateArray2()
+    [TestMethod]
+    public void TestDynamicAddFields()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = entity => new { entity.Status, entity.UpdateTime };
+        var isFieldExists = fieldExpression.IsFieldExists(entity => entity.Age);
+        Assert.AreEqual(false, isFieldExists);
+        fieldExpression = fieldExpression.AddFields(entity => entity.Age);
+        var isFieldExists2 = fieldExpression.IsFieldExists(entity => entity.Age);
+        Assert.AreEqual(true, isFieldExists2);
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => new string[]
-            {
-                "Status",
-                "UpdateTime"
-            };
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-            AssertFields(expectedFields, fields);
-        }
-        #endregion
+            "Status",
+            "UpdateTime",
+            "Age"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        [TestMethod]
-        public void TestDynamicAddFields()
+    [TestMethod]
+    public void TestIgnoreFields()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.IgnoreFields<TestEntity>(entity => new { entity.CreateTime, entity.UpdateTime });
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = entity => new { entity.Status, entity.UpdateTime };
-            var isFieldExists = fieldExpression.IsFieldExists(entity => entity.Age);
-            Assert.AreEqual(false, isFieldExists);
-            fieldExpression = fieldExpression.AddFields(entity => entity.Age);
-            var isFieldExists2 = fieldExpression.IsFieldExists(entity => entity.Age);
-            Assert.AreEqual(true, isFieldExists2);
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Status",
-                "UpdateTime",
-                "Age"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Id",
+            "UserId",
+            "UserName",
+            "Age",
+            "Sex",
+            "PhoneNumber",
+            "Email",
+            "IsVip",
+            "IsBlack",
+            "Country",
+            "AccountBalance",
+            "AccountBalance2",
+            "Status",
+            "Remark"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        [TestMethod]
-        public void TestIgnoreFields()
+    [TestMethod]
+    public void TestIgnoreFields2()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.Create<TestEntity>(entity => new { entity.Id, entity.Status, entity.CreateTime, entity.UpdateTime }).IgnoreFields(entity => new { entity.CreateTime, entity.UpdateTime });
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.IgnoreFields<TestEntity>(entity => new { entity.CreateTime, entity.UpdateTime });
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Id",
-                "UserId",
-                "UserName",
-                "Age",
-                "Sex",
-                "PhoneNumber",
-                "Email",
-                "IsVip",
-                "IsBlack",
-                "Country",
-                "AccountBalance",
-                "AccountBalance2",
-                "Status",
-                "Remark"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "Id",
+            "Status"
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        [TestMethod]
-        public void TestIgnoreFields2()
+    [TestMethod]
+    public void TestCreateFromDto()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.CreateFromDto<TestDto, TestEntity>();// 不设置忽略字段
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.Create<TestEntity>(entity => new { entity.Id, entity.Status, entity.CreateTime, entity.UpdateTime }).IgnoreFields(entity => new { entity.CreateTime, entity.UpdateTime });
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "Id",
-                "Status"
-            };
-            AssertFields(expectedFields, fields);
-        }
+            "UserId",
+            "UserName",
+            "Email",
+            "IsBlack",
+            "Remark",
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        [TestMethod]
-        public void TestCreateFromDto()
+    [TestMethod]
+    public void TestCreateFromDto2()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.CreateFromDto<TestDto, TestEntity>(c => c.UserId);// 设置忽略字段（单属性）
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.CreateFromDto<TestDto, TestEntity>();// 不设置忽略字段
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                "UserId",
-                "UserName",
-                "Email",
-                "IsBlack",
-                "Remark",
-            };
-            AssertFields(expectedFields, fields);
-        }
+            //"UserId",
+            "UserName",
+            "Email",
+            "IsBlack",
+            "Remark",
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        [TestMethod]
-        public void TestCreateFromDto2()
+    [TestMethod]
+    public void TestCreateFromDto3()
+    {
+        Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.CreateFromDto<TestDto, TestEntity>(c => new { c.UserId, c.Remark });// 设置忽略字段（多属性）
+        var fields = fieldExpression.GetFieldNames();
+        var expectedFields = new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.CreateFromDto<TestDto, TestEntity>(c => c.UserId);// 设置忽略字段（单属性）
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                //"UserId",
-                "UserName",
-                "Email",
-                "IsBlack",
-                "Remark",
-            };
-            AssertFields(expectedFields, fields);
-        }
+            //"UserId",
+            "UserName",
+            "Email",
+            "IsBlack",
+            //"Remark",
+        };
+        AssertFields(expectedFields, fields);
+    }
 
-        [TestMethod]
-        public void TestCreateFromDto3()
+    private List<string> GetFieldList()
+    {
+        return new List<string>
         {
-            Expression<Func<TestEntity, object>> fieldExpression = FieldExpressionUtil.CreateFromDto<TestDto, TestEntity>(c => new { c.UserId, c.Remark });// 设置忽略字段（多属性）
-            var fields = fieldExpression.GetFieldNames();
-            var expectedFields = new List<string>
-            {
-                //"UserId",
-                "UserName",
-                "Email",
-                "IsBlack",
-                //"Remark",
-            };
-            AssertFields(expectedFields, fields);
-        }
-
-        private List<string> GetFieldList()
-        {
-            return new List<string>
-            {
-                "Status",
-                "UpdateTime"
-            };
-        }
+            "Status",
+            "UpdateTime"
+        };
     }
 }

@@ -1,7 +1,6 @@
-﻿namespace Example.ADO.NETCore.ConsoleApp.Contracts
+﻿namespace Example.ADO.NETCore.ConsoleApp.Contracts;
+
+public interface ISimpleDo
 {
-    public interface ISimpleDo
-    {
-        void Execute();
-    }
+    void Execute();
 }

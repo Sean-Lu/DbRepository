@@ -1,7 +1,6 @@
-﻿namespace Example.Dapper.Core.ConsoleApp.Contracts
+﻿namespace Example.Dapper.Core.ConsoleApp.Contracts;
+
+public interface ISimpleDo
 {
-    public interface ISimpleDo
-    {
-        void Execute();
-    }
+    void Execute();
 }

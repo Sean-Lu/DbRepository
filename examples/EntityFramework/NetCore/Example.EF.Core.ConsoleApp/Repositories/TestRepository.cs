@@ -2,13 +2,12 @@
 using Example.EF.Core.ConsoleApp.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Example.EF.Core.ConsoleApp.Repositories
+namespace Example.EF.Core.ConsoleApp.Repositories;
+
+//public class TestRepository : EFBaseRepository<TestUpperEntity>, ITestRepository
+public class TestRepository : EFBaseRepository<TestEntity>, ITestRepository
 {
-    //public class TestRepository : EFBaseRepository<TestUpperEntity>, ITestRepository
-    public class TestRepository : EFBaseRepository<TestEntity>, ITestRepository
+    public TestRepository(DbContext dbContext) : base(dbContext)
     {
-        public TestRepository(DbContext dbContext) : base(dbContext)
-        {
-        }
     }
 }

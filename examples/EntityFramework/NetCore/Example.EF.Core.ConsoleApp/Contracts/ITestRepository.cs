@@ -1,9 +1,8 @@
 ﻿using Example.EF.Core.ConsoleApp.Entities;
 
-namespace Example.EF.Core.ConsoleApp.Contracts
+namespace Example.EF.Core.ConsoleApp.Contracts;
+
+//public interface ITestRepository : IEFBaseRepository<TestUpperEntity>
+public interface ITestRepository : IEFBaseRepository<TestEntity>
 {
-    //public interface ITestRepository : IEFBaseRepository<TestUpperEntity>
-    public interface ITestRepository : IEFBaseRepository<TestEntity>
-    {
-    }
 }
