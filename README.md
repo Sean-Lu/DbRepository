@@ -201,9 +201,9 @@ var db = new DbFactory("Database connection string...", MySqlClientFactory.Insta
 </configuration>
 ```
 
-### 实体类特性
+### 常用实体类特性
 
-> `TableEntity`
+> 数据库表实体类：`{Table}Entity`
 
 | Attribute                                                                      | Use      | Description                                                    |
 | ------------------------------------------------------------------------------ | -------- | -------------------------------------------------------------- |
@@ -221,77 +221,136 @@ var db = new DbFactory("Database connection string...", MySqlClientFactory.Insta
 | **`System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute`**         | Property | 标记为为忽略字段                                               |
 | ~~`System.ComponentModel.DataAnnotations.Schema.ForeignKeyAttribute`~~         | Property | 标记为外键字段（***暂不支持***）                              |
 
-### 增删改查
+### 增删改查示例
 
-> CRUD: `IBaseRepository<TEntity>`
+#### 仓储模式
+
+> 仓储模式`CRUD`示例: `{Table}Repository`
+
+```csharp
+// Using ADO.NET
+public class {Table}Repository : BaseRepository<{Table}Entity>, I{Table}Repository
+// Using Dapper
+public class {Table}Repository : DapperBaseRepository<{Table}Entity>, I{Table}Repository
+
+// Table DTO
+public class TestDto : DtoBase
+{
+    // ...
+}
+
+// Table Entity
+public class TestEntity : EntityBase
+{
+    // ...
+}
+
+TestDto testDto = new TestDto();
+// ...
+TestEntity entity = mapper.Map<TestEntity>(testDto);
+
+// 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.TableRepositoryTest
+```
+
+##### 新增数据示例
 
 ```csharp
 // 新增数据：
-_testRepository.Add(entity);
+testRepository.Add(entity);
 
 // 批量新增数据：
-_testRepository.Add(entities);
+testRepository.Add(entities);
 
 // 新增或更新数据：
-_testRepository.AddOrUpdate(entity);
+testRepository.AddOrUpdate(entity);
 
 // 批量新增或更新数据：
-_testRepository.AddOrUpdate(entities);
+testRepository.AddOrUpdate(entities);
+```
 
+##### 删除数据示例
+
+```csharp
 // 删除数据：过滤条件默认为实体的主键字段
-_testRepository.Delete(entity);
+testRepository.Delete(entity);
 
 // 删除数据：自定义过滤条件
-_testRepository.Delete(entity => entity.UserId == 10001 && entity.Status != 0);
+testRepository.Delete(entity => entity.UserId == 10001 && entity.Status != 0);
 
 // 删除全部数据：
-_testRepository.Delete(entity => true);
+testRepository.Delete(entity => true);
 
 // 删除全部数据：
-_testRepository.DeleteAll();
+testRepository.DeleteAll();
+```
 
+##### 更新数据示例
+
+```csharp
 // 更新数据：更新全部字段，过滤条件默认为实体的主键字段
-_testRepository.Update(entity);
+testRepository.Update(entity);
 
 // 更新数据：更新部分字段，过滤条件默认为实体的主键字段
-_testRepository.Update(entity, fieldExpression: entity => new { entity.Status, entity.UpdateTime });
+testRepository.Update(entity, fieldExpression: entity => new { entity.Status, entity.UpdateTime });
 
 // 更新数据：更新全部字段，自定义过滤条件
-_testRepository.Update(entity, whereExpression: entity => entity.UserId == 10001 && entity.Status != 0);
+testRepository.Update(entity, whereExpression: entity => entity.UserId == 10001 && entity.Status != 0);
 
 // 更新数据：更新部分字段，自定义过滤条件
-_testRepository.Update(entity, fieldExpression: entity => new { entity.Status, entity.UpdateTime }, whereExpression: entity => entity.UserId == 10001 && entity.Status != 0);
+testRepository.Update(entity, fieldExpression: entity => new { entity.Status, entity.UpdateTime }, whereExpression: entity => entity.UserId == 10001 && entity.Status != 0);
+
+// 更新数据：只更新 TDto 有的字段（内部默认映射）
+testRepository.UpdateByDto(testDto);
+
+// 更新数据：只更新 TDto 有的字段（外部自定义映射）
+testRepository.UpdateByDto(testDto, mapper.Map<TestEntity>);
+
+// 更新数据：只更新 TDto 有的字段 (外部传 Entity，通过 TDto 限定字段)
+testRepository.UpdateByDto<TestDto>(entity);
 
 // 批量更新数据：更新全部字段，过滤条件默认为实体的主键字段
-_testRepository.Update(entities);
+testRepository.Update(entities);
 
 // 批量更新数据：更新部分字段，过滤条件默认为实体的主键字段
-_testRepository.Update(entities, fieldExpression: entity => new { entity.Status, entity.UpdateTime });
+testRepository.Update(entities, fieldExpression: entity => new { entity.Status, entity.UpdateTime });
 
-// 数值字段递增：
-_testRepository.Increment(10.0M, fieldExpression: entity => entity.AccountBalance, whereExpression: entity => entity.Id == 10001);
+// 批量更新数据：只更新 TDto 有的字段（内部默认映射）
+testRepository.UpdateByDto(testDtos);
 
-// 数值字段递减：
-_testRepository.Decrement(10.0M, fieldExpression: entity => entity.AccountBalance, whereExpression: entity => entity.Id == 10001);
+// 批量更新数据：只更新 TDto 有的字段（外部自定义映射）
+testRepository.UpdateByDto(testDtos, mapper.Map<TestEntity>);
 
+// 批量更新数据：只更新 TDto 有的字段 (外部传 Entity 集合，通过 TDto 限定字段)
+testRepository.UpdateByDto<TestDto>(entities);
+
+// 更新数值字段（增加）：
+testRepository.Increment(10.0M, fieldExpression: entity => entity.AccountBalance, whereExpression: entity => entity.Id == 10001);
+
+// 更新数值字段（减少）：
+testRepository.Decrement(10.0M, fieldExpression: entity => entity.AccountBalance, whereExpression: entity => entity.Id == 10001);
+```
+
+##### 查询数据示例
+
+```csharp
 // 查询数据：分页 + 排序
 int pageNumber = 1;// 当前页号（最小值为1）
 int pageSize = 10;// 页大小
 OrderByCondition orderBy = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.CreateTime);
 orderBy.Next = OrderByConditionBuilder<TestEntity>.Build(OrderByType.Asc, entity => entity.Id);
-List<TestEntity> queryResult = _testRepository.Query(entity => entity.UserId == 10001, orderBy, pageNumber, pageSize)?.ToList();
+List<TestEntity> queryResult = testRepository.Query(entity => entity.UserId == 10001, orderBy, pageNumber, pageSize)?.ToList();
 
 // 查询单个数据：
-TestEntity getResult = _testRepository.Get(entity => entity.Id == 2);
+TestEntity getResult = testRepository.Get(entity => entity.Id == 2);
 
 // 统计数量：
-int countResult = _testRepository.Count(entity => entity.UserId == 10001);
+int countResult = testRepository.Count(entity => entity.UserId == 10001);
 
 // 数据是否存在：
-bool exists = _testRepository.Exists(entity => entity.UserId == 10001);
-
-// 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.TableRepositoryTest
+bool exists = testRepository.Exists(entity => entity.UserId == 10001);
 ```
+
+##### WhereExpression示例
 
 > 表达式树：`Expression<Func<TEntity, bool>> whereExpression`
 
@@ -319,6 +378,8 @@ entity => entity.UserId == _model.UserId && entity.Remark.StartsWith("测试")
 
 // 更多使用示例在单元测试中：Sean.Core.DbRepository.Test.WhereExpressionTest
 ```
+
+##### FieldExpression示例
 
 > 表达式树：`Expression<Func<TEntity, object>> fieldExpression`
 
