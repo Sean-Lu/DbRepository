@@ -45,7 +45,7 @@ internal static class ConstantExtractor
                     return array?.GetValue(index);
                 }
 
-                return new NotSupportedException();
+                throw new NotSupportedException($"Unsupported BinaryExpression: {binaryExpression}");
             }
         }
         else if (expression is UnaryExpression unaryExpression)

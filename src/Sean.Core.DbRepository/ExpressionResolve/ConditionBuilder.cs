@@ -1,17 +1,21 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using Sean.Core.DbRepository.Extensions;
 
 namespace Sean.Core.DbRepository;
 
 internal static class ConditionBuilder
 {
+    private const char LikeEscapeChar = '/';
+
     public static string BuildCondition(ParameterExpression parameterExpression, MemberExpression memberExpression, WhereClauseAdhesive adhesive, ExpressionType comparison, object value, NamingConvention namingConvention, bool reverse = false)
     {
         if (memberExpression.Expression is not ParameterExpression parameterExpression2
-            || parameterExpression2.Name != parameterExpression.Name)
+            || !ReferenceEquals(parameterExpression2, parameterExpression))
         {
             throw new NotSupportedException($"Unsupported MemberExpression: {memberExpression}");
         }
@@ -38,8 +42,13 @@ internal static class ConditionBuilder
     public static string BuildLikeOrEqualCondition(ParameterExpression parameterExpression, MethodCallExpression methodCallExpression, WhereClauseAdhesive adhesive, NamingConvention namingConvention, bool reverse)
     {
         if (methodCallExpression.Object is MemberExpression { Expression: ParameterExpression parameterExpression2 } memberExpression
-            && parameterExpression2.Name == parameterExpression.Name)
+            && ReferenceEquals(parameterExpression2, parameterExpression))
         {
+            if (methodCallExpression.Arguments.Count != 1)
+            {
+                throw new NotSupportedException($"Unsupported MethodCallExpression (overloads with StringComparison are not supported): {methodCallExpression}");
+            }
+
             string symbol;
             string valueSymbol;
             switch (methodCallExpression.Method.Name)
@@ -68,8 +77,16 @@ internal static class ConditionBuilder
             var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName(namingConvention));
             var parameterName = UniqueParameter(memberInfo, adhesive);
             var value = ConstantExtractor.ParseConstant(methodCallExpression.Arguments[0]);
+            var escapeClause = string.Empty;
+            if (methodCallExpression.Method.Name != nameof(string.Equals)
+                && value is string stringValue
+                && TryEscapeLikeValue(stringValue, adhesive.SqlAdapter.DbType, out var escapedValue))
+            {
+                value = escapedValue;
+                escapeClause = $" ESCAPE '{LikeEscapeChar}'";
+            }
             adhesive.Parameters.Add($"{parameterName}", string.Format(valueSymbol, value));
-            return string.Format($"{fieldName} {symbol}", $"{adhesive.SqlAdapter.FormatSqlParameter(parameterName)}");
+            return string.Format($"{fieldName} {symbol}", $"{adhesive.SqlAdapter.FormatSqlParameter(parameterName)}") + escapeClause;
         }
 
         throw new NotSupportedException($"Unsupported MethodCallExpression: {methodCallExpression}");
@@ -78,15 +95,20 @@ internal static class ConditionBuilder
     public static string BuildInCondition(ParameterExpression parameterExpression, MemberExpression memberExpression, Expression valueExpression, WhereClauseAdhesive adhesive, NamingConvention namingConvention, bool reverse)
     {
         if (memberExpression.Expression is not ParameterExpression parameterExpression2
-            || parameterExpression2.Name != parameterExpression.Name)
+            || !ReferenceEquals(parameterExpression2, parameterExpression))
         {
             throw new NotSupportedException($"Unsupported MemberExpression: {memberExpression}");
         }
 
         var memberInfo = memberExpression.Member;
         var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName(namingConvention));
-        var parameterName = UniqueParameter(memberInfo, adhesive);
         var value = ConstantExtractor.ParseConstant(valueExpression);
+        if (value is IEnumerable enumerable and not string && !HasAnyElement(enumerable))
+        {
+            // Empty collection: IN -> always false, NOT IN -> always true.
+            return !reverse ? "1=0" : "1=1";
+        }
+        var parameterName = UniqueParameter(memberInfo, adhesive);
         adhesive.Parameters.Add($"{parameterName}", value);
         return $"{fieldName} {(!reverse ? "IN" : "NOT IN")} {adhesive.SqlAdapter.FormatSqlParameter(parameterName)}";
     }
@@ -94,7 +116,7 @@ internal static class ConditionBuilder
     public static string BuildIsNullOrEmptyCondition(ParameterExpression parameterExpression, MethodCallExpression methodCallExpression, WhereClauseAdhesive adhesive, NamingConvention namingConvention, bool reverse)
     {
         if (methodCallExpression.Arguments[0] is MemberExpression { Expression: ParameterExpression parameterExpression2 } memberExpression
-            && parameterExpression2.Name == parameterExpression.Name)
+            && ReferenceEquals(parameterExpression2, parameterExpression))
         {
             var memberInfo = memberExpression.Member;
             var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName(namingConvention));
@@ -125,6 +147,48 @@ internal static class ConditionBuilder
             tempParam = $"{paramName}_{seed++}";
         } while (parameterDic.ContainsKey(tempParam));
         return tempParam;
+    }
+
+    private static bool TryEscapeLikeValue(string value, DatabaseType dbType, out string escapedValue)
+    {
+        escapedValue = value;
+        if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        var wildcards = dbType == DatabaseType.SqlServer
+            ? new[] { '%', '_', '[' }
+            : new[] { '%', '_' };
+        if (value.IndexOfAny(wildcards) < 0)
+        {
+            return false;
+        }
+
+        var sb = new StringBuilder(value.Length + 4);
+        foreach (var c in value)
+        {
+            if (c == LikeEscapeChar || Array.IndexOf(wildcards, c) >= 0)
+            {
+                sb.Append(LikeEscapeChar);
+            }
+            sb.Append(c);
+        }
+        escapedValue = sb.ToString();
+        return true;
+    }
+
+    private static bool HasAnyElement(IEnumerable enumerable)
+    {
+        var enumerator = enumerable.GetEnumerator();
+        try
+        {
+            return enumerator.MoveNext();
+        }
+        finally
+        {
+            (enumerator as IDisposable)?.Dispose();
+        }
     }
 
     private static string ToComparisonSymbol(this ExpressionType expressionType, bool reverse = false)

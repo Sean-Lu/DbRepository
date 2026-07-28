@@ -62,25 +62,25 @@ public static class WhereClauseParser
                 or ExpressionType.GreaterThanOrEqual:// 比较运算
                 {
                     if (binaryExpression.Left is UnaryExpression { NodeType: ExpressionType.Convert, Operand: MemberExpression { Expression: ParameterExpression parameterExpression2 } convertMemberExpression }
-                        && parameterExpression2.Name == parameterExpression.Name)
+                        && ReferenceEquals(parameterExpression2, parameterExpression))
                     {
                         // Code example: entity => entity.UserType == UserType.Admin
                         return ConditionBuilder.BuildCondition(parameterExpression, convertMemberExpression, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Right), namingConvention);
                     }
                     else if (binaryExpression.Right is UnaryExpression { NodeType: ExpressionType.Convert, Operand: MemberExpression { Expression: ParameterExpression parameterExpression3 } convertMemberExpression2 }
-                             && parameterExpression3.Name == parameterExpression.Name)
+                             && ReferenceEquals(parameterExpression3, parameterExpression))
                     {
                         // Code example: entity => UserType.Admin == entity.UserType
                         return ConditionBuilder.BuildCondition(parameterExpression, convertMemberExpression2, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Left), namingConvention, true);
                     }
                     else if (binaryExpression.Left is MemberExpression { Expression: ParameterExpression parameterExpression4 } memberExpression2
-                             && parameterExpression4.Name == parameterExpression.Name)
+                             && ReferenceEquals(parameterExpression4, parameterExpression))
                     {
                         // Code example: entity => entity.Age > 18
                         return ConditionBuilder.BuildCondition(parameterExpression, memberExpression2, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Right), namingConvention);
                     }
                     else if (binaryExpression.Right is MemberExpression { Expression: ParameterExpression parameterExpression5 } memberExpression3
-                             && parameterExpression5.Name == parameterExpression.Name)
+                             && ReferenceEquals(parameterExpression5, parameterExpression))
                     {
                         // Code example: entity => 18 < entity.Age
                         return ConditionBuilder.BuildCondition(parameterExpression, memberExpression3, adhesive, binaryExpression.NodeType, ConstantExtractor.ParseConstant(binaryExpression.Left), namingConvention, true);
@@ -98,11 +98,11 @@ public static class WhereClauseParser
         {
             switch (methodCallExpression.Method.Name)
             {
-                case nameof(string.IsNullOrEmpty) when methodCallExpression.Arguments[0] is MemberExpression { Expression: ParameterExpression parameterExpression5 } && parameterExpression5.Name == parameterExpression.Name:
+                case nameof(string.IsNullOrEmpty) when methodCallExpression.Arguments[0] is MemberExpression { Expression: ParameterExpression parameterExpression5 } && ReferenceEquals(parameterExpression5, parameterExpression):
                     // Code example: entity => string.IsNullOrEmpty(entity.Email)
                     //               entity => !string.IsNullOrEmpty(entity.Email)
                     return ConditionBuilder.BuildIsNullOrEmptyCondition(parameterExpression, methodCallExpression, adhesive, namingConvention, reverse);
-                case nameof(string.Contains) or nameof(string.StartsWith) or nameof(string.EndsWith) or nameof(string.Equals) when methodCallExpression.Object is MemberExpression { Expression: ParameterExpression parameterExpression4 } && parameterExpression4.Name == parameterExpression.Name:
+                case nameof(string.Contains) or nameof(string.StartsWith) or nameof(string.EndsWith) or nameof(string.Equals) when methodCallExpression.Object is MemberExpression { Expression: ParameterExpression parameterExpression4 } && ReferenceEquals(parameterExpression4, parameterExpression):
                     // Code example: entity => entity.UserName.Contains("A")
                     //               entity => entity.UserName.StartsWith("A")
                     //               entity => entity.UserName.EndsWith("A")
@@ -120,7 +120,7 @@ public static class WhereClauseParser
                 && methodCallExpression.Arguments.Count == 2
                 && methodCallExpression.Arguments[0] != null
                 && methodCallExpression.Arguments[1] is MemberExpression { Expression: ParameterExpression parameterExpression2 } memberExpression2
-                && parameterExpression2.Name == parameterExpression.Name)
+                && ReferenceEquals(parameterExpression2, parameterExpression))
             {
                 //"In" Condition, Support the `Contains` Method of IEnumerable<T> type
                 // Code example: string[] values = new string[]{ "foo", "bar"};
@@ -135,7 +135,7 @@ public static class WhereClauseParser
                      && methodCallExpression.Object != null
                      && methodCallExpression.Arguments.Count == 1
                      && methodCallExpression.Arguments[0] is MemberExpression { Expression: ParameterExpression parameterExpression3 } memberExpression3
-                     && parameterExpression3.Name == parameterExpression.Name)
+                     && ReferenceEquals(parameterExpression3, parameterExpression))
             {
                 //"In" condition, Support the `Contains` extension Method of ICollection<TSource> Type
                 // Code example: List<string> list = new List<string> { "foo", "bar"};
@@ -157,7 +157,7 @@ public static class WhereClauseParser
                 && memberExpression.Member.DeclaringType.IsGenericType
                 && memberExpression.Member.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>)
                 && memberExpression.Expression is MemberExpression { Expression: ParameterExpression parameterExpression2 } memberExpression2
-                && parameterExpression2.Name == parameterExpression.Name)
+                && ReferenceEquals(parameterExpression2, parameterExpression))
             {
                 // Code example: entity => entity.NullableField.HasValue
                 //               entity => !entity.NullableField.HasValue
@@ -165,7 +165,7 @@ public static class WhereClauseParser
             }
 
             if (memberExpression.Expression is ParameterExpression parameterExpression3
-                && parameterExpression3.Name == parameterExpression.Name)
+                && ReferenceEquals(parameterExpression3, parameterExpression))
             {
                 // Code example: entity => entity.IsVip
                 //               entity => !entity.IsVip
