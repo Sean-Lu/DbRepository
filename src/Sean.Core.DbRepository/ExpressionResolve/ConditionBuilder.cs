@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -103,10 +104,28 @@ internal static class ConditionBuilder
         var memberInfo = memberExpression.Member;
         var fieldName = adhesive.SqlAdapter.FormatFieldName(memberInfo.GetFieldName(namingConvention));
         var value = ConstantExtractor.ParseConstant(valueExpression);
-        if (value is IEnumerable enumerable and not string && !HasAnyElement(enumerable))
+        if (value is IEnumerable enumerable and not string)
         {
-            // Empty collection: IN -> always false, NOT IN -> always true.
-            return !reverse ? "1=0" : "1=1";
+            if (value is ICollection collection)
+            {
+                if (collection.Count == 0)
+                {
+                    // Empty collection: IN -> always false, NOT IN -> always true.
+                    return !reverse ? "1=0" : "1=1";
+                }
+            }
+            else
+            {
+                // Materialize one-shot/lazy enumerables so checking for emptiness does not
+                // consume the first element before the value is used as a SQL parameter.
+                var materialized = enumerable.Cast<object>().ToList();
+                if (materialized.Count == 0)
+                {
+                    // Empty collection: IN -> always false, NOT IN -> always true.
+                    return !reverse ? "1=0" : "1=1";
+                }
+                value = materialized;
+            }
         }
         var parameterName = UniqueParameter(memberInfo, adhesive);
         adhesive.Parameters.Add($"{parameterName}", value);
@@ -176,19 +195,6 @@ internal static class ConditionBuilder
         }
         escapedValue = sb.ToString();
         return true;
-    }
-
-    private static bool HasAnyElement(IEnumerable enumerable)
-    {
-        var enumerator = enumerable.GetEnumerator();
-        try
-        {
-            return enumerator.MoveNext();
-        }
-        finally
-        {
-            (enumerator as IDisposable)?.Dispose();
-        }
     }
 
     private static string ToComparisonSymbol(this ExpressionType expressionType, bool reverse = false)

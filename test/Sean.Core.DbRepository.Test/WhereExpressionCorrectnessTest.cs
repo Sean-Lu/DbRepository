@@ -166,6 +166,28 @@ public class WhereExpressionCorrectnessTest : TestBase
         Assert.AreEqual("`UserId` IN @UserId", whereClause);
         AssertSqlParameters(expectedParameters, parameters);
     }
+
+    /// <summary>
+    /// 惰性枚举的 IN 不应因空集合探测而丢失第一个元素。
+    /// </summary>
+    [TestMethod]
+    public void ValidateLazyEnumerableInPreservesFirstElement()
+    {
+        IEnumerable<long> ids = GetLazyIds();
+        Expression<Func<TestEntity, bool>> whereExpression = entity => ids.Contains(entity.UserId);
+        var whereClause = whereExpression.GetParameterizedWhereClause(_sqlAdapter, out var parameters);
+
+        Assert.AreEqual("`UserId` IN @UserId", whereClause);
+        CollectionAssert.AreEqual(
+            new object[] { 10001L, 10002L },
+            ((List<object>)parameters["UserId"]).ToArray());
+    }
+
+    private static IEnumerable<long> GetLazyIds()
+    {
+        yield return 10001L;
+        yield return 10002L;
+    }
     #endregion
 
     #region LIKE 通配符转义
