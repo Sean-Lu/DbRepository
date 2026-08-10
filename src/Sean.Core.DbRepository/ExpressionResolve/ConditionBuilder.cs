@@ -84,7 +84,12 @@ internal static class ConditionBuilder
                 && TryEscapeLikeValue(stringValue, adhesive.SqlAdapter.DbType, out var escapedValue))
             {
                 value = escapedValue;
-                escapeClause = $" ESCAPE '{LikeEscapeChar}'";
+                // QuestDB uses an implicit backslash escape character and does not
+                // support the SQL ESCAPE clause.
+                if (adhesive.SqlAdapter.DbType != DatabaseType.QuestDB)
+                {
+                    escapeClause = $" ESCAPE '{LikeEscapeChar}'";
+                }
             }
             adhesive.Parameters.Add($"{parameterName}", string.Format(valueSymbol, value));
             return string.Format($"{fieldName} {symbol}", $"{adhesive.SqlAdapter.FormatSqlParameter(parameterName)}") + escapeClause;
@@ -179,7 +184,9 @@ internal static class ConditionBuilder
         var wildcards = dbType == DatabaseType.SqlServer
             ? new[] { '%', '_', '[' }
             : new[] { '%', '_' };
-        if (value.IndexOfAny(wildcards) < 0)
+        var escapeChar = dbType == DatabaseType.QuestDB ? '\\' : LikeEscapeChar;
+        if (value.IndexOfAny(wildcards) < 0
+            && (dbType != DatabaseType.QuestDB || value.IndexOf(escapeChar) < 0))
         {
             return false;
         }
@@ -187,9 +194,9 @@ internal static class ConditionBuilder
         var sb = new StringBuilder(value.Length + 4);
         foreach (var c in value)
         {
-            if (c == LikeEscapeChar || Array.IndexOf(wildcards, c) >= 0)
+            if (c == escapeChar || Array.IndexOf(wildcards, c) >= 0)
             {
-                sb.Append(LikeEscapeChar);
+                sb.Append(escapeChar);
             }
             sb.Append(c);
         }

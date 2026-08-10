@@ -257,6 +257,40 @@ public class WhereExpressionCorrectnessTest : TestBase
     }
 
     /// <summary>
+    /// QuestDB uses an implicit backslash escape character and rejects the ESCAPE clause.
+    /// </summary>
+    [TestMethod]
+    public void ValidateLikeEscapeQuestDbPercent()
+    {
+        var questDbAdapter = new DefaultSqlAdapter(DatabaseType.QuestDB, null);
+        Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Remark.Contains("50%");
+        var whereClause = whereExpression.GetParameterizedWhereClause(questDbAdapter, out var parameters);
+        var expectedParameters = new Dictionary<string, object>
+        {
+            { "Remark", "%50\\%%" }
+        };
+        Assert.AreEqual("\"Remark\" LIKE @Remark", whereClause);
+        AssertSqlParameters(expectedParameters, parameters);
+    }
+
+    /// <summary>
+    /// A literal backslash must be doubled for QuestDB even when no wildcard is present.
+    /// </summary>
+    [TestMethod]
+    public void ValidateLikeEscapeQuestDbBackslash()
+    {
+        var questDbAdapter = new DefaultSqlAdapter(DatabaseType.QuestDB, null);
+        Expression<Func<TestEntity, bool>> whereExpression = entity => entity.Remark.Contains("a\\b");
+        var whereClause = whereExpression.GetParameterizedWhereClause(questDbAdapter, out var parameters);
+        var expectedParameters = new Dictionary<string, object>
+        {
+            { "Remark", "%a\\\\b%" }
+        };
+        Assert.AreEqual("\"Remark\" LIKE @Remark", whereClause);
+        AssertSqlParameters(expectedParameters, parameters);
+    }
+
+    /// <summary>
     /// 转义字符 '/' 本身仅在值含通配符时才被转义。
     /// </summary>
     [TestMethod]
