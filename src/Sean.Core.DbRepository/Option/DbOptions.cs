@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.IO;
 using System.Reflection;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using Sean.Core.DbRepository.Extensions;
@@ -74,7 +75,7 @@ public class DbOptions
     public event Action<SqlExecutingContext> SqlExecuting;
     public event Action<SqlExecutedContext> SqlExecuted;
 
-    private static readonly Dictionary<Type, ITypeHandler> _typeHandlers = new();
+    private static readonly ConcurrentDictionary<Type, ITypeHandler> _typeHandlers = new();
 
     internal void TriggerSqlExecuting(SqlExecutingContext context)
     {
@@ -87,24 +88,11 @@ public class DbOptions
 
     public void AddTypeHandler(Type type, ITypeHandler typeHandler)
     {
-        if (!ContainsTypeHandler(type))
-        {
-            _typeHandlers.Add(type, typeHandler);
-        }
-        else
-        {
-            if (_typeHandlers.TryGetValue(type, out var handler) && typeHandler == handler)
-            {
-                return;
-            }
-
-            RemoveTypeHandler(type);
-            _typeHandlers.Add(type, typeHandler);
-        }
+        _typeHandlers.AddOrUpdate(type, typeHandler, (_, _) => typeHandler);
     }
     public bool RemoveTypeHandler(Type type)
     {
-        return _typeHandlers.Remove(type);
+        return _typeHandlers.TryRemove(type, out _);
     }
     public bool ContainsTypeHandler(Type type)
     {

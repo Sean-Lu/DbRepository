@@ -140,25 +140,54 @@ public class MultiConnectionSettings
         #region Single database connection configuration.
         if (_connectionStrings.Count <= 1)
         {
-            return _connectionStrings.FirstOrDefault();
+            return _connectionStrings.Count == 0 ? null : _connectionStrings[0];
         }
         #endregion
 
         #region Multiple database connection configuration.
-        if (!master && _connectionStrings.Count(c => c.Master == master) < 1)
+        var firstMatch = FindConnections(master, out var matchCount);
+        if (!master && matchCount == 0)
         {
-            // If there is no slave database configuration, the master database configuration is used by default.
+            // 如果没有从库配置，则默认回退到主库配置。
             master = true;
+            firstMatch = FindConnections(master, out matchCount);
         }
 
-        if (_connectionStrings.Count(c => c.Master == master) < 2)
+        if (matchCount < 2)
         {
-            return _connectionStrings.FirstOrDefault(c => c.Master == master);
+            return firstMatch;
         }
 
-        var list = _connectionStrings.Where(c => c.Master == master).ToList();
-        return list[Interlocked.Increment(ref _times) % list.Count];
+        var selectedIndex = (int)((uint)Interlocked.Increment(ref _times) % (uint)matchCount);
+        foreach (var options in _connectionStrings)
+        {
+            if (options.Master == master && selectedIndex-- == 0)
+            {
+                return options;
+            }
+        }
+
+        // ConnectionStrings 是公开的可变列表；如果它在计数和选择之间发生变化，
+        // 则返回第一次匹配项作为安全兜底。
+        return firstMatch;
         #endregion
+    }
+
+    private ConnectionStringOptions FindConnections(bool master, out int count)
+    {
+        ConnectionStringOptions firstMatch = null;
+        count = 0;
+        foreach (var options in _connectionStrings)
+        {
+            if (options.Master != master)
+            {
+                continue;
+            }
+
+            firstMatch ??= options;
+            count++;
+        }
+        return firstMatch;
     }
 
     public string GetConnectionString(bool master = true)

@@ -36,42 +36,39 @@ public class ConcurrentTest : DapperTestBase
             var index = i + 1;
             tasks[i] = Task.Run(() =>
             {
-                try
+                _logger.LogInfo($"[{index}] [{Task.CurrentId}] 异步任务开始");
+                var testEntity = new TestEntity
                 {
-                    _logger.LogInfo($"[{index}] [{Task.CurrentId}] 异步任务开始");
-                    var testEntity = new TestEntity
-                    {
-                        UserId = 10002,
-                        UserName = "Test01",
-                        Age = 18,
-                        IsVip = true,
-                        AccountBalance = 99.95M,
-                        Remark = "并发写入数据测试",
-                        CreateTime = DateTime.Now,
-                        UpdateTime = DateTime.Now
-                    };
-                    var addResult = _testRepository.Add(testEntity);
-                    _logger.LogInfo($"[{index}] [{Task.CurrentId}] 异步任务结束");
-                    Assert.IsTrue(addResult, $"[{index}] [{Task.CurrentId}] 新增测试数据失败");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"[{index}] [{Task.CurrentId}] 异步任务执行异常", ex);
-                }
+                    UserId = 10002,
+                    UserName = "Test01",
+                    Age = 18,
+                    IsVip = true,
+                    AccountBalance = 99.95M,
+                    Remark = "并发写入数据测试",
+                    CreateTime = DateTime.Now,
+                    UpdateTime = DateTime.Now
+                };
+                var addResult = _testRepository.Add(testEntity);
+                _logger.LogInfo($"[{index}] [{Task.CurrentId}] 异步任务结束");
+                Assert.IsTrue(addResult, $"[{index}] [{Task.CurrentId}] 新增测试数据失败");
             });
         }
 
-        // 等待所有任务完成
-        Task.WaitAll(tasks);
+        var deleteResult = 0;
+        try
+        {
+            // 任务异常必须传播给测试框架，不能只记录日志后吞掉。
+            Task.WaitAll(tasks);
 
-        var nowCount = _testRepository.Count(entity => true);
-        _logger.LogInfo($"###### 新增数据之后有 {nowCount} 条数据");
-
-        Assert.AreEqual(nowCount - preCount, testCount);
-
-        // 删除测试数据
-        var deleteResult = _testRepository.Delete(entity => entity.Remark == "并发写入数据测试");
-        Assert.AreEqual(deleteResult, testCount);
+            var nowCount = _testRepository.Count(entity => true);
+            _logger.LogInfo($"###### 新增数据之后有 {nowCount} 条数据");
+            Assert.AreEqual(testCount, nowCount - preCount);
+        }
+        finally
+        {
+            deleteResult = _testRepository.Delete(entity => entity.Remark == "并发写入数据测试");
+        }
+        Assert.AreEqual(testCount, deleteResult);
     }
 
     /// <summary>
@@ -93,49 +90,46 @@ public class ConcurrentTest : DapperTestBase
             var index = i + 1;
             tasks[i] = Task.Run(() =>
             {
-                try
+                _logger.LogInfo($"[{index}] [{Task.CurrentId}] 异步任务开始");
+                var addResult = _testRepository.ExecuteAutoTransaction(trans =>
                 {
-                    _logger.LogInfo($"[{index}] [{Task.CurrentId}] 异步任务开始");
-                    var addResult = _testRepository.ExecuteAutoTransaction(trans =>
+                    var testEntity = new TestEntity
                     {
-                        var testEntity = new TestEntity
-                        {
-                            UserId = 10002,
-                            UserName = "Test01",
-                            Age = 18,
-                            IsVip = true,
-                            AccountBalance = 99.95M,
-                            Remark = "并发写入数据测试（使用事务）",
-                            CreateTime = DateTime.Now,
-                            UpdateTime = DateTime.Now
-                        };
-                        if (!_testRepository.Add(testEntity, transaction: trans))// ****** 注意要传事务
-                        {
-                            return false;
-                        }
+                        UserId = 10002,
+                        UserName = "Test01",
+                        Age = 18,
+                        IsVip = true,
+                        AccountBalance = 99.95M,
+                        Remark = "并发写入数据测试（使用事务）",
+                        CreateTime = DateTime.Now,
+                        UpdateTime = DateTime.Now
+                    };
+                    if (!_testRepository.Add(testEntity, transaction: trans))// ****** 注意要传事务
+                    {
+                        return false;
+                    }
 
-                        return true;
-                    });
-                    _logger.LogInfo($"[{index}] [{Task.CurrentId}] 异步任务结束");
-                    Assert.IsTrue(addResult, $"[{index}] [{Task.CurrentId}] 新增测试数据失败");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"[{index}] [{Task.CurrentId}] 异步任务执行异常", ex);
-                }
+                    return true;
+                });
+                _logger.LogInfo($"[{index}] [{Task.CurrentId}] 异步任务结束");
+                Assert.IsTrue(addResult, $"[{index}] [{Task.CurrentId}] 新增测试数据失败");
             });
         }
 
-        // 等待所有任务完成
-        Task.WaitAll(tasks);
+        var deleteResult = 0;
+        try
+        {
+            // 任务异常必须传播给测试框架，不能只记录日志后吞掉。
+            Task.WaitAll(tasks);
 
-        var nowCount = _testRepository.Count(entity => true);
-        _logger.LogInfo($"###### 新增数据之后有 {nowCount} 条数据");
-
-        Assert.AreEqual(nowCount - preCount, testCount);
-
-        // 删除测试数据
-        var deleteResult = _testRepository.Delete(entity => entity.Remark == "并发写入数据测试（使用事务）");
-        Assert.AreEqual(deleteResult, testCount);
+            var nowCount = _testRepository.Count(entity => true);
+            _logger.LogInfo($"###### 新增数据之后有 {nowCount} 条数据");
+            Assert.AreEqual(testCount, nowCount - preCount);
+        }
+        finally
+        {
+            deleteResult = _testRepository.Delete(entity => entity.Remark == "并发写入数据测试（使用事务）");
+        }
+        Assert.AreEqual(testCount, deleteResult);
     }
 }

@@ -1,14 +1,11 @@
-﻿using Sean.Utility.Extensions;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace Sean.Core.DbRepository;
 
 public static class TableInfoCache
 {
-    private static readonly ConcurrentDictionary<string, List<string>> _tableInfoCache = new();
-    //private static readonly ConcurrentDictionary<string, object> _locker = new();
+    private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _tableInfoCache = new();
 
     public static bool IsTableExists(string dbKey, bool master, string tableName)
     {
@@ -23,8 +20,7 @@ public static class TableInfoCache
                && !string.IsNullOrWhiteSpace(tableName)
                && !string.IsNullOrWhiteSpace(fieldName)
                && _tableInfoCache.TryGetValue(GetTableKey(dbKey, master, tableName), out var fields)
-               && fields != null
-               && fields.Contains(fieldName);
+               && fields.ContainsKey(fieldName);
     }
 
     public static void AddTable(string dbKey, bool master, string tableName)
@@ -34,12 +30,9 @@ public static class TableInfoCache
         if (string.IsNullOrWhiteSpace(tableName))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(tableName));
 
-        if (IsTableExists(dbKey, master, tableName))
-        {
-            return;
-        }
-
-        _tableInfoCache.AddOrUpdate(GetTableKey(dbKey, master, tableName), null);
+        _tableInfoCache.GetOrAdd(
+            GetTableKey(dbKey, master, tableName),
+            _ => new ConcurrentDictionary<string, byte>());
     }
 
     public static void AddTableField(string dbKey, bool master, string tableName, string fieldName)
@@ -52,17 +45,10 @@ public static class TableInfoCache
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(fieldName));
 
         var tableKey = GetTableKey(dbKey, master, tableName);
-        if (_tableInfoCache.TryGetValue(tableKey, out var fields)
-            && fields != null
-            && fields.Contains(fieldName))
-        {
-            return;
-        }
-
-        fields ??= new List<string>();
-        fields.Add(fieldName);
-
-        _tableInfoCache.AddOrUpdate(tableKey, fields);
+        var fields = _tableInfoCache.GetOrAdd(
+            tableKey,
+            _ => new ConcurrentDictionary<string, byte>());
+        fields.TryAdd(fieldName, 0);
     }
 
     public static void RemoveTable(string dbKey, bool master, string tableName)
@@ -73,16 +59,12 @@ public static class TableInfoCache
     public static void RemoveTableField(string dbKey, bool master, string tableName, string fieldName)
     {
         var tableKey = GetTableKey(dbKey, master, tableName);
-        if (!_tableInfoCache.TryGetValue(tableKey, out var fields)
-            || fields == null
-            || !fields.Contains(fieldName))
+        if (!_tableInfoCache.TryGetValue(tableKey, out var fields))
         {
             return;
         }
 
-        fields.Remove(fieldName);
-
-        _tableInfoCache.AddOrUpdate(tableKey, fields);
+        fields.TryRemove(fieldName, out _);
     }
 
     public static void Clear()

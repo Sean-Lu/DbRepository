@@ -55,13 +55,9 @@ public static class SynchronousWriteUtil
     public static T UseDatabaseLock<T>(int lockTimeout, IDbConnection connection, Func<T> func, IDbTransaction transaction = null, Func<int, bool> onLockTakenFailed = null)
     {
         var locker = _databaseLocks.GetOrAdd(connection.ConnectionString, _ => new SynchronousWriteLock { Semaphore = new SemaphoreSlim(1, 1) });
-        if (locker.Connection != null && locker.Connection == connection)
+        if (IsReentrant(locker, connection, transaction))
         {
-            return func();// 使用同一个连接，不需要加锁，可以直接执行
-        }
-        if (locker.Transaction != null && locker.Transaction == transaction)
-        {
-            return func();// 使用同一个事务，不需要加锁，可以直接执行
+            return func();// 使用同一个连接或事务，不需要加锁，可以直接执行
         }
 
         var lockAcquired = false;
@@ -70,8 +66,7 @@ public static class SynchronousWriteUtil
             lockAcquired = locker.Semaphore.Wait(lockTimeout);
             if (lockAcquired)
             {
-                locker.Connection = connection;
-                locker.Transaction = transaction;
+                Interlocked.Exchange(ref locker.Owner, new SynchronousWriteLockOwner(connection, transaction));
             }
             else if (onLockTakenFailed != null && !onLockTakenFailed(lockTimeout))
             {
@@ -84,8 +79,7 @@ public static class SynchronousWriteUtil
         {
             if (lockAcquired)
             {
-                locker.Connection = null;
-                locker.Transaction = null;
+                Interlocked.Exchange(ref locker.Owner, null);
                 locker.Semaphore.Release();
             }
         }
@@ -93,13 +87,9 @@ public static class SynchronousWriteUtil
     public static async Task<T> UseDatabaseLockAsync<T>(int lockTimeout, IDbConnection connection, Func<Task<T>> func, IDbTransaction transaction = null, Func<int, bool> onLockTakenFailed = null)
     {
         var locker = _databaseLocks.GetOrAdd(connection.ConnectionString, _ => new SynchronousWriteLock { Semaphore = new SemaphoreSlim(1, 1) });
-        if (locker.Connection != null && locker.Connection == connection)
+        if (IsReentrant(locker, connection, transaction))
         {
-            return await func();// 使用同一个连接，不需要加锁，可以直接执行
-        }
-        if (locker.Transaction != null && locker.Transaction == transaction)
-        {
-            return await func();// 使用同一个事务，不需要加锁，可以直接执行
+            return await func();// 使用同一个连接或事务，不需要加锁，可以直接执行
         }
 
         var lockAcquired = false;
@@ -108,8 +98,7 @@ public static class SynchronousWriteUtil
             lockAcquired = await locker.Semaphore.WaitAsync(lockTimeout);
             if (lockAcquired)
             {
-                locker.Connection = connection;
-                locker.Transaction = transaction;
+                Interlocked.Exchange(ref locker.Owner, new SynchronousWriteLockOwner(connection, transaction));
             }
             else if (onLockTakenFailed != null && !onLockTakenFailed(lockTimeout))
             {
@@ -124,17 +113,35 @@ public static class SynchronousWriteUtil
             if (lockAcquired)
             {
                 //var curThreadId = Thread.CurrentThread.ManagedThreadId;
-                locker.Connection = null;
-                locker.Transaction = null;
+                Interlocked.Exchange(ref locker.Owner, null);
                 locker.Semaphore.Release();
             }
         }
+    }
+
+    private static bool IsReentrant(SynchronousWriteLock locker, IDbConnection connection, IDbTransaction transaction)
+    {
+        var owner = Interlocked.CompareExchange(ref locker.Owner, null, null);
+        return owner != null
+               && (ReferenceEquals(owner.Connection, connection)
+                   || owner.Transaction != null && ReferenceEquals(owner.Transaction, transaction));
     }
 }
 
 internal class SynchronousWriteLock
 {
     public SemaphoreSlim Semaphore { get; set; }
-    public IDbConnection Connection { get; set; }
-    public IDbTransaction Transaction { get; set; }
+    public SynchronousWriteLockOwner Owner;
+}
+
+internal sealed class SynchronousWriteLockOwner
+{
+    public SynchronousWriteLockOwner(IDbConnection connection, IDbTransaction transaction)
+    {
+        Connection = connection;
+        Transaction = transaction;
+    }
+
+    public IDbConnection Connection { get; }
+    public IDbTransaction Transaction { get; }
 }
