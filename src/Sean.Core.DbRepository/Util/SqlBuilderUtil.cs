@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -119,6 +120,7 @@ internal static class SqlBuilderUtil
         Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
         var fields = fieldExpression.GetFieldNames();
+        var valueLiteral = FormatNumericLiteral(value);
         foreach (var field in fields)
         {
             if (string.IsNullOrWhiteSpace(field)) continue;
@@ -126,7 +128,7 @@ internal static class SqlBuilderUtil
             var fieldInfo = includeFieldsList.Find(c => c.TableName == tableName && c.FieldName == field);
             if (fieldInfo != null)
             {
-                fieldInfo.SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}";
+                fieldInfo.SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {valueLiteral}";
             }
             else
             {
@@ -134,7 +136,7 @@ internal static class SqlBuilderUtil
                 {
                     TableName = tableName,
                     FieldName = field,
-                    SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {value}"
+                    SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} + {valueLiteral}"
                 });
             }
         }
@@ -143,6 +145,7 @@ internal static class SqlBuilderUtil
         Expression<Func<TEntity, object>> fieldExpression, TValue value) where TValue : struct
     {
         var fields = fieldExpression.GetFieldNames();
+        var valueLiteral = FormatNumericLiteral(value);
         foreach (var field in fields)
         {
             if (string.IsNullOrWhiteSpace(field)) continue;
@@ -150,7 +153,7 @@ internal static class SqlBuilderUtil
             var fieldInfo = includeFieldsList.Find(c => c.TableName == tableName && c.FieldName == field);
             if (fieldInfo != null)
             {
-                fieldInfo.SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}";
+                fieldInfo.SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {valueLiteral}";
             }
             else
             {
@@ -158,7 +161,7 @@ internal static class SqlBuilderUtil
                 {
                     TableName = tableName,
                     FieldName = field,
-                    SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {value}"
+                    SetFieldCustomHandler = (fieldName, adapter) => $"{adapter.FormatFieldName(fieldName)} = {adapter.FormatFieldName(fieldName)} - {valueLiteral}"
                 });
             }
         }
@@ -376,7 +379,7 @@ internal static class SqlBuilderUtil
         var valueType = Nullable.GetUnderlyingType(type) ?? type;
         if (valueType == typeof(string))
         {
-            return $"'{value.ToString().Replace("'", "\\'")}'";
+            return EscapeSqlLiteral(dbType, value.ToString());
         }
 
         if (valueType == typeof(bool))
@@ -403,17 +406,21 @@ internal static class SqlBuilderUtil
             || valueType == typeof(decimal)
            )
         {
-            return $"{value}";
+            // Use InvariantCulture to avoid culture-sensitive formatting (e.g. ',' as decimal separator).
+            return Convert.ToString(value, CultureInfo.InvariantCulture);
         }
 
         if (valueType == typeof(DateTime))
         {
-            return $"'{value:yyyy-MM-dd HH:mm:ss}'";
+            // Keep the existing second-level SQL shape while making formatting culture-independent.
+            return $"'{((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)}'";
         }
 
         if (valueType.IsEnum)
         {
-            return $"{(int)value}";
+            // Convert via underlying enum type (supports non-int backing types like byte/long).
+            var underlyingValue = Convert.ChangeType(value, Enum.GetUnderlyingType(valueType), CultureInfo.InvariantCulture);
+            return Convert.ToString(underlyingValue, CultureInfo.InvariantCulture);
         }
 
         if (value is IEnumerable enumerable)// 数组或集合
@@ -422,6 +429,53 @@ internal static class SqlBuilderUtil
             return $"({string.Join(",", valueStrings)})";
         }
 
-        return $"'{value.ToString().Replace("'", "\\'")}'";
+        return EscapeSqlLiteral(dbType, value.ToString());
+    }
+
+    /// <summary>
+    /// Formats a string as a SQL literal. MySQL-compatible databases require special handling for
+    /// backslashes so the result is safe with or without NO_BACKSLASH_ESCAPES enabled.
+    /// </summary>
+    internal static string EscapeSqlLiteral(DatabaseType dbType, string value)
+    {
+        if (!IsMySqlCompatible(dbType) || value.IndexOf('\\') < 0)
+        {
+            return FormatAnsiStringLiteral(value);
+        }
+
+        // Keep backslashes outside quoted literals so they cannot escape a quote in MySQL's default mode.
+        // CHAR(92) also preserves the original value when NO_BACKSLASH_ESCAPES is enabled.
+        var valueParts = value.Split('\\');
+        var sqlParts = new List<string>(valueParts.Length * 2 - 1);
+        for (var i = 0; i < valueParts.Length; i++)
+        {
+            sqlParts.Add(FormatAnsiStringLiteral(valueParts[i]));
+            if (i < valueParts.Length - 1)
+            {
+                sqlParts.Add("CHAR(92)");
+            }
+        }
+        return $"CONCAT({string.Join(",", sqlParts)})";
+    }
+
+    private static string FormatAnsiStringLiteral(string value)
+    {
+        return $"'{value.Replace("'", "''")}'";
+    }
+
+    private static bool IsMySqlCompatible(DatabaseType dbType)
+    {
+        return dbType == DatabaseType.MySql
+               || dbType == DatabaseType.MariaDB
+               || dbType == DatabaseType.TiDB
+               || dbType == DatabaseType.OceanBase;
+    }
+
+    /// <summary>
+    /// Formats a numeric value as a SQL literal using InvariantCulture.
+    /// </summary>
+    private static string FormatNumericLiteral(object value)
+    {
+        return Convert.ToString(value, CultureInfo.InvariantCulture);
     }
 }
