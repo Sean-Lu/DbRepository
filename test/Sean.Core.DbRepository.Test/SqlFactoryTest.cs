@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Util;
@@ -503,6 +504,143 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
             {"UserId",1001L},
         }, sqlCommand.Parameter as Dictionary<string, object>);
     }
+
+    [TestMethod]
+    public void TestSelectTopForOracle()
+    {
+        var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.Oracle)
+            .SelectFields(entity => new { entity.Id, entity.UserName })
+            .Where(entity => entity.Status == 1)
+            .OrderBy(OrderByType.Desc, entity => entity.Id)
+            .Top(5)
+            .Build();
+
+        Assert.AreEqual(
+            "SELECT * FROM (SELECT \"Id\", \"UserName\" FROM \"Test\" WHERE \"Status\" = :Status ORDER BY \"Id\" DESC) WHERE ROWNUM <= 5",
+            sqlCommand.Sql);
+        AssertSqlParameters(new Dictionary<string, object>
+        {
+            { "Status", 1 }
+        }, sqlCommand.Parameter as Dictionary<string, object>);
+    }
+
+    [TestMethod]
+    public void TestSelectPageForOracle()
+    {
+        var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.Oracle)
+            .SelectFields(entity => new { entity.Id, entity.UserName })
+            .Where(entity => entity.Status == 1)
+            .OrderBy(OrderByType.Asc, entity => entity.Id)
+            .Page(2, 10)
+            .Build();
+
+        Assert.AreEqual(
+            "SELECT t2.\"Id\", t2.\"UserName\" FROM (SELECT t1.*, ROWNUM ROW_NUM FROM (SELECT \"Id\", \"UserName\" FROM \"Test\" WHERE \"Status\" = :Status ORDER BY \"Id\" ASC) t1 WHERE ROWNUM <= 20) t2 WHERE t2.ROW_NUM > 10 ORDER BY t2.ROW_NUM",
+            sqlCommand.Sql);
+        AssertSqlParameters(new Dictionary<string, object>
+        {
+            { "Status", 1 }
+        }, sqlCommand.Parameter as Dictionary<string, object>);
+    }
+
+    [TestMethod]
+    public void TestSelectJoinedFieldsPageForOracle()
+    {
+        var sqlCommand = SqlFactory.CreateQueryableBuilder<Test2Entity>(DatabaseType.Oracle)
+            .SelectFields(entity => new { entity.UserId, entity.UserName })
+            .OrderBy(OrderByType.Asc, entity => entity.UserId)
+            .Offset(5, 5)
+            .Build();
+
+        Assert.AreEqual(
+            "SELECT t2.\"UserId\", t2.UserName FROM (SELECT t1.*, ROWNUM ROW_NUM FROM (SELECT t_.\"UserId\", u.\"Name\" AS UserName FROM \"Test\" t_ LEFT JOIN \"User\" u ON t_.\"UserId\" = u.\"Id\" ORDER BY t_.\"UserId\" ASC) t1 WHERE ROWNUM <= 10) t2 WHERE t2.ROW_NUM > 5 ORDER BY t2.ROW_NUM",
+            sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestSelectOnlyJoinedFieldPageForOracle()
+    {
+        var sqlCommand = SqlFactory.CreateQueryableBuilder<Test2Entity>(DatabaseType.Oracle)
+            .SelectFields(entity => entity.UserName)
+            .OrderBy(OrderByType.Asc, entity => entity.UserId)
+            .Page(1, 5)
+            .Build();
+
+        Assert.AreEqual(
+            "SELECT t2.UserName FROM (SELECT t1.*, ROWNUM ROW_NUM FROM (SELECT u.\"Name\" AS UserName FROM \"Test\" t_ LEFT JOIN \"User\" u ON t_.\"UserId\" = u.\"Id\" ORDER BY t_.\"UserId\" ASC) t1 WHERE ROWNUM <= 5) t2 WHERE t2.ROW_NUM > 0 ORDER BY t2.ROW_NUM",
+            sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestSelectDistinctPageForOracle()
+    {
+        var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.Oracle)
+            .DistinctFields(entity => new { entity.UserId, entity.UserName })
+            .OrderBy(OrderByType.Asc, entity => entity.UserId)
+            .Page(1, 10)
+            .Build();
+
+        Assert.AreEqual(
+            "SELECT t2.\"UserId\", t2.\"UserName\" FROM (SELECT t1.*, ROWNUM ROW_NUM FROM (SELECT DISTINCT \"UserId\",\"UserName\" FROM \"Test\" ORDER BY \"UserId\" ASC) t1 WHERE ROWNUM <= 10) t2 WHERE t2.ROW_NUM > 0 ORDER BY t2.ROW_NUM",
+            sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestSelectPageWithoutOrderForOracle()
+    {
+        var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.Oracle)
+            .SelectFields(entity => new { entity.Id, entity.UserName })
+            .Page(1, 2)
+            .Build();
+
+        Assert.AreEqual(
+            "SELECT t2.\"Id\", t2.\"UserName\" FROM (SELECT t1.*, ROWNUM ROW_NUM FROM (SELECT \"Id\", \"UserName\" FROM \"Test\") t1 WHERE ROWNUM <= 2) t2 WHERE t2.ROW_NUM > 0 ORDER BY t2.ROW_NUM",
+            sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestSelectAggregatePageForOracle()
+    {
+        var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.Oracle)
+            .SelectFields(entity => entity.UserId)
+            .MaxField(entity => entity.AccountBalance, "MaxValue")
+            .GroupBy(entity => entity.UserId)
+            .Having("MAX(\"AccountBalance\") > 0")
+            .OrderBy(OrderByType.Asc, entity => entity.UserId)
+            .Page(1, 10)
+            .Build();
+
+        Assert.AreEqual(
+            "SELECT t2.\"UserId\", t2.MaxValue FROM (SELECT t1.*, ROWNUM ROW_NUM FROM (SELECT \"UserId\", MAX(\"AccountBalance\") AS MaxValue FROM \"Test\" GROUP BY \"UserId\" HAVING MAX(\"AccountBalance\") > 0 ORDER BY \"UserId\" ASC) t1 WHERE ROWNUM <= 10) t2 WHERE t2.ROW_NUM > 0 ORDER BY t2.ROW_NUM",
+            sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestSelectAggregateWithoutAliasPageForOracle()
+    {
+        var sqlCommand = SqlFactory.CreateQueryableBuilder<TestEntity>(DatabaseType.Oracle)
+            .MaxField(entity => entity.AccountBalance)
+            .Page(1, 1)
+            .Build();
+
+        Assert.AreEqual(
+            "SELECT t2.\"MAX(\"\"AccountBalance\"\")\" FROM (SELECT t1.*, ROWNUM ROW_NUM FROM (SELECT MAX(\"AccountBalance\") FROM \"Test\") t1 WHERE ROWNUM <= 1) t2 WHERE t2.ROW_NUM > 0 ORDER BY t2.ROW_NUM",
+            sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestSelectMappedFieldPageForOracle()
+    {
+        var sqlCommand = SqlFactory.CreateQueryableBuilder<OracleMappedEntity>(DatabaseType.Oracle)
+            .SelectFields(entity => entity.Id)
+            .OrderBy(OrderByType.Asc, entity => entity.Id)
+            .Page(1, 10)
+            .Build();
+
+        Assert.AreEqual(
+            "SELECT t2.Id FROM (SELECT t1.*, ROWNUM ROW_NUM FROM (SELECT \"DB_ID\" AS Id FROM \"OracleMapped\" ORDER BY \"DB_ID\" ASC) t1 WHERE ROWNUM <= 10) t2 WHERE t2.ROW_NUM > 0 ORDER BY t2.ROW_NUM",
+            sqlCommand.Sql);
+    }
     #endregion
 
 
@@ -904,4 +1042,11 @@ VALUES(@UserId_1, @UserName_1, @Age_1, @Sex_1, @PhoneNumber_1, @Email_1, @IsVip_
         Assert.AreEqual("`Test`.`CreateTime` DESC, `CheckInLog`.`Id` DESC", orderByClause);
     }
     #endregion
+
+    [Table("OracleMapped")]
+    private sealed class OracleMappedEntity
+    {
+        [Column("DB_ID")]
+        public long Id { get; set; }
+    }
 }

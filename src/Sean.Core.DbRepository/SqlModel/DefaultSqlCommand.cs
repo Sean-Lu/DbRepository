@@ -2,8 +2,8 @@
 using Sean.Core.DbRepository.Util;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace Sean.Core.DbRepository;
 
@@ -57,7 +57,7 @@ public class DefaultSqlCommand : ISqlCommand
         var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
         if (removeUnusedParameter && !_unusedSqlParameterRemoved && !_useQuestionMarkParameter)
         {
-            SqlParameterUtil.RemoveUnusedParameters(dicParameters, Sql);
+            SqlParameterUtil.RemoveUnusedParameters(dicParameters, Sql, DbType);
 
             _unusedSqlParameterRemoved = true;
         }
@@ -85,14 +85,17 @@ public class DefaultSqlCommand : ISqlCommand
         var dic = new Dictionary<string, object>();
         if (dicParameters != null)
         {
-            var sortedSqlParameters = SqlParameterUtil.ParseSqlParameters(Sql);
-            if (sortedSqlParameters != null)
+            var sortedSqlParameterNames = useQuestionMarkParameter
+                ? SqlParameterUtil.ParseSqlParameterNamesInOrder(Sql, DbType)
+                : SqlParameterUtil.ParseSqlParameters(Sql, DbType)
+                    .OrderBy(parameter => parameter.Value)
+                    .Select(parameter => parameter.Key);
+            if (sortedSqlParameterNames != null)
             {
                 var paramNumber = 0;
-                foreach (var keyValuePair in sortedSqlParameters)
+                foreach (var paraName in sortedSqlParameterNames)
                 {
                     paramNumber++;
-                    var paraName = keyValuePair.Key;
                     if (!dicParameters.ContainsKey(paraName))
                     {
                         throw new InvalidOperationException($"The sql parameter [{paraName}] does not exist.");
@@ -120,7 +123,7 @@ public class DefaultSqlCommand : ISqlCommand
             return;
         }
 
-        Sql = SqlParameterUtil.UseQuestionMarkParameter(Sql);
+        Sql = SqlParameterUtil.UseQuestionMarkParameter(Sql, DbType);
 
         BindSqlParameterType = BindSqlParameterType.BindByPosition;
 
@@ -131,48 +134,48 @@ public class DefaultSqlCommand : ISqlCommand
     {
         if (_useQuestionMarkParameter)
         {
-            var pattern = @"\?";
-            if (Regex.IsMatch(Sql, pattern))
+            var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
+            if (dicParameters != null && dicParameters.Any())
             {
-                var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
-                if (dicParameters != null && dicParameters.Any())
+                var positionalParameters = dicParameters.ToList();
+                // ConvertParameterToDictionaryByPosition 生成的键为从 1 开始的序号，
+                // 必须按数值排序，不能依赖 Dictionary 在不同目标框架下的枚举顺序。
+                if (positionalParameters.All(parameter => int.TryParse(parameter.Key, NumberStyles.None,
+                        CultureInfo.InvariantCulture, out _)))
                 {
-                    var index = 0;
-                    Sql = Regex.Replace(Sql, pattern, match =>
-                    {
-                        if (index >= dicParameters.Count)
-                        {
-                            throw new Exception("Not enough sql parameters passed.");
-                        }
-
-                        var sqlParameter = dicParameters.ElementAt(index++);
-                        var convertResult = SqlBuilderUtil.ConvertToSqlString(DbType, sqlParameter.Value, out var convertible);
-                        return convertible ? convertResult : throw new Exception($"The sql parameter [{sqlParameter.Key}] cannot be converted to a string value.");
-                    });
+                    positionalParameters = positionalParameters
+                        .OrderBy(parameter => int.Parse(parameter.Key, CultureInfo.InvariantCulture))
+                        .ToList();
                 }
+
+                Sql = SqlParameterUtil.ReplaceQuestionMarkParameters(Sql, index =>
+                {
+                    if (index >= positionalParameters.Count)
+                    {
+                        throw new Exception("Not enough sql parameters passed.");
+                    }
+
+                    var sqlParameter = positionalParameters[index];
+                    var convertResult = SqlBuilderUtil.ConvertToSqlString(DbType, sqlParameter.Value, out var convertible);
+                    return convertible ? convertResult : throw new Exception($"The sql parameter [{sqlParameter.Key}] cannot be converted to a string value.");
+                }, DbType);
             }
         }
         else
         {
-            var sortedSqlParameters = SqlParameterUtil.ParseSqlParameters(Sql);
-            if (sortedSqlParameters != null && sortedSqlParameters.Any())
+            var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
+            if (dicParameters != null && dicParameters.Any())
             {
-                var dicParameters = SqlParameterUtil.ConvertToDicParameter(Parameter);
-                if (dicParameters != null && dicParameters.Any())
+                Sql = SqlParameterUtil.ReplaceSqlParameters(Sql, paraName =>
                 {
-                    foreach (var kv in sortedSqlParameters)
+                    if (!dicParameters.ContainsKey(paraName))
                     {
-                        var paraName = kv.Key;
-                        if (dicParameters.ContainsKey(paraName))
-                        {
-                            var convertResult = SqlBuilderUtil.ConvertToSqlString(DbType, dicParameters[paraName], out var convertible);
-                            if (convertible)
-                            {
-                                Sql = SqlParameterUtil.ReplaceParameter(Sql, paraName, convertResult);
-                            }
-                        }
+                        return null;
                     }
-                }
+
+                    var convertResult = SqlBuilderUtil.ConvertToSqlString(DbType, dicParameters[paraName], out var convertible);
+                    return convertible ? convertResult : null;
+                }, DbType);
             }
         }
     }

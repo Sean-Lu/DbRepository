@@ -526,7 +526,8 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
         }
 
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-        var selectFields = _tableFieldList.Any() ? string.Join(", ", _tableFieldList.Select(fieldInfo =>
+        // 仅选择联表映射字段时主表字段列表为空，不能回退为 * 并丢失联表字段的输出别名。
+        var selectFields = _tableFieldList.Any() || _selectJoinFields.Any() ? string.Join(", ", _tableFieldList.Select(fieldInfo =>
         {
             if (fieldInfo.IsFieldNameFormatted)
             {
@@ -588,8 +589,9 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
                     sql.Sql = $"SELECT FIRST {_topNumber} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     break;
                 case DatabaseType.Oracle:
-                    var sqlWhere = string.IsNullOrEmpty(WhereSql) ? $" WHERE ROWNUM <= {_topNumber}" : $"{WhereSql} AND ROWNUM <= {_topNumber}";
-                    sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql}";
+                    // Oracle 必须先在内层完成排序，再由外层应用 ROWNUM；否则取到的是排序前的任意行。
+                    var topInnerSql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+                    sql.Sql = $"SELECT * FROM ({topInnerSql}) WHERE ROWNUM <= {_topNumber}";
                     break;
                 default:
                     sql.Sql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {_topNumber}";
@@ -670,15 +672,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
             case DatabaseType.Informix:
                 return $"SELECT SKIP {offset} FIRST {rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
             case DatabaseType.Oracle:
-                {
-                    if (!string.IsNullOrWhiteSpace(OrderBySql))
-                    {
-                        return GetRowNumberQuerySql(selectFields, offset, rows);
-                    }
-
-                    var sqlWhere = $"{(!string.IsNullOrEmpty(WhereSql) ? $"{WhereSql} AND" : " WHERE")} ROWNUM <= {offset + rows}";
-                    return $"SELECT {selectFields} FROM (SELECT ROWNUM ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset}";
-                }
+                return GetOracleQuerySql(selectFields, offset, rows);
             default:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows}";
         }
@@ -703,6 +697,146 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
         }
 
         return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{orderBy} OFFSET {offset} ROWS FETCH NEXT {rows} ROWS ONLY";
+    }
+
+    private string GetOracleQuerySql(string selectFields, int offset, int rows)
+    {
+        // 第一层先完成原始查询的排序、分组和 HAVING，保证分页基于最终结果顺序。
+        var innerSql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
+        // 第二层在上界内物化 ROWNUM；最外层再过滤下界，并重建原始投影以隐藏辅助行号列。
+        var outerSelectFields = GetOracleOuterSelectFields("t2");
+        return $"SELECT {outerSelectFields} FROM (SELECT t1.*, ROWNUM ROW_NUM FROM ({innerSql}) t1 WHERE ROWNUM <= {offset + rows}) t2 WHERE t2.ROW_NUM > {offset} ORDER BY t2.ROW_NUM";
+    }
+
+    private string GetOracleOuterSelectFields(string tableAlias)
+    {
+        // t2.* 会把 ROW_NUM 暴露给实体映射，因此必须按内层实际输出列名重新生成投影。
+        var result = new List<string>();
+        var entityFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
+        foreach (var fieldInfo in _tableFieldList)
+        {
+            if (!string.IsNullOrWhiteSpace(fieldInfo.AliasName))
+            {
+                // 聚合或自定义字段显式指定了别名时，派生表只暴露该别名。
+                result.Add($"{tableAlias}.{fieldInfo.AliasName}");
+                continue;
+            }
+
+            if (fieldInfo.IsFieldNameFormatted)
+            {
+                const string distinctPrefix = "DISTINCT ";
+                if (fieldInfo.FieldName.StartsWith(distinctPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    // DistinctFields 将多个字段保存在一个格式化节点中，外层需要逐列展开。
+                    var distinctFields = SplitSelectFields(fieldInfo.FieldName.Substring(distinctPrefix.Length));
+                    result.AddRange(distinctFields.Select(field => GetOracleOuterFieldReference(tableAlias, field)));
+                }
+                else
+                {
+                    result.Add(GetOracleOuterFieldReference(tableAlias, fieldInfo.FieldName));
+                }
+                continue;
+            }
+
+            var entityFieldInfo = entityFieldInfos.Find(field => field.FieldName == fieldInfo.FieldName);
+            // [Column] 映射字段在内层以属性名作为别名，外层必须继续引用属性名。
+            result.Add(entityFieldInfo != null && entityFieldInfo.Property.Name != fieldInfo.FieldName
+                ? $"{tableAlias}.{entityFieldInfo.Property.Name}"
+                : $"{tableAlias}.{DatabaseType.Oracle.MarkAsIdentifier(fieldInfo.FieldName)}");
+        }
+
+        // 联表映射字段在内层统一使用目标属性名作为别名。
+        result.AddRange(_selectJoinFields.Select(field => GetOracleOuterFieldReference(tableAlias, field)));
+        return result.Any() ? string.Join(", ", result) : $"{tableAlias}.*";
+    }
+
+    private static string GetOracleOuterFieldReference(string tableAlias, string selectField)
+    {
+        var aliasIndex = selectField.LastIndexOf(" AS ", StringComparison.OrdinalIgnoreCase);
+        if (aliasIndex >= 0)
+        {
+            return $"{tableAlias}.{selectField.Substring(aliasIndex + 4).Trim()}";
+        }
+
+        var field = selectField.Trim();
+        if (IsSimpleSqlIdentifier(field))
+        {
+            return $"{tableAlias}.{field}";
+        }
+
+        var qualifierIndex = field.LastIndexOf('.');
+        if (qualifierIndex > 0)
+        {
+            var qualifier = field.Substring(0, qualifierIndex).Trim();
+            var unqualifiedField = field.Substring(qualifierIndex + 1).Trim();
+            if (IsSimpleSqlIdentifier(qualifier) && IsSimpleSqlIdentifier(unqualifiedField))
+            {
+                return $"{tableAlias}.{unqualifiedField}";
+            }
+        }
+
+        // 未显式指定别名的表达式使用 Oracle 返回的表达式列名，避免把辅助行号列暴露给调用方。
+        return $"{tableAlias}.\"{field.Replace("\"", "\"\"")}\"";
+    }
+
+    private static bool IsSimpleSqlIdentifier(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        if (value.Length >= 2 && value[0] == '"' && value[value.Length - 1] == '"')
+        {
+            return true;
+        }
+
+        return value.All(character => char.IsLetterOrDigit(character) || character is '_' or '$' or '#');
+    }
+
+    private static IEnumerable<string> SplitSelectFields(string selectFields)
+    {
+        // 仅拆分 ORM 生成的 DISTINCT 字段列表；括号或双引号内部的逗号不属于字段分隔符。
+        var result = new List<string>();
+        var start = 0;
+        var parenthesesDepth = 0;
+        var quoted = false;
+        for (var i = 0; i < selectFields.Length; i++)
+        {
+            var character = selectFields[i];
+            if (character == '"')
+            {
+                if (quoted && i + 1 < selectFields.Length && selectFields[i + 1] == '"')
+                {
+                    i++;
+                    continue;
+                }
+                quoted = !quoted;
+                continue;
+            }
+
+            if (quoted)
+            {
+                continue;
+            }
+
+            if (character == '(')
+            {
+                parenthesesDepth++;
+            }
+            else if (character == ')' && parenthesesDepth > 0)
+            {
+                parenthesesDepth--;
+            }
+            else if (character == ',' && parenthesesDepth == 0)
+            {
+                result.Add(selectFields.Substring(start, i - start).Trim());
+                start = i + 1;
+            }
+        }
+
+        result.Add(selectFields.Substring(start).Trim());
+        return result.Where(field => !string.IsNullOrWhiteSpace(field));
     }
 
     private void HandleJoinField(IEnumerable<MemberInfo> memberInfos)
