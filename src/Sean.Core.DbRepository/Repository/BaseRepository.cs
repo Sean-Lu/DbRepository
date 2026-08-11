@@ -1293,23 +1293,24 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                     countableBuilder.SetParameter(entity);
                     ISqlCommand sqlCommand = countableBuilder.Build();
                     sqlCommand.Master = true;
+                    sqlCommand.Transaction = transaction;
                     sqlCommand.CommandTimeout = CommandTimeout;
                     if (ExecuteScalar<int>(sqlCommand) < 1)
                     {
-                        // INSERT
+                        // 新增
                         return Add(entity, false, fieldExpression, transaction);
                     }
 
-                    //if (transaction?.Connection == null)
-                    //{
-                    //    return ExecuteAutoTransaction(trans =>
-                    //    {
-                    //        // DELETE && INSERT
-                    //        return Delete(entity, trans) && Add(entity, false, fieldExpression, trans);
-                    //    });
-                    //}
+                    if (transaction == null && ShouldWrapDeleteInsertInLocalTransaction())
+                    {
+                        return ExecuteAutoTransaction(trans =>
+                        {
+                            // DELETE 和 INSERT 必须处于同一事务，避免插入失败后原数据丢失。
+                            return Delete(entity, trans) && Add(entity, false, fieldExpression, trans);
+                        });
+                    }
 
-                    // DELETE && INSERT
+                    // 删除后新增
                     return Delete(entity, transaction) && Add(entity, false, fieldExpression, transaction);
                 }
         }
@@ -1981,23 +1982,24 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                     countableBuilder.SetParameter(entity);
                     ISqlCommand sqlCommand = countableBuilder.Build();
                     sqlCommand.Master = true;
+                    sqlCommand.Transaction = transaction;
                     sqlCommand.CommandTimeout = CommandTimeout;
                     if (await ExecuteScalarAsync<int>(sqlCommand) < 1)
                     {
-                        // INSERT
+                        // 新增
                         return await AddAsync(entity, false, fieldExpression, transaction);
                     }
 
-                    //if (transaction?.Connection == null)
-                    //{
-                    //    return await ExecuteAutoTransactionAsync(async trans =>
-                    //    {
-                    //        // DELETE && INSERT
-                    //        return await DeleteAsync(entity, trans) && await AddAsync(entity, false, fieldExpression, trans);
-                    //    });
-                    //}
+                    if (transaction == null && ShouldWrapDeleteInsertInLocalTransaction())
+                    {
+                        return await ExecuteAutoTransactionAsync(async trans =>
+                        {
+                            // DELETE 和 INSERT 必须处于同一事务，避免插入失败后原数据丢失。
+                            return await DeleteAsync(entity, trans) && await AddAsync(entity, false, fieldExpression, trans);
+                        });
+                    }
 
-                    // DELETE && INSERT
+                    // 删除后新增
                     return await DeleteAsync(entity, transaction) && await AddAsync(entity, false, fieldExpression, transaction);
                 }
         }
@@ -2070,6 +2072,31 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                     return true;
                 }
         }
+    }
+
+    private bool ShouldWrapDeleteInsertInLocalTransaction()
+    {
+        // 仅对已验证可通过 ADO.NET 本地事务安全包裹 DELETE+INSERT 的数据库启用，其余类型保留原有逐语句行为。
+        return DbType is DatabaseType.MySql
+            or DatabaseType.MariaDB
+            or DatabaseType.TiDB
+            or DatabaseType.OceanBase
+            or DatabaseType.SqlServer
+            or DatabaseType.Oracle
+            or DatabaseType.SQLite
+            or DatabaseType.DuckDB
+            or DatabaseType.MsAccess
+            or DatabaseType.Firebird
+            or DatabaseType.PostgreSql
+            or DatabaseType.OpenGauss
+            or DatabaseType.HighgoDB
+            or DatabaseType.IvorySQL
+            or DatabaseType.DB2
+            or DatabaseType.Informix
+            or DatabaseType.Dameng
+            or DatabaseType.KingbaseES
+            or DatabaseType.ShenTong
+            or DatabaseType.Xugu;
     }
 
     public virtual async Task<bool> DeleteAsync(TEntity entity, IDbTransaction transaction = null)

@@ -667,15 +667,24 @@ public class DbFactory
     public DbDataReader ExecuteReader(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
     {
         var connection = CreateConnection(master);
-        using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+        try
         {
-            return command.ExecuteReader(SqlMonitor, CommandBehavior.CloseConnection);
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                return command.ExecuteReader(SqlMonitor, CommandBehavior.CloseConnection);
+            }
+        }
+        catch
+        {
+            connection?.Dispose();
+            throw;
         }
     }
     /// <summary>   
     /// Execute the query.
     /// <para>执行查询</para>
-    /// </summary>   
+    /// </summary>
+    /// <param name="connectionString">数据库连接字符串</param>
     /// <param name="commandType">Command type</param>
     /// <param name="commandText">Command text to be executed</param>
     /// <param name="parameters">Input parameters</param>
@@ -683,9 +692,17 @@ public class DbFactory
     public DbDataReader ExecuteReader(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
     {
         var connection = CreateConnection(connectionString);
-        using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+        try
         {
-            return command.ExecuteReader(SqlMonitor, CommandBehavior.CloseConnection);
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                return command.ExecuteReader(SqlMonitor, CommandBehavior.CloseConnection);
+            }
+        }
+        catch
+        {
+            connection?.Dispose();
+            throw;
         }
     }
     /// <summary>   
@@ -747,15 +764,24 @@ public class DbFactory
     public async Task<DbDataReader> ExecuteReaderAsync(string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text, bool master = true)
     {
         var connection = CreateConnection(master);
-        using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+        try
         {
-            return await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.CloseConnection);
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                return await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.CloseConnection);
+            }
+        }
+        catch
+        {
+            connection?.Dispose();
+            throw;
         }
     }
     /// <summary>   
     /// Execute the query.
     /// <para>执行查询</para>
     /// </summary>   
+    /// <param name="connectionString">数据库连接字符串</param>
     /// <param name="commandType">Command type</param>
     /// <param name="commandText">Command text to be executed</param>
     /// <param name="parameters">Input parameters</param>
@@ -763,9 +789,17 @@ public class DbFactory
     public async Task<DbDataReader> ExecuteReaderAsync(string connectionString, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
     {
         var connection = CreateConnection(connectionString);
-        using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+        try
         {
-            return await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.CloseConnection);
+            using (var command = CreateDbCommand(null, connection, commandType, commandText, parameters))
+            {
+                return await command.ExecuteReaderAsync(SqlMonitor, CommandBehavior.CloseConnection);
+            }
+        }
+        catch
+        {
+            connection?.Dispose();
+            throw;
         }
     }
     /// <summary>   
@@ -1529,8 +1563,16 @@ public class DbFactory
     public DbConnection OpenNewConnection(bool master = true)
     {
         var connection = CreateConnection(master);
-        OpenConnection(connection);
-        return connection;
+        try
+        {
+            OpenConnection(connection);
+            return connection;
+        }
+        catch
+        {
+            connection?.Dispose();
+            throw;
+        }
     }
     /// <summary>
     /// Create and open a new connection.
@@ -1540,8 +1582,16 @@ public class DbFactory
     public DbConnection OpenNewConnection(string connectionString)
     {
         var connection = CreateConnection(connectionString);
-        OpenConnection(connection);
-        return connection;
+        try
+        {
+            OpenConnection(connection);
+            return connection;
+        }
+        catch
+        {
+            connection?.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -1634,10 +1684,12 @@ public class DbFactory
         }
 
         var useInternalConnection = false;
-        using (var command = CreateDbCommand(sqlCommand))
+        var completedSuccessfully = false;
+        DbConnection connection = null;
+        try
         {
-            DbConnection connection = null;
-            try
+            T result;
+            using (var command = CreateDbCommand(sqlCommand))
             {
                 if (command.Connection == null)
                 {
@@ -1646,16 +1698,18 @@ public class DbFactory
                     command.Connection = connection;
                 }
 
-                var result = func(command, useInternalConnection);
+                result = func(command, useInternalConnection);
                 sqlCommand.OutputParameterOptions?.ExecuteOutput(paramName => command.Parameters[paramName].Value);
-                return result;
             }
-            finally
+
+            completedSuccessfully = true;
+            return result;
+        }
+        finally
+        {
+            if (useInternalConnection && (autoCloseInternalConnection || !completedSuccessfully))
             {
-                if (useInternalConnection && autoCloseInternalConnection)
-                {
-                    connection?.Dispose();
-                }
+                connection?.Dispose();
             }
         }
     }
@@ -1670,10 +1724,12 @@ public class DbFactory
         }
 
         var useInternalConnection = false;
-        using (var command = CreateDbCommand(sqlCommand))
+        var completedSuccessfully = false;
+        DbConnection connection = null;
+        try
         {
-            DbConnection connection = null;
-            try
+            T result;
+            using (var command = CreateDbCommand(sqlCommand))
             {
                 if (command.Connection == null)
                 {
@@ -1682,16 +1738,18 @@ public class DbFactory
                     command.Connection = connection;
                 }
 
-                var result = await func(command, useInternalConnection);
+                result = await func(command, useInternalConnection);
                 sqlCommand.OutputParameterOptions?.ExecuteOutput(paramName => command.Parameters[paramName].Value);
-                return result;
             }
-            finally
+
+            completedSuccessfully = true;
+            return result;
+        }
+        finally
+        {
+            if (useInternalConnection && (autoCloseInternalConnection || !completedSuccessfully))
             {
-                if (useInternalConnection && autoCloseInternalConnection)
-                {
-                    connection?.Dispose();
-                }
+                connection?.Dispose();
             }
         }
     }
