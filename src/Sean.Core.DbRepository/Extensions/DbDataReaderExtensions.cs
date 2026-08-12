@@ -48,13 +48,10 @@ public static class DbDataReaderExtensions
         var list = new List<T>();
         Func<IDataRecord, T> mapper = null;
         var count = 0;
-        while (dataReader.Read())
+        // 数量判断必须先于 Read，避免达到上限后仍消费下一条记录。
+        while ((!readCount.HasValue || readCount.Value <= 0 || count < readCount.Value)
+               && dataReader.Read())
         {
-            if (readCount.HasValue && readCount.Value > 0 && count >= readCount.Value)
-            {
-                break;
-            }
-
             mapper ??= CreateModelMapper<T>(dataReader);
             T model = mapper(dataReader);
             list.Add(model);
@@ -173,13 +170,10 @@ public static class DbDataReaderExtensions
         var list = new List<T>();
         Func<IDataRecord, T> mapper = null;
         var count = 0;
-        while (await dataReader.ReadAsync())
+        // 与同步路径保持相同的短路顺序，达到上限后不再调用 ReadAsync。
+        while ((!readCount.HasValue || readCount.Value <= 0 || count < readCount.Value)
+               && await dataReader.ReadAsync())
         {
-            if (readCount.HasValue && readCount.Value > 0 && count >= readCount.Value)
-            {
-                break;
-            }
-
             mapper ??= CreateModelMapper<T>(dataReader);
             T model = mapper(dataReader);
             list.Add(model);
