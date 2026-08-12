@@ -16,6 +16,7 @@ VALUES{2}";
 
     private readonly List<TableFieldInfoForSqlBuilder> _tableFieldList = new();
     private object _parameter;
+    private IReadOnlyList<TEntity> _bulkEntities;
 
     private ReplaceableSqlBuilder(DatabaseType dbType) : base(dbType)
     {
@@ -75,6 +76,7 @@ VALUES{2}";
     public virtual IReplaceable<TEntity> SetParameter(object param)
     {
         _parameter = param;
+        _bulkEntities = null;
         return this;
     }
 
@@ -89,6 +91,12 @@ VALUES{2}";
         var sb = new StringBuilder();
         var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName)).ToList();
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
+        var fieldMappings = fields.Select(field => new
+        {
+            Field = field,
+            EntityField = tableFieldInfos.Find(c => c.FieldName == field.FieldName)
+        }).ToList();
+        object commandParameter = _parameter;
         switch (SqlAdapter.DbType)
         {
             case DatabaseType.MySql:
@@ -96,23 +104,28 @@ VALUES{2}";
             case DatabaseType.TiDB:
             case DatabaseType.OceanBase:
             case DatabaseType.SQLite:
-                if (_parameter is IEnumerable<TEntity> entities)// BulkInsertOrUpdate
+                var bulkEntities = GetBulkEntities();
+                if (bulkEntities?.Count == 0)
+                {
+                    return default;
+                }
+                if (bulkEntities != null)// BulkInsertOrUpdate
                 {
                     #region 解析批量新增的参数
                     var paramDic = new Dictionary<string, object>();
                     var index = 0;
                     var insertValueParams = new List<string>();
                     var formatParameterNames = new List<string>();
-                    foreach (var entity in entities)
+                    foreach (var entity in bulkEntities)
                     {
                         index++;
                         formatParameterNames.Clear();
-                        foreach (var field in fields)
+                        foreach (var fieldMapping in fieldMappings)
                         {
-                            var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == field.FieldName);
+                            var findFieldInfo = fieldMapping.EntityField;
                             if (findFieldInfo == null)
                             {
-                                throw new InvalidOperationException($"Table [{field.TableName}] field [{field.FieldName}] not found in [{typeof(TEntity).FullName}].");
+                                throw new InvalidOperationException($"Table [{fieldMapping.Field.TableName}] field [{fieldMapping.Field.FieldName}] not found in [{typeof(TEntity).FullName}].");
                             }
 
                             if (!SqlParameterized)
@@ -138,16 +151,16 @@ VALUES{2}";
                     }
 
                     var bulkInsertValuesString = string.Join($", {(SqlIndented ? Environment.NewLine : string.Empty)}", insertValueParams);
-                    SetParameter(paramDic);
+                    commandParameter = paramDic;
                     #endregion
 
                     sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
                 }
                 else
                 {
-                    var formatParameters = fields.Select(fieldInfo =>
+                    var formatParameters = fieldMappings.Select(fieldMapping =>
                     {
-                        var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
+                        var findFieldInfo = fieldMapping.EntityField;
 
                         if (!SqlParameterized)
                         {
@@ -163,7 +176,7 @@ VALUES{2}";
                             }
                         }
 
-                        var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
+                        var parameterName = findFieldInfo?.Property?.Name ?? fieldMapping.Field.FieldName;
                         return SqlAdapter.FormatSqlParameter(parameterName);
                     }).ToList();
                     sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
@@ -181,8 +194,25 @@ VALUES{2}";
         var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {
             Sql = sb.ToString(),
-            Parameter = _parameter
+            Parameter = commandParameter
         };
         return sql;
+    }
+
+    private IReadOnlyList<TEntity> GetBulkEntities()
+    {
+        if (!(_parameter is IEnumerable<TEntity> entities))
+        {
+            return null;
+        }
+
+        // 保留原始参数，参数字典只属于本次命令；缓存实体快照可保证一次性枚举器和重复 Build 均稳定。
+        if (_bulkEntities != null)
+        {
+            return _bulkEntities;
+        }
+
+        _bulkEntities = entities.ToList();
+        return _bulkEntities;
     }
 }

@@ -1054,6 +1054,25 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
     }
 
+    private static IReadOnlyList<T> MaterializeOnce<T>(IEnumerable<T> source)
+    {
+        if (source == null)
+        {
+            return null;
+        }
+
+        // 批量入口后续通常还会计数、分页或遍历；先固定一次快照，避免一次性枚举器被重复消费。
+        if (source is T[] array)
+        {
+            return array;
+        }
+        if (source is List<T> list)
+        {
+            return list;
+        }
+        return source.ToList();
+    }
+
     protected virtual TEntity MapDtoToEntity<TDto>(TDto dto)
     {
         if (dto == null) return default;
@@ -1198,10 +1217,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool Add(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         if (returnAutoIncrementId && typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.IsPrimaryKey && c.IsIdentityField)?.Property != null)
         {
@@ -1232,7 +1253,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         }
 
         var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
-        if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
+        if (bulkCountLimit.HasValue && entityList.Count > bulkCountLimit.Value)
         {
             return entities.PagingExecute(bulkCountLimit.Value, (pageNumber, models) =>
             {
@@ -1317,10 +1338,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool AddOrUpdate(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         switch (DbType)
         {
@@ -1331,7 +1354,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
             case DatabaseType.SQLite:
                 {
                     var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
-                    if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
+                    if (bulkCountLimit.HasValue && entityList.Count > bulkCountLimit.Value)
                     {
                         return entities.PagingExecute(bulkCountLimit.Value, (pageNumber, models) =>
                         {
@@ -1397,10 +1420,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool Delete(IEnumerable<TEntity> entities, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         foreach (var entity in entities)
         {
@@ -1442,10 +1467,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool Update(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         //if (transaction?.Connection == null)
         //{
@@ -1486,10 +1513,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool UpdateByDto<TDto>(IEnumerable<TDto> dtos, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
     {
-        if (dtos == null || !dtos.Any())
+        var dtoList = MaterializeOnce(dtos);
+        if (dtoList == null || dtoList.Count == 0)
         {
             return false;
         }
+        dtos = dtoList;
 
         var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
         var entities = dtos.Select(MapDtoToEntity);
@@ -1504,10 +1533,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool UpdateByDto<TDto>(IEnumerable<TDto> dtos, Func<TDto, TEntity> customMapFunc, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
     {
-        if (dtos == null || !dtos.Any())
+        var dtoList = MaterializeOnce(dtos);
+        if (dtoList == null || dtoList.Count == 0)
         {
             return false;
         }
+        dtos = dtoList;
 
         var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
         var entities = dtos.Select(dto => customMapFunc != null ? customMapFunc(dto) : MapDtoToEntity(dto));
@@ -1528,10 +1559,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool UpdateByDto<TDto>(IEnumerable<TEntity> entities, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
         foreach (var entity in entities)
@@ -1612,10 +1645,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual bool Save<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : TEntity, IEntityStateBase
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         if (entities.All(c => c.EntityState == EntityStateType.Unchanged))
         {
@@ -1887,10 +1922,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         if (returnAutoIncrementId && typeof(TEntity).GetEntityInfo().FieldInfos.FirstOrDefault(c => c.IsPrimaryKey && c.IsIdentityField)?.Property != null)
         {
@@ -1921,7 +1958,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         }
 
         var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
-        if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
+        if (bulkCountLimit.HasValue && entityList.Count > bulkCountLimit.Value)
         {
             return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageNumber, models) =>
             {
@@ -2006,10 +2043,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> AddOrUpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         switch (DbType)
         {
@@ -2020,7 +2059,7 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
             case DatabaseType.SQLite:
                 {
                     var bulkCountLimit = BulkEntityCount ?? DbContextConfiguration.Options.BulkEntityCount;
-                    if (bulkCountLimit.HasValue && entities.Count() > bulkCountLimit.Value)
+                    if (bulkCountLimit.HasValue && entityList.Count > bulkCountLimit.Value)
                     {
                         return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageNumber, models) =>
                         {
@@ -2111,10 +2150,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> DeleteAsync(IEnumerable<TEntity> entities, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         foreach (var entity in entities)
         {
@@ -2156,10 +2197,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> UpdateAsync(IEnumerable<TEntity> entities, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         //if (transaction?.Connection == null)
         //{
@@ -2200,10 +2243,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> UpdateByDtoAsync<TDto>(IEnumerable<TDto> dtos, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
     {
-        if (dtos == null || !dtos.Any())
+        var dtoList = MaterializeOnce(dtos);
+        if (dtoList == null || dtoList.Count == 0)
         {
             return false;
         }
+        dtos = dtoList;
 
         var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
         var entities = dtos.Select(MapDtoToEntity);
@@ -2218,10 +2263,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> UpdateByDtoAsync<TDto>(IEnumerable<TDto> dtos, Func<TDto, TEntity> customMapFunc, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
     {
-        if (dtos == null || !dtos.Any())
+        var dtoList = MaterializeOnce(dtos);
+        if (dtoList == null || dtoList.Count == 0)
         {
             return false;
         }
+        dtos = dtoList;
 
         var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
         var entities = dtos.Select(dto => customMapFunc != null ? customMapFunc(dto) : MapDtoToEntity(dto));
@@ -2242,10 +2289,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> UpdateByDtoAsync<TDto>(IEnumerable<TEntity> entities, Expression<Func<TDto, object>> ignoreFieldExpression = null, IDbTransaction transaction = null)
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         var fieldExpression = FieldExpressionUtil.CreateFromDto<TDto, TEntity>(ignoreFieldExpression);
         foreach (var entity in entities)
@@ -2326,10 +2375,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
     }
     public virtual async Task<bool> SaveAsync<TEntityState>(IEnumerable<TEntityState> entities, bool returnAutoIncrementId = false, IDbTransaction transaction = null) where TEntityState : TEntity, IEntityStateBase
     {
-        if (entities == null || !entities.Any())
+        var entityList = MaterializeOnce(entities);
+        if (entityList == null || entityList.Count == 0)
         {
             return false;
         }
+        entities = entityList;
 
         if (entities.All(c => c.EntityState == EntityStateType.Unchanged))
         {

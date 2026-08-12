@@ -19,6 +19,7 @@ VALUES{2}";
     private readonly List<TableFieldInfoForSqlBuilder> _tableFieldList = new();
     private bool _returnLastInsertId;
     private object _parameter;
+    private IReadOnlyList<TEntity> _bulkEntities;
     private OutputParameterOptions _outputParameterOptions;
 
     private InsertableSqlBuilder(DatabaseType dbType) : base(dbType)
@@ -114,6 +115,7 @@ VALUES{2}";
     public virtual IInsertable<TEntity> SetParameter(object param)
     {
         _parameter = param;
+        _bulkEntities = null;
         return this;
     }
 
@@ -124,32 +126,41 @@ VALUES{2}";
             SqlBuilderUtil.IncludeFields<TEntity>(_tableFieldList);
         }
 
-        CheckIncludeIdentityFields();
-
-        var fields = _tableFieldList.Where(c => !c.IsIdentityField).ToList();
+        var bulkEntities = GetBulkEntities();
+        if (bulkEntities?.Count == 0)
+        {
+            return default;
+        }
+        var fields = GetInsertFields(bulkEntities);
         if (!fields.Any())
             return default;
 
         var sb = new StringBuilder();
         var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName)).ToList();
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-        if (_parameter is IEnumerable<TEntity> entities)// BulkInsert
+        var fieldMappings = fields.Select(field => new
+        {
+            Field = field,
+            EntityField = tableFieldInfos.Find(c => c.FieldName == field.FieldName)
+        }).ToList();
+        object commandParameter = _parameter;
+        if (bulkEntities != null)// BulkInsert
         {
             #region 解析批量新增的参数
             var paramDic = new Dictionary<string, object>();
             var index = 0;
             var insertValueParams = new List<string>();
             var formatParameterNames = new List<string>();
-            foreach (var entity in entities)
+            foreach (var entity in bulkEntities)
             {
                 index++;
                 formatParameterNames.Clear();
-                foreach (var field in fields)
+                foreach (var fieldMapping in fieldMappings)
                 {
-                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == field.FieldName);
+                    var findFieldInfo = fieldMapping.EntityField;
                     if (findFieldInfo == null)
                     {
-                        throw new InvalidOperationException($"Table [{field.TableName}] field [{field.FieldName}] not found in [{typeof(TEntity).FullName}].");
+                        throw new InvalidOperationException($"Table [{fieldMapping.Field.TableName}] field [{fieldMapping.Field.FieldName}] not found in [{typeof(TEntity).FullName}].");
                     }
 
                     if (!SqlParameterized)
@@ -175,16 +186,16 @@ VALUES{2}";
             }
 
             var bulkInsertValuesString = string.Join($", {(SqlIndented ? Environment.NewLine : string.Empty)}", insertValueParams);
-            SetParameter(paramDic);
+            commandParameter = paramDic;
             #endregion
 
             sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
         }
         else
         {
-            var formatParameters = fields.Select(fieldInfo =>
+            var formatParameters = fieldMappings.Select(fieldMapping =>
             {
-                var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName);
+                var findFieldInfo = fieldMapping.EntityField;
 
                 if (!SqlParameterized)
                 {
@@ -200,7 +211,7 @@ VALUES{2}";
                     }
                 }
 
-                var parameterName = findFieldInfo?.Property.Name ?? fieldInfo.FieldName;
+                var parameterName = findFieldInfo?.Property?.Name ?? fieldMapping.Field.FieldName;
                 return SqlAdapter.FormatSqlParameter(parameterName);
             }).ToList();
             sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
@@ -291,52 +302,60 @@ VALUES{2}";
         var sql = new DefaultSqlCommand(SqlAdapter.DbType)
         {
             Sql = sb.ToString(),
-            Parameter = _parameter,
+            Parameter = commandParameter,
             OutputParameterOptions = _outputParameterOptions
         };
         return sql;
     }
 
-    private void CheckIncludeIdentityFields()
+    private IReadOnlyList<TEntity> GetBulkEntities()
     {
-        if (_parameter != null && _tableFieldList.Any(c => c.IsIdentityField))
+        if (!(_parameter is IEnumerable<TEntity> entities))
         {
-            var identityFieldInfos = _tableFieldList.Where(c => c.IsIdentityField).ToList();
-            var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-            if (_parameter is IEnumerable<TEntity> entities)
-            {
-                foreach (var identityFieldInfo in identityFieldInfos)
-                {
-                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == identityFieldInfo.FieldName);
-                    var property = findFieldInfo?.Property;
-                    if (property != null && entities.Any())
-                    {
-                        var value = property.GetValue(entities.FirstOrDefault());
-                        var defaultValue = property.PropertyType.GetDefaultValue();
-                        if (!Equals(value, defaultValue))
-                        {
-                            identityFieldInfo.IsIdentityField = false;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                foreach (var identityFieldInfo in identityFieldInfos)
-                {
-                    var findFieldInfo = tableFieldInfos.Find(c => c.FieldName == identityFieldInfo.FieldName);
-                    var property = findFieldInfo?.Property;
-                    if (property != null)
-                    {
-                        var value = property.GetValue(_parameter);
-                        var defaultValue = property.PropertyType.GetDefaultValue();
-                        if (!Equals(value, defaultValue))
-                        {
-                            identityFieldInfo.IsIdentityField = false;
-                        }
-                    }
-                }
-            }
+            return null;
         }
+
+        // 一次性枚举器只能读取一次；缓存实体快照，确保身份字段检查、SQL 生成和重复 Build 使用同一批数据。
+        if (_bulkEntities != null)
+        {
+            return _bulkEntities;
+        }
+
+        _bulkEntities = entities.ToList();
+        return _bulkEntities;
+    }
+
+    private List<TableFieldInfoForSqlBuilder> GetInsertFields(IReadOnlyList<TEntity> bulkEntities)
+    {
+        if (_parameter == null || !_tableFieldList.Any(c => c.IsIdentityField))
+        {
+            return _tableFieldList.Where(c => !c.IsIdentityField).ToList();
+        }
+
+        var parameter = bulkEntities != null
+            ? bulkEntities.FirstOrDefault()
+            : _parameter;
+        if (parameter == null)
+        {
+            return _tableFieldList.Where(c => !c.IsIdentityField).ToList();
+        }
+
+        var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
+        return _tableFieldList.Where(fieldInfo =>
+        {
+            if (!fieldInfo.IsIdentityField)
+            {
+                return true;
+            }
+
+            var property = tableFieldInfos.Find(c => c.FieldName == fieldInfo.FieldName)?.Property;
+            if (property == null)
+            {
+                return false;
+            }
+
+            var value = property.GetValue(parameter);
+            return !Equals(value, property.PropertyType.GetDefaultValue());
+        }).ToList();
     }
 }

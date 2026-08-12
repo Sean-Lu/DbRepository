@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace Sean.Core.DbRepository.Extensions;
 
@@ -27,11 +26,12 @@ public static class EntityExtensions
     /// <param name="entities"></param>
     public static void ResetEntityState<TEntity>(this IEnumerable<TEntity> entities) where TEntity : IEntityStateBase
     {
-        if (entities == null || !entities.Any())
+        if (entities == null)
         {
             return;
         }
 
+        // 直接遍历即可兼容空集合，也避免一次性枚举器因 Any 检查而被提前消费。
         foreach (var entity in entities)
         {
             entity.ResetEntityState();
