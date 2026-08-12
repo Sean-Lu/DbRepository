@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Xml;
 using Sean.Core.DbRepository.Extensions;
 using Sean.Utility.Extensions;
@@ -16,6 +17,9 @@ namespace Sean.Core.DbRepository;
 public static class EntityInfoCache
 {
     private static readonly ConcurrentDictionary<Type, EntityInfo> _entityInfoCache = new();
+    private static readonly ConditionalWeakTable<Type, object> _entityBuildLocks = new();
+    private static readonly ConcurrentDictionary<Assembly, IReadOnlyDictionary<string, string>> _xmlDescriptionCache = new();
+    private static readonly ConditionalWeakTable<Assembly, object> _xmlBuildLocks = new();
 
     public static int Count()
     {
@@ -45,26 +49,54 @@ public static class EntityInfoCache
             return entityInfo;
         }
 
-        entityInfo = new EntityInfo
+        if (entityClassType.IsAnonymousType())
+        {
+            return BuildAnonymousTypeInfo(entityClassType);
+        }
+
+        // ConcurrentDictionary 的值工厂可能并行执行；类型级锁保证只构建并发布一个完整实例。
+        var buildLock = _entityBuildLocks.GetValue(entityClassType, _ => new object());
+        lock (buildLock)
+        {
+            if (_entityInfoCache.TryGetValue(entityClassType, out entityInfo) && entityInfo != null)
+            {
+                return entityInfo;
+            }
+
+            entityInfo = BuildEntityInfo(entityClassType);
+            _entityInfoCache[entityClassType] = entityInfo;
+            return entityInfo;
+        }
+    }
+
+    private static EntityInfo BuildAnonymousTypeInfo(Type entityClassType)
+    {
+        var entityInfo = new EntityInfo
         {
             NamingConvention = DbContextConfiguration.Options.DefaultNamingConvention,
             FieldInfos = new List<EntityFieldInfo>()
         };
 
-        if (entityClassType.IsAnonymousType())
+        // 匿名类型特殊处理，不走缓存，保留每次返回独立元数据实例的现有语义。
+        foreach (var propertyInfo in entityClassType.GetProperties())
         {
-            // 匿名类型特殊处理，不走缓存
-            foreach (var propertyInfo in entityClassType.GetProperties())
+            entityInfo.FieldInfos.Add(new EntityFieldInfo
             {
-                entityInfo.FieldInfos.Add(new EntityFieldInfo
-                {
-                    Property = propertyInfo,
-                    PropertyName = propertyInfo.Name,
-                    FieldName = propertyInfo.Name
-                });
-            }
-            return entityInfo;
+                Property = propertyInfo,
+                PropertyName = propertyInfo.Name,
+                FieldName = propertyInfo.Name
+            });
         }
+        return entityInfo;
+    }
+
+    private static EntityInfo BuildEntityInfo(Type entityClassType)
+    {
+        var entityInfo = new EntityInfo
+        {
+            NamingConvention = DbContextConfiguration.Options.DefaultNamingConvention,
+            FieldInfos = new List<EntityFieldInfo>()
+        };
 
         var namingConvention = entityClassType.GetCustomAttribute<NamingConventionAttribute>(true)?.NamingConvention;
         if (namingConvention.HasValue)
@@ -165,20 +197,24 @@ public static class EntityInfoCache
             entityInfo.FieldInfos = orderedFieldInfos.Concat(nonOrderedFieldInfos).ToList();
         }
 
-        // Save entity info into cache.
-        _entityInfoCache.AddOrUpdate(entityClassType, entityInfo, (_, _) => entityInfo);
         return entityInfo;
     }
 
     public static EntityInfo Remove(Type entityClassType)
     {
         _entityInfoCache.TryRemove(entityClassType, out var entityInfoRemoved);
+        if (entityClassType != null)
+        {
+            // 保留 Remove 后重新读取 XML 注释的刷新能力。
+            _xmlDescriptionCache.TryRemove(entityClassType.Assembly, out _);
+        }
         return entityInfoRemoved;
     }
 
     public static void Clear()
     {
         _entityInfoCache.Clear();
+        _xmlDescriptionCache.Clear();
     }
 
     private static string GetTableDescription(Type entityClassType)
@@ -186,14 +222,8 @@ public static class EntityInfoCache
         var tableDescription = entityClassType.GetCustomAttribute<DescriptionAttribute>(true)?.Description;
         if (string.IsNullOrWhiteSpace(tableDescription))
         {
-            var filePath = Path.ChangeExtension(entityClassType.Assembly.Location, "xml");
-            if (File.Exists(filePath))
-            {
-                var xmlDoc = new XmlDocument();
-                //xmlDoc.PreserveWhitespace = true;
-                xmlDoc.Load(filePath);
-                tableDescription = xmlDoc.SelectSingleNode($"//member[@name='T:{entityClassType.FullName}']")?.InnerText.Trim('\r', '\n', ' ');
-            }
+            tableDescription = GetXmlDescription(entityClassType.Assembly,
+                $"T:{entityClassType.FullName}");
         }
         return tableDescription;
     }
@@ -203,16 +233,58 @@ public static class EntityInfoCache
         var fieldDescription = memberInfo.GetCustomAttribute<DescriptionAttribute>(true)?.Description;
         if (string.IsNullOrWhiteSpace(fieldDescription))
         {
-            var filePath = Path.ChangeExtension(memberInfo.DeclaringType.Assembly.Location, "xml");
-            if (File.Exists(filePath))
-            {
-                var xmlDoc = new XmlDocument();
-                //xmlDoc.PreserveWhitespace = true;
-                xmlDoc.Load(filePath);
-                fieldDescription = xmlDoc.SelectSingleNode($"//member[@name='P:{memberInfo.DeclaringType.FullName}.{memberInfo.Name}']")?.InnerText?.Trim('\r', '\n', ' ');
-            }
+            fieldDescription = GetXmlDescription(memberInfo.DeclaringType.Assembly,
+                $"P:{memberInfo.DeclaringType.FullName}.{memberInfo.Name}");
         }
         return fieldDescription;
+    }
+
+    private static string GetXmlDescription(Assembly assembly, string memberName)
+    {
+        if (!_xmlDescriptionCache.TryGetValue(assembly, out var descriptions))
+        {
+            // 不直接使用 GetOrAdd 的值工厂，避免多个实体并发首次访问时重复读取同一个 XML 文件。
+            var buildLock = _xmlBuildLocks.GetValue(assembly, _ => new object());
+            lock (buildLock)
+            {
+                if (!_xmlDescriptionCache.TryGetValue(assembly, out descriptions))
+                {
+                    descriptions = LoadXmlDescriptions(assembly);
+                    _xmlDescriptionCache[assembly] = descriptions;
+                }
+            }
+        }
+        descriptions.TryGetValue(memberName, out var description);
+        return description;
+    }
+
+    private static IReadOnlyDictionary<string, string> LoadXmlDescriptions(Assembly assembly)
+    {
+        var descriptions = new Dictionary<string, string>(StringComparer.Ordinal);
+        var filePath = Path.ChangeExtension(assembly.Location, "xml");
+        if (!File.Exists(filePath))
+        {
+            return descriptions;
+        }
+
+        var xmlDoc = new XmlDocument();
+        xmlDoc.Load(filePath);
+        var memberNodes = xmlDoc.SelectNodes("//member[@name]");
+        if (memberNodes == null)
+        {
+            return descriptions;
+        }
+
+        foreach (XmlNode memberNode in memberNodes)
+        {
+            var name = memberNode.Attributes?["name"]?.Value;
+            if (!string.IsNullOrEmpty(name) && !descriptions.ContainsKey(name))
+            {
+                // 与原 SelectSingleNode 行为一致：重复名称保留文档中首次出现的节点。
+                descriptions.Add(name, memberNode.InnerText?.Trim('\r', '\n', ' '));
+            }
+        }
+        return descriptions;
     }
 }
 
