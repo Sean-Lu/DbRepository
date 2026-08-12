@@ -46,6 +46,7 @@ public static class DbDataReaderExtensions
         //return dataReader.GetDataTable().ToList<T>();
 
         var list = new List<T>();
+        Func<IDataRecord, T> mapper = null;
         var count = 0;
         while (dataReader.Read())
         {
@@ -54,7 +55,8 @@ public static class DbDataReaderExtensions
                 break;
             }
 
-            T model = GetModelInternal<T>(dataReader);
+            mapper ??= CreateModelMapper<T>(dataReader);
+            T model = mapper(dataReader);
             list.Add(model);
 
             count++;
@@ -169,6 +171,7 @@ public static class DbDataReaderExtensions
         //return dataReader.GetDataTable().ToList<T>();
 
         var list = new List<T>();
+        Func<IDataRecord, T> mapper = null;
         var count = 0;
         while (await dataReader.ReadAsync())
         {
@@ -177,7 +180,8 @@ public static class DbDataReaderExtensions
                 break;
             }
 
-            T model = GetModelInternal<T>(dataReader);
+            mapper ??= CreateModelMapper<T>(dataReader);
+            T model = mapper(dataReader);
             list.Add(model);
 
             count++;
@@ -260,7 +264,7 @@ public static class DbDataReaderExtensions
         return result;
     }
 
-    private static T GetModelInternal<T>(IDataReader dataReader)
+    private static Func<IDataRecord, T> CreateModelMapper<T>(IDataRecord dataRecord)
     {
         var type = typeof(T);
         if (type.IsGenericType)
@@ -272,59 +276,79 @@ public static class DbDataReaderExtensions
                 var typeParameters = type.GetGenericArguments();
                 if (typeParameters.Length > 0)
                 {
-                    var values = new object[typeParameters.Length];
-                    dataReader.GetValues(values);
-                    for (var i = 0; i < values.Length; i++)
+                    return record =>
                     {
-                        var value = values[i];
-                        values[i] = value != null && value != DBNull.Value ? ObjectConvert.ChangeType(value, typeParameters[i]) : typeParameters[i].GetDefaultValue();
-                    }
-                    return (T)Activator.CreateInstance(typeof(T), values);
+                        var values = new object[typeParameters.Length];
+                        record.GetValues(values);
+                        for (var i = 0; i < values.Length; i++)
+                        {
+                            var value = values[i];
+                            values[i] = value != null && value != DBNull.Value ? ObjectConvert.ChangeType(value, typeParameters[i]) : typeParameters[i].GetDefaultValue();
+                        }
+                        return (T)Activator.CreateInstance(typeof(T), values);
+                    };
                 }
             }
         }
         else if (type.IsValueType || type == typeof(string))// 值类型、字符串
         {
-            var value = dataReader[0];
-            if (value != DBNull.Value)
+            return record =>
             {
-                return ObjectConvert.ChangeType<T>(value);
-            }
+                var value = record[0];
+                return value != DBNull.Value ? ObjectConvert.ChangeType<T>(value) : default;
+            };
         }
         else if (type == typeof(object))// dynamic动态类型
         {
-            var dic = new Dictionary<string, object>();
-            for (var i = 0; i < dataReader.FieldCount; i++)
+            var columnNames = GetColumnNames(dataRecord);
+            return record =>
             {
-                dic.Add(dataReader.GetName(i), dataReader[i]);
-            }
-            var json = DbContextConfiguration.Options.JsonSerializer.Serialize(dic);
-            return DbContextConfiguration.Options.JsonSerializer.Deserialize<T>(json);
+                var dic = new Dictionary<string, object>();
+                for (var i = 0; i < record.FieldCount; i++)
+                {
+                    dic.Add(columnNames[i], record[i]);
+                }
+                var json = DbContextConfiguration.Options.JsonSerializer.Serialize(dic);
+                return DbContextConfiguration.Options.JsonSerializer.Deserialize<T>(json);
+            };
         }
         else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)// 实体类
         {
-            var model = Activator.CreateInstance<T>();
-            var properties = type.GetProperties();
-            for (var i = 0; i < dataReader.FieldCount; i++)
+            // 列结构在同一结果集中保持不变，只解析一次即可；值转换和赋值仍逐行执行。
+            var properties = EntityPropertyMapping.Create(type, GetColumnNames(dataRecord));
+            return record =>
             {
-                var fieldName = dataReader.GetName(i);
-                var propertyInfo = properties.FirstOrDefault(c => fieldName.Equals(c.Name, StringComparison.OrdinalIgnoreCase));
-                if (propertyInfo != null && propertyInfo.CanWrite)
+                var model = Activator.CreateInstance<T>();
+                for (var i = 0; i < properties.Length; i++)
                 {
-                    var value = dataReader[i];
-                    if (value != DBNull.Value)
+                    var propertyInfo = properties[i];
+                    if (propertyInfo != null)
                     {
-                        propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
+                        var value = record[i];
+                        if (value != DBNull.Value)
+                        {
+                            propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
+                        }
                     }
                 }
-            }
-            return model;
+                return model;
+            };
         }
         else
         {
             throw new NotSupportedException($"Unsupported type: {type.FullName}");
         }
 
-        return default;
+        return _ => default;
+    }
+
+    private static IReadOnlyList<string> GetColumnNames(IDataRecord dataRecord)
+    {
+        var columnNames = new string[dataRecord.FieldCount];
+        for (var index = 0; index < columnNames.Length; index++)
+        {
+            columnNames[index] = dataRecord.GetName(index);
+        }
+        return columnNames;
     }
 }

@@ -21,9 +21,15 @@ public static class DataTableExtensions
         }
 
         var list = new List<T>();
+        if (dt.Rows.Count == 0)
+        {
+            return list;
+        }
+
+        var mapper = DataRowExtensions.CreateMapper<T>(dt);
         foreach (DataRow row in dt.Rows)
         {
-            var item = row.ToEntity<T>();
+            var item = mapper(row);
             list.Add(item);
         }
         return list;
@@ -41,9 +47,10 @@ public static class DataTableExtensions
             return default;
         }
 
-        foreach (DataRow row in dt.Rows)
+        if (dt.Rows.Count > 0)
         {
-            return row.ToEntity<T>();
+            var mapper = DataRowExtensions.CreateMapper<T>(dt);
+            return mapper(dt.Rows[0]);
         }
 
         return default;

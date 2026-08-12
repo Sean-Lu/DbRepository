@@ -24,7 +24,11 @@ public static class DataRowExtensions
             return default;
         }
 
-        T model = default;
+        return CreateMapper<T>(dr.Table)(dr);
+    }
+
+    internal static Func<DataRow, T> CreateMapper<T>(DataTable table)
+    {
         var type = typeof(T);
         if (type.IsGenericType)
         {
@@ -34,22 +38,25 @@ public static class DataRowExtensions
                 var itemCount = type.GetProperties().Count(c => c.Name.StartsWith("Item"));
                 if (itemCount > 0)
                 {
-                    var values = new object[itemCount];
-                    var itemArray = dr.ItemArray;
-                    Array.Copy(itemArray, values, Math.Min(values.Length, itemArray.Length));
-                    if (values.Any(c => c == DBNull.Value))
+                    return dr =>
                     {
-                        for (var i = 0; i < values.Length; i++)
+                        var values = new object[itemCount];
+                        var itemArray = dr.ItemArray;
+                        Array.Copy(itemArray, values, Math.Min(values.Length, itemArray.Length));
+                        if (values.Any(c => c == DBNull.Value))
                         {
-                            if (values[i] == DBNull.Value)
+                            for (var i = 0; i < values.Length; i++)
                             {
-                                //var propertyInfo = type.GetProperty($"Item{i + 1}");
-                                //values[i] = propertyInfo != null ? propertyInfo.PropertyType.GetDefaultValue() : null;
-                                values[i] = null;
+                                if (values[i] == DBNull.Value)
+                                {
+                                    //var propertyInfo = type.GetProperty($"Item{i + 1}");
+                                    //values[i] = propertyInfo != null ? propertyInfo.PropertyType.GetDefaultValue() : null;
+                                    values[i] = null;
+                                }
                             }
                         }
-                    }
-                    model = (T)Activator.CreateInstance(typeof(T), values);
+                        return (T)Activator.CreateInstance(typeof(T), values);
+                    };
                 }
             }
             else if (genericType.Name.StartsWith("ValueTuple"))// 匿名类：ValueTuple<>
@@ -57,63 +64,74 @@ public static class DataRowExtensions
                 var itemCount = type.GetFields().Count(c => c.Name.StartsWith("Item"));
                 if (itemCount > 0)
                 {
-                    var values = new object[itemCount];
-                    var itemArray = dr.ItemArray;
-                    Array.Copy(itemArray, values, Math.Min(values.Length, itemArray.Length));
-                    if (values.Any(c => c == DBNull.Value))
+                    return dr =>
                     {
-                        for (var i = 0; i < values.Length; i++)
+                        var values = new object[itemCount];
+                        var itemArray = dr.ItemArray;
+                        Array.Copy(itemArray, values, Math.Min(values.Length, itemArray.Length));
+                        if (values.Any(c => c == DBNull.Value))
                         {
-                            if (values[i] == DBNull.Value)
+                            for (var i = 0; i < values.Length; i++)
                             {
-                                //var fieldInfo = type.GetField($"Item{i + 1}");
-                                //values[i] = fieldInfo != null ? fieldInfo.FieldType.GetDefaultValue() : null;
-                                values[i] = null;
+                                if (values[i] == DBNull.Value)
+                                {
+                                    //var fieldInfo = type.GetField($"Item{i + 1}");
+                                    //values[i] = fieldInfo != null ? fieldInfo.FieldType.GetDefaultValue() : null;
+                                    values[i] = null;
+                                }
                             }
                         }
-                    }
-                    model = (T)Activator.CreateInstance(typeof(T), values);
+                        return (T)Activator.CreateInstance(typeof(T), values);
+                    };
                 }
             }
         }
         else if (type.IsValueType || type == typeof(string))// 值类型、字符串
         {
-            var value = dr[0];
-            if (value != DBNull.Value)
+            return dr =>
             {
-                model = ObjectConvert.ChangeType<T>(value);
-            }
+                var value = dr[0];
+                return value != DBNull.Value ? ObjectConvert.ChangeType<T>(value) : default;
+            };
         }
         else if (type == typeof(object))// dynamic动态类型
         {
-            var json = DbContextConfiguration.Options.JsonSerializer.Serialize(dr.ToDataTable());
-            var list = DbContextConfiguration.Options.JsonSerializer.Deserialize<List<T>>(json);
-            model = list.FirstOrDefault();
+            return dr =>
+            {
+                var json = DbContextConfiguration.Options.JsonSerializer.Serialize(dr.ToDataTable());
+                var list = DbContextConfiguration.Options.JsonSerializer.Deserialize<List<T>>(json);
+                return list.FirstOrDefault();
+            };
         }
         else if (type.IsClass && type.GetConstructor(Type.EmptyTypes) != null)// 实体类
         {
-            model = Activator.CreateInstance<T>();
-            var properties = type.GetProperties();
-            foreach (DataColumn column in dr.Table.Columns)
+            // DataTable 的列结构固定，批量转换时复用映射，避免每行重复扫描反射信息。
+            var columnNames = table.Columns.Cast<DataColumn>().Select(column => column.ColumnName).ToList();
+            var properties = EntityPropertyMapping.Create(type, columnNames);
+            return dr =>
             {
-                var fieldName = column.ColumnName;
-                var propertyInfo = properties.FirstOrDefault(c => fieldName.Equals(c.Name, StringComparison.OrdinalIgnoreCase));
-                if (propertyInfo != null && propertyInfo.CanWrite)
+                var model = Activator.CreateInstance<T>();
+                for (var index = 0; index < properties.Length; index++)
                 {
-                    var value = dr[fieldName];
-                    if (value != DBNull.Value)
+                    var propertyInfo = properties[index];
+                    if (propertyInfo != null)
                     {
-                        propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
+                        var value = dr[index];
+                        if (value != DBNull.Value)
+                        {
+                            propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
+                        }
                     }
                 }
-            }
+                return model;
+            };
         }
         else
         {
             throw new NotSupportedException($"Unsupported type: {type.FullName}");
         }
 
-        return model;
+        return _ => default;
     }
 
     /// <summary>
