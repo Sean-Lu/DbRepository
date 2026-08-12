@@ -61,33 +61,37 @@ public abstract class BaseSqlGenerator : ISqlGenerator
 
     protected virtual List<EntityFieldInfo> GetDbMissingTableFields(Type entityType, string tableName)
     {
-        var codeGenerator = CodeGeneratorFactory.GetCodeGenerator(_dbType);
-        if (codeGenerator == null)
+        return CodeGeneratorFactory.UseCodeGenerator(_dbType, codeGenerator =>
         {
-            throw new NotSupportedException($"数据库类型 [{_dbType}] 暂不支持读取表结构，无法执行 CodeFirst 升级。");
-        }
-        codeGenerator.Initialize(_db);
-        var tableFieldInfos = codeGenerator.GetTableFieldInfo(tableName);
-        return entityType.GetEntityInfo().FieldInfos
-            .Where(entityTableFieldInfo => !tableFieldInfos.Exists(c => IsSameFieldName(c.FieldName,
-                entityTableFieldInfo.FieldName)))
-            .ToList();
+            if (codeGenerator == null)
+            {
+                throw new NotSupportedException($"数据库类型 [{_dbType}] 暂不支持读取表结构，无法执行 CodeFirst 升级。");
+            }
+            codeGenerator.Initialize(_db);
+            var tableFieldInfos = codeGenerator.GetTableFieldInfo(tableName);
+            return entityType.GetEntityInfo().FieldInfos
+                .Where(entityTableFieldInfo => !tableFieldInfos.Exists(c => IsSameFieldName(c.FieldName,
+                    entityTableFieldInfo.FieldName)))
+                .ToList();
+        });
     }
 
     protected virtual List<TableFieldModel> GetEntityMissingTableFields(Type entityType, string tableName)
     {
-        var codeGenerator = CodeGeneratorFactory.GetCodeGenerator(_dbType);
-        if (codeGenerator == null)
+        return CodeGeneratorFactory.UseCodeGenerator(_dbType, codeGenerator =>
         {
-            throw new NotSupportedException($"数据库类型 [{_dbType}] 暂不支持读取表结构，无法执行 CodeFirst 升级。");
-        }
-        codeGenerator.Initialize(_db);
-        var tableFieldInfos = codeGenerator.GetTableFieldInfo(tableName);
-        var entityTableFieldInfos = entityType.GetEntityInfo().FieldInfos;
-        return tableFieldInfos
-            .Where(c => !entityTableFieldInfos.Exists(entityTableFieldInfo => IsSameFieldName(
-                entityTableFieldInfo.FieldName, c.FieldName)))
-            .ToList();
+            if (codeGenerator == null)
+            {
+                throw new NotSupportedException($"数据库类型 [{_dbType}] 暂不支持读取表结构，无法执行 CodeFirst 升级。");
+            }
+            codeGenerator.Initialize(_db);
+            var tableFieldInfos = codeGenerator.GetTableFieldInfo(tableName);
+            var entityTableFieldInfos = entityType.GetEntityInfo().FieldInfos;
+            return tableFieldInfos
+                .Where(c => !entityTableFieldInfos.Exists(entityTableFieldInfo => IsSameFieldName(
+                    entityTableFieldInfo.FieldName, c.FieldName)))
+                .ToList();
+        });
     }
 
     /// <summary>

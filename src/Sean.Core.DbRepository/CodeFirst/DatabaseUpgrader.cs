@@ -26,9 +26,11 @@ public class DatabaseUpgrader : IDatabaseUpgrader
     }
     public virtual void Upgrade(Type entityType, Func<string, string> tableNameFunc = null)
     {
-        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(_dbType);
-        sqlGenerator.Initialize(_db);
-        var upgradeSqlList = sqlGenerator.GetUpgradeSql(entityType, tableNameFunc);
+        var upgradeSqlList = SqlGeneratorFactory.UseSqlGenerator(_dbType, sqlGenerator =>
+        {
+            sqlGenerator.Initialize(_db);
+            return sqlGenerator.GetUpgradeSql(entityType, tableNameFunc);
+        });
         upgradeSqlList?.ForEach(sql =>
         {
             if (!string.IsNullOrWhiteSpace(sql))

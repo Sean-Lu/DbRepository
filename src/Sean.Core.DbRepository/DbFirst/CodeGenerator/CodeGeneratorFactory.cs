@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Sean.Utility.Extensions;
 
 namespace Sean.Core.DbRepository.DbFirst;
@@ -6,6 +8,8 @@ namespace Sean.Core.DbRepository.DbFirst;
 public static class CodeGeneratorFactory
 {
     private static readonly Dictionary<DatabaseType, ICodeGenerator> _codeGenerators = new();
+    private static readonly object _syncRoot = new();
+    private static readonly ConditionalWeakTable<ICodeGenerator, object> _generatorLocks = new();
 
     static CodeGeneratorFactory()
     {
@@ -37,12 +41,35 @@ public static class CodeGeneratorFactory
 
     public static void SetCodeGenerator(DatabaseType dbType, ICodeGenerator codeGenerator)
     {
-        _codeGenerators.AddOrUpdate(dbType, codeGenerator);
+        lock (_syncRoot)
+        {
+            _codeGenerators.AddOrUpdate(dbType, codeGenerator);
+        }
     }
 
     public static ICodeGenerator GetCodeGenerator(DatabaseType dbType)
     {
-        _codeGenerators.TryGetValue(dbType, out var codeGenerator);
-        return codeGenerator;
+        lock (_syncRoot)
+        {
+            _codeGenerators.TryGetValue(dbType, out var codeGenerator);
+            return codeGenerator;
+        }
+    }
+
+    internal static TResult UseCodeGenerator<TResult>(DatabaseType dbType,
+        Func<ICodeGenerator, TResult> action)
+    {
+        var codeGenerator = GetCodeGenerator(dbType);
+        if (codeGenerator == null)
+        {
+            return action(null);
+        }
+
+        // DbFirst 生成器同样保存初始化状态，读取元数据前不能被其他连接重新初始化。
+        var generatorLock = _generatorLocks.GetValue(codeGenerator, _ => new object());
+        lock (generatorLock)
+        {
+            return action(codeGenerator);
+        }
     }
 }

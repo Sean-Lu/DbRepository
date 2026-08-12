@@ -1032,8 +1032,8 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
 
     protected override IEnumerable<string> GetCreateTableSql(string tableName)
     {
-        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DbType);
-        return sqlGenerator?.GetCreateTableSql<TEntity>(false, _ => tableName);
+        return SqlGeneratorFactory.UseSqlGenerator(DbType,
+            sqlGenerator => sqlGenerator?.GetCreateTableSql<TEntity>(false, _ => tableName));
     }
 
     protected virtual void BeforeEntityAdded(TEntity entity)
