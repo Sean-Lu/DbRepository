@@ -56,10 +56,11 @@ public class SqlGeneratorForOracle : BaseSqlGenerator
     {
         var result = new List<string>();
         var sb = new StringBuilder();
+        var createTableSql = new StringBuilder();
         var entityInfo = entityType.GetEntityInfo();
         var tableName = tableNameFunc != null ? tableNameFunc(entityInfo.TableName) : entityInfo.TableName;
         sb.AppendLine("BEGIN");
-        sb.AppendLine($"execute immediate 'CREATE TABLE {_dbType.MarkAsIdentifier(tableName)} (");
+        createTableSql.AppendLine($"CREATE TABLE {_dbType.MarkAsIdentifier(tableName)} (");
         var fieldInfoList = new List<string>();
         var sbFieldInfo = new StringBuilder();
         var fieldDescriptionDic = new Dictionary<string, string>();
@@ -81,7 +82,7 @@ public class SqlGeneratorForOracle : BaseSqlGenerator
             }
             if (fieldInfo.FieldDefaultValue != null)
             {
-                sbFieldInfo.Append($" DEFAULT {ConvertFieldDefaultValue(fieldInfo.FieldDefaultValue)?.Replace("'", "''")}");
+                sbFieldInfo.Append($" DEFAULT {ConvertFieldDefaultValue(fieldInfo.FieldDefaultValue)}");
             }
             fieldInfoList.Add(sbFieldInfo.ToString());
         }
@@ -89,20 +90,23 @@ public class SqlGeneratorForOracle : BaseSqlGenerator
         {
             fieldInfoList.Add($"  PRIMARY KEY ({string.Join(",", entityInfo.FieldInfos.Where(c => c.IsPrimaryKey).Select(c => _dbType.MarkAsIdentifier(c.FieldName)).ToList())})");
         }
-        sb.AppendLine(string.Join($",{Environment.NewLine}", fieldInfoList));
-        sb.AppendLine(")';");
+        createTableSql.AppendLine(string.Join($",{Environment.NewLine}", fieldInfoList));
+        createTableSql.Append(")");
+        sb.AppendLine(GetExecuteImmediateSql(createTableSql.ToString()));
         if (!string.IsNullOrWhiteSpace(entityInfo.TableDescription))
         {
-            sb.AppendLine($"execute immediate 'COMMENT ON TABLE {_dbType.MarkAsIdentifier(tableName)} IS ''{entityInfo.TableDescription}''';");
+            sb.AppendLine(GetExecuteImmediateSql(
+                $"COMMENT ON TABLE {_dbType.MarkAsIdentifier(tableName)} IS {ConvertDdlTextLiteral(entityInfo.TableDescription)}"));
         }
         foreach (var kv in fieldDescriptionDic)
         {
-            sb.AppendLine($"execute immediate 'COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS ''{kv.Value}''';");
+            sb.AppendLine(GetExecuteImmediateSql(
+                $"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS {ConvertDdlTextLiteral(kv.Value)}"));
         }
         var createIndexSql = GetCreateIndexSql(entityType, ignoreIfExists, tableName);
         createIndexSql?.ForEach(sql =>
         {
-            sb.AppendLine($"execute immediate '{sql}';");
+            sb.AppendLine(GetExecuteImmediateSql(sql));
         });
         sb.Append("END;");
         result.Add(sb.ToString());
@@ -121,6 +125,7 @@ public class SqlGeneratorForOracle : BaseSqlGenerator
         var result = new List<string>();
         var sb = new StringBuilder();
         sb.AppendLine("BEGIN");
+        var alterSql = new StringBuilder();
         var fieldDescriptionDic = new Dictionary<string, string>();
         missingTableFieldInfo?.ForEach(fieldInfo =>
         {
@@ -128,23 +133,31 @@ public class SqlGeneratorForOracle : BaseSqlGenerator
             {
                 fieldDescriptionDic.Add(fieldInfo.FieldName, fieldInfo.FieldDescription);
             }
-            sb.Append($"execute immediate 'ALTER TABLE {_dbType.MarkAsIdentifier(tableName)} ADD {_dbType.MarkAsIdentifier(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
+            alterSql.Clear();
+            alterSql.Append($"ALTER TABLE {_dbType.MarkAsIdentifier(tableName)} ADD {_dbType.MarkAsIdentifier(fieldInfo.FieldName)} {ConvertFieldType(fieldInfo)}");
             if (fieldInfo.IsNotAllowNull)
             {
-                sb.Append(" NOT NULL");
+                alterSql.Append(" NOT NULL");
             }
             if (fieldInfo.FieldDefaultValue != null)
             {
-                sb.Append($" DEFAULT {ConvertFieldDefaultValue(fieldInfo.FieldDefaultValue)}");
+                alterSql.Append($" DEFAULT {ConvertFieldDefaultValue(fieldInfo.FieldDefaultValue)}");
             }
-            sb.AppendLine("';");
+            sb.AppendLine(GetExecuteImmediateSql(alterSql.ToString()));
         });
         foreach (var kv in fieldDescriptionDic)
         {
-            sb.AppendLine($"execute immediate 'COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS ''{kv.Value}''';");
+            sb.AppendLine(GetExecuteImmediateSql(
+                $"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS {ConvertDdlTextLiteral(kv.Value)}"));
         }
         sb.Append("END;");
         result.Add(sb.ToString());
         return result;
+    }
+
+    private string GetExecuteImmediateSql(string sql)
+    {
+        // 先生成完整 SQL，再作为一个字符串字面量嵌入 PL/SQL，避免遗漏第二层单引号转义。
+        return $"execute immediate {ConvertDdlTextLiteral(sql)};";
     }
 }

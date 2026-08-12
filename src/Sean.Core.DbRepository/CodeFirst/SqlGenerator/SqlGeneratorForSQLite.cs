@@ -56,6 +56,7 @@ public class SqlGeneratorForSQLite : BaseSqlGenerator
         var fieldInfoList = new List<string>();
         var sbFieldInfo = new StringBuilder();
         var hasPrimaryKeyIdentity = false;
+        var primaryKeyCount = entityInfo.FieldInfos.Count(c => c.IsPrimaryKey);
         foreach (var fieldInfo in entityInfo.FieldInfos)
         {
             sbFieldInfo.Clear();
@@ -70,12 +71,13 @@ public class SqlGeneratorForSQLite : BaseSqlGenerator
             }
             if (fieldInfo.IsIdentityField)
             {
-                if (fieldInfo.IsPrimaryKey)
+                // SQLite 的 AUTOINCREMENT 只能用于唯一的 INTEGER 主键，复合主键必须保留表级约束。
+                if (primaryKeyCount == 1 && fieldInfo.IsPrimaryKey && string.Equals(ConvertFieldType(fieldInfo), "INTEGER",
+                        StringComparison.OrdinalIgnoreCase))
                 {
-                    sbFieldInfo.Append(" PRIMARY KEY");
+                    sbFieldInfo.Append(" PRIMARY KEY AUTOINCREMENT");
                     hasPrimaryKeyIdentity = true;
                 }
-                sbFieldInfo.Append(" AUTOINCREMENT");
             }
             fieldInfoList.Add(sbFieldInfo.ToString());
         }

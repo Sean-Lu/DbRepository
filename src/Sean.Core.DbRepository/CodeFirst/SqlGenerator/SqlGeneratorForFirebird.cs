@@ -93,11 +93,11 @@ public class SqlGeneratorForFirebird : BaseSqlGenerator
         result.Add(sb.ToString());
         if (!string.IsNullOrWhiteSpace(entityInfo.TableDescription))
         {
-            result.Add($"COMMENT ON TABLE {_dbType.MarkAsIdentifier(tableName)} IS '{entityInfo.TableDescription}';");
+            result.Add($"COMMENT ON TABLE {_dbType.MarkAsIdentifier(tableName)} IS {ConvertDdlTextLiteral(entityInfo.TableDescription)};");
         }
         foreach (var kv in fieldDescriptionDic)
         {
-            result.Add($"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS '{kv.Value}';");
+            result.Add($"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS {ConvertDdlTextLiteral(kv.Value)};");
         }
         var createIndexSql = GetCreateIndexSql(entityType, ignoreIfExists, tableName);
         createIndexSql?.ForEach(sql =>
@@ -140,7 +140,7 @@ public class SqlGeneratorForFirebird : BaseSqlGenerator
         });
         foreach (var kv in fieldDescriptionDic)
         {
-            result.Add($"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS '{kv.Value}';");
+            result.Add($"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS {ConvertDdlTextLiteral(kv.Value)};");
         }
         return result;
     }

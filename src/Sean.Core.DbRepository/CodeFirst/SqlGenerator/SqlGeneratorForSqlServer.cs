@@ -58,9 +58,11 @@ public class SqlGeneratorForSqlServer : BaseSqlGenerator
         var sb = new StringBuilder();
         var entityInfo = entityType.GetEntityInfo();
         var tableName = tableNameFunc != null ? tableNameFunc(entityInfo.TableName) : entityInfo.TableName;
-        if(ignoreIfExists)
+        if (ignoreIfExists)
         {
-            sb.Append($"IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE type='u' AND name='{tableName}') ");
+            // BEGIN/END 必须覆盖建表、扩展属性和索引，确保表已存在时整段脚本都被跳过。
+            sb.AppendLine($"IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE type='U' AND name=N{ConvertDdlTextLiteral(tableName)})");
+            sb.AppendLine("BEGIN");
         }
         sb.AppendLine($"CREATE TABLE {_dbType.MarkAsIdentifier(tableName)} (");
         var fieldInfoList = new List<string>();
@@ -96,17 +98,21 @@ public class SqlGeneratorForSqlServer : BaseSqlGenerator
         sb.AppendLine(");");
         if (!string.IsNullOrWhiteSpace(entityInfo.TableDescription))
         {
-            sb.AppendLine($"EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'{entityInfo.TableDescription}', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{tableName}';");
+            sb.AppendLine($"EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N{ConvertDdlTextLiteral(entityInfo.TableDescription)}, @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N{ConvertDdlTextLiteral(tableName)};");
         }
         foreach (var kv in fieldDescriptionDic)
         {
-            sb.AppendLine($"EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'{kv.Value}', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{tableName}', @level2type=N'COLUMN',@level2name=N'{kv.Key}';");
+            sb.AppendLine($"EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N{ConvertDdlTextLiteral(kv.Value)}, @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N{ConvertDdlTextLiteral(tableName)}, @level2type=N'COLUMN',@level2name=N{ConvertDdlTextLiteral(kv.Key)};");
         }
         var createIndexSql = GetCreateIndexSql(entityType, ignoreIfExists, tableName);
         createIndexSql?.ForEach(sql =>
         {
             sb.AppendLine($"{sql};");
         });
+        if (ignoreIfExists)
+        {
+            sb.AppendLine("END;");
+        }
         result.Add(sb.ToString());
         return result;
     }
@@ -144,7 +150,7 @@ public class SqlGeneratorForSqlServer : BaseSqlGenerator
         });
         foreach (var kv in fieldDescriptionDic)
         {
-            result.Add($"EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'{kv.Value}', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{tableName}', @level2type=N'COLUMN',@level2name=N'{kv.Key}';");
+            result.Add($"EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N{ConvertDdlTextLiteral(kv.Value)}, @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N{ConvertDdlTextLiteral(tableName)}, @level2type=N'COLUMN',@level2name=N{ConvertDdlTextLiteral(kv.Key)};");
         }
         return result;
     }

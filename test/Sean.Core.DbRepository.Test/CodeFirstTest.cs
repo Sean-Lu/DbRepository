@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.CodeFirst;
@@ -129,7 +130,9 @@ CREATE UNIQUE INDEX `IDX_Test_Email` ON `Test` (`Email`);
     {
         ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.SqlServer);
         var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
-        Assert.AreEqual(@"IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE type='u' AND name='Test') CREATE TABLE [Test] (
+        Assert.AreEqual(@"IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE type='U' AND name=N'Test')
+BEGIN
+CREATE TABLE [Test] (
   [Id] bigint NOT NULL IDENTITY,
   [UserId] bigint,
   [UserName] nvarchar(50),
@@ -167,6 +170,7 @@ EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'创建时间',
 EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'更新时间', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Test', @level2type=N'COLUMN',@level2name=N'UpdateTime';
 CREATE UNIQUE INDEX [IDX_Test_PhoneNumber] ON [Test] ([PhoneNumber]);
 CREATE UNIQUE INDEX [IDX_Test_Email] ON [Test] ([Email]);
+END;
 ", string.Join(Environment.NewLine, sql));
     }
 
@@ -259,8 +263,8 @@ CREATE TABLE IF NOT EXISTS ""Test"" (
   ""Sex"" INTEGER,
   ""PhoneNumber"" VARCHAR(50),
   ""Email"" VARCHAR(50) DEFAULT 'user@sample.com',
-  ""IsVip"" BOOLEAN DEFAULT 1,
-  ""IsBlack"" BOOLEAN DEFAULT 0,
+  ""IsVip"" BOOLEAN DEFAULT TRUE,
+  ""IsBlack"" BOOLEAN DEFAULT FALSE,
   ""Country"" INTEGER DEFAULT 1,
   ""AccountBalance"" DECIMAL(18,2) DEFAULT 999.98,
   ""AccountBalance2"" DECIMAL(18,2) DEFAULT 9.98,
@@ -317,8 +321,8 @@ CREATE UNIQUE INDEX [IDX_Test_Email] ON [Test] ([Email]);
   ""Sex"" INTEGER,
   ""PhoneNumber"" BLOB SUB_TYPE TEXT,
   ""Email"" BLOB SUB_TYPE TEXT DEFAULT 'user@sample.com',
-  ""IsVip"" BOOLEAN DEFAULT 1,
-  ""IsBlack"" BOOLEAN DEFAULT 0,
+  ""IsVip"" BOOLEAN DEFAULT TRUE,
+  ""IsBlack"" BOOLEAN DEFAULT FALSE,
   ""Country"" INTEGER DEFAULT 1,
   ""AccountBalance"" DECIMAL(18,2) DEFAULT 999.98,
   ""AccountBalance2"" DECIMAL(18,2) DEFAULT 9.98,
@@ -362,8 +366,8 @@ CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");", string.Join(En
   ""Sex"" integer,
   ""PhoneNumber"" varchar(50),
   ""Email"" varchar(50) DEFAULT 'user@sample.com',
-  ""IsVip"" boolean DEFAULT 1,
-  ""IsBlack"" boolean DEFAULT 0,
+  ""IsVip"" boolean DEFAULT TRUE,
+  ""IsBlack"" boolean DEFAULT FALSE,
   ""Country"" integer DEFAULT 1,
   ""AccountBalance"" numeric(18,2) DEFAULT 999.98,
   ""AccountBalance2"" numeric(18,2) DEFAULT 9.98,
@@ -408,8 +412,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
   ""Sex"" integer,
   ""PhoneNumber"" varchar(50),
   ""Email"" varchar(50) DEFAULT 'user@sample.com',
-  ""IsVip"" boolean DEFAULT 1,
-  ""IsBlack"" boolean DEFAULT 0,
+  ""IsVip"" boolean DEFAULT TRUE,
+  ""IsBlack"" boolean DEFAULT FALSE,
   ""Country"" integer DEFAULT 1,
   ""AccountBalance"" numeric(18,2) DEFAULT 999.98,
   ""AccountBalance2"" numeric(18,2) DEFAULT 9.98,
@@ -454,8 +458,8 @@ CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
   ""Sex"" integer,
   ""PhoneNumber"" varchar(50),
   ""Email"" varchar(50) DEFAULT 'user@sample.com',
-  ""IsVip"" boolean DEFAULT 1,
-  ""IsBlack"" boolean DEFAULT 0,
+  ""IsVip"" boolean DEFAULT TRUE,
+  ""IsBlack"" boolean DEFAULT FALSE,
   ""Country"" integer DEFAULT 1,
   ""AccountBalance"" numeric(18,2) DEFAULT 999.98,
   ""AccountBalance2"" numeric(18,2) DEFAULT 9.98,
@@ -500,8 +504,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
   ""Sex"" integer,
   ""PhoneNumber"" varchar(50),
   ""Email"" varchar(50) DEFAULT 'user@sample.com',
-  ""IsVip"" boolean DEFAULT 1,
-  ""IsBlack"" boolean DEFAULT 0,
+  ""IsVip"" boolean DEFAULT TRUE,
+  ""IsBlack"" boolean DEFAULT FALSE,
   ""Country"" integer DEFAULT 1,
   ""AccountBalance"" numeric(18,2) DEFAULT 999.98,
   ""AccountBalance2"" numeric(18,2) DEFAULT 9.98,
@@ -536,7 +540,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
     [TestMethod]
     public void TestCreatTableSqlForQuestDB()
     {
-        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.QuestDB);
+        // 唯一索引的拒绝行为由正确性测试验证；此处单独保留表结构 SQL 的 golden 覆盖。
+        ISqlGenerator sqlGenerator = new SqlGeneratorForQuestDbWithoutIndexes();
         var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
         Assert.AreEqual(@"CREATE TABLE ""Test"" (
   ""Id"" LONG NOT NULL,
@@ -556,8 +561,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
   ""CreateTime"" TIMESTAMP,
   ""UpdateTime"" TIMESTAMP
 );
-CREATE UNIQUE INDEX ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
-CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
 ", string.Join(Environment.NewLine, sql));
     }
 
@@ -622,7 +625,8 @@ CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
     [TestMethod]
     public void TestCreatTableSqlForClickHouse()
     {
-        ISqlGenerator sqlGenerator = SqlGeneratorFactory.GetSqlGenerator(DatabaseType.ClickHouse);
+        // 唯一索引的拒绝行为由正确性测试验证；此处单独保留表结构 SQL 的 golden 覆盖。
+        ISqlGenerator sqlGenerator = new SqlGeneratorForClickHouseWithoutIndexes();
         var sql = sqlGenerator.GetCreateTableSql<TestEntity>(true);
         Assert.AreEqual(@"CREATE TABLE IF NOT EXISTS `Test` (
   `Id` Int64 NOT NULL COMMENT '主键',
@@ -643,8 +647,6 @@ CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
   `UpdateTime` Nullable(DateTime) COMMENT '更新时间',
   PRIMARY KEY (`Id`)
 ) ENGINE = MergeTree() COMMENT '测试表';
-CREATE UNIQUE INDEX `IDX_Test_PhoneNumber` ON `Test` (`PhoneNumber`);
-CREATE UNIQUE INDEX `IDX_Test_Email` ON `Test` (`Email`);
 ", string.Join(Environment.NewLine, sql));
     }
 
@@ -690,8 +692,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS ""IDX_Test_Email"" ON ""Test"" (""Email"");
   ""Sex"" integer,
   ""PhoneNumber"" varchar(50),
   ""Email"" varchar(50) DEFAULT 'user@sample.com',
-  ""IsVip"" boolean DEFAULT 1,
-  ""IsBlack"" boolean DEFAULT 0,
+  ""IsVip"" boolean DEFAULT TRUE,
+  ""IsBlack"" boolean DEFAULT FALSE,
   ""Country"" integer DEFAULT 1,
   ""AccountBalance"" numeric(18,2) DEFAULT 999.98,
   ""AccountBalance2"" numeric(18,2) DEFAULT 9.98,
@@ -777,7 +779,24 @@ CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
   PRIMARY KEY (""Id"")
 ) COMMENT '测试表';
 CREATE UNIQUE INDEX ""IDX_Test_PhoneNumber"" ON ""Test"" (""PhoneNumber"");
-CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");
-", string.Join(Environment.NewLine, sql));
+CREATE UNIQUE INDEX ""IDX_Test_Email"" ON ""Test"" (""Email"");" + Environment.NewLine, string.Join(Environment.NewLine, sql));
+    }
+
+    private sealed class SqlGeneratorForQuestDbWithoutIndexes : SqlGeneratorForQuestDB
+    {
+        protected override List<string> GetCreateIndexSql(Type entityType, bool ignoreIfExists = false,
+            string tableName = null)
+        {
+            return null;
+        }
+    }
+
+    private sealed class SqlGeneratorForClickHouseWithoutIndexes : SqlGeneratorForClickHouse
+    {
+        protected override List<string> GetCreateIndexSql(Type entityType, bool ignoreIfExists = false,
+            string tableName = null)
+        {
+            return null;
+        }
     }
 }

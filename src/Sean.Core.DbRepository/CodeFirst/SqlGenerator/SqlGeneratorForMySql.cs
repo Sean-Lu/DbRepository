@@ -38,7 +38,8 @@ public class SqlGeneratorForMySql : BaseSqlGenerator
                 break;
             case not null when underlyingType == typeof(string):
                 {
-                    result = fieldInfo.MaxLength.HasValue ? $"varchar({fieldInfo.MaxLength.Value})" : "varchar";
+                    // MySQL 系的 VARCHAR 必须指定长度；255 与现有显式默认用法保持一致，兼容旧版本。
+                    result = $"varchar({fieldInfo.MaxLength.GetValueOrDefault(255)})";
                     break;
                 }
             case not null when underlyingType == typeof(DateTime):
@@ -95,7 +96,7 @@ public class SqlGeneratorForMySql : BaseSqlGenerator
             }
             if (!string.IsNullOrWhiteSpace(fieldInfo.FieldDescription))
             {
-                sbFieldInfo.Append($" COMMENT '{fieldInfo.FieldDescription}'");
+                sbFieldInfo.Append($" COMMENT {ConvertDdlTextLiteral(fieldInfo.FieldDescription)}");
             }
             fieldInfoList.Add(sbFieldInfo.ToString());
         }
@@ -107,7 +108,7 @@ public class SqlGeneratorForMySql : BaseSqlGenerator
         sb.Append(")");
         if (!string.IsNullOrWhiteSpace(entityInfo.TableDescription))
         {
-            sb.Append($" COMMENT='{entityInfo.TableDescription}'");
+            sb.Append($" COMMENT={ConvertDdlTextLiteral(entityInfo.TableDescription)}");
         }
         sb.AppendLine(";");
         var createIndexSql = GetCreateIndexSql(entityType, ignoreIfExists, tableName);
@@ -156,7 +157,7 @@ public class SqlGeneratorForMySql : BaseSqlGenerator
             }
             if (!string.IsNullOrWhiteSpace(fieldInfo.FieldDescription))
             {
-                sb.Append($" COMMENT '{fieldInfo.FieldDescription}'");
+                sb.Append($" COMMENT {ConvertDdlTextLiteral(fieldInfo.FieldDescription)}");
             }
             sb.Append(";");
             result.Add(sb.ToString());

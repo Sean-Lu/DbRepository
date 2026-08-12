@@ -79,7 +79,7 @@ public class SqlGeneratorForDameng : BaseSqlGenerator
             }
             if (!string.IsNullOrWhiteSpace(fieldInfo.FieldDescription))
             {
-                sbFieldInfo.Append($" COMMENT '{fieldInfo.FieldDescription}'");
+                sbFieldInfo.Append($" COMMENT {ConvertDdlTextLiteral(fieldInfo.FieldDescription)}");
             }
             fieldInfoList.Add(sbFieldInfo.ToString());
         }
@@ -91,7 +91,7 @@ public class SqlGeneratorForDameng : BaseSqlGenerator
         sb.Append(")");
         if (!string.IsNullOrWhiteSpace(entityInfo.TableDescription))
         {
-            sb.Append($" COMMENT '{entityInfo.TableDescription}'");
+            sb.Append($" COMMENT {ConvertDdlTextLiteral(entityInfo.TableDescription)}");
         }
         sb.AppendLine(";");
         var createIndexSql = GetCreateIndexSql(entityType, ignoreIfExists, tableName);
@@ -128,7 +128,7 @@ public class SqlGeneratorForDameng : BaseSqlGenerator
             }
             if (!string.IsNullOrWhiteSpace(fieldInfo.FieldDescription))
             {
-                sb.Append($" COMMENT '{fieldInfo.FieldDescription}'");
+                sb.Append($" COMMENT {ConvertDdlTextLiteral(fieldInfo.FieldDescription)}");
             }
             sb.Append(";");
             result.Add(sb.ToString());

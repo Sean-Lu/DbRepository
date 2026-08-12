@@ -406,19 +406,19 @@ internal static class SqlBuilderUtil
             || valueType == typeof(decimal)
            )
         {
-            // Use InvariantCulture to avoid culture-sensitive formatting (e.g. ',' as decimal separator).
+            // 使用固定区域性，避免小数分隔符等内容随当前区域性变化。
             return Convert.ToString(value, CultureInfo.InvariantCulture);
         }
 
         if (valueType == typeof(DateTime))
         {
-            // Keep the existing second-level SQL shape while making formatting culture-independent.
+            // 保持原有二级 SQL 形态，仅消除格式化对当前区域性的依赖。
             return $"'{((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)}'";
         }
 
         if (valueType.IsEnum)
         {
-            // Convert via underlying enum type (supports non-int backing types like byte/long).
+            // 先转换为枚举基类型，兼容 byte、long 等非 Int32 基类型。
             var underlyingValue = Convert.ChangeType(value, Enum.GetUnderlyingType(valueType), CultureInfo.InvariantCulture);
             return Convert.ToString(underlyingValue, CultureInfo.InvariantCulture);
         }
@@ -433,18 +433,30 @@ internal static class SqlBuilderUtil
     }
 
     /// <summary>
-    /// Formats a string as a SQL literal. MySQL-compatible databases require special handling for
-    /// backslashes so the result is safe with or without NO_BACKSLASH_ESCAPES enabled.
+    /// 将字符串格式化为 SQL 字面量。允许表达式时，MySQL 兼容数据库会特殊处理反斜杠，
+    /// 使结果在启用或关闭 NO_BACKSLASH_ESCAPES 时都能保持一致。
     /// </summary>
-    internal static string EscapeSqlLiteral(DatabaseType dbType, string value)
+    /// <param name="dbType">数据库类型。</param>
+    /// <param name="value">待格式化的字符串。</param>
+    /// <param name="allowExpressions">是否允许使用表达式拼接；DDL 仅接受字面量的位置应传 false。</param>
+    internal static string EscapeSqlLiteral(DatabaseType dbType, string value, bool allowExpressions = true)
     {
-        if (!IsMySqlCompatible(dbType) || value.IndexOf('\\') < 0)
+        if (!allowExpressions && IsMySqlCompatible(dbType) && value.IndexOf('\\') >= 0)
+        {
+            // MySQL 兼容数据库会按 sql_mode 解释字面量中的反斜杠，而旧版本 DDL 又不接受 CONCAT 表达式。
+            // 在无法获知服务器模式时不生成可能改变数据或破坏 SQL 结构的字面量。
+            throw new NotSupportedException(
+                $"数据库类型 [{dbType}] 的 DDL 文本包含反斜杠，无法在未知 NO_BACKSLASH_ESCAPES 模式下安全生成字符串字面量。");
+        }
+
+        // COMMENT、旧版本 DEFAULT 等 DDL 位置只接受字面量，不能使用 CONCAT 表达式。
+        if (!allowExpressions || !IsMySqlCompatible(dbType) || value.IndexOf('\\') < 0)
         {
             return FormatAnsiStringLiteral(value);
         }
 
-        // Keep backslashes outside quoted literals so they cannot escape a quote in MySQL's default mode.
-        // CHAR(92) also preserves the original value when NO_BACKSLASH_ESCAPES is enabled.
+        // 将反斜杠放在字符串字面量外，避免其在 MySQL 默认模式下转义后续单引号；
+        // CHAR(92) 在启用 NO_BACKSLASH_ESCAPES 时也能保持原值。
         var valueParts = value.Split('\\');
         var sqlParts = new List<string>(valueParts.Length * 2 - 1);
         for (var i = 0; i < valueParts.Length; i++)
@@ -472,7 +484,7 @@ internal static class SqlBuilderUtil
     }
 
     /// <summary>
-    /// Formats a numeric value as a SQL literal using InvariantCulture.
+    /// 使用固定区域性格式化数值 SQL 字面量。
     /// </summary>
     private static string FormatNumericLiteral(object value)
     {

@@ -95,11 +95,11 @@ public class SqlGeneratorForOpenGauss : BaseSqlGenerator
         sb.AppendLine(");");
         if (!string.IsNullOrWhiteSpace(entityInfo.TableDescription))
         {
-            sb.AppendLine($"COMMENT ON TABLE {_dbType.MarkAsIdentifier(tableName)} IS '{entityInfo.TableDescription}';");
+            sb.AppendLine($"COMMENT ON TABLE {_dbType.MarkAsIdentifier(tableName)} IS {ConvertDdlTextLiteral(entityInfo.TableDescription)};");
         }
         foreach (var kv in fieldDescriptionDic)
         {
-            sb.AppendLine($"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS '{kv.Value}';");
+            sb.AppendLine($"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS {ConvertDdlTextLiteral(kv.Value)};");
         }
         var createIndexSql = GetCreateIndexSql(entityType, ignoreIfExists, tableName);
         createIndexSql?.ForEach(sql =>
@@ -143,7 +143,7 @@ public class SqlGeneratorForOpenGauss : BaseSqlGenerator
         });
         foreach (var kv in fieldDescriptionDic)
         {
-            result.Add($"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS '{kv.Value}';");
+            result.Add($"COMMENT ON COLUMN {_dbType.MarkAsIdentifier(tableName)}.{_dbType.MarkAsIdentifier(kv.Key)} IS {ConvertDdlTextLiteral(kv.Value)};");
         }
         return result;
     }
