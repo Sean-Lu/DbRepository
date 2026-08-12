@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Example.Dapper.Core.Domain.Contracts;
-using Example.Dapper.Core.Domain.Entities;
-using Example.Dapper.Core.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sean.Utility.Contracts;
 
 namespace Sean.Core.DbRepository.Test;
 
@@ -14,13 +10,13 @@ namespace Sean.Core.DbRepository.Test;
 [TestClass]
 public class TableRepositoryTest : DapperTestBase
 {
-    private readonly ILogger _logger;
-    private readonly ITestRepository _testRepository;
+    private readonly TestLogger _logger;
+    private readonly TestRepository _testRepository;
 
     public TableRepositoryTest()
     {
-        _logger = DIManager.GetService<ISimpleLogger<TableRepositoryTest>>();
-        _testRepository = DIManager.GetService<ITestRepository>();
+        _logger = TestInfrastructure.CreateLogger();
+        _testRepository = TestInfrastructure.CreateRepository();
     }
 
     /// <summary>

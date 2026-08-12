@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Example.Dapper.Core.Domain.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.CodeFirst;
 

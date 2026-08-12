@@ -1,10 +1,6 @@
 ﻿using System;
-using Example.Dapper.Core.Domain.Contracts;
-using Example.Dapper.Core.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sean.Utility.Contracts;
 using System.Threading.Tasks;
-using Example.Dapper.Core.Domain.Entities;
 
 namespace Sean.Core.DbRepository.Test;
 
@@ -14,8 +10,8 @@ namespace Sean.Core.DbRepository.Test;
 [TestClass]
 public class ConcurrentTest : DapperTestBase
 {
-    private readonly ILogger _logger = DIManager.GetService<ISimpleLogger<ConcurrentTest>>();
-    private readonly ITestRepository _testRepository = DIManager.GetService<ITestRepository>();
+    private readonly TestLogger _logger = TestInfrastructure.CreateLogger();
+    private readonly TestRepository _testRepository = TestInfrastructure.CreateRepository();
 
     /// <summary>
     /// 并发写入数据测试

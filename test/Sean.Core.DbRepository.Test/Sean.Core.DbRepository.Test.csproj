@@ -10,6 +10,7 @@
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
 		<PackageReference Include="MSTest.TestAdapter" Version="4.1.0" />
 		<PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
 		<PackageReference Include="coverlet.collector" Version="8.0.1">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -17,7 +18,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\examples\Dapper\NetCore\Example.Dapper.Core.Application\Example.Dapper.Core.Application.csproj" />
+	  <ProjectReference Include="..\..\src\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj" />
+	  <ProjectReference Include="..\..\src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

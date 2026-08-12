@@ -3,13 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Dapper;
-using Example.Dapper.Core.Domain.Contracts;
-using Example.Dapper.Core.Domain.Entities;
-using Example.Dapper.Core.Infrastructure;
-using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Extensions;
-using Sean.Utility.Contracts;
 
 namespace Sean.Core.DbRepository.Test;
 
@@ -19,17 +14,15 @@ namespace Sean.Core.DbRepository.Test;
 [TestClass]
 public class PerformanceComparisonTest : DapperTestBase
 {
-    private readonly ILogger _logger;
-    private readonly IConfiguration _configuration;
-    private readonly ITestRepository _testRepository;
+    private readonly TestLogger _logger;
+    private readonly TestRepository _testRepository;
     private readonly bool _enablePerformanceComparisonTest;
 
     public PerformanceComparisonTest()
     {
-        _logger = DIManager.GetService<ISimpleLogger<PerformanceComparisonTest>>();
-        _configuration = DIManager.GetService<IConfiguration>();
-        _testRepository = DIManager.GetService<ITestRepository>();
-        _enablePerformanceComparisonTest = _configuration.GetValue<bool>("UnitTestOptions:EnablePerformanceComparisonTest");
+        _logger = TestInfrastructure.CreateLogger();
+        _testRepository = TestInfrastructure.CreateRepository();
+        _enablePerformanceComparisonTest = TestInfrastructure.EnablePerformanceComparisonTest;
     }
 
     /// <summary>
