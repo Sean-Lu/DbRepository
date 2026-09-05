@@ -18,6 +18,14 @@ public class OutputParameterOptions
 
 public class OutputParameterOptions<TEntity> : OutputParameterOptions
 {
-    public new TEntity OutputTarget { get; set; }
+    /// <summary>
+    /// 与输出回写共享同一目标；非泛型属性被设置为不兼容类型时，泛型读取明确报错。
+    /// </summary>
+    public new TEntity OutputTarget
+    {
+        get => base.OutputTarget == null ? default : (TEntity)base.OutputTarget;
+        set => base.OutputTarget = value;
+    }
+
     public Expression<Func<TEntity, object>> FieldExpression { get; set; }
 }

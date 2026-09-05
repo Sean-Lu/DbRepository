@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -1213,7 +1214,13 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                 return false;
                             }
 
-                            keyIdentityProperty.SetValue(entity, id, null);
+                            // 按目标属性的实际类型回写；较小整数溢出时明确报错，不能截断主键。
+                            var identityType = Nullable.GetUnderlyingType(keyIdentityProperty.PropertyType) ?? keyIdentityProperty.PropertyType;
+                            // 仅转换数值类型；枚举、可赋值对象及其他类型保留原反射赋值行为。
+                            var identityTypeCode = Type.GetTypeCode(identityType);
+                            var identityValue = !identityType.IsEnum && identityTypeCode >= TypeCode.SByte && identityTypeCode <= TypeCode.Decimal
+                                ? Convert.ChangeType(id, identityType, CultureInfo.InvariantCulture) : id;
+                            keyIdentityProperty.SetValue(entity, identityValue, null);
                             return true;
                         }, true, transaction);
                     }
@@ -1246,7 +1253,13 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                             return false;
                         }
 
-                        keyIdentityProperty.SetValue(entity, id, null);
+                        // 按目标属性的实际类型回写；较小整数溢出时明确报错，不能截断主键。
+                        var identityType = Nullable.GetUnderlyingType(keyIdentityProperty.PropertyType) ?? keyIdentityProperty.PropertyType;
+                        // 仅转换数值类型；枚举、可赋值对象及其他类型保留原反射赋值行为。
+                        var identityTypeCode = Type.GetTypeCode(identityType);
+                        var identityValue = !identityType.IsEnum && identityTypeCode >= TypeCode.SByte && identityTypeCode <= TypeCode.Decimal
+                            ? Convert.ChangeType(id, identityType, CultureInfo.InvariantCulture) : id;
+                        keyIdentityProperty.SetValue(entity, identityValue, null);
                         return true;
                     }
             }
@@ -1918,7 +1931,13 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                 return false;
                             }
 
-                            keyIdentityProperty.SetValue(entity, id, null);
+                            // 按目标属性的实际类型回写；较小整数溢出时明确报错，不能截断主键。
+                            var identityType = Nullable.GetUnderlyingType(keyIdentityProperty.PropertyType) ?? keyIdentityProperty.PropertyType;
+                            // 仅转换数值类型；枚举、可赋值对象及其他类型保留原反射赋值行为。
+                            var identityTypeCode = Type.GetTypeCode(identityType);
+                            var identityValue = !identityType.IsEnum && identityTypeCode >= TypeCode.SByte && identityTypeCode <= TypeCode.Decimal
+                                ? Convert.ChangeType(id, identityType, CultureInfo.InvariantCulture) : id;
+                            keyIdentityProperty.SetValue(entity, identityValue, null);
                             return true;
                         }, true, transaction);
                     }
@@ -1951,7 +1970,13 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                             return false;
                         }
 
-                        keyIdentityProperty.SetValue(entity, id, null);
+                        // 按目标属性的实际类型回写；较小整数溢出时明确报错，不能截断主键。
+                        var identityType = Nullable.GetUnderlyingType(keyIdentityProperty.PropertyType) ?? keyIdentityProperty.PropertyType;
+                        // 仅转换数值类型；枚举、可赋值对象及其他类型保留原反射赋值行为。
+                        var identityTypeCode = Type.GetTypeCode(identityType);
+                        var identityValue = !identityType.IsEnum && identityTypeCode >= TypeCode.SByte && identityTypeCode <= TypeCode.Decimal
+                            ? Convert.ChangeType(id, identityType, CultureInfo.InvariantCulture) : id;
+                        keyIdentityProperty.SetValue(entity, identityValue, null);
                         return true;
                     }
             }

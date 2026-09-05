@@ -183,6 +183,22 @@ public class DefaultSqlCommand : ISqlCommand
 
 public class DefaultSqlCommand<T> : DefaultSqlCommand, ISqlCommand<T>
 {
-    public new T Parameter { get; set; }
-    public new OutputParameterOptions<T> OutputParameterOptions { get; set; }
+    /// <summary>
+    /// 与非泛型命令共享参数；转换为字典后，应通过非泛型属性读取，不能再按原 DTO 类型读取。
+    /// </summary>
+    public new T Parameter
+    {
+        // 未设置时保留泛型默认值；非空但类型不匹配时明确报错，不能隐藏实际参数。
+        get => base.Parameter == null ? default : (T)base.Parameter;
+        set => base.Parameter = value;
+    }
+
+    /// <summary>
+    /// 与非泛型执行入口共享输出选项，避免泛型设置的选项在执行时丢失。
+    /// </summary>
+    public new OutputParameterOptions<T> OutputParameterOptions
+    {
+        get => (OutputParameterOptions<T>)base.OutputParameterOptions;
+        set => base.OutputParameterOptions = value;
+    }
 }
