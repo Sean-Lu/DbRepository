@@ -127,7 +127,11 @@ public abstract class DapperBaseRepository : BaseRepository
     {
         if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-        return Execute(connection => connection.ExecuteReader(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        // 只让 Reader 关闭仓储内部连接；连接已由通用执行方法打开，不能依赖 Dapper 自动推断。
+        var behavior = sqlCommand.Transaction?.Connection == null && sqlCommand.Connection == null
+            ? CommandBehavior.CloseConnection : CommandBehavior.Default;
+        return Execute(connection => connection.ExecuteReader(sqlCommand, SqlMonitor, behavior),
+            sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection, autoDisposeInternalConnection: false);
     }
     #endregion
 
@@ -183,7 +187,11 @@ public abstract class DapperBaseRepository : BaseRepository
     {
         if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-        return await ExecuteAsync(async connection => await connection.ExecuteReaderAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        // 只让 Reader 关闭仓储内部连接；连接已由通用执行方法打开，不能依赖 Dapper 自动推断。
+        var behavior = sqlCommand.Transaction?.Connection == null && sqlCommand.Connection == null
+            ? CommandBehavior.CloseConnection : CommandBehavior.Default;
+        return await ExecuteAsync(connection => connection.ExecuteReaderAsync(sqlCommand, SqlMonitor, behavior),
+            sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection, autoDisposeInternalConnection: false);
     }
     #endregion
 }
@@ -305,7 +313,11 @@ public abstract class DapperBaseRepository<TEntity> : BaseRepository<TEntity> wh
     {
         if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-        return Execute(connection => connection.ExecuteReader(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        // 只让 Reader 关闭仓储内部连接；连接已由通用执行方法打开，不能依赖 Dapper 自动推断。
+        var behavior = sqlCommand.Transaction?.Connection == null && sqlCommand.Connection == null
+            ? CommandBehavior.CloseConnection : CommandBehavior.Default;
+        return Execute(connection => connection.ExecuteReader(sqlCommand, SqlMonitor, behavior),
+            sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection, autoDisposeInternalConnection: false);
     }
     #endregion
 
@@ -361,7 +373,11 @@ public abstract class DapperBaseRepository<TEntity> : BaseRepository<TEntity> wh
     {
         if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
 
-        return await ExecuteAsync(async connection => await connection.ExecuteReaderAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
+        // 只让 Reader 关闭仓储内部连接；连接已由通用执行方法打开，不能依赖 Dapper 自动推断。
+        var behavior = sqlCommand.Transaction?.Connection == null && sqlCommand.Connection == null
+            ? CommandBehavior.CloseConnection : CommandBehavior.Default;
+        return await ExecuteAsync(connection => connection.ExecuteReaderAsync(sqlCommand, SqlMonitor, behavior),
+            sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection, autoDisposeInternalConnection: false);
     }
     #endregion
 }

@@ -68,9 +68,36 @@ public static class DbConnectionExtensions
         });
     }
 
-    public static IDataReader ExecuteReader(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null)
+    /// <summary>
+    /// 创建 Dapper 原生 Reader，由其管理命令的释放。
+    /// </summary>
+    /// <param name="connection">执行命令的连接。</param>
+    /// <param name="sqlCommand">SQL、参数及命令选项。</param>
+    /// <param name="sqlMonitor">执行监控。</param>
+    /// <param name="commandBehavior">Reader 行为；仅在允许 Reader 关闭此连接时指定 CloseConnection。</param>
+    /// <returns>由调用方关闭或释放的 Reader。</returns>
+    public static IDataReader ExecuteReader(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null, CommandBehavior commandBehavior = CommandBehavior.Default)
     {
-        return sqlMonitor.Execute(connection, sqlCommand, () => connection.ExecuteReader(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType));
+        IDataReader reader = null;
+        try
+        {
+            return sqlMonitor.Execute(connection, sqlCommand, () =>
+                reader = connection.ExecuteReader(new CommandDefinition(sqlCommand.Sql, sqlCommand.Parameter,
+                    sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType), commandBehavior));
+        }
+        catch
+        {
+            // 完成监控也可能抛异常，此时 Reader 尚未返回，必须连同其持有的命令一起清理。
+            try
+            {
+                reader?.Dispose();
+            }
+            catch
+            {
+                // 清理失败不能覆盖 Reader 创建或监控回调的原始异常。
+            }
+            throw;
+        }
     }
     #endregion
 
@@ -140,9 +167,36 @@ public static class DbConnectionExtensions
         });
     }
 
-    public static async Task<IDataReader> ExecuteReaderAsync(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null)
+    /// <summary>
+    /// 异步创建 Dapper 原生 Reader，由其管理命令的释放。
+    /// </summary>
+    /// <param name="connection">执行命令的连接。</param>
+    /// <param name="sqlCommand">SQL、参数及命令选项。</param>
+    /// <param name="sqlMonitor">执行监控。</param>
+    /// <param name="commandBehavior">Reader 行为；仅在允许 Reader 关闭此连接时指定 CloseConnection。</param>
+    /// <returns>由调用方关闭或释放的 Reader。</returns>
+    public static async Task<IDataReader> ExecuteReaderAsync(this IDbConnection connection, ISqlCommand sqlCommand, ISqlMonitor sqlMonitor = null, CommandBehavior commandBehavior = CommandBehavior.Default)
     {
-        return await sqlMonitor.ExecuteAsync(connection, sqlCommand, async () => await connection.ExecuteReaderAsync(sqlCommand.Sql, sqlCommand.Parameter, sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType));
+        IDataReader reader = null;
+        try
+        {
+            return await sqlMonitor.ExecuteAsync(connection, sqlCommand, async () =>
+                reader = await connection.ExecuteReaderAsync(new CommandDefinition(sqlCommand.Sql, sqlCommand.Parameter,
+                    sqlCommand.Transaction, sqlCommand.CommandTimeout, sqlCommand.CommandType), commandBehavior));
+        }
+        catch
+        {
+            // 与同步路径一致：监控失败不能把已经创建的 Reader 和命令遗留在调用方不可见的位置。
+            try
+            {
+                reader?.Dispose();
+            }
+            catch
+            {
+                // 清理失败不能覆盖 Reader 创建或监控回调的原始异常。
+            }
+            throw;
+        }
     }
     #endregion
 }

@@ -54,14 +54,21 @@ public interface IBaseRepository
     IDataReader ExecuteReader(ISqlCommand sqlCommand);
 
     /// <summary>
-    /// Execute using DbConnection.
+    /// 使用连接执行委托；默认在委托完成后释放仓储创建的内部连接。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="func"></param>
     /// <param name="master">true: master database, false: slave database.</param>
     /// <param name="transaction">The transaction to use for this command.</param>
-    /// <returns></returns>
-    T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
+    /// <param name="connection">调用方提供的连接，仓储不接管其释放责任。</param>
+    /// <param name="autoDisposeInternalConnection">成功后是否释放内部连接，默认为 true；执行异常时始终尝试释放内部连接，对外部连接和事务连接无效。</param>
+    /// <returns>委托返回的结果。</returns>
+    /// <remarks>
+    /// 返回仍依赖内部连接的 Reader 时，应传 false，并在创建 Reader 时设置 CommandBehavior.CloseConnection，使用完后关闭或释放 Reader。
+    /// false 不会自动为 Reader 设置关闭行为；调用方必须安排后续关闭，并确保 Command 存活到 Reader 使用结束后再释放。
+    /// 返回其他仍依赖连接的对象时，同样由调用方安排连接和相关资源的最终释放。使用外部连接时不要擅自设置 CloseConnection。
+    /// </remarks>
+    T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null, bool autoDisposeInternalConnection = true);
 
     /// <summary>
     /// Execute using DbTransaction.
@@ -141,14 +148,21 @@ public interface IBaseRepository
     Task<IDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand);
 
     /// <summary>
-    /// Execute asynchronously using DbConnection.
+    /// 使用连接异步执行委托；默认在委托完成后释放仓储创建的内部连接。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="func"></param>
     /// <param name="master">true: master database, false: slave database.</param>
     /// <param name="transaction">The transaction to use for this command.</param>
-    /// <returns></returns>
-    Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null);
+    /// <param name="connection">调用方提供的连接，仓储不接管其释放责任。</param>
+    /// <param name="autoDisposeInternalConnection">成功后是否释放内部连接，默认为 true；执行异常时始终尝试释放内部连接，对外部连接和事务连接无效。</param>
+    /// <returns>委托返回的结果。</returns>
+    /// <remarks>
+    /// 返回仍依赖内部连接的 Reader 时，应传 false，并在创建 Reader 时设置 CommandBehavior.CloseConnection，使用完后关闭或释放 Reader。
+    /// false 不会自动为 Reader 设置关闭行为；调用方必须安排后续关闭，并确保 Command 存活到 Reader 使用结束后再释放。
+    /// 返回其他仍依赖连接的对象时，同样由调用方安排连接和相关资源的最终释放。使用外部连接时不要擅自设置 CloseConnection。
+    /// </remarks>
+    Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null, bool autoDisposeInternalConnection = true);
 
     /// <summary>
     /// Execute asynchronously using DbTransaction.

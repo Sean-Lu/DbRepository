@@ -371,7 +371,8 @@ public abstract class BaseRepository : IBaseRepository
         return Factory.ExecuteReader(sqlCommand);
     }
 
-    public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
+    /// <inheritdoc />
+    public virtual T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null, bool autoDisposeInternalConnection = true)
     {
         if (func == null) throw new ArgumentNullException(nameof(func));
 
@@ -385,10 +386,32 @@ public abstract class BaseRepository : IBaseRepository
             return func(connection);
         }
 
-        using (connection = OpenNewConnection(master))
+        connection = OpenNewConnection(master);
+        T result;
+        try
         {
-            return func(connection);
+            result = func(connection);
         }
+        catch
+        {
+            // 执行失败时连接尚未交给调用方，关闭自动释放也不能跳过异常清理。
+            try
+            {
+                connection?.Dispose();
+            }
+            catch
+            {
+                // 保留执行异常，避免清理异常覆盖真正的失败原因。
+            }
+            throw;
+        }
+
+        // 仅成功时允许交接连接；返回 Reader 的委托还须自行设置 CloseConnection。
+        if (autoDisposeInternalConnection)
+        {
+            connection?.Dispose();
+        }
+        return result;
     }
 
     public virtual T ExecuteTransaction<T>(Func<IDbTransaction, T> func, IDbTransaction transaction = null, IDbConnection connection = null)
@@ -756,7 +779,8 @@ public abstract class BaseRepository : IBaseRepository
         return await Factory.ExecuteReaderAsync(sqlCommand);
     }
 
-    public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null)
+    /// <inheritdoc />
+    public virtual async Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null, IDbConnection connection = null, bool autoDisposeInternalConnection = true)
     {
         if (func == null) throw new ArgumentNullException(nameof(func));
 
@@ -770,10 +794,32 @@ public abstract class BaseRepository : IBaseRepository
             return await func(connection);
         }
 
-        using (connection = OpenNewConnection(master))
+        connection = OpenNewConnection(master);
+        T result;
+        try
         {
-            return await func(connection);
+            result = await func(connection);
         }
+        catch
+        {
+            // 执行失败时连接尚未交给调用方，关闭自动释放也不能跳过异常清理。
+            try
+            {
+                connection?.Dispose();
+            }
+            catch
+            {
+                // 保留执行异常，避免清理异常覆盖真正的失败原因。
+            }
+            throw;
+        }
+
+        // 仅成功时允许交接连接；返回 Reader 的委托还须自行设置 CloseConnection。
+        if (autoDisposeInternalConnection)
+        {
+            connection?.Dispose();
+        }
+        return result;
     }
 
     public virtual async Task<T> ExecuteTransactionAsync<T>(Func<IDbTransaction, Task<T>> func, IDbTransaction transaction = null, IDbConnection connection = null)
