@@ -4,8 +4,6 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
-using Sean.Utility.Extensions;
-using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository.Extensions;
 
@@ -261,35 +259,18 @@ public static class DbDataReaderExtensions
     private static Func<IDataRecord, T> CreateModelMapper<T>(IDataRecord dataRecord)
     {
         var type = typeof(T);
-        if (type.IsGenericType)
+        if (ResultValueMapping.IsTuple(type))
         {
-            var genericType = type.GetGenericTypeDefinition();
-            if (genericType.Name.StartsWith("Tuple") // Tuple<>
-                || genericType.Name.StartsWith("ValueTuple"))// 匿名类：ValueTuple<>
-            {
-                var typeParameters = type.GetGenericArguments();
-                if (typeParameters.Length > 0)
-                {
-                    return record =>
-                    {
-                        var values = new object[typeParameters.Length];
-                        record.GetValues(values);
-                        for (var i = 0; i < values.Length; i++)
-                        {
-                            var value = values[i];
-                            values[i] = value != null && value != DBNull.Value ? ObjectConvert.ChangeType(value, typeParameters[i]) : typeParameters[i].GetDefaultValue();
-                        }
-                        return (T)Activator.CreateInstance(typeof(T), values);
-                    };
-                }
-            }
+            return record => (T)ResultValueMapping.CreateTuple(type, record.FieldCount, index => record[index], useConstructorDefaults: false);
         }
-        else if (type.IsValueType || type == typeof(string))// 值类型、字符串
+
+        // 泛型不等于元组：Nullable 走标量分支，普通泛型 DTO 继续按实体属性映射。
+        if (type.IsValueType || type == typeof(string))// 值类型、字符串
         {
             return record =>
             {
                 var value = record[0];
-                return value != DBNull.Value ? ObjectConvert.ChangeType<T>(value) : default;
+                return value != DBNull.Value ? (T)ResultValueMapping.ConvertValue(value, type) : default;
             };
         }
         else if (type == typeof(object))// dynamic动态类型
@@ -321,7 +302,7 @@ public static class DbDataReaderExtensions
                         var value = record[i];
                         if (value != DBNull.Value)
                         {
-                            propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
+                            propertyInfo.SetValue(model, ResultValueMapping.ConvertValue(value, propertyInfo.PropertyType), null);
                         }
                     }
                 }
@@ -332,8 +313,6 @@ public static class DbDataReaderExtensions
         {
             throw new NotSupportedException($"Unsupported type: {type.FullName}");
         }
-
-        return _ => default;
     }
 
     private static IReadOnlyList<string> GetColumnNames(IDataRecord dataRecord)

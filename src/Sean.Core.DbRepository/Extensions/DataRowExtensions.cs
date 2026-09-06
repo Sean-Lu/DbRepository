@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository.Extensions;
 
@@ -30,68 +29,18 @@ public static class DataRowExtensions
     internal static Func<DataRow, T> CreateMapper<T>(DataTable table)
     {
         var type = typeof(T);
-        if (type.IsGenericType)
+        if (ResultValueMapping.IsTuple(type))
         {
-            var genericType = type.GetGenericTypeDefinition();
-            if (genericType.Name.StartsWith("Tuple"))// Tuple<>
-            {
-                var itemCount = type.GetProperties().Count(c => c.Name.StartsWith("Item"));
-                if (itemCount > 0)
-                {
-                    return dr =>
-                    {
-                        var values = new object[itemCount];
-                        var itemArray = dr.ItemArray;
-                        Array.Copy(itemArray, values, Math.Min(values.Length, itemArray.Length));
-                        if (values.Any(c => c == DBNull.Value))
-                        {
-                            for (var i = 0; i < values.Length; i++)
-                            {
-                                if (values[i] == DBNull.Value)
-                                {
-                                    //var propertyInfo = type.GetProperty($"Item{i + 1}");
-                                    //values[i] = propertyInfo != null ? propertyInfo.PropertyType.GetDefaultValue() : null;
-                                    values[i] = null;
-                                }
-                            }
-                        }
-                        return (T)Activator.CreateInstance(typeof(T), values);
-                    };
-                }
-            }
-            else if (genericType.Name.StartsWith("ValueTuple"))// 匿名类：ValueTuple<>
-            {
-                var itemCount = type.GetFields().Count(c => c.Name.StartsWith("Item"));
-                if (itemCount > 0)
-                {
-                    return dr =>
-                    {
-                        var values = new object[itemCount];
-                        var itemArray = dr.ItemArray;
-                        Array.Copy(itemArray, values, Math.Min(values.Length, itemArray.Length));
-                        if (values.Any(c => c == DBNull.Value))
-                        {
-                            for (var i = 0; i < values.Length; i++)
-                            {
-                                if (values[i] == DBNull.Value)
-                                {
-                                    //var fieldInfo = type.GetField($"Item{i + 1}");
-                                    //values[i] = fieldInfo != null ? fieldInfo.FieldType.GetDefaultValue() : null;
-                                    values[i] = null;
-                                }
-                            }
-                        }
-                        return (T)Activator.CreateInstance(typeof(T), values);
-                    };
-                }
-            }
+            return dr => (T)ResultValueMapping.CreateTuple(type, table.Columns.Count, index => dr[index], useConstructorDefaults: true);
         }
-        else if (type.IsValueType || type == typeof(string))// 值类型、字符串
+
+        // 泛型类型还可能是 Nullable 或普通 DTO，不能因未匹配元组就静默返回 default。
+        if (type.IsValueType || type == typeof(string))// 值类型、字符串
         {
             return dr =>
             {
                 var value = dr[0];
-                return value != DBNull.Value ? ObjectConvert.ChangeType<T>(value) : default;
+                return value != DBNull.Value ? (T)ResultValueMapping.ConvertValue(value, type) : default;
             };
         }
         else if (type == typeof(object))// dynamic动态类型
@@ -119,7 +68,7 @@ public static class DataRowExtensions
                         var value = dr[index];
                         if (value != DBNull.Value)
                         {
-                            propertyInfo.SetValue(model, ObjectConvert.ChangeType(value, propertyInfo.PropertyType), null);
+                            propertyInfo.SetValue(model, ResultValueMapping.ConvertValue(value, propertyInfo.PropertyType), null);
                         }
                     }
                 }
@@ -130,8 +79,6 @@ public static class DataRowExtensions
         {
             throw new NotSupportedException($"Unsupported type: {type.FullName}");
         }
-
-        return _ => default;
     }
 
     /// <summary>

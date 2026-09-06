@@ -13,7 +13,8 @@ internal static class EntityPropertyMapping
 {
     public static PropertyInfo[] Create(Type entityType, IReadOnlyList<string> columnNames)
     {
-        var properties = entityType.GetProperties()
+        // 查询只填充当前实体，不能通过同名结果列改写整个类型的静态状态。
+        var properties = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(property => property.CanWrite && property.GetIndexParameters().Length == 0)
             .ToList();
         var mappings = new PropertyInfo[columnNames.Count];
