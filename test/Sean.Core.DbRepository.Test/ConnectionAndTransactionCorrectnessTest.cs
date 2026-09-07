@@ -116,7 +116,7 @@ public class ConnectionAndTransactionCorrectnessTest
     [TestMethod]
     public async Task DapperExecuteReader_PreservesNativeReaderAndReadsSQLite()
     {
-        var repository = TestInfrastructure.CreateRepository();
+        using var repository = TestInfrastructure.CreateRepository();
 
         using (var reader = repository.ExecuteReader(
                    new DefaultSqlCommand(DatabaseType.SQLite) { Sql = "SELECT 1" }))

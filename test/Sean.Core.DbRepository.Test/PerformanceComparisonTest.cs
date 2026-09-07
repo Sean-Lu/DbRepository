@@ -25,6 +25,9 @@ public class PerformanceComparisonTest : DapperTestBase
         _enablePerformanceComparisonTest = TestInfrastructure.EnablePerformanceComparisonTest;
     }
 
+    [TestCleanup]
+    public void CleanupDatabase() => _testRepository.Dispose();
+
     /// <summary>
     /// 批量新增耗时时间对比
     /// </summary>

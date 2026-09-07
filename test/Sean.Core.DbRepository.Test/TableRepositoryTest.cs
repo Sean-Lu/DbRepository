@@ -19,6 +19,9 @@ public class TableRepositoryTest : DapperTestBase
         _testRepository = TestInfrastructure.CreateRepository();
     }
 
+    [TestCleanup]
+    public void CleanupDatabase() => _testRepository.Dispose();
+
     /// <summary>
     /// CRUD
     /// </summary>

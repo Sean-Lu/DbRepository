@@ -13,6 +13,9 @@ public class ConcurrentTest : DapperTestBase
     private readonly TestLogger _logger = TestInfrastructure.CreateLogger();
     private readonly TestRepository _testRepository = TestInfrastructure.CreateRepository();
 
+    [TestCleanup]
+    public void CleanupDatabase() => _testRepository.Dispose();
+
     /// <summary>
     /// 并发写入数据测试
     /// </summary>
