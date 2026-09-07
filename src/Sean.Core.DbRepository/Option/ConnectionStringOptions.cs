@@ -363,40 +363,59 @@ public class ConnectionStringOptions
     /// <param name="databaseType">Database type.</param>
     /// <param name="providerName">Database provider name.</param>
     /// <returns>Database connection string</returns>
+    /// <remarks>
+    /// 使用标准 ADO.NET 单引号/双引号规则；不解析 ODBC 大括号语法。
+    /// 厂商专有格式应通过显式指定 providerName 或 providerFactory 的构造方法传入，不在串内追加 ORM 扩展。
+    /// 提取扩展后可能规范化键名和引号格式，但保留实际参数值。
+    /// </remarks>
     public static bool ParseConnectionString(string connectionString, out string relConnectionString, out DatabaseType databaseType, out string providerName)
     {
+        relConnectionString = connectionString;
         databaseType = DatabaseType.Unknown;
         providerName = null;
 
-        if (!string.IsNullOrEmpty(connectionString) && (connectionString.Contains(Constants.DatabaseType) || connectionString.Contains(Constants.ProviderName)))
+        // 不含 ORM 扩展的连接串保持原样，厂商语法仍由实际驱动负责解析。
+        if (string.IsNullOrEmpty(connectionString)
+            || (connectionString.IndexOf(Constants.DatabaseType, StringComparison.OrdinalIgnoreCase) < 0
+                && connectionString.IndexOf(Constants.ProviderName, StringComparison.OrdinalIgnoreCase) < 0))
         {
-            var dic = GetConnectionDictionary(connectionString);
-            if (dic != null)
-            {
-                if (dic.ContainsKey(Constants.DatabaseType))
-                {
-                    var value = dic[Constants.DatabaseType];
-                    if (Enum.TryParse<DatabaseType>(value, out var dbType))
-                    {
-                        databaseType = dbType;
-                        dic.Remove(Constants.DatabaseType);
-                        relConnectionString = GetConnectionString(dic);
-                        return true;
-                    }
-                }
+            return false;
+        }
 
-                if (dic.ContainsKey(Constants.ProviderName))
-                {
-                    providerName = dic[Constants.ProviderName];
-                    dic.Remove(Constants.ProviderName);
-                    relConnectionString = GetConnectionString(dic);
-                    return true;
-                }
+        // 标准 ADO.NET 解析器处理引号、转义及重复键，不能按分号直接拆分密码等字段。
+        var builder = new ParsedConnectionStringBuilder { ConnectionString = connectionString };
+        var hasDatabaseType = builder.ContainsParsedKey(Constants.DatabaseType);
+        var hasProviderName = builder.ContainsParsedKey(Constants.ProviderName);
+        if (!hasDatabaseType && !hasProviderName)
+        {
+            return false;
+        }
+
+        var parsedType = DatabaseType.Unknown;
+        if (hasDatabaseType)
+        {
+            var value = builder.TryGetValue(Constants.DatabaseType, out var typeValue) ? (string)typeValue : null;
+            // 保留合法数值和 Unknown；拒绝未定义值以及非 Flags 枚举的逗号组合，避免选错方言。
+            if (string.IsNullOrWhiteSpace(value) || value.IndexOf(',') >= 0
+                || !Enum.TryParse(value, true, out parsedType) || !Enum.IsDefined(typeof(DatabaseType), parsedType))
+            {
+                throw new ArgumentException("Invalid DatabaseType connection string extension.", nameof(connectionString));
             }
         }
 
-        relConnectionString = connectionString;
-        return false;
+        var parsedProvider = builder.TryGetValue(Constants.ProviderName, out var providerValue) ? (string)providerValue : null;
+        if (hasProviderName && string.IsNullOrWhiteSpace(parsedProvider))
+        {
+            throw new ArgumentException("ProviderName connection string extension cannot be empty.", nameof(connectionString));
+        }
+
+        // 两项扩展必须同时移除；驱动选择仍沿用 DbFactory 的 DatabaseType 优先规则。
+        builder.Remove(Constants.DatabaseType);
+        builder.Remove(Constants.ProviderName);
+        relConnectionString = builder.ConnectionString;
+        databaseType = parsedType;
+        providerName = parsedProvider;
+        return true;
     }
 
     /// <summary>
@@ -404,21 +423,19 @@ public class ConnectionStringOptions
     /// </summary>
     /// <param name="connectionString">Database connection string.</param>
     /// <returns></returns>
+    /// <remarks>按标准 ADO.NET 语义解析：键不区分大小写，重复键取最后值，未引用的空值视为未设置。</remarks>
     public static Dictionary<string, string> GetConnectionDictionary(string connectionString)
     {
-        var result = new Dictionary<string, string>();
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             return result;
         }
 
-        foreach (var kv in connectionString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList())
+        var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+        foreach (string key in builder.Keys)
         {
-            if (string.IsNullOrWhiteSpace(kv)) continue;
-            var index = kv.IndexOf('=');
-            var key = kv.Substring(0, index).Trim();
-            var value = kv.Substring(index + 1).Trim();
-            result.Add(key, value);
+            result.Add(key, (string)builder[key]);
         }
 
         return result;
@@ -431,12 +448,31 @@ public class ConnectionStringOptions
     /// <returns>Database connection string.</returns>
     public static string GetConnectionString(Dictionary<string, string> dic)
     {
-        var list = new List<string>();
+        if (dic == null) throw new ArgumentNullException(nameof(dic));
+
+        var builder = new DbConnectionStringBuilder();
         foreach (var keyValuePair in dic)
         {
-            list.Add($"{keyValuePair.Key}={keyValuePair.Value}");
+            builder[keyValuePair.Key] = keyValuePair.Value;
         }
-        return string.Join(";", list);
+        return builder.ConnectionString;
+    }
+
+    /// <summary>
+    /// 单次解析时记录空扩展键；标准解析器会通过 Remove 丢弃未加引号的空值。
+    /// </summary>
+    private sealed class ParsedConnectionStringBuilder : DbConnectionStringBuilder
+    {
+        private readonly HashSet<string> _removedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        public bool ContainsParsedKey(string key) => ContainsKey(key) || _removedKeys.Contains(key);
+
+        public override bool Remove(string keyword)
+        {
+            // 仅记录出现过的键，最终值仍由标准解析器决定，保证重复键最后一次赋值生效。
+            _removedKeys.Add(keyword);
+            return base.Remove(keyword);
+        }
     }
 
     public void ReloadFromConnectionString()
@@ -463,42 +499,29 @@ public class ConnectionStringOptions
         }
 
         var connectionString = configuration.GetConnectionString(ConnectionName);
-        if (ParseConnectionString(connectionString, out var relConnString, out var databaseType, out var providerName))
+        if (!ParseConnectionString(connectionString, out var relConnString, out var databaseType, out var providerName))
         {
-            ConnectionString = relConnString;
-            DbType = databaseType;
-            ProviderName = providerName;
-            return;
-        }
-        ConnectionString = connectionString;
-
-        var databaseTypeFromConfig = configuration.GetValue<DatabaseType>($"{Constants.DatabaseSettings}:{Constants.DatabaseType}", DatabaseType.Unknown);
-        if (databaseTypeFromConfig != DatabaseType.Unknown)
-        {
-            DbType = databaseTypeFromConfig;
-            return;
-        }
-
-        var providerNameFromConfig = configuration.GetValue<string>($"{Constants.DatabaseSettings}:{Constants.ProviderName}", null);
-        if (!string.IsNullOrWhiteSpace(providerNameFromConfig))
-        {
-            ProviderName = providerNameFromConfig;
-            return;
+            // 保留原有优先级：全局类型、全局驱动、命名类型、命名驱动。
+            databaseType = configuration.GetValue<DatabaseType>($"{Constants.DatabaseSettings}:{Constants.DatabaseType}", DatabaseType.Unknown);
+            if (databaseType == DatabaseType.Unknown)
+            {
+                providerName = configuration.GetValue<string>($"{Constants.DatabaseSettings}:{Constants.ProviderName}", null);
+                if (string.IsNullOrWhiteSpace(providerName))
+                {
+                    providerName = null;
+                    databaseType = configuration.GetValue<DatabaseType>($"{Constants.DatabaseSettings}:{Constants.DatabaseTypes}:{ConnectionName}", DatabaseType.Unknown);
+                    if (databaseType == DatabaseType.Unknown)
+                    {
+                        providerName = configuration.GetValue<string>($"{Constants.DatabaseSettings}:{Constants.ProviderNames}:{ConnectionName}", null);
+                    }
+                }
+            }
         }
 
-        databaseTypeFromConfig = configuration.GetValue<DatabaseType>($"{Constants.DatabaseSettings}:{Constants.DatabaseTypes}:{ConnectionName}", DatabaseType.Unknown);
-        if (databaseTypeFromConfig != DatabaseType.Unknown)
-        {
-            DbType = databaseTypeFromConfig;
-            return;
-        }
-
-        providerNameFromConfig = configuration.GetValue<string>($"{Constants.DatabaseSettings}:{Constants.ProviderNames}:{ConnectionName}", null);
-        if (!string.IsNullOrWhiteSpace(providerNameFromConfig))
-        {
-            ProviderName = providerNameFromConfig;
-            return;
-        }
+        // 解析全部成功后再发布新状态，同时清掉旧元数据，避免失败时半更新或继续使用旧驱动。
+        ConnectionString = relConnString;
+        DbType = databaseType;
+        ProviderName = string.IsNullOrWhiteSpace(providerName) ? null : providerName;
     }
 #else
     public void ReloadFromConnectionName()
