@@ -4,6 +4,8 @@
 		<TargetFramework>net8.0</TargetFramework>
 
 		<IsPackable>false</IsPackable>
+		<!-- 已清理的测试规则作为构建门禁，防止断言参数倒置和过期测试属性再次引入。 -->
+		<WarningsAsErrors>$(WarningsAsErrors);MSTEST0017;MSTEST0044</WarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -66,7 +66,7 @@ public class DataReaderReadCountCorrectnessTest
         Assert.AreEqual(2L, reader.GetInt64(0));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow(0)]
     [DataRow(-1)]
@@ -81,7 +81,7 @@ public class DataReaderReadCountCorrectnessTest
         CollectionAssert.AreEqual(new[] { 1L, 2L, 3L }, values);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow(0)]
     [DataRow(-1)]
