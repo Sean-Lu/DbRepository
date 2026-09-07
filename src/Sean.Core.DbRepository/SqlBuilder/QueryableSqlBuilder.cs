@@ -692,7 +692,36 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
             orderBy = " ORDER BY (SELECT 1)";
         }
 
-        return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({orderBy}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {checked(offset + rows)}";
+        // 外层只看得到派生表输出列，不能再次引用内层表别名、原始映射列或聚合表达式。
+        var outerSelectFields = GetRowNumberOuterSelectFields();
+        return $"SELECT {outerSelectFields} FROM (SELECT ROW_NUMBER() OVER({orderBy}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {checked(offset + rows)}";
+    }
+
+    private string GetRowNumberOuterSelectFields()
+    {
+        var entityFields = typeof(TEntity).GetEntityInfo().FieldInfos;
+        var fields = _tableFieldList.Select(field =>
+        {
+            if (!string.IsNullOrWhiteSpace(field.AliasName))
+            {
+                return $"t2.{field.AliasName}";
+            }
+
+            var entityField = entityFields.Find(item => item.FieldName == field.FieldName);
+            if (!field.IsFieldNameFormatted && entityField != null)
+            {
+                return entityField.Property.Name != field.FieldName
+                    ? $"t2.{entityField.Property.Name}"
+                    : $"t2.{SqlAdapter.DbType.MarkAsIdentifier(field.FieldName)}";
+            }
+
+            // 原始 SQL/无别名表达式保持原路径，不在此解析 SQL 或套用 Oracle 的表达式列名规则。
+            return field.IsFieldNameFormatted ? field.FieldName : SqlAdapter.FormatFieldName(field.FieldName);
+        });
+        // 联表字段由 HandleJoinField 统一生成 AS 属性名，外层只引用这个输出名，不泄漏 ROW_NUM。
+        var joinedFields = _selectJoinFields.Select(field => $"t2.{field.Substring(field.LastIndexOf(" AS ", StringComparison.OrdinalIgnoreCase) + 4)}");
+        var result = fields.Concat(joinedFields).ToList();
+        return result.Any() ? string.Join(", ", result) : "*";
     }
     private string GetOffsetQuerySql(string selectFields, int offset, int rows, bool setDefaultOrderByIfNull = true)
     {
