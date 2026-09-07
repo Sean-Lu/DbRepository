@@ -1156,10 +1156,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         {
             switch (DbType)
             {
+                case DatabaseType.Xugu:
+                    // 全表 MAX 不是当前会话的自增值，可能回写其他插入的主键；在写入前明确拒绝。
+                    throw new NotSupportedException("[ReturnLastInsertId] Unsupported database type: Xugu");
                 case DatabaseType.MsAccess:
                 case DatabaseType.Informix:
                 case DatabaseType.ShenTong:
-                case DatabaseType.Xugu:
                     {
                         return Execute(connection =>
                         {
@@ -1192,11 +1194,6 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                 case DatabaseType.ShenTong:
                                     {
                                         returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
-                                        break;
-                                    }
-                                case DatabaseType.Xugu:
-                                    {
-                                        returnIdSql = $"SELECT MAX({DbType.MarkAsIdentifier(keyIdentityProperty.GetFieldName(typeof(TEntity).GetEntityInfo().NamingConvention))}) FROM {DbType.MarkAsIdentifier(TableName())}";
                                         break;
                                     }
                             }
@@ -1873,10 +1870,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         {
             switch (DbType)
             {
+                case DatabaseType.Xugu:
+                    // 全表 MAX 不是当前会话的自增值，可能回写其他插入的主键；在写入前明确拒绝。
+                    throw new NotSupportedException("[ReturnLastInsertId] Unsupported database type: Xugu");
                 case DatabaseType.MsAccess:
                 case DatabaseType.Informix:
                 case DatabaseType.ShenTong:
-                case DatabaseType.Xugu:
                     {
                         return await ExecuteAsync(async connection =>
                         {
@@ -1909,11 +1908,6 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                 case DatabaseType.ShenTong:
                                     {
                                         returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
-                                        break;
-                                    }
-                                case DatabaseType.Xugu:
-                                    {
-                                        returnIdSql = $"SELECT MAX({DbType.MarkAsIdentifier(keyIdentityProperty.GetFieldName(typeof(TEntity).GetEntityInfo().NamingConvention))}) FROM {DbType.MarkAsIdentifier(TableName())}";
                                         break;
                                     }
                             }

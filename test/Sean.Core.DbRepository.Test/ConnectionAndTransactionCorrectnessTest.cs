@@ -367,6 +367,62 @@ public class ConnectionAndTransactionCorrectnessTest
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task AddOrUpdate_BatchFailurePreservesEarlierSuccessfulItem(bool asynchronous)
+    {
+        var databasePath = CreateAtomicDatabase();
+        try
+        {
+            var repository = CreateSqlServerStyleRepository(databasePath);
+            var entities = new[]
+            {
+                new AtomicEntity { Id = 1, Value = "已成功" },
+                new AtomicEntity { Id = 2, Value = null }
+            };
+            // 无外部事务的批量入口保持逐项提交，不擅自改为整批原子操作。
+            if (asynchronous)
+                await Assert.ThrowsAsync<SQLiteException>(() => repository.AddOrUpdateAsync(entities));
+            else
+                Assert.Throws<SQLiteException>(() => repository.AddOrUpdate(entities));
+            Assert.AreEqual("已成功", ReadAtomicValue(databasePath));
+        }
+        finally
+        {
+            DeleteAtomicDatabase(databasePath);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task AddOrUpdate_DuplicateUniqueValueRollsBackDelete(bool asynchronous)
+    {
+        var databasePath = CreateAtomicDatabase();
+        try
+        {
+            using (var connection = new SQLiteConnection(GetAtomicConnectionString(databasePath)))
+            {
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandText = "CREATE UNIQUE INDEX IX_AtomicValue ON Batch14Atomic(Value); INSERT INTO Batch14Atomic(Id, Value) VALUES (2, 'occupied');";
+                command.ExecuteNonQuery();
+            }
+            var repository = CreateSqlServerStyleRepository(databasePath);
+            var entity = new AtomicEntity { Id = 1, Value = "occupied" };
+            if (asynchronous)
+                await Assert.ThrowsAsync<SQLiteException>(() => repository.AddOrUpdateAsync(entity));
+            else
+                Assert.Throws<SQLiteException>(() => repository.AddOrUpdate(entity));
+            Assert.AreEqual("原始值", ReadAtomicValue(databasePath));
+        }
+        finally
+        {
+            DeleteAtomicDatabase(databasePath);
+        }
+    }
+
+    [TestMethod]
     public void AddOrUpdate_WithExternalTransaction_UsesItForCountDeleteAndInsert()
     {
         var repository = new TrackingAtomicRepository(DatabaseType.SqlServer);
