@@ -601,7 +601,8 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
         else if (_pageNumber.HasValue && _pageSize.HasValue)
         {
             // 分页查询
-            var offset = (_pageNumber.Value - 1) * _pageSize.Value;// 偏移量
+            // 保持 int 范围，溢出时明确报错，不能生成绕回负数或错误页的 SQL。
+            var offset = checked((_pageNumber.Value - 1) * _pageSize.Value);// 偏移量
             var rows = _pageSize.Value;// 行数
             sql.Sql = GetQuerySql(selectFields, offset, rows);
         }
@@ -641,7 +642,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
             case DatabaseType.DuckDB:
                 return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {rows} OFFSET {offset}";
             case DatabaseType.QuestDB:
-                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{rows + offset}";
+                return $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql} LIMIT {offset},{checked(rows + offset)}";
             case DatabaseType.SqlServer:
                 {
                     if (DbContextConfiguration.SqlServerOptions is { UseRowNumberForPaging: true })
@@ -663,6 +664,11 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
                     }
 
                     var keyFieldName = typeof(TEntity).GetEntityInfo().FieldInfos.Where(c => c.IsPrimaryKey).Select(c => c.FieldName).FirstOrDefault();
+                    // 偏移分页依赖主键排除前面的记录；无主键时不能生成无效的 NOT IN 条件。
+                    if (string.IsNullOrWhiteSpace(keyFieldName))
+                    {
+                        throw new InvalidOperationException($"Access offset paging requires a primary key on entity '{typeof(TEntity).Name}'.");
+                    }
                     var keyFilterSql = $"SELECT TOP {offset} {SqlAdapter.FormatFieldName(keyFieldName)} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
                     var sqlWhere = $"{(!string.IsNullOrEmpty(WhereSql) ? $"{WhereSql} AND" : " WHERE")} {SqlAdapter.FormatFieldName(keyFieldName)} NOT IN ({keyFilterSql})";
                     return $"SELECT TOP {rows} {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{sqlWhere}{GroupBySql}{HavingSql}{OrderBySql}";
@@ -686,7 +692,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
             orderBy = " ORDER BY (SELECT 1)";
         }
 
-        return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({orderBy}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {offset + rows}";
+        return $"SELECT {selectFields} FROM (SELECT ROW_NUMBER() OVER({orderBy}) ROW_NUM, {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}) t2 WHERE t2.ROW_NUM > {offset} AND t2.ROW_NUM <= {checked(offset + rows)}";
     }
     private string GetOffsetQuerySql(string selectFields, int offset, int rows, bool setDefaultOrderByIfNull = true)
     {
@@ -705,7 +711,7 @@ public class QueryableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IQueryable<T
         var innerSql = $"SELECT {selectFields} FROM {SqlAdapter.FormatTableName()}{JoinTableSql}{WhereSql}{GroupBySql}{HavingSql}{OrderBySql}";
         // 第二层在上界内物化 ROWNUM；最外层再过滤下界，并重建原始投影以隐藏辅助行号列。
         var outerSelectFields = GetOracleOuterSelectFields("t2");
-        return $"SELECT {outerSelectFields} FROM (SELECT t1.*, ROWNUM ROW_NUM FROM ({innerSql}) t1 WHERE ROWNUM <= {offset + rows}) t2 WHERE t2.ROW_NUM > {offset} ORDER BY t2.ROW_NUM";
+        return $"SELECT {outerSelectFields} FROM (SELECT t1.*, ROWNUM ROW_NUM FROM ({innerSql}) t1 WHERE ROWNUM <= {checked(offset + rows)}) t2 WHERE t2.ROW_NUM > {offset} ORDER BY t2.ROW_NUM";
     }
 
     private string GetOracleOuterSelectFields(string tableAlias)
