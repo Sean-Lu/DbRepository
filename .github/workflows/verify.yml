@@ -1,0 +1,48 @@
+name: ORM verification
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: 比较新增编译警告的 Git 基线
+        default: HEAD
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.201
+      - name: 固定本次 CI 的 SDK（不改变仓库开发配置）
+        shell: pwsh
+        run: dotnet new globaljson --sdk-version 9.0.201 --roll-forward disable
+      - name: 构建、警告门禁、测试、覆盖率、打包与依赖审计
+        shell: pwsh
+        env:
+          VERIFY_BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || 'HEAD' }}
+        run: ./scripts/Verify.ps1 -BaseRef $env:VERIFY_BASE_REF
+      - name: 保存验证报告与本地 NuGet 包（不发布）
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verification
+          path: |
+            .artifacts/verify/*/*.log
+            .artifacts/verify/*/tests/**
+            .artifacts/verify/*/packages/*
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 7
