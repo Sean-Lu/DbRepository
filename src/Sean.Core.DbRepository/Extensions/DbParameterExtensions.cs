@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Common;
 using System.Data;
+using System.Globalization;
 using Sean.Utility.Format;
 
 namespace Sean.Core.DbRepository.Extensions;
@@ -33,7 +34,22 @@ internal static class DbParameterExtensions
         }
 
         if (parameterValue is Enum)
-            sqlParameter.Value = ObjectConvert.ChangeType<int>(parameterValue);
+        {
+            // decimal 可精确容纳所有枚举整数；保留原有 Int32 绑定，仅为原先溢出的值扩展范围。
+            var number = Convert.ToDecimal(parameterValue, CultureInfo.InvariantCulture);
+            if (number >= int.MinValue && number <= int.MaxValue)
+                sqlParameter.Value = (int)number;
+            else if (number <= long.MaxValue)
+            {
+                sqlParameter.DbType = DbType.Int64;
+                sqlParameter.Value = (long)number;
+            }
+            else
+            {
+                sqlParameter.DbType = DbType.UInt64;
+                sqlParameter.Value = (ulong)number;
+            }
+        }
         else if (parameterValue is bool && dbType == DatabaseType.Oracle)
             sqlParameter.Value = ObjectConvert.ChangeType<byte>(parameterValue);// Oracle: bool -> byte
         else
