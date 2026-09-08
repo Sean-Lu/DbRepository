@@ -134,6 +134,118 @@ public class DapperExecutionCoverageTest
         Assert.AreEqual(14, fixture.Completed.Count);
     }
 
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task AllEntries_RejectNullCommand(bool generic, bool asynchronous)
+    {
+        using var fixture = new Fixture(generic);
+        foreach (var operation in Enum.GetValues<Operation>())
+        {
+            var error = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+                await Run(fixture.Repository, operation, null, asynchronous));
+            Assert.AreEqual("sqlCommand", error.ParamName);
+        }
+        var readerError = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+        {
+            using var reader = asynchronous
+                ? await fixture.Repository.ExecuteReaderAsync(null)
+                : fixture.Repository.ExecuteReader(null);
+        });
+        Assert.AreEqual("sqlCommand", readerError.ParamName);
+        Assert.AreEqual(0, fixture.Started.Count);
+        Assert.AreEqual(0, fixture.Completed.Count);
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task EmptyResult_PreservesDefaultsAndTableSchema(bool generic, bool asynchronous)
+    {
+        using var fixture = new Fixture(generic);
+        var command = new DefaultSqlCommand("SELECT 41 AS Value WHERE 1 = 0");
+        foreach (var operation in Enum.GetValues<Operation>().Where(value => value != Operation.Execute))
+        {
+            var result = await Run(fixture.Repository, operation, command, asynchronous);
+            switch (operation)
+            {
+                case Operation.Query:
+                    Assert.AreEqual(0, ((IEnumerable<long>)result).Count());
+                    break;
+                case Operation.Get:
+                case Operation.Scalar:
+                    Assert.AreEqual(0L, result);
+                    break;
+                case Operation.UntypedScalar:
+                    Assert.IsNull(result);
+                    break;
+                case Operation.DataTable:
+                    using (var table = (DataTable)result) AssertEmptyTable(table);
+                    break;
+                case Operation.DataSet:
+                    using (var set = (DataSet)result)
+                    {
+                        Assert.AreEqual(1, set.Tables.Count);
+                        AssertEmptyTable(set.Tables[0]);
+                    }
+                    break;
+            }
+            Assert.IsTrue(fixture.Disposed.Contains(fixture.Started.Last().Connection));
+        }
+        // 无行时，非空值类型返回默认值，Nullable 和引用类型仍应返回 null。
+        Assert.IsNull(asynchronous ? await fixture.Repository.GetAsync<long?>(command) : fixture.Repository.Get<long?>(command));
+        Assert.IsNull(asynchronous ? await fixture.Repository.GetAsync<Row>(command) : fixture.Repository.Get<Row>(command));
+        Assert.IsNull(asynchronous ? await fixture.Repository.ExecuteScalarAsync<long?>(command) : fixture.Repository.ExecuteScalar<long?>(command));
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task MonitorFailure_PreservesExceptionAndConnectionOwnership(bool generic, bool asynchronous)
+    {
+        foreach (var beforeExecution in new[] { true, false })
+        {
+            using var fixture = new Fixture(generic);
+            using var callerConnection = new SQLiteConnection("Data Source=:memory:;Pooling=False;");
+            callerConnection.Open();
+            var expected = new InvalidOperationException("监控回调失败");
+            if (beforeExecution) fixture.Repository.Factory.SqlMonitor.SqlExecuting += _ => throw expected;
+            else fixture.Repository.Factory.SqlMonitor.SqlExecuted += _ => throw expected;
+            foreach (var external in new[] { false, true })
+            foreach (var operation in Enum.GetValues<Operation>())
+            {
+                var command = CreateCommand(operation);
+                // 执行前监控失败应阻止 SQL 执行，不能被这条无效 SQL 的异常取代。
+                if (beforeExecution) command.Sql = "SELECT Value FROM missing_table";
+                command.Connection = external ? callerConnection : null;
+                var actual = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                    await Run(fixture.Repository, operation, command, asynchronous));
+                Assert.AreSame(expected, actual);
+                Assert.AreEqual(!external, fixture.Disposed.Contains(fixture.Started.Last().Connection));
+                if (external) Assert.AreEqual(ConnectionState.Open, callerConnection.State);
+                // 完成事件描述的是 SQL 执行结果；回调自身抛错并不表示 SQL 执行失败。
+                Assert.AreSame(beforeExecution ? expected : null, fixture.Completed.Last().Exception);
+            }
+            Assert.AreEqual(14, fixture.Completed.Count);
+            using var verify = callerConnection.CreateCommand();
+            verify.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'sample'";
+            Assert.AreEqual(beforeExecution ? 0L : 1L, verify.ExecuteScalar());
+        }
+    }
+
+    private static void AssertEmptyTable(DataTable table)
+    {
+        Assert.AreEqual(0, table.Rows.Count);
+        Assert.AreEqual(1, table.Columns.Count);
+        Assert.AreEqual("Value", table.Columns[0].ColumnName);
+    }
+
     private static DefaultSqlCommand CreateCommand(Operation operation) => new(
         operation == Operation.Execute ? "CREATE TABLE sample (Value INTEGER)" : "SELECT @Value AS Value UNION ALL SELECT @Value + 1 AS Value",
         new { Value = 41 });
