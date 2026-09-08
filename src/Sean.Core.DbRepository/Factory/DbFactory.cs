@@ -1644,33 +1644,49 @@ public class DbFactory
     private DbCommand CreateDbCommand(IDbTransaction transaction, IDbConnection connection, CommandType commandType, string commandText, IEnumerable<DbParameter> parameters, int? commandTimeout = null)
     {
         IDbCommand command = _providerFactory.CreateCommand() ?? throw new Exception("Failed to create DbCommand.");
-        command.Transaction = transaction;
-        command.Connection = connection ?? transaction?.Connection;
-        command.CommandType = commandType;
-        command.CommandText = commandText;
+        try
+        {
+            command.Transaction = transaction;
+            command.Connection = connection ?? transaction?.Connection;
+            command.CommandType = commandType;
+            command.CommandText = commandText;
 
-        if (commandTimeout.HasValue)
-        {
-            command.CommandTimeout = commandTimeout.Value;
-        }
-        else if (CommandTimeout.HasValue)
-        {
-            command.CommandTimeout = CommandTimeout.Value;
-        }
-
-        if (parameters != null && parameters.Any())
-        {
-            foreach (var parameter in parameters)
+            if (commandTimeout.HasValue)
             {
-                command.Parameters.Add(parameter);
+                command.CommandTimeout = commandTimeout.Value;
             }
+            else if (CommandTimeout.HasValue)
+            {
+                command.CommandTimeout = CommandTimeout.Value;
+            }
+
+            if (parameters != null && parameters.Any())
+            {
+                foreach (var parameter in parameters)
+                {
+                    command.Parameters.Add(parameter);
+                }
+            }
+
+            OpenConnection(command.Connection);
+
+            DbContextConfiguration.Options.SetDbCommand?.Invoke(command);
+
+            return (DbCommand)command;
         }
-
-        OpenConnection(command.Connection);
-
-        DbContextConfiguration.Options.SetDbCommand?.Invoke(command);
-
-        return (DbCommand)command;
+        catch
+        {
+            // 初始化尚未返回时，外层 using 无法接管命令；这里只释放命令，不改变连接或事务的所有权。
+            try
+            {
+                command.Dispose();
+            }
+            catch
+            {
+                // 清理异常不能覆盖参数绑定、连接打开或配置回调的原始异常。
+            }
+            throw;
+        }
     }
 
     #region ExecuteSqlCommand

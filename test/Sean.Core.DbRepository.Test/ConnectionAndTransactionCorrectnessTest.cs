@@ -50,6 +50,69 @@ public class ConnectionAndTransactionCorrectnessTest
     }
 
     [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task CommandCreation_WhenOpenFails_DisposesCommandAndPreservesConnectionOwnership(bool asynchronous, bool cleanupFails)
+    {
+        var provider = new TrackingDbProviderFactory { ThrowOnOpen = true, ThrowOnCommandDispose = cleanupFails };
+        var factory = CreateFactory(provider);
+        using var external = provider.CreateTrackingConnection("Data Source=external");
+        foreach (var route in new[] { "external", "command", "internal" })
+        {
+            async Task Execute()
+            {
+                if (asynchronous)
+                {
+                    if (route == "external") await factory.ExecuteScalarAsync(external, "SELECT 1");
+                    else if (route == "command") await factory.ExecuteScalarAsync(new DefaultSqlCommand("SELECT 1") { Connection = external });
+                    else await factory.ExecuteScalarAsync("SELECT 1");
+                }
+                else
+                {
+                    if (route == "external") factory.ExecuteScalar(external, "SELECT 1");
+                    else if (route == "command") factory.ExecuteScalar(new DefaultSqlCommand("SELECT 1") { Connection = external });
+                    else factory.ExecuteScalar("SELECT 1");
+                }
+            }
+            var error = await Assert.ThrowsAsync<InvalidOperationException>(Execute);
+            Assert.AreEqual("模拟连接打开失败。", error.Message);
+            Assert.IsTrue(provider.Commands.Last().IsDisposed, route);
+            Assert.IsFalse(external.IsDisposed);
+            if (route == "internal") Assert.IsTrue(provider.Connections.Last().IsDisposed);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task CommandCreation_WhenParameterEnumerationFails_DisposesPartialCommand(bool asynchronous, bool cleanupFails)
+    {
+        var provider = new TrackingDbProviderFactory { ThrowOnCommandDispose = cleanupFails };
+        var factory = CreateFactory(provider);
+        using var external = provider.CreateTrackingConnection("Data Source=external");
+        var expected = new InvalidOperationException("模拟参数枚举失败");
+        IEnumerable<DbParameter> Parameters()
+        {
+            yield return new TrackingDbParameter { ParameterName = "Value", Value = 1 };
+            throw expected;
+        }
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            if (asynchronous) await factory.ExecuteScalarAsync(external, "SELECT 1", Parameters());
+            else factory.ExecuteScalar(external, "SELECT 1", Parameters());
+        });
+        Assert.AreSame(expected, actual);
+        Assert.AreEqual(1, provider.Commands.Single().Parameters.Count);
+        Assert.IsTrue(provider.Commands.Single().IsDisposed);
+        Assert.IsFalse(external.IsDisposed);
+        Assert.AreEqual(ConnectionState.Closed, external.State);
+    }
+
+    [TestMethod]
     public async Task ExecuteReader_WhenSuccessful_KeepsInternalConnectionUntilReaderIsDisposed()
     {
         var factory = new DbFactory("Data Source=:memory:;Version=3;New=True;", SQLiteFactory.Instance);
