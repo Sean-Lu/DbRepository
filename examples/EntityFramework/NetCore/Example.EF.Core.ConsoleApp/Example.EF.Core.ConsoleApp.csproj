@@ -36,7 +36,7 @@
 		<PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.13" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseSqlite'))">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.14" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.19" />
 	</ItemGroup>
 	<ItemGroup Condition="$(DefineConstants.Contains('UseMsAccess'))">
 		<PackageReference Include="EntityFrameworkCore.Jet.OleDb" Version="7.0.3" />
