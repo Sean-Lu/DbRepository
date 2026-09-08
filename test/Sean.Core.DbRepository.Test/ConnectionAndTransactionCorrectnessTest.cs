@@ -52,6 +52,27 @@ public class ConnectionAndTransactionCorrectnessTest
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
+    public async Task DbFactory_CommandTimeoutOverridesFactoryDefault(bool asynchronous)
+    {
+        var provider = new TrackingDbProviderFactory { ThrowOnReaderExecution = false };
+        var factory = CreateFactory(provider);
+        factory.CommandTimeout = 17;
+        foreach (var timeout in new int?[] { null, 29 })
+        {
+            var command = new DefaultSqlCommand("SELECT 1") { CommandTimeout = timeout };
+            using (var reader = asynchronous ? await factory.ExecuteReaderAsync(command) : factory.ExecuteReader(command))
+            {
+                Assert.AreEqual(timeout ?? 17, provider.Commands.Last().CommandTimeout);
+                Assert.IsTrue(reader.Read());
+            }
+            Assert.IsTrue(provider.Commands.Last().IsDisposed);
+            Assert.AreEqual(ConnectionState.Closed, provider.Connections.Last().State);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
     public void ConnectionCreation_WhenConnectionStringSetterFails_DisposesConnectionAndPreservesException(bool cleanupFails)
     {
         var expected = new ArgumentException("模拟连接字符串设置失败");

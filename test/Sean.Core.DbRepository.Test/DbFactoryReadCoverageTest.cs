@@ -16,7 +16,7 @@ namespace Sean.Core.DbRepository.Test;
 public class DbFactoryReadCoverageTest
 {
     public enum Route { Settings, ConnectionString, Connection, Transaction }
-    private enum Operation { Query, Get, Scalar, UntypedScalar, DataTable, DataSet }
+    private enum Operation { Query, Get, Scalar, UntypedScalar, DataTable, DataSet, Reader }
     private const string Direct = "Data Source=:memory:;Pooling=False;Default Timeout=43;";
 
     [TestMethod]
@@ -40,7 +40,9 @@ public class DbFactoryReadCoverageTest
             var result = await Run(fixture.Factory, operation, route, asynchronous,
                 "SELECT @Value AS Value UNION ALL SELECT @Value + 1 AS Value", connection, transaction);
             AssertResult(operation, result);
-            Assert.AreEqual(internalConnection, fixture.Disposed.Contains(fixture.Last.Connection));
+            if (operation == Operation.Reader && internalConnection)
+                Assert.AreEqual(ConnectionState.Closed, fixture.Last.Connection.State);
+            else Assert.AreEqual(internalConnection, fixture.Disposed.Contains(fixture.Last.Connection));
             Assert.AreEqual(route == Route.Settings ? 29 : route == Route.ConnectionString ? 43 : 17, fixture.Timeout);
             Assert.AreSame(transaction, fixture.Last.Transaction);
             if (!internalConnection)
@@ -104,6 +106,37 @@ public class DbFactoryReadCoverageTest
         }
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ExternalOverloads_RejectNullConnectionOrTransaction(bool asynchronous)
+    {
+        using var fixture = new Fixture();
+        foreach (var route in new[] { Route.Connection, Route.Transaction })
+        foreach (var operation in Enum.GetValues<Operation>())
+        {
+            var error = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+                await Run(fixture.Factory, operation, route, asynchronous, "SELECT 1", null, null));
+            Assert.AreEqual(route == Route.Connection ? "connection" : "transaction", error.ParamName);
+        }
+        Assert.IsNull(fixture.Last);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task CommandOverloads_RejectNullCommand(bool asynchronous)
+    {
+        using var fixture = new Fixture();
+        var error = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+        {
+            if (asynchronous) await fixture.Factory.ExecuteScalarAsync((ISqlCommand)null);
+            else fixture.Factory.ExecuteScalar((ISqlCommand)null);
+        });
+        Assert.AreEqual("sqlCommand", error.ParamName);
+        Assert.IsNull(fixture.Last);
+    }
+
     private static async Task<object> Run(DbFactory factory, Operation operation, Route route, bool asynchronous,
         string sql, IDbConnection connection, IDbTransaction transaction)
     {
@@ -119,6 +152,7 @@ public class DbFactoryReadCoverageTest
                 Operation.UntypedScalar => factory.ExecuteScalar(sql, parameters, master: false),
                 Operation.DataTable => factory.ExecuteDataTable(sql, parameters, master: false),
                 Operation.DataSet => factory.ExecuteDataSet(sql, parameters, master: false),
+                Operation.Reader => factory.ExecuteReader(sql, parameters, master: false),
                 _ => throw new ArgumentOutOfRangeException(nameof(operation))
             },
             (Route.Settings, true) => operation switch
@@ -129,6 +163,7 @@ public class DbFactoryReadCoverageTest
                 Operation.UntypedScalar => await factory.ExecuteScalarAsync(sql, parameters, master: false),
                 Operation.DataTable => await factory.ExecuteDataTableAsync(sql, parameters, master: false),
                 Operation.DataSet => await factory.ExecuteDataSetAsync(sql, parameters, master: false),
+                Operation.Reader => await factory.ExecuteReaderAsync(sql, parameters, master: false),
                 _ => throw new ArgumentOutOfRangeException(nameof(operation))
             },
             (Route.ConnectionString, false) => operation switch
@@ -139,6 +174,7 @@ public class DbFactoryReadCoverageTest
                 Operation.UntypedScalar => factory.ExecuteScalar(Direct, sql, parameters),
                 Operation.DataTable => factory.ExecuteDataTable(Direct, sql, parameters),
                 Operation.DataSet => factory.ExecuteDataSet(Direct, sql, parameters),
+                Operation.Reader => factory.ExecuteReader(Direct, sql, parameters),
                 _ => throw new ArgumentOutOfRangeException(nameof(operation))
             },
             (Route.ConnectionString, true) => operation switch
@@ -149,6 +185,7 @@ public class DbFactoryReadCoverageTest
                 Operation.UntypedScalar => await factory.ExecuteScalarAsync(Direct, sql, parameters),
                 Operation.DataTable => await factory.ExecuteDataTableAsync(Direct, sql, parameters),
                 Operation.DataSet => await factory.ExecuteDataSetAsync(Direct, sql, parameters),
+                Operation.Reader => await factory.ExecuteReaderAsync(Direct, sql, parameters),
                 _ => throw new ArgumentOutOfRangeException(nameof(operation))
             },
             (Route.Connection, false) => operation switch
@@ -159,6 +196,7 @@ public class DbFactoryReadCoverageTest
                 Operation.UntypedScalar => factory.ExecuteScalar(connection, sql, parameters),
                 Operation.DataTable => factory.ExecuteDataTable(connection, sql, parameters),
                 Operation.DataSet => factory.ExecuteDataSet(connection, sql, parameters),
+                Operation.Reader => factory.ExecuteReader(connection, sql, parameters),
                 _ => throw new ArgumentOutOfRangeException(nameof(operation))
             },
             (Route.Connection, true) => operation switch
@@ -169,6 +207,7 @@ public class DbFactoryReadCoverageTest
                 Operation.UntypedScalar => await factory.ExecuteScalarAsync(connection, sql, parameters),
                 Operation.DataTable => await factory.ExecuteDataTableAsync(connection, sql, parameters),
                 Operation.DataSet => await factory.ExecuteDataSetAsync(connection, sql, parameters),
+                Operation.Reader => await factory.ExecuteReaderAsync(connection, sql, parameters),
                 _ => throw new ArgumentOutOfRangeException(nameof(operation))
             },
             (Route.Transaction, false) => operation switch
@@ -179,6 +218,7 @@ public class DbFactoryReadCoverageTest
                 Operation.UntypedScalar => factory.ExecuteScalar(transaction, sql, parameters),
                 Operation.DataTable => factory.ExecuteDataTable(transaction, sql, parameters),
                 Operation.DataSet => factory.ExecuteDataSet(transaction, sql, parameters),
+                Operation.Reader => factory.ExecuteReader(transaction, sql, parameters),
                 _ => throw new ArgumentOutOfRangeException(nameof(operation))
             },
             (Route.Transaction, true) => operation switch
@@ -189,6 +229,7 @@ public class DbFactoryReadCoverageTest
                 Operation.UntypedScalar => await factory.ExecuteScalarAsync(transaction, sql, parameters),
                 Operation.DataTable => await factory.ExecuteDataTableAsync(transaction, sql, parameters),
                 Operation.DataSet => await factory.ExecuteDataSetAsync(transaction, sql, parameters),
+                Operation.Reader => await factory.ExecuteReaderAsync(transaction, sql, parameters),
                 _ => throw new ArgumentOutOfRangeException(nameof(operation))
             },
             _ => throw new ArgumentOutOfRangeException(nameof(route))
@@ -199,6 +240,16 @@ public class DbFactoryReadCoverageTest
     {
         switch (operation)
         {
+            case Operation.Reader:
+                using (var reader = (IDataReader)result)
+                {
+                    Assert.IsTrue(reader.Read());
+                    Assert.AreEqual(41L, reader.GetInt64(0));
+                    Assert.IsTrue(reader.Read());
+                    Assert.AreEqual(42L, reader.GetInt64(0));
+                    Assert.IsFalse(reader.Read());
+                }
+                break;
             case Operation.Query:
                 CollectionAssert.AreEqual(new[] { 41L, 42L }, ((IEnumerable<long>)result).ToArray());
                 break;
