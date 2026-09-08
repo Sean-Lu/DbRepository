@@ -146,7 +146,8 @@ public static class DatabaseTypeExtensions
                 return $"SELECT COUNT(*) AS TableCount FROM user_tables WHERE table_name='{tableName}'";
             case DatabaseType.SQLite:
             case DatabaseType.DuckDB:
-                return $"SELECT COUNT(*) AS TableCount FROM sqlite_master WHERE type='table' AND name='{tableName}'";
+                // 名称在此作为字符串值比较，单引号必须转义，不能让名称改变查询条件。
+                return $"SELECT COUNT(*) AS TableCount FROM sqlite_master WHERE type='table' AND name='{tableName?.Replace("'", "''")}'";
             case DatabaseType.MsAccess:
                 //return $"SELECT COUNT(*) AS TableCount FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='PUBLIC' AND TABLE_NAME='{tableName}'";
                 return $"SELECT COUNT(*) AS TableCount FROM MSysObjects WHERE Name='{tableName}' AND Type=1 AND Flags=0";
@@ -219,8 +220,8 @@ public static class DatabaseTypeExtensions
                 return $"SELECT COUNT(*) AS ColumnCount FROM user_tab_columns WHERE table_name='{tableName}' AND column_name='{fieldName}'";
             case DatabaseType.SQLite:
             case DatabaseType.DuckDB:
-                //return $"PRAGMA table_info('{tableName}')";
-                return $"SELECT COUNT(*) AS ColumnCount FROM pragma_table_info('{tableName}') WHERE name='{fieldName}'";
+                // 表名参数和字段名条件均为字符串字面量，使用标准 SQL 双单引号转义。
+                return $"SELECT COUNT(*) AS ColumnCount FROM pragma_table_info('{tableName?.Replace("'", "''")}') WHERE name='{fieldName?.Replace("'", "''")}'";
             case DatabaseType.MsAccess:
                 //return $"SELECT COUNT(*) AS ColumnCount FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='PUBLIC' AND TABLE_NAME='{tableName}' AND COLUMN_NAME='{fieldName}'";
                 return $"SELECT COUNT(*) AS ColumnCount FROM MSysObjects INNER JOIN MSysColumns ON MSysObjects.Id=MSysColumns.Id WHERE MSysObjects.Name='{tableName}' AND MSysColumns.Name='{fieldName}' AND MSysObjects.Type=1 AND MSysObjects.Flags=0";

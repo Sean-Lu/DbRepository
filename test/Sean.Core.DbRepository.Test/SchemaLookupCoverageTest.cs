@@ -14,6 +14,29 @@ public class SchemaLookupCoverageTest
     [DataRow(false, true)]
     [DataRow(true, false)]
     [DataRow(true, true)]
+    public async Task Lookup_TreatsQuotedNamesAsLiteralValues(bool asynchronous, bool field)
+    {
+        using var fixture = new Fixture();
+        fixture.Repository.Execute("CREATE TABLE \"owner's sample\" (\"value's name\" INTEGER)");
+        fixture.Repository.Execute("CREATE TABLE sample (Value INTEGER)");
+        async Task<bool> Lookup(string tableName, string fieldName) => field
+            ? asynchronous ? await fixture.Repository.IsTableFieldExistsAsync(tableName, fieldName, useCache: false)
+                : fixture.Repository.IsTableFieldExists(tableName, fieldName, useCache: false)
+            : asynchronous ? await fixture.Repository.IsTableExistsAsync(tableName, useCache: false)
+                : fixture.Repository.IsTableExists(tableName, useCache: false);
+
+        // 名称中的 SQL 片段只能作为名称比较，不能改变查询条件而把不存在的对象判为存在。
+        Assert.IsFalse(await Lookup(field ? "sample" : "missing' OR 1=1 --", "missing' OR 1=1 --"));
+        Assert.IsTrue(await Lookup("owner's sample", "value's name"));
+        Assert.IsFalse(await Lookup("missing's sample", "value's name"));
+        if (field) Assert.IsFalse(await Lookup("owner's sample", "missing's name"));
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
     public async Task Lookup_CachesOnlyPositiveResultsAndAllowsBypass(bool asynchronous, bool field)
     {
         using var fixture = new Fixture();
