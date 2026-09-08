@@ -1550,7 +1550,23 @@ public class DbFactory
         var connection = _providerFactory.CreateConnection();
         if (connection != null)
         {
-            connection.ConnectionString = connectionString;
+            try
+            {
+                connection.ConnectionString = connectionString;
+            }
+            catch
+            {
+                // 连接尚未返回给调用方，初始化失败时由创建者释放。
+                try
+                {
+                    connection.Dispose();
+                }
+                catch
+                {
+                    // 保留连接字符串设置失败的原始异常，避免清理异常掩盖原因。
+                }
+                throw;
+            }
         }
         return connection;
     }

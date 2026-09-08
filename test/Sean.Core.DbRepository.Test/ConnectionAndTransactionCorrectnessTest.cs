@@ -50,6 +50,35 @@ public class ConnectionAndTransactionCorrectnessTest
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void ConnectionCreation_WhenConnectionStringSetterFails_DisposesConnectionAndPreservesException(bool cleanupFails)
+    {
+        var expected = new ArgumentException("模拟连接字符串设置失败");
+        var provider = new TrackingDbProviderFactory
+        {
+            ConnectionStringFailure = expected,
+            ThrowOnConnectionDispose = cleanupFails
+        };
+        var factory = CreateFactory(provider);
+        foreach (var create in new Func<DbConnection>[]
+        {
+            () => factory.CreateConnection(),
+            () => factory.CreateConnection("Data Source=direct"),
+            () => factory.OpenNewConnection(),
+            () => factory.OpenNewConnection("Data Source=direct")
+        })
+        {
+            var count = provider.Connections.Count;
+            var actual = Assert.Throws<ArgumentException>(() => create());
+            Assert.AreSame(expected, actual);
+            Assert.AreEqual(count + 1, provider.Connections.Count);
+            Assert.IsTrue(provider.Connections.Last().IsDisposed);
+        }
+        Assert.AreEqual(0, provider.Commands.Count);
+    }
+
+    [TestMethod]
     [DataRow(false, false)]
     [DataRow(false, true)]
     [DataRow(true, false)]
@@ -890,6 +919,7 @@ public class ConnectionAndTransactionCorrectnessTest
         public bool ThrowOnOpen { get; set; }
         public bool ThrowOnCommandDispose { get; set; }
         public bool ThrowOnConnectionDispose { get; set; }
+        public Exception ConnectionStringFailure { get; set; }
         public bool ThrowOnReaderExecution { get; set; } = true;
 
         public TrackingDbConnection CreateTrackingConnection(string connectionString)
@@ -933,7 +963,17 @@ public class ConnectionAndTransactionCorrectnessTest
         }
 
         public bool IsDisposed { get; private set; }
-        public override string ConnectionString { get; set; }
+        private string _connectionString;
+        public override string ConnectionString
+        {
+            get => _connectionString;
+            set
+            {
+                // 工厂创建空连接后，再由 DbFactory 设置连接串时注入失败。
+                if (value != null && _provider.ConnectionStringFailure != null) throw _provider.ConnectionStringFailure;
+                _connectionString = value;
+            }
+        }
         public override string Database => "Tracking";
         public override string DataSource => "Tracking";
         public override string ServerVersion => "1.0";
