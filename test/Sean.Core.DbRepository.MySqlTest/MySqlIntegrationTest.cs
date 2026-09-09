@@ -1,5 +1,7 @@
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
+using System.Globalization;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MySql.Data.MySqlClient;
@@ -295,6 +297,58 @@ public class MySqlIntegrationTest
         CollectionAssert.AreEqual(new[] { "TenantId", "Id" },
             fields.Where(f => f.IsPrimaryKey == true).Select(f => f.FieldName).ToArray());
         Assert.AreEqual(false, fields.Single(f => f.FieldName == "Code").IsPrimaryKey);
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public void Values_RoundTripWithBothParameterAndLiteralExecution(bool parameterized, bool noBackslashEscapes)
+    {
+        using var connection = _factory.OpenNewConnection();
+        _factory.ExecuteNonQuery(connection, noBackslashEscapes
+            ? "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES'" : "SET SESSION sql_mode=''");
+        _factory.ExecuteNonQuery(connection, @"CREATE TABLE sample (
+            TextValue TEXT NOT NULL, UnsignedValue BIGINT UNSIGNED NOT NULL,
+            Amount DECIMAL(20,6) NOT NULL, CreatedAt DATETIME NOT NULL
+        ) ENGINE=InnoDB");
+        var expected = new ValueRow
+        {
+            TextValue = "中文\\'O'Brien\0末尾\\",
+            UnsignedValue = UnsignedNumber.Maximum,
+            Amount = 123456789.123456m,
+            CreatedAt = new DateTime(2026, 9, 10, 12, 34, 56)
+        };
+        var previousCulture = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+            var command = SqlFactory.CreateInsertableBuilder<ValueRow>(DatabaseType.MySql)
+                .SetParameter(expected)
+                .SetSqlParameterized(parameterized)
+                .Build();
+            command.Connection = connection;
+            Assert.AreEqual(1, _factory.ExecuteNonQuery(command));
+            // 从真实列读回，而非仅比较生成 SQL，检查驱动绑定、字符串编码及实体类型转换。
+            var actual = _factory.Get<ValueRow>(connection, "SELECT TextValue, UnsignedValue, Amount, CreatedAt FROM sample");
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(expected.TextValue, actual.TextValue);
+            Assert.AreEqual(expected.UnsignedValue, actual.UnsignedValue);
+            Assert.AreEqual(expected.Amount, actual.Amount);
+            Assert.AreEqual(expected.CreatedAt, actual.CreatedAt);
+        }
+        finally { CultureInfo.CurrentCulture = previousCulture; }
+    }
+
+    private enum UnsignedNumber : ulong { Maximum = ulong.MaxValue }
+    [Table("sample")]
+    private sealed class ValueRow
+    {
+        public string TextValue { get; set; }
+        public UnsignedNumber UnsignedValue { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     private sealed class RejectStringHandler : ITypeHandler
