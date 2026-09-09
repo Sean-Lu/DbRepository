@@ -247,6 +247,29 @@ public class MySqlIntegrationTest
         }
     }
 
+    [TestMethod]
+    [DataRow("IndexedValue", false)]
+    [DataRow("PrimaryReference", true)]
+    [DataRow("UniqueReference", true)]
+    public void DbFirst_IdentifiesForeignKeysByConstraintsNotIndexKind(string fieldName, bool expected)
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE parent (Id INT PRIMARY KEY) ENGINE=InnoDB");
+        _factory.ExecuteNonQuery(@"CREATE TABLE child (
+            PrimaryReference INT PRIMARY KEY,
+            UniqueReference INT UNIQUE,
+            IndexedValue INT,
+            INDEX ix_value (IndexedValue),
+            FOREIGN KEY (PrimaryReference) REFERENCES parent(Id),
+            FOREIGN KEY (UniqueReference) REFERENCES parent(Id)
+        ) ENGINE=InnoDB");
+        var generator = new CodeGeneratorForMySql();
+        generator.Initialize(_factory);
+        // 索引类型不能代替外键约束：普通索引不是外键，主键/唯一键也可以同时是外键。
+        var fields = generator.GetTableFieldInfo("child");
+        Assert.AreEqual(3, fields.Count);
+        Assert.AreEqual(expected, fields.Single(f => f.FieldName == fieldName).IsForeignKey);
+    }
+
     private sealed class RejectStringHandler : ITypeHandler
     {
         public void Set(DbParameter parameter, object value, DatabaseType databaseType)
