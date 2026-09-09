@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MySql.Data.MySqlClient;
 using Sean.Core.DbRepository.DbFirst;
+using Sean.Core.DbRepository.Extensions;
 
 [assembly: DoNotParallelize]
 
@@ -216,6 +217,33 @@ public class MySqlIntegrationTest
         {
             if (previous == null) options.RemoveTypeHandler(typeof(string));
             else options.AddTypeHandler(typeof(string), previous);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public void SchemaLookup_PreservesNamesInBothEscapeModes(bool field, bool noBackslashEscapes)
+    {
+        using var connection = _factory.OpenNewConnection();
+        // 只改变本用例连接的会话设置，不修改服务器全局配置。
+        _factory.ExecuteNonQuery(connection, noBackslashEscapes
+            ? "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES'" : "SET SESSION sql_mode=''");
+        const string tableName = "owner's sample";
+        const string fieldName = "value\\'s name";
+        _factory.ExecuteNonQuery(connection, $"CREATE TABLE `{tableName}` (`{fieldName}` INT) ENGINE=InnoDB");
+        long Count(string table, string column) => Convert.ToInt64(_factory.ExecuteScalar(connection, field
+            ? DatabaseType.MySql.GetSqlForTableFieldExists(connection, table, column)
+            : DatabaseType.MySql.GetSqlForTableExists(connection, table)));
+        Assert.AreEqual(1L, Count(tableName, fieldName));
+        Assert.AreEqual(0L, Count("missing' OR 1=1 -- ", fieldName));
+        Assert.AreEqual(0L, Count("missing\\' OR 1=1 -- ", fieldName));
+        if (field)
+        {
+            Assert.AreEqual(0L, Count(tableName, "missing' OR 1=1 -- "));
+            Assert.AreEqual(0L, Count(tableName, "missing\\' OR 1=1 -- "));
         }
     }
 

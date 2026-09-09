@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using Sean.Core.DbRepository.Util;
 
 namespace Sean.Core.DbRepository.Extensions;
 
@@ -124,7 +125,8 @@ public static class DatabaseTypeExtensions
             case DatabaseType.MariaDB:
             case DatabaseType.TiDB:
             case DatabaseType.OceanBase:
-                return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='{tableName}'";
+                // 复用字面量转义，兼容 MySQL 两种反斜杠模式，避免名称改变查询条件。
+                return $"SELECT COUNT(*) AS TableCount FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name={SqlBuilderUtil.EscapeSqlLiteral(dbType, tableName ?? "")}";
             case DatabaseType.PostgreSql:
             case DatabaseType.OpenGauss:
             case DatabaseType.HighgoDB:
@@ -198,7 +200,7 @@ public static class DatabaseTypeExtensions
             case DatabaseType.MariaDB:
             case DatabaseType.TiDB:
             case DatabaseType.OceanBase:
-                return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='{tableName}' AND column_name='{fieldName}'";
+                return $"SELECT COUNT(*) AS ColumnCount FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name={SqlBuilderUtil.EscapeSqlLiteral(dbType, tableName ?? "")} AND column_name={SqlBuilderUtil.EscapeSqlLiteral(dbType, fieldName ?? "")}";
             case DatabaseType.PostgreSql:
             case DatabaseType.OpenGauss:
             case DatabaseType.HighgoDB:
