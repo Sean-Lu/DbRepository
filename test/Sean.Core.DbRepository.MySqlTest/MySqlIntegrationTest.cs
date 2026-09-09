@@ -1,4 +1,5 @@
 using System;
+using System.Data.Common;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MySql.Data.MySqlClient;
@@ -154,6 +155,74 @@ public class MySqlIntegrationTest
         Assert.AreEqual("Id", keys[0].ReferencedFieldName);
         Assert.AreEqual(0, generator.GetTableFieldInfo("missing").Count);
         Assert.AreEqual(0, generator.GetTableFieldReferenceInfo("missing").Count);
+    }
+
+    [TestMethod]
+    [DataRow("table")]
+    [DataRow("fields")]
+    [DataRow("references")]
+    public void DbFirst_TreatsQuotedTableNamesAsValues(string query)
+    {
+        const string tableName = "owner's child";
+        _factory.ExecuteNonQuery("CREATE TABLE parent (Id INT PRIMARY KEY) ENGINE=InnoDB");
+        // 建表处使用标识符引号，独立验证元数据查询中的字符串值处理。
+        _factory.ExecuteNonQuery($"CREATE TABLE `{tableName}` (Id INT PRIMARY KEY, ParentId INT, FOREIGN KEY (ParentId) REFERENCES parent(Id)) ENGINE=InnoDB");
+        var generator = new CodeGeneratorForMySql();
+        generator.Initialize(_factory);
+        const string missingName = "missing' OR '1'='1";
+        switch (query)
+        {
+            case "table":
+                Assert.AreEqual(tableName, generator.GetTableInfo(tableName)?.TableName);
+                Assert.IsNull(generator.GetTableInfo(missingName));
+                Assert.IsNull(generator.GetTableInfo(null));
+                break;
+            case "fields":
+                var fields = generator.GetTableFieldInfo(tableName);
+                CollectionAssert.AreEqual(new[] { "Id", "ParentId" }, fields.Select(f => f.FieldName).ToArray());
+                Assert.IsTrue(fields.All(f => f.TableName == tableName));
+                Assert.AreEqual(0, generator.GetTableFieldInfo(missingName).Count);
+                Assert.AreEqual(0, generator.GetTableFieldInfo(null).Count);
+                break;
+            case "references":
+                var keys = generator.GetTableFieldReferenceInfo(tableName);
+                Assert.AreEqual(1, keys.Count);
+                Assert.AreEqual(tableName, keys[0].TableName);
+                Assert.AreEqual("ParentId", keys[0].FieldName);
+                Assert.AreEqual("parent", keys[0].ReferencedTableName);
+                Assert.AreEqual(0, generator.GetTableFieldReferenceInfo(missingName).Count);
+                Assert.AreEqual(0, generator.GetTableFieldReferenceInfo(null).Count);
+                break;
+        }
+    }
+
+    [TestMethod]
+    public void DbFirst_DoesNotApplyBusinessStringHandlerToNames()
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE sample (Id INT PRIMARY KEY) ENGINE=InnoDB");
+        var generator = new CodeGeneratorForMySql();
+        generator.Initialize(_factory);
+        var options = DbContextConfiguration.Options;
+        var previous = options.GetTypeHandler(typeof(string));
+        try
+        {
+            // 内部元数据名称不是业务数据，不应进入调用方的字符串转换流程。
+            options.AddTypeHandler(typeof(string), new RejectStringHandler());
+            Assert.AreEqual("sample", generator.GetTableInfo("sample")?.TableName);
+            Assert.AreEqual(1, generator.GetTableFieldInfo("sample").Count);
+            Assert.AreEqual(0, generator.GetTableFieldReferenceInfo("sample").Count);
+        }
+        finally
+        {
+            if (previous == null) options.RemoveTypeHandler(typeof(string));
+            else options.AddTypeHandler(typeof(string), previous);
+        }
+    }
+
+    private sealed class RejectStringHandler : ITypeHandler
+    {
+        public void Set(DbParameter parameter, object value, DatabaseType databaseType)
+            => throw new InvalidOperationException("元数据查询不应调用业务字符串处理器。");
     }
 
     private void ExecuteAdmin(string sql)

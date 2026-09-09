@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 
 namespace Sean.Core.DbRepository.DbFirst;
 
@@ -20,8 +22,8 @@ public class CodeGeneratorForMySql : BaseCodeGenerator, ICodeGenerator
 	TABLE_COMMENT AS {nameof(TableInfoModel.TableComment)},
 	CREATE_TIME AS {nameof(TableInfoModel.CreateTime)}
 FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_SCHEMA = '{conn.Database}' AND TABLE_NAME = '{tableName}'";
-        return _db.Get<TableInfoModel>(conn, sql);
+WHERE TABLE_SCHEMA = @schemaName AND TABLE_NAME = @tableName";
+        return _db.Get<TableInfoModel>(conn, sql, CreateTableParameters(conn.Database, tableName));
     }
 
     public virtual List<TableFieldModel> GetTableFieldInfo(string tableName)
@@ -42,9 +44,9 @@ WHERE TABLE_SCHEMA = '{conn.Database}' AND TABLE_NAME = '{tableName}'";
 	CASE WHEN COLUMN_KEY='MUL' THEN 1 ELSE 0 END AS {nameof(TableFieldModel.IsForeignKey)},
 	CASE WHEN EXTRA='auto_increment' THEN 1 ELSE 0 END AS {nameof(TableFieldModel.IsAutoIncrement)}
 FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_SCHEMA = '{conn.Database}' AND TABLE_NAME = '{tableName}'
+WHERE TABLE_SCHEMA = @schemaName AND TABLE_NAME = @tableName
 ORDER BY ORDINAL_POSITION";
-        return _db.Query<TableFieldModel>(conn, sql);
+        return _db.Query<TableFieldModel>(conn, sql, CreateTableParameters(conn.Database, tableName));
     }
 
     public virtual List<TableFieldReferenceModel> GetTableFieldReferenceInfo(string tableName)
@@ -59,7 +61,22 @@ ORDER BY ORDINAL_POSITION";
 	REFERENCED_TABLE_NAME AS {nameof(TableFieldReferenceModel.ReferencedTableName)},
 	REFERENCED_COLUMN_NAME AS {nameof(TableFieldReferenceModel.ReferencedFieldName)}
 FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-WHERE TABLE_SCHEMA = '{conn.Database}' AND TABLE_NAME = '{tableName}' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL";
-        return _db.Query<TableFieldReferenceModel>(conn, sql);
+WHERE TABLE_SCHEMA = @schemaName AND TABLE_NAME = @tableName AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL";
+        return _db.Query<TableFieldReferenceModel>(conn, sql, CreateTableParameters(conn.Database, tableName));
+    }
+
+    private DbParameter[] CreateTableParameters(string schemaName, string tableName)
+    {
+        // 库名和表名在此处是查询值，交给驱动绑定，避免单引号或反斜杠改变 SQL 含义。
+        // 元数据名称不应用业务类型处理器；null 沿用原字符串插值的空串行为。
+        var schemaParameter = _db.ProviderFactory.CreateParameter();
+        schemaParameter.ParameterName = "schemaName";
+        schemaParameter.DbType = DbType.String;
+        schemaParameter.Value = schemaName ?? "";
+        var tableParameter = _db.ProviderFactory.CreateParameter();
+        tableParameter.ParameterName = "tableName";
+        tableParameter.DbType = DbType.String;
+        tableParameter.Value = tableName ?? "";
+        return new[] { schemaParameter, tableParameter };
     }
 }
