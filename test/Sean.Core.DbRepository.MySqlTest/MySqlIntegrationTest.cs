@@ -1,8 +1,10 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MySql.Data.MySqlClient;
 using Sean.Core.DbRepository.DbFirst;
@@ -340,6 +342,71 @@ public class MySqlIntegrationTest
         }
         finally { CultureInfo.CurrentCulture = previousCulture; }
     }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task Add_ReturnsLargeIdentityAndRespectsCallerTransaction(bool asynchronous, bool externalTransaction)
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE sample (row_id BIGINT PRIMARY KEY AUTO_INCREMENT, display_name VARCHAR(40) NOT NULL) ENGINE=InnoDB AUTO_INCREMENT=2147483648");
+        var repository = new SampleRepository(_factory.ConnectionSettings);
+        using var connection = externalTransaction ? _factory.OpenNewConnection() : null;
+        using var transaction = connection?.BeginTransaction();
+        var entity = new SampleRow { Name = "O'Brien" };
+        Assert.IsTrue(asynchronous
+            ? await repository.AddAsync(entity, returnAutoIncrementId: true, transaction: transaction)
+            : repository.Add(entity, returnAutoIncrementId: true, transaction: transaction));
+        Assert.AreEqual(2147483648L, entity.Id);
+        const string readName = "SELECT display_name FROM sample WHERE row_id=2147483648";
+        Assert.AreEqual(entity.Name, Convert.ToString(externalTransaction
+            ? _factory.ExecuteScalar(transaction, readName) : _factory.ExecuteScalar(readName)));
+        if (externalTransaction)
+        {
+            // 回写成功不代表允许提前提交；调用方仍能回滚，连接也必须保持可用。
+            Assert.AreSame(connection, transaction.Connection);
+            transaction.Rollback();
+            Assert.AreEqual(System.Data.ConnectionState.Open, connection.State);
+        }
+        Assert.AreEqual(externalTransaction ? 0L : 1L,
+            Convert.ToInt64(_factory.ExecuteScalar("SELECT COUNT(*) FROM sample")));
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task PageQuery_ReturnsFilteredTotalsAndMappedColumns(bool asynchronous)
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE sample (row_id BIGINT PRIMARY KEY, display_name VARCHAR(40) NOT NULL) ENGINE=InnoDB");
+        _factory.ExecuteNonQuery("INSERT INTO sample VALUES (5,'five'),(1,'one'),(4,'four'),(2,'skip'),(3,'three')");
+        var repository = new SampleRepository(_factory.ConnectionSettings);
+        var orderBy = OrderByCondition.Create<SampleRow>(OrderByType.Asc, row => row.Id);
+        foreach (var pageNumber in new[] { 2, 3 })
+        {
+            var page = asynchronous
+                ? await repository.PageQueryAsync(row => row.Name != "skip", orderBy, pageNumber, 2)
+                : repository.PageQuery(row => row.Name != "skip", orderBy, pageNumber, 2);
+            Assert.AreEqual(4, page.Total);
+            Assert.AreEqual(pageNumber, page.PageNumber);
+            Assert.AreEqual(2, page.PageSize);
+            CollectionAssert.AreEqual(pageNumber == 2 ? new[] { 4L, 5L } : Array.Empty<long>(),
+                page.List.Select(row => row.Id).ToArray());
+            if (pageNumber == 2)
+                CollectionAssert.AreEqual(new[] { "four", "five" }, page.List.Select(row => row.Name).ToArray());
+        }
+    }
+
+    [Table("sample")]
+    private sealed class SampleRow
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity), Column("row_id")]
+        public long Id { get; set; }
+        [Column("display_name")]
+        public string Name { get; set; }
+    }
+
+    private sealed class SampleRepository(MultiConnectionSettings settings) : BaseRepository<SampleRow>(settings);
 
     private enum UnsignedNumber : ulong { Maximum = ulong.MaxValue }
     [Table("sample")]
