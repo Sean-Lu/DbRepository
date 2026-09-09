@@ -29,7 +29,7 @@ WHERE TABLE_SCHEMA = @schemaName AND TABLE_NAME = @tableName";
     public virtual List<TableFieldModel> GetTableFieldInfo(string tableName)
     {
         using var conn = _db.OpenNewConnection();
-        // COLUMN_KEY 描述索引而非外键；根据当前表的实际引用约束判断，避免普通索引误报和主键/唯一键漏报。
+        // COLUMN_KEY 可能把无主键表的非空唯一索引标为 PRI，也不能代表外键；两者均按实际约束判断。
         var sql = $@"SELECT
 	TABLE_SCHEMA AS {nameof(TableFieldModel.TableSchema)},
 	TABLE_NAME AS {nameof(TableFieldModel.TableName)},
@@ -41,7 +41,11 @@ WHERE TABLE_SCHEMA = @schemaName AND TABLE_NAME = @tableName";
     NUMERIC_SCALE AS {nameof(TableFieldModel.NumericScale)},
     CHARACTER_MAXIMUM_LENGTH AS {nameof(TableFieldModel.StringMaxLength)},
 	CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END AS {nameof(TableFieldModel.IsNullable)},
-	CASE WHEN COLUMN_KEY='PRI' THEN 1 ELSE 0 END AS {nameof(TableFieldModel.IsPrimaryKey)},
+	CASE WHEN COLUMN_NAME IN (
+        SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+        WHERE TABLE_SCHEMA = @schemaName AND TABLE_NAME = @tableName
+          AND CONSTRAINT_NAME = 'PRIMARY'
+    ) THEN 1 ELSE 0 END AS {nameof(TableFieldModel.IsPrimaryKey)},
 	CASE WHEN COLUMN_NAME IN (
         SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_SCHEMA = @schemaName AND TABLE_NAME = @tableName

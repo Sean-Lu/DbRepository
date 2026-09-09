@@ -270,6 +270,33 @@ public class MySqlIntegrationTest
         Assert.AreEqual(expected, fields.Single(f => f.FieldName == fieldName).IsForeignKey);
     }
 
+    [TestMethod]
+    public void DbFirst_DoesNotTreatUniqueNotNullIndexAsPrimaryKey()
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE sample (Code INT NOT NULL UNIQUE, Value INT) ENGINE=InnoDB");
+        var generator = new CodeGeneratorForMySql();
+        generator.Initialize(_factory);
+        // 存储引擎可选择唯一索引组织数据，但它不等于用户声明的 PRIMARY KEY 约束。
+        var fields = generator.GetTableFieldInfo("sample");
+        Assert.AreEqual(2, fields.Count);
+        Assert.AreEqual(false, fields.Single(f => f.FieldName == "Code").IsPrimaryKey);
+    }
+
+    [TestMethod]
+    public void DbFirst_IdentifiesEveryCompositePrimaryKeyColumn()
+    {
+        _factory.ExecuteNonQuery(@"CREATE TABLE sample (
+            TenantId INT, Id INT, Code INT NOT NULL UNIQUE,
+            PRIMARY KEY (TenantId, Id)
+        ) ENGINE=InnoDB");
+        var generator = new CodeGeneratorForMySql();
+        generator.Initialize(_factory);
+        var fields = generator.GetTableFieldInfo("sample");
+        CollectionAssert.AreEqual(new[] { "TenantId", "Id" },
+            fields.Where(f => f.IsPrimaryKey == true).Select(f => f.FieldName).ToArray());
+        Assert.AreEqual(false, fields.Single(f => f.FieldName == "Code").IsPrimaryKey);
+    }
+
     private sealed class RejectStringHandler : ITypeHandler
     {
         public void Set(DbParameter parameter, object value, DatabaseType databaseType)
