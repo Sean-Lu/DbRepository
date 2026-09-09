@@ -32,7 +32,10 @@
 
 	<ItemGroup>
 		<!-- Required if your repository is on GitHub -->
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.111" PrivateAssets="All" />
+		<!-- 旧 .NET Framework 目标无法获得新包的传递依赖，显式引用以避免回退到 SDK 内置的旧任务。 -->
+		<PackageReference Include="Microsoft.Build.Tasks.Git" Version="10.0.111" PrivateAssets="All" />
+		<PackageReference Include="Microsoft.SourceLink.Common" Version="10.0.111" PrivateAssets="All" />
 
 		<!-- Required if your repository is on GitLab -->
 		<!--<PackageReference Include="Microsoft.SourceLink.GitLab" Version="1.1.1" PrivateAssets="All"/>-->
