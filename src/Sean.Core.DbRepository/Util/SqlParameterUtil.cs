@@ -77,6 +77,9 @@ public static class SqlParameterUtil
 
         if (!sqlCommand.UnusedSqlParameterRemoved)
         {
+            // 字典可能由调用方或构造器复用，执行时的参数过滤不能删除其原始内容。
+            if (ReferenceEquals(dicParameters, parameter))
+                dicParameters = new Dictionary<string, object>(dicParameters, dicParameters.Comparer);
             RemoveUnusedParameters(dicParameters, sql, dbType);
         }
 
