@@ -95,11 +95,12 @@ public abstract class BaseSqlGenerator : ISqlGenerator
     }
 
     /// <summary>
-    /// 字段名保持精确比较，避免把区分大小写的带引号标识符误判为同一字段。
+    /// MySQL 字段名不区分大小写；其他方言保留精确比较，避免合并不同的带引号字段。
     /// </summary>
-    private static bool IsSameFieldName(string left, string right)
+    private bool IsSameFieldName(string left, string right)
     {
-        return string.Equals(left, right, StringComparison.Ordinal);
+        return string.Equals(left, right, _dbType == DatabaseType.MySql
+            ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     protected virtual bool IsTableExists(string tableName)

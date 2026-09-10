@@ -212,25 +212,30 @@ public class CodeFirstCorrectnessTest
 
     [TestMethod]
     [DoNotParallelize]
-    public void MetadataFieldComparisonShouldPreserveCaseDifferences()
+    [DataRow(DatabaseType.PostgreSql, true)]
+    [DataRow(DatabaseType.MySql, false)]
+    public void MetadataFieldComparisonShouldRespectDialect(DatabaseType databaseType, bool caseSensitive)
     {
-        var originalCodeGenerator = CodeGeneratorFactory.GetCodeGenerator(DatabaseType.PostgreSql);
+        var originalCodeGenerator = CodeGeneratorFactory.GetCodeGenerator(databaseType);
         try
         {
-            CodeGeneratorFactory.SetCodeGenerator(DatabaseType.PostgreSql, new CaseDifferentMetadataCodeGenerator());
-            var generator = new MetadataComparisonProbe();
+            CodeGeneratorFactory.SetCodeGenerator(databaseType, new CaseDifferentMetadataCodeGenerator());
+            var generator = new MetadataComparisonProbe(databaseType);
 
             var dbMissingFields = generator.ReadDbMissingFields();
             var entityMissingFields = generator.ReadEntityMissingFields();
 
-            Assert.HasCount(1, dbMissingFields);
-            Assert.AreEqual("Value", dbMissingFields.Single().FieldName);
-            Assert.HasCount(1, entityMissingFields);
-            Assert.AreEqual("value", entityMissingFields.Single().FieldName);
+            Assert.HasCount(caseSensitive ? 1 : 0, dbMissingFields);
+            Assert.HasCount(caseSensitive ? 1 : 0, entityMissingFields);
+            if (caseSensitive)
+            {
+                Assert.AreEqual("Value", dbMissingFields.Single().FieldName);
+                Assert.AreEqual("value", entityMissingFields.Single().FieldName);
+            }
         }
         finally
         {
-            CodeGeneratorFactory.SetCodeGenerator(DatabaseType.PostgreSql, originalCodeGenerator);
+            CodeGeneratorFactory.SetCodeGenerator(databaseType, originalCodeGenerator);
         }
     }
 
@@ -378,6 +383,8 @@ public class CodeFirstCorrectnessTest
 
     private sealed class MetadataComparisonProbe : SqlGeneratorForPostgreSql
     {
+        public MetadataComparisonProbe(DatabaseType databaseType) : base(databaseType) { }
+
         public List<EntityFieldInfo> ReadDbMissingFields()
         {
             return GetDbMissingTableFields(typeof(UnboundedStringEntity), "UnboundedString");

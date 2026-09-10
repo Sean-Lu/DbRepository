@@ -666,6 +666,21 @@ public class MySqlIntegrationTest
             "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='entity_template'"));
     }
 
+    [TestMethod]
+    public void CodeFirst_UpgradeDoesNotAddExistingColumnWithDifferentCase()
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE deployed_sample (`id` BIGINT PRIMARY KEY, Legacy VARCHAR(40)) ENGINE=InnoDB");
+        _factory.ExecuteNonQuery("INSERT INTO deployed_sample VALUES (7,'keep')");
+        var generator = new Sean.Core.DbRepository.CodeFirst.SqlGeneratorForMySql();
+        generator.Initialize(_factory);
+        // id 已存在而 Name 确实缺失；既不能重复添加 id，也不能漏掉真正的新字段。
+        foreach (var sql in generator.GetUpgradeSql<UpgradeRow>(_ => "deployed_sample"))
+            _factory.ExecuteNonQuery(sql);
+        Assert.AreEqual("O'Brien", _factory.ExecuteScalar<string>("SELECT Name FROM deployed_sample WHERE Id=7"));
+        Assert.AreEqual("keep", _factory.ExecuteScalar<string>("SELECT Legacy FROM deployed_sample WHERE Id=7"));
+        Assert.AreEqual(0, generator.GetUpgradeSql<UpgradeRow>(_ => "deployed_sample").Count);
+    }
+
     [Table("entity_template")]
     private sealed class UpgradeRow
     {
