@@ -536,6 +536,61 @@ public class MySqlIntegrationTest
         }
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeProcedure_PreservesOutputParameters(bool asynchronous)
+    {
+        _factory.ExecuteNonQuery("CREATE PROCEDURE sample_output(IN InputValue BIGINT, OUT Value BIGINT) " +
+            "BEGIN SELECT InputValue AS ResultValue; SET Value = InputValue + 1; END");
+        foreach (var execution in new[] { "execute", "query", "reader" })
+        {
+            var output = new MySqlParameter("Value", MySqlDbType.Int64)
+            {
+                Direction = System.Data.ParameterDirection.Output
+            };
+            var target = new ProcedureOutput { Value = -1 };
+            var command = new DefaultSqlCommand("sample_output", new DbParameter[]
+            {
+                new MySqlParameter("InputValue", MySqlDbType.Int64) { Value = 2147483648L }, output
+            })
+            {
+                CommandType = System.Data.CommandType.StoredProcedure
+            };
+            if (execution == "reader")
+            {
+                // 流式结果交给调用方释放后，再读取驱动参数上的输出值。
+                using (var reader = asynchronous
+                    ? await _factory.ExecuteReaderAsync(command) : _factory.ExecuteReader(command))
+                {
+                    Assert.IsTrue(reader.Read());
+                    Assert.AreEqual(2147483648L, reader.GetInt64(0));
+                }
+            }
+            else
+            {
+                command.OutputParameterOptions = new OutputParameterOptions<ProcedureOutput>
+                {
+                    OutputTarget = target,
+                    OutputPropertyInfo = typeof(ProcedureOutput).GetProperty(nameof(ProcedureOutput.Value))
+                };
+                if (execution == "execute")
+                {
+                    if (asynchronous) await _factory.ExecuteNonQueryAsync(command);
+                    else _factory.ExecuteNonQuery(command);
+                }
+                else
+                {
+                    var rows = asynchronous
+                        ? await _factory.QueryAsync<long>(command) : _factory.Query<long>(command);
+                    CollectionAssert.AreEqual(new[] { 2147483648L }, rows.ToArray());
+                }
+                Assert.AreEqual(2147483649L, target.Value, execution);
+            }
+            Assert.AreEqual(2147483649L, Convert.ToInt64(output.Value), execution);
+        }
+    }
+
     private sealed class ProcedureOutput { public long Value { get; set; } }
     private sealed class DapperRepository(MultiConnectionSettings settings) : DapperBaseRepository(settings);
     private sealed class DapperSampleRepository(MultiConnectionSettings settings) : DapperBaseRepository<SampleRow>(settings);
