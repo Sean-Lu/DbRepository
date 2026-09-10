@@ -39,13 +39,19 @@ public static class DatabaseTypeExtensions
         if (string.IsNullOrWhiteSpace(parameter))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(parameter));
 
-        if (parameter.StartsWith("["))
+        // 普通 ASCII 字母不可能是括号或反引号前缀，批量参数避免重复文化比较。
+        // 其他输入沿用旧规则，保留特殊字符在不同文化下的兼容行为。
+        var first = parameter[0];
+        if (!(first >= 'A' && first <= 'Z' || first >= 'a' && first <= 'z'))
         {
-            parameter = parameter.Trim('[');
-        }
-        else if (parameter.StartsWith("`"))
-        {
-            parameter = parameter.Trim('`');
+            if (parameter.StartsWith("["))
+            {
+                parameter = parameter.Trim('[');
+            }
+            else if (parameter.StartsWith("`"))
+            {
+                parameter = parameter.Trim('`');
+            }
         }
 
         switch (databaseType)
