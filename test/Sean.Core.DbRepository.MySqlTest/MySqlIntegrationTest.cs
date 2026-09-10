@@ -791,6 +791,36 @@ public class MySqlIntegrationTest
             _factory.Query<string>("SELECT display_name FROM sample ORDER BY row_id").ToArray());
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ConcurrentAdd_ReturnsIdentityOfEachInsertedRow(bool dapper)
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE sample (row_id BIGINT PRIMARY KEY AUTO_INCREMENT, " +
+            "display_name VARCHAR(40) NOT NULL UNIQUE) ENGINE=InnoDB");
+        BaseRepository<SampleRow> repository = dapper
+            ? new DapperSampleRepository(_factory.ConnectionSettings) : new SampleRepository(_factory.ConnectionSettings);
+        var entities = Enumerable.Range(0, 8).Select(index => new SampleRow { Name = $"request-{index}" }).ToArray();
+        var start = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var writes = entities.Select(async entity =>
+        {
+            await start.Task;
+            Assert.IsTrue(await repository.AddAsync(entity, returnAutoIncrementId: true));
+        }).ToArray();
+        // 统一释放起跑信号；不依赖固定延时，也不假定服务器分配 ID 的先后顺序。
+        start.SetResult(true);
+        await Task.WhenAll(writes);
+        var actual = _factory.Query<SampleRow>("SELECT row_id,display_name FROM sample")
+            .ToDictionary(row => row.Id, row => row.Name);
+        Assert.AreEqual(entities.Length, actual.Count);
+        Assert.AreEqual(entities.Length, entities.Select(entity => entity.Id).Distinct().Count());
+        foreach (var entity in entities)
+        {
+            Assert.IsTrue(actual.TryGetValue(entity.Id, out var name), $"未找到回写 ID：{entity.Id}");
+            Assert.AreEqual(entity.Name, name);
+        }
+    }
+
     [Table("entity_template")]
     private sealed class UpgradeRow
     {
