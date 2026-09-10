@@ -716,6 +716,42 @@ public class MySqlIntegrationTest
         Assert.IsTrue(table.Rows[0].IsNull("OptionalValue"));
     }
 
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task UpdateAndDelete_RespectConditionsAndCallerRollback(bool dapper, bool asynchronous)
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE sample (row_id BIGINT PRIMARY KEY, display_name VARCHAR(40)) ENGINE=InnoDB");
+        _factory.ExecuteNonQuery("INSERT INTO sample VALUES (1,'old'),(2,'keep')");
+        BaseRepository<SampleRow> repository = dapper
+            ? new DapperSampleRepository(_factory.ConnectionSettings) : new SampleRepository(_factory.ConnectionSettings);
+        using var connection = _factory.OpenNewConnection();
+        using var transaction = connection.BeginTransaction();
+        var entity = new SampleRow { Id = 1, Name = "中文 O'Brien\\end" };
+        // SET 与 WHERE 使用同一字段的不同值，必须各自绑定，且只更新指定列。
+        var updated = asynchronous
+            ? await repository.UpdateAsync(entity, row => row.Name, row => row.Name == "old", transaction)
+            : repository.Update(entity, row => row.Name, row => row.Name == "old", transaction);
+        Assert.AreEqual(1, updated);
+        Assert.AreEqual(entity.Name, Convert.ToString(_factory.ExecuteScalar(transaction,
+            "SELECT display_name FROM sample WHERE row_id=1")));
+        Assert.AreEqual("keep", Convert.ToString(_factory.ExecuteScalar(transaction,
+            "SELECT display_name FROM sample WHERE row_id=2")));
+        var deleted = asynchronous
+            ? await repository.DeleteAsync(row => row.Name == entity.Name, transaction)
+            : repository.Delete(row => row.Name == entity.Name, transaction);
+        Assert.AreEqual(1, deleted);
+        Assert.AreEqual(1L, Convert.ToInt64(_factory.ExecuteScalar(transaction, "SELECT COUNT(*) FROM sample")));
+        Assert.AreEqual("keep", Convert.ToString(_factory.ExecuteScalar(transaction, "SELECT display_name FROM sample")));
+        Assert.AreSame(connection, transaction.Connection);
+        transaction.Rollback();
+        // 新连接确认两次写入均未越过调用方事务提交。
+        CollectionAssert.AreEqual(new[] { "old", "keep" },
+            _factory.Query<string>("SELECT display_name FROM sample ORDER BY row_id").ToArray());
+    }
+
     [Table("entity_template")]
     private sealed class UpgradeRow
     {
