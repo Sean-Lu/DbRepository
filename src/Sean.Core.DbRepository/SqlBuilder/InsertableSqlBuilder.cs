@@ -138,84 +138,13 @@ VALUES{2}";
         var sb = new StringBuilder();
         var formatFields = fields.Select(fieldInfo => SqlAdapter.FormatFieldName(fieldInfo.FieldName)).ToList();
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
-        var fieldMappings = fields.Select(field => new
-        {
-            Field = field,
-            EntityField = tableFieldInfos.Find(c => c.FieldName == field.FieldName)
-        }).ToList();
+        var valuesBuilder = new WriteValuesBuilder<TEntity>(SqlAdapter, fields, SqlParameterized);
         object commandParameter = _parameter;
-        if (bulkEntities != null)// BulkInsert
-        {
-            #region 解析批量新增的参数
-            var paramDic = new Dictionary<string, object>();
-            var index = 0;
-            var insertValueParams = new List<string>();
-            var formatParameterNames = new List<string>();
-            foreach (var entity in bulkEntities)
-            {
-                index++;
-                formatParameterNames.Clear();
-                foreach (var fieldMapping in fieldMappings)
-                {
-                    var findFieldInfo = fieldMapping.EntityField;
-                    if (findFieldInfo == null)
-                    {
-                        throw new InvalidOperationException($"Table [{fieldMapping.Field.TableName}] field [{fieldMapping.Field.FieldName}] not found in [{typeof(TEntity).FullName}].");
-                    }
-
-                    if (!SqlParameterized)
-                    {
-                        var property = findFieldInfo.Property;
-                        if (property != null)
-                        {
-                            var value = property.GetValue(entity);
-                            var convertResult = SqlBuilderUtil.ConvertToSqlString(SqlAdapter.DbType, value, out var convertible);
-                            if (convertible)
-                            {
-                                formatParameterNames.Add(convertResult);
-                                continue;
-                            }
-                        }
-                    }
-
-                    var parameterName = ConditionBuilder.UniqueParameter($"{findFieldInfo.Property.Name}_{index}", paramDic);
-                    formatParameterNames.Add(SqlAdapter.FormatSqlParameter(parameterName));
-                    paramDic.Add(parameterName, findFieldInfo.Property.GetValue(entity, null));
-                }
-                insertValueParams.Add($"({string.Join(", ", formatParameterNames)})");
-            }
-
-            var bulkInsertValuesString = string.Join($", {(SqlIndented ? Environment.NewLine : string.Empty)}", insertValueParams);
-            commandParameter = paramDic;
-            #endregion
-
-            sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), bulkInsertValuesString));
-        }
-        else
-        {
-            var formatParameters = fieldMappings.Select(fieldMapping =>
-            {
-                var findFieldInfo = fieldMapping.EntityField;
-
-                if (!SqlParameterized)
-                {
-                    var property = findFieldInfo?.Property;
-                    if (property != null)
-                    {
-                        var value = property.GetValue(_parameter);
-                        var convertResult = SqlBuilderUtil.ConvertToSqlString(SqlAdapter.DbType, value, out var convertible);
-                        if (convertible)
-                        {
-                            return convertResult;
-                        }
-                    }
-                }
-
-                var parameterName = findFieldInfo?.Property?.Name ?? fieldMapping.Field.FieldName;
-                return SqlAdapter.FormatSqlParameter(parameterName);
-            }).ToList();
-            sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate, SqlAdapter.FormatTableName(), string.Join(", ", formatFields), $"({string.Join(", ", formatParameters)})"));
-        }
+        var values = bulkEntities != null
+            ? valuesBuilder.BuildBulk(bulkEntities, SqlIndented, out commandParameter)
+            : valuesBuilder.BuildSingle(_parameter);
+        sb.Append(string.Format(SqlIndented ? SqlIndentedTemplate : SqlTemplate,
+            SqlAdapter.FormatTableName(), string.Join(", ", formatFields), values));
 
         if (_returnLastInsertId)
         {
