@@ -632,6 +632,49 @@ public class MySqlIntegrationTest
         public BatchSampleRepository(MultiConnectionSettings settings) : base(settings) => BulkEntityCount = 2;
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void CodeFirst_UpgradePreservesExistingDataAndIsRepeatable(bool existingTable)
+    {
+        const string tableName = "deployed_sample";
+        if (existingTable)
+        {
+            _factory.ExecuteNonQuery("CREATE TABLE deployed_sample (Id BIGINT PRIMARY KEY, Legacy VARCHAR(40)) ENGINE=InnoDB");
+            _factory.ExecuteNonQuery("INSERT INTO deployed_sample VALUES (7,'keep')");
+        }
+        var generator = new Sean.Core.DbRepository.CodeFirst.SqlGeneratorForMySql();
+        generator.Initialize(_factory);
+        var statements = generator.GetUpgradeSql<UpgradeRow>(_ => tableName);
+        Assert.IsTrue(statements.Count > 0);
+        foreach (var sql in statements) _factory.ExecuteNonQuery(sql);
+        if (existingTable)
+        {
+            // 新增字段不能删除旧行或实体未定义的历史列。
+            Assert.AreEqual("keep", _factory.ExecuteScalar<string>("SELECT Legacy FROM deployed_sample WHERE Id=7"));
+            Assert.AreEqual("O'Brien", _factory.ExecuteScalar<string>("SELECT Name FROM deployed_sample WHERE Id=7"));
+        }
+        _factory.ExecuteNonQuery("INSERT INTO deployed_sample (Id) VALUES (8)");
+        Assert.AreEqual("O'Brien", _factory.ExecuteScalar<string>("SELECT Name FROM deployed_sample WHERE Id=8"));
+        Assert.AreEqual(existingTable ? 2L : 1L, _factory.ExecuteScalar<long>("SELECT COUNT(*) FROM deployed_sample"));
+        Assert.AreEqual(1048, Assert.Throws<MySqlException>(() =>
+            _factory.ExecuteNonQuery("INSERT INTO deployed_sample (Id,Name) VALUES (9,NULL)")).Number);
+        Assert.AreEqual(1062, Assert.Throws<MySqlException>(() =>
+            _factory.ExecuteNonQuery("INSERT INTO deployed_sample (Id) VALUES (8)")).Number);
+        Assert.AreEqual(0, generator.GetUpgradeSql<UpgradeRow>(_ => tableName).Count);
+        Assert.AreEqual(0L, _factory.ExecuteScalar<long>(
+            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='entity_template'"));
+    }
+
+    [Table("entity_template")]
+    private sealed class UpgradeRow
+    {
+        [Key]
+        public long Id { get; set; }
+        [Required, System.ComponentModel.DefaultValue("O'Brien")]
+        public string Name { get; set; }
+    }
+
     private sealed class ProcedureOutput { public long Value { get; set; } }
     private sealed class DapperRepository(MultiConnectionSettings settings) : DapperBaseRepository(settings);
     private sealed class DapperSampleRepository(MultiConnectionSettings settings) : DapperBaseRepository<SampleRow>(settings);
