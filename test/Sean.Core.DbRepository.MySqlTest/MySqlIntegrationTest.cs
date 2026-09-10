@@ -752,6 +752,45 @@ public class MySqlIntegrationTest
             _factory.Query<string>("SELECT display_name FROM sample ORDER BY row_id").ToArray());
     }
 
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task AddOrUpdate_PreservesDataOnConstraintFailureAndCallerRollback(bool dapper, bool asynchronous)
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE names (Name VARCHAR(40) PRIMARY KEY) ENGINE=InnoDB");
+        _factory.ExecuteNonQuery("INSERT INTO names VALUES ('old'),('new'),('keep')");
+        _factory.ExecuteNonQuery("CREATE TABLE sample (row_id BIGINT PRIMARY KEY, display_name VARCHAR(40), " +
+            "FOREIGN KEY (display_name) REFERENCES names(Name)) ENGINE=InnoDB");
+        _factory.ExecuteNonQuery("INSERT INTO sample VALUES (1,'old'),(2,'keep')");
+        BaseRepository<SampleRow> repository = dapper
+            ? new DapperSampleRepository(_factory.ConnectionSettings) : new SampleRepository(_factory.ConnectionSettings);
+        using var connection = _factory.OpenNewConnection();
+        using var transaction = connection.BeginTransaction();
+        foreach (var id in new[] { 1L, 3L })
+        {
+            var entity = new SampleRow { Id = id, Name = "new" };
+            Assert.IsTrue(asynchronous
+                ? await repository.AddOrUpdateAsync(entity, transaction: transaction)
+                : repository.AddOrUpdate(entity, transaction: transaction));
+        }
+        // MySQL 此入口沿用 REPLACE：外键失败不能把此前的有效行删除。
+        var error = await Assert.ThrowsAsync<MySqlException>(async () =>
+        {
+            var invalid = new SampleRow { Id = 1, Name = "missing-parent" };
+            if (asynchronous) await repository.AddOrUpdateAsync(invalid, transaction: transaction);
+            else repository.AddOrUpdate(invalid, transaction: transaction);
+        });
+        Assert.AreEqual(1452, error.Number);
+        CollectionAssert.AreEqual(new[] { "new", "keep", "new" },
+            _factory.Query<string>(transaction, "SELECT display_name FROM sample ORDER BY row_id").ToArray());
+        Assert.AreSame(connection, transaction.Connection);
+        transaction.Rollback();
+        CollectionAssert.AreEqual(new[] { "old", "keep" },
+            _factory.Query<string>("SELECT display_name FROM sample ORDER BY row_id").ToArray());
+    }
+
     [Table("entity_template")]
     private sealed class UpgradeRow
     {
