@@ -18,6 +18,12 @@ internal static class ResultValueMapping
             {
                 return value;
             }
+            // 部分驱动把文本 Guid 列返回为字符串；只补充合法文本解析，失败仍沿用原转换异常。
+            // 不处理 byte[]，避免在未明确驱动字节序的情况下改变二进制 Guid 的含义。
+            if (valueType == typeof(Guid) && value is string text && Guid.TryParse(text, out var guid))
+            {
+                return guid;
+            }
             // 原转换器仅直接识别枚举，Nullable<枚举> 需要先解开包装再转换。
             if (valueType.IsEnum)
             {

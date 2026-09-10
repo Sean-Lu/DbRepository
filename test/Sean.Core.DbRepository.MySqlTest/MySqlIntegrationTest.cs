@@ -821,6 +821,34 @@ public class MySqlIntegrationTest
         }
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeQuery_MapsTextGuidToScalarAndEntity(bool asynchronous)
+    {
+        var expected = Guid.Parse("6a7010f5-2d91-4a04-b2d1-47ead5908d42");
+        _factory.ExecuteNonQuery("CREATE TABLE guid_values (Value VARCHAR(40), OptionalValue VARCHAR(40), MissingValue VARCHAR(40))");
+        _factory.ExecuteNonQuery("INSERT INTO guid_values VALUES (@value,@value,NULL)",
+            new[] { new MySqlParameter("value", expected.ToString("D")) });
+        // VARCHAR 由真实驱动返回字符串，不能依赖驱动替框架转换为 Guid。
+        Assert.IsInstanceOfType<string>(_factory.ExecuteScalar("SELECT Value FROM guid_values"));
+        var value = asynchronous ? await _factory.GetAsync<Guid>("SELECT Value FROM guid_values")
+            : _factory.Get<Guid>("SELECT Value FROM guid_values");
+        Assert.AreEqual(expected, value);
+        var entity = asynchronous ? await _factory.GetAsync<GuidRow>("SELECT * FROM guid_values")
+            : _factory.Get<GuidRow>("SELECT * FROM guid_values");
+        Assert.AreEqual(expected, entity.Value);
+        Assert.AreEqual(expected, entity.OptionalValue);
+        Assert.IsNull(entity.MissingValue);
+    }
+
+    private sealed class GuidRow
+    {
+        public Guid Value { get; set; }
+        public Guid? OptionalValue { get; set; }
+        public Guid? MissingValue { get; set; }
+    }
+
     [Table("entity_template")]
     private sealed class UpgradeRow
     {
