@@ -681,6 +681,41 @@ public class MySqlIntegrationTest
         Assert.AreEqual(0, generator.GetUpgradeSql<UpgradeRow>(_ => "deployed_sample").Count);
     }
 
+    [TestMethod]
+    [DataRow("native", false)]
+    [DataRow("native", true)]
+    [DataRow("dapper", false)]
+    [DataRow("dapper", true)]
+    [DataRow("dapper-generic", false)]
+    [DataRow("dapper-generic", true)]
+    public async Task DataSet_PreservesEmptyResultsDuplicateColumnsAndBinaryValues(string executor, bool asynchronous)
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE sample (Id INT PRIMARY KEY, Payload VARBINARY(8), OptionalValue VARCHAR(20))");
+        _factory.ExecuteNonQuery("INSERT INTO sample VALUES (7, X'0001FF', NULL)");
+        BaseRepository repository = executor == "native" ? new SampleRepository(_factory.ConnectionSettings)
+            : executor == "dapper" ? new DapperRepository(_factory.ConnectionSettings)
+            : new DapperSampleRepository(_factory.ConnectionSettings);
+        var command = new DefaultSqlCommand(
+            "SELECT Id FROM sample WHERE Id=@Missing; " +
+            "SELECT Id AS Value, Id+1 AS Value, Payload, OptionalValue FROM sample WHERE Id=@Id",
+            new { Missing = -1, Id = 7 });
+        using var dataSet = asynchronous
+            ? await repository.ExecuteDataSetAsync(command) : repository.ExecuteDataSet(command);
+        Assert.AreEqual(2, dataSet.Tables.Count);
+        // 空结果也必须保留列结构，不能导致后面的结果集错位。
+        Assert.AreEqual(0, dataSet.Tables[0].Rows.Count);
+        Assert.AreEqual("Id", dataSet.Tables[0].Columns[0].ColumnName);
+        var table = dataSet.Tables[1];
+        Assert.AreEqual(1, table.Rows.Count);
+        Assert.AreEqual(4, table.Columns.Count);
+        Assert.AreEqual("Value", table.Columns[0].ColumnName);
+        Assert.AreEqual("Value1", table.Columns[1].ColumnName);
+        Assert.AreEqual(7L, Convert.ToInt64(table.Rows[0][0]));
+        Assert.AreEqual(8L, Convert.ToInt64(table.Rows[0][1]));
+        CollectionAssert.AreEqual(new byte[] { 0, 1, 255 }, (byte[])table.Rows[0]["Payload"]);
+        Assert.IsTrue(table.Rows[0].IsNull("OptionalValue"));
+    }
+
     [Table("entity_template")]
     private sealed class UpgradeRow
     {
