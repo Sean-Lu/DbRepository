@@ -488,6 +488,55 @@ public class MySqlIntegrationTest
         }
     }
 
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task DapperProcedure_WritesOutputAfterExecutionAndReaderDisposal(bool generic, bool asynchronous)
+    {
+        _factory.ExecuteNonQuery("CREATE PROCEDURE sample_output(IN InputValue BIGINT, OUT Value BIGINT) " +
+            "BEGIN SELECT InputValue AS ResultValue; SET Value = InputValue + 1; END");
+        BaseRepository repository = generic
+            ? new DapperSampleRepository(_factory.ConnectionSettings)
+            : new DapperRepository(_factory.ConnectionSettings);
+        foreach (var returnReader in new[] { false, true })
+        {
+            var parameters = new global::Dapper.DynamicParameters();
+            parameters.Add("InputValue", 2147483648L, System.Data.DbType.Int64);
+            parameters.Add("Value", dbType: System.Data.DbType.Int64,
+                direction: System.Data.ParameterDirection.Output);
+            var target = new ProcedureOutput { Value = -1 };
+            var command = new DefaultSqlCommand("sample_output", parameters)
+            {
+                CommandType = System.Data.CommandType.StoredProcedure
+            };
+            if (returnReader)
+            {
+                // 输出值在结果集之后设置；未读完就释放 Reader 也必须能拿到最终值。
+                using (var reader = asynchronous
+                    ? await repository.ExecuteReaderAsync(command) : repository.ExecuteReader(command))
+                {
+                    Assert.IsTrue(reader.Read());
+                    Assert.AreEqual(2147483648L, reader.GetInt64(0));
+                }
+                Assert.AreEqual(2147483649L, parameters.Get<long>("Value"));
+            }
+            else
+            {
+                command.OutputParameterOptions = new OutputParameterOptions<ProcedureOutput>
+                {
+                    OutputTarget = target,
+                    OutputPropertyInfo = typeof(ProcedureOutput).GetProperty(nameof(ProcedureOutput.Value))
+                };
+                if (asynchronous) await repository.ExecuteAsync(command);
+                else repository.Execute(command);
+                Assert.AreEqual(2147483649L, target.Value);
+            }
+        }
+    }
+
+    private sealed class ProcedureOutput { public long Value { get; set; } }
     private sealed class DapperRepository(MultiConnectionSettings settings) : DapperBaseRepository(settings);
     private sealed class DapperSampleRepository(MultiConnectionSettings settings) : DapperBaseRepository<SampleRow>(settings);
 
