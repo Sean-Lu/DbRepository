@@ -972,7 +972,7 @@ public class DbFactory
     public T ExecuteScalar<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
     {
         var obj = ExecuteScalar(connection, commandText, parameters, commandType);
-        return ObjectConvert.ChangeType<T>(obj);
+        return ConvertScalarValue<T>(obj);
     }
     /// <summary>
     /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
@@ -986,7 +986,7 @@ public class DbFactory
     public T ExecuteScalar<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
     {
         var obj = ExecuteScalar(transaction, commandText, parameters, commandType);
-        return ObjectConvert.ChangeType<T>(obj);
+        return ConvertScalarValue<T>(obj);
     }
     /// <summary>
     /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
@@ -998,7 +998,7 @@ public class DbFactory
     public T ExecuteScalar<T>(ISqlCommand sqlCommand)
     {
         var obj = ExecuteScalar(sqlCommand);
-        return ObjectConvert.ChangeType<T>(obj);
+        return ConvertScalarValue<T>(obj);
     }
 
     /// <summary>
@@ -1122,7 +1122,7 @@ public class DbFactory
     public async Task<T> ExecuteScalarAsync<T>(IDbConnection connection, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
     {
         var obj = await ExecuteScalarAsync(connection, commandText, parameters, commandType);
-        return ObjectConvert.ChangeType<T>(obj);
+        return ConvertScalarValue<T>(obj);
     }
     /// <summary>
     /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
@@ -1136,7 +1136,7 @@ public class DbFactory
     public async Task<T> ExecuteScalarAsync<T>(IDbTransaction transaction, string commandText, IEnumerable<DbParameter> parameters = null, CommandType commandType = CommandType.Text)
     {
         var obj = await ExecuteScalarAsync(transaction, commandText, parameters, commandType);
-        return ObjectConvert.ChangeType<T>(obj);
+        return ConvertScalarValue<T>(obj);
     }
     /// <summary>
     /// Executes the query and returns the first column of the first row in the result set returned by the query. All other columns and rows are ignored.
@@ -1148,7 +1148,18 @@ public class DbFactory
     public async Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand)
     {
         var obj = await ExecuteScalarAsync(sqlCommand);
-        return ObjectConvert.ChangeType<T>(obj);
+        return ConvertScalarValue<T>(obj);
+    }
+
+    private static T ConvertScalarValue<T>(object value)
+    {
+        // 只补充标量 Guid 文本解析；NULL、无结果、其他类型及无效值仍走原转换器。
+        if (value is string text && (typeof(T) == typeof(Guid) || typeof(T) == typeof(Guid?))
+            && Guid.TryParse(text, out var guid))
+        {
+            return (T)(object)guid;
+        }
+        return ObjectConvert.ChangeType<T>(value);
     }
     #endregion
 

@@ -842,6 +842,23 @@ public class MySqlIntegrationTest
         Assert.IsNull(entity.MissingValue);
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeScalar_ConvertsGuidText(bool asynchronous)
+    {
+        var expected = Guid.Parse("6a7010f5-2d91-4a04-b2d1-47ead5908d42");
+        _factory.ExecuteNonQuery("CREATE TABLE guid_values (Value VARCHAR(40))");
+        _factory.ExecuteNonQuery("INSERT INTO guid_values VALUES (@value)",
+            new[] { new MySqlParameter("value", expected.ToString("D")) });
+        const string sql = "SELECT Value FROM guid_values";
+        Assert.IsInstanceOfType<string>(_factory.ExecuteScalar(sql));
+        Assert.AreEqual(expected, asynchronous ? await _factory.ExecuteScalarAsync<Guid>(sql)
+            : _factory.ExecuteScalar<Guid>(sql));
+        Assert.AreEqual(expected, asynchronous ? await _factory.ExecuteScalarAsync<Guid?>(sql)
+            : _factory.ExecuteScalar<Guid?>(sql));
+    }
+
     private sealed class GuidRow
     {
         public Guid Value { get; set; }
