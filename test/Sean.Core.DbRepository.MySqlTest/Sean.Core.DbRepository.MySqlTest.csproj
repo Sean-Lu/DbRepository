@@ -11,5 +11,6 @@
     <PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
     <PackageReference Include="MySql.Data" Version="26.7.0" />
     <ProjectReference Include="..\..\src\Sean.Core.DbRepository\Sean.Core.DbRepository.csproj" />
+    <ProjectReference Include="..\..\src\Sean.Core.DbRepository.Dapper\Sean.Core.DbRepository.Dapper.csproj" />
   </ItemGroup>
 </Project>

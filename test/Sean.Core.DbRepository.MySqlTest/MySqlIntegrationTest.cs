@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MySql.Data.MySqlClient;
+using Sean.Core.DbRepository.Dapper;
 using Sean.Core.DbRepository.DbFirst;
 using Sean.Core.DbRepository.Extensions;
 
@@ -407,6 +408,88 @@ public class MySqlIntegrationTest
     }
 
     private sealed class SampleRepository(MultiConnectionSettings settings) : BaseRepository<SampleRow>(settings);
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task DapperReader_PreservesResultsAndConnectionOwnership(bool generic, bool asynchronous)
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE sample (row_id INT PRIMARY KEY, display_name VARCHAR(40)) ENGINE=InnoDB");
+        _factory.ExecuteNonQuery("INSERT INTO sample VALUES (1,'existing')");
+        BaseRepository repository = generic
+            ? new DapperSampleRepository(_factory.ConnectionSettings)
+            : new DapperRepository(_factory.ConnectionSettings);
+        // 分别验证内部连接、调用方提供的关闭连接，以及调用方事务。
+        foreach (var ownership in new[] { "internal", "closed", "transaction" })
+        {
+            using var connection = ownership == "internal" ? null
+                : _factory.CreateConnection();
+            if (ownership == "transaction") connection.Open();
+            using var transaction = ownership == "transaction" ? connection.BeginTransaction() : null;
+            if (transaction != null)
+                _factory.ExecuteNonQuery(transaction, "INSERT INTO sample VALUES (2,'uncommitted')");
+            DbConnection actualConnection = null;
+            Action<SqlExecutingContext> observe = context =>
+            {
+                actualConnection = (DbConnection)context.Connection;
+            };
+            repository.Factory.SqlMonitor.SqlExecuting += observe;
+            try
+            {
+                var command = new DefaultSqlCommand(DatabaseType.MySql)
+                {
+                    Sql = "SELECT display_name FROM sample WHERE row_id=@Id; SELECT @Text AS TextValue",
+                    Parameter = new { Id = transaction == null ? 1 : 2, Text = "中文 O'Brien" },
+                    Connection = connection,
+                    Transaction = transaction
+                };
+                using (var reader = asynchronous
+                    ? await repository.ExecuteReaderAsync(command) : repository.ExecuteReader(command))
+                {
+                    Assert.IsNotNull(actualConnection);
+                    Assert.AreEqual(System.Data.ConnectionState.Open, actualConnection.State);
+                    Assert.IsTrue(reader.Read());
+                    Assert.AreEqual(transaction == null ? "existing" : "uncommitted", reader.GetString(0));
+                    Assert.IsFalse(reader.Read());
+                    Assert.IsTrue(reader.NextResult());
+                    Assert.IsTrue(reader.Read());
+                    Assert.AreEqual("中文 O'Brien", reader.GetString(0));
+                    Assert.IsFalse(reader.Read());
+                    Assert.IsFalse(reader.NextResult());
+                }
+                if (ownership == "internal")
+                    Assert.AreEqual(System.Data.ConnectionState.Closed, actualConnection.State);
+                else
+                {
+                    Assert.AreSame(connection, actualConnection);
+                    if (transaction != null)
+                    {
+                        Assert.AreEqual(System.Data.ConnectionState.Open, connection.State);
+                        Assert.AreSame(connection, transaction.Connection);
+                        transaction.Rollback();
+                    }
+                    else
+                    {
+                        Assert.AreEqual(System.Data.ConnectionState.Closed, connection.State);
+                        connection.Open();
+                    }
+                    Assert.AreEqual(42L, Convert.ToInt64(_factory.ExecuteScalar(connection, "SELECT 42")));
+                }
+                Assert.AreEqual(1L, Convert.ToInt64(_factory.ExecuteScalar("SELECT COUNT(*) FROM sample")));
+            }
+            finally
+            {
+                repository.Factory.SqlMonitor.SqlExecuting -= observe;
+                // 断言失败时兜底清理内部连接；所有权断言发生在此之前。
+                if (ownership == "internal") actualConnection?.Dispose();
+            }
+        }
+    }
+
+    private sealed class DapperRepository(MultiConnectionSettings settings) : DapperBaseRepository(settings);
+    private sealed class DapperSampleRepository(MultiConnectionSettings settings) : DapperBaseRepository<SampleRow>(settings);
 
     private enum UnsignedNumber : ulong { Maximum = ulong.MaxValue }
     [Table("sample")]
