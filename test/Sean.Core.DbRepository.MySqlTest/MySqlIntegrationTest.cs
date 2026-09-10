@@ -591,6 +591,47 @@ public class MySqlIntegrationTest
         }
     }
 
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task BatchInsert_PreservesCallerTransactionOnLaterBatchFailure(bool asynchronous, bool externalTransaction)
+    {
+        _factory.ExecuteNonQuery("CREATE TABLE sample (row_id BIGINT PRIMARY KEY AUTO_INCREMENT, " +
+            "display_name VARCHAR(40) NOT NULL UNIQUE) ENGINE=InnoDB");
+        var repository = new BatchSampleRepository(_factory.ConnectionSettings);
+        using var connection = externalTransaction ? _factory.OpenNewConnection() : null;
+        using var transaction = connection?.BeginTransaction();
+        var rows = new[]
+        {
+            new SampleRow { Name = "first" }, new SampleRow { Name = "second" },
+            new SampleRow { Name = "first" }
+        };
+        // 每批两行：第一批成功，第二批触发唯一键冲突，不依赖无效 SQL 模拟失败。
+        var error = await Assert.ThrowsAsync<MySqlException>(async () =>
+        {
+            if (asynchronous) await repository.AddAsync(rows, transaction: transaction);
+            else repository.Add(rows, transaction: transaction);
+        });
+        Assert.AreEqual(1062, error.Number);
+        if (externalTransaction)
+        {
+            Assert.AreSame(connection, transaction.Connection);
+            Assert.AreEqual(System.Data.ConnectionState.Open, connection.State);
+            Assert.AreEqual(2L, Convert.ToInt64(_factory.ExecuteScalar(transaction, "SELECT COUNT(*) FROM sample")));
+            transaction.Rollback();
+        }
+        // 保持既有语义：未提供事务允许部分成功；调用方事务可撤销此前的批次。
+        var names = _factory.Query<string>("SELECT display_name FROM sample ORDER BY row_id");
+        CollectionAssert.AreEqual(externalTransaction ? Array.Empty<string>() : new[] { "first", "second" }, names.ToArray());
+    }
+
+    private sealed class BatchSampleRepository : BaseRepository<SampleRow>
+    {
+        public BatchSampleRepository(MultiConnectionSettings settings) : base(settings) => BulkEntityCount = 2;
+    }
+
     private sealed class ProcedureOutput { public long Value { get; set; } }
     private sealed class DapperRepository(MultiConnectionSettings settings) : DapperBaseRepository(settings);
     private sealed class DapperSampleRepository(MultiConnectionSettings settings) : DapperBaseRepository<SampleRow>(settings);
