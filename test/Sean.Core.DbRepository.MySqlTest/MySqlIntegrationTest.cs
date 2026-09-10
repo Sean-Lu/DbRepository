@@ -859,6 +859,54 @@ public class MySqlIntegrationTest
             : _factory.ExecuteScalar<Guid?>(sql));
     }
 
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task Procedure_WritesGuidTextToOutputTarget(bool dapper, bool asynchronous)
+    {
+        _factory.ExecuteNonQuery("CREATE PROCEDURE guid_output(IN InputValue VARCHAR(40), OUT Value VARCHAR(40), OUT OptionalValue VARCHAR(40)) " +
+            "BEGIN SET Value=InputValue; SET OptionalValue=InputValue; END");
+        var expected = Guid.Parse("6a7010f5-2d91-4a04-b2d1-47ead5908d42");
+        BaseRepository repository = dapper ? new DapperRepository(_factory.ConnectionSettings)
+            : new SampleRepository(_factory.ConnectionSettings);
+        foreach (var property in new[] { nameof(GuidRow.Value), nameof(GuidRow.OptionalValue) })
+        {
+            object parameters;
+            if (dapper)
+            {
+                var dynamicParameters = new global::Dapper.DynamicParameters();
+                dynamicParameters.Add("InputValue", expected.ToString("D"));
+                dynamicParameters.Add("Value", dbType: System.Data.DbType.String, direction: System.Data.ParameterDirection.Output, size: 40);
+                dynamicParameters.Add("OptionalValue", dbType: System.Data.DbType.String, direction: System.Data.ParameterDirection.Output, size: 40);
+                parameters = dynamicParameters;
+            }
+            else
+            {
+                parameters = new DbParameter[]
+                {
+                    new MySqlParameter("InputValue", expected.ToString("D")),
+                    new MySqlParameter("Value", MySqlDbType.VarChar, 40) { Direction = System.Data.ParameterDirection.Output },
+                    new MySqlParameter("OptionalValue", MySqlDbType.VarChar, 40) { Direction = System.Data.ParameterDirection.Output }
+                };
+            }
+            var target = new GuidRow();
+            var command = new DefaultSqlCommand("guid_output", parameters)
+            {
+                CommandType = System.Data.CommandType.StoredProcedure,
+                OutputParameterOptions = new OutputParameterOptions<GuidRow>
+                {
+                    OutputTarget = target,
+                    OutputPropertyInfo = typeof(GuidRow).GetProperty(property)
+                }
+            };
+            if (asynchronous) await repository.ExecuteAsync(command);
+            else repository.Execute(command);
+            Assert.AreEqual(expected, typeof(GuidRow).GetProperty(property).GetValue(target));
+        }
+    }
+
     private sealed class GuidRow
     {
         public Guid Value { get; set; }

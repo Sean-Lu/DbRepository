@@ -12,7 +12,14 @@ public class OutputParameterOptions
 
     public void ExecuteOutput(Func<string, object> getParamValue)
     {
-        OutputPropertyInfo.SetValue(OutputTarget, ObjectConvert.ChangeType(getParamValue(OutputPropertyInfo.Name), OutputPropertyInfo.PropertyType));
+        OutputPropertyInfo.SetValue(OutputTarget, ConvertOutputValue(getParamValue(OutputPropertyInfo.Name), OutputPropertyInfo.PropertyType));
+    }
+
+    private static object ConvertOutputValue(object value, Type targetType)
+    {
+        // 文本输出可回写 Guid/Guid?；空值及解析失败仍沿用原转换，不能提前修改目标。
+        return value is string text && (targetType == typeof(Guid) || targetType == typeof(Guid?))
+            && Guid.TryParse(text, out var guid) ? guid : ObjectConvert.ChangeType(value, targetType);
     }
 }
 
