@@ -5,7 +5,7 @@ namespace Sean.Core.DbRepository;
 
 public static class TableInfoCache
 {
-    private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _tableInfoCache = new();
+    private static readonly ConcurrentDictionary<Tuple<string, bool, string>, ConcurrentDictionary<string, byte>> _tableInfoCache = new();
 
     public static bool IsTableExists(string dbKey, bool master, string tableName)
     {
@@ -72,8 +72,9 @@ public static class TableInfoCache
         _tableInfoCache.Clear();
     }
 
-    private static string GetTableKey(string dbKey, bool master, string tableName)
+    private static Tuple<string, bool, string> GetTableKey(string dbKey, bool master, string tableName)
     {
-        return $"{dbKey}_{master}_{tableName}";
+        // 分别比较连接、主从标记和表名，避免名称中的分隔符导致跨数据库缓存误命中或误删除。
+        return Tuple.Create(dbKey, master, tableName);
     }
 }
