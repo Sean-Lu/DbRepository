@@ -23,6 +23,35 @@ public class DapperExecutionCoverageTest
     [DataRow(false, true)]
     [DataRow(true, false)]
     [DataRow(true, true)]
+    public async Task SharedExecution_UsesRepositoryVirtualBoundaryIncludingReader(bool generic, bool asynchronous)
+    {
+        using var fixture = new Fixture(generic);
+        foreach (var operation in Enum.GetValues<Operation>())
+        {
+            fixture.ExecutionOwnership.Clear();
+            var result = await Run(fixture.Repository, operation, CreateCommand(operation), asynchronous);
+            AssertResult(operation, result);
+            CollectionAssert.AreEqual(new[] { true }, fixture.ExecutionOwnership);
+        }
+
+        fixture.ExecutionOwnership.Clear();
+        var command = new DefaultSqlCommand("SELECT 41 AS Value");
+        using (var reader = asynchronous
+            ? await fixture.Repository.ExecuteReaderAsync(command)
+            : fixture.Repository.ExecuteReader(command))
+        {
+            // 共享组件不能绕过子类的通用执行重写，也不能在返回 Reader 前释放内部连接。
+            CollectionAssert.AreEqual(new[] { false }, fixture.ExecutionOwnership);
+            Assert.IsTrue(reader.Read());
+            Assert.AreEqual(41L, reader.GetInt64(0));
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
     public async Task InternalConnection_ResultsRemainUsableAfterDisposal(bool generic, bool asynchronous)
     {
         using var fixture = new Fixture(generic);
@@ -321,6 +350,7 @@ public class DapperExecutionCoverageTest
         public List<SqlExecutedContext> Completed { get; } = new();
         public List<string> ConnectionStrings { get; } = new();
         public HashSet<IDbConnection> Disposed { get; } = new();
+        public List<bool> ExecutionOwnership { get; } = new();
 
         public Fixture(bool generic)
         {
@@ -329,7 +359,7 @@ public class DapperExecutionCoverageTest
                 new ConnectionStringOptions("Data Source=:memory:;Pooling=False;Default Timeout=17;", SQLiteFactory.Instance),
                 new ConnectionStringOptions("Data Source=:memory:;Pooling=False;Default Timeout=29;", SQLiteFactory.Instance, master: false)
             });
-            Repository = generic ? new GenericRepository(settings) : new Repository(settings);
+            Repository = generic ? new GenericRepository(settings, ExecutionOwnership.Add) : new Repository(settings, ExecutionOwnership.Add);
             Repository.Factory.SqlMonitor.SqlExecuting += context =>
             {
                 Started.Add(context);
@@ -347,7 +377,35 @@ public class DapperExecutionCoverageTest
         }
     }
 
-    private sealed class Repository(MultiConnectionSettings settings) : DapperBaseRepository(settings);
-    private sealed class GenericRepository(MultiConnectionSettings settings) : DapperBaseRepository<Row>(settings);
+    private sealed class Repository(MultiConnectionSettings settings, Action<bool> onExecute) : DapperBaseRepository(settings)
+    {
+        public override T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null,
+            IDbConnection connection = null, bool autoDisposeInternalConnection = true)
+        {
+            onExecute(autoDisposeInternalConnection);
+            return base.Execute(func, master, transaction, connection, autoDisposeInternalConnection);
+        }
+        public override Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null,
+            IDbConnection connection = null, bool autoDisposeInternalConnection = true)
+        {
+            onExecute(autoDisposeInternalConnection);
+            return base.ExecuteAsync(func, master, transaction, connection, autoDisposeInternalConnection);
+        }
+    }
+    private sealed class GenericRepository(MultiConnectionSettings settings, Action<bool> onExecute) : DapperBaseRepository<Row>(settings)
+    {
+        public override T Execute<T>(Func<IDbConnection, T> func, bool master = true, IDbTransaction transaction = null,
+            IDbConnection connection = null, bool autoDisposeInternalConnection = true)
+        {
+            onExecute(autoDisposeInternalConnection);
+            return base.Execute(func, master, transaction, connection, autoDisposeInternalConnection);
+        }
+        public override Task<T> ExecuteAsync<T>(Func<IDbConnection, Task<T>> func, bool master = true, IDbTransaction transaction = null,
+            IDbConnection connection = null, bool autoDisposeInternalConnection = true)
+        {
+            onExecute(autoDisposeInternalConnection);
+            return base.ExecuteAsync(func, master, transaction, connection, autoDisposeInternalConnection);
+        }
+    }
     private sealed class Row { public long Value { get; set; } }
 }

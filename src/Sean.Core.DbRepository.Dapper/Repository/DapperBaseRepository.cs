@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
-using Sean.Core.DbRepository.Dapper.Extensions;
 #if NETSTANDARD || NET5_0_OR_GREATER
 using Microsoft.Extensions.Configuration;
 #endif
@@ -77,122 +76,40 @@ public abstract class DapperBaseRepository : BaseRepository
 
     #region Synchronous method
     public override int Execute(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        var result = Execute(connection => connection.Execute(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-        if (DbType == DatabaseType.ClickHouse && result < 1)
-        {
-            return 1;// ClickHouse: Asynchronous execution
-        }
-        return result;
-    }
+        => DapperRepositoryExecutor.Execute(this, sqlCommand);
     public override IEnumerable<T> Query<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.Query<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.Query<T>(this, sqlCommand);
     public override T Get<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.Get<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.Get<T>(this, sqlCommand);
     public override T ExecuteScalar<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.ExecuteScalar<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.ExecuteScalar<T>(this, sqlCommand);
     public override object ExecuteScalar(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.ExecuteScalar(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.ExecuteScalar(this, sqlCommand);
     public override DataTable ExecuteDataTable(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.ExecuteDataTable(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.ExecuteDataTable(this, sqlCommand);
     public override DataSet ExecuteDataSet(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.ExecuteDataSet(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.ExecuteDataSet(this, sqlCommand);
     public override IDataReader ExecuteReader(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        // 只让 Reader 关闭仓储内部连接；连接已由通用执行方法打开，不能依赖 Dapper 自动推断。
-        var behavior = sqlCommand.Transaction?.Connection == null && sqlCommand.Connection == null
-            ? CommandBehavior.CloseConnection : CommandBehavior.Default;
-        return Execute(connection => connection.ExecuteReader(sqlCommand, SqlMonitor, behavior),
-            sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection, autoDisposeInternalConnection: false);
-    }
+        => DapperRepositoryExecutor.ExecuteReader(this, sqlCommand);
     #endregion
 
     #region Asynchronous method
-    public override async Task<int> ExecuteAsync(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        var result = await ExecuteAsync(async connection => await connection.ExecuteAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-        if (DbType == DatabaseType.ClickHouse && result < 1)
-        {
-            return 1;// ClickHouse: Asynchronous execution
-        }
-        return result;
-    }
-    public override async Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.QueryAsync<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<T> GetAsync<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.GetAsync<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.ExecuteScalarAsync<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.ExecuteScalarAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<DataTable> ExecuteDataTableAsync(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.ExecuteDataTableAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<DataSet> ExecuteDataSetAsync(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.ExecuteDataSetAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<IDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        // 只让 Reader 关闭仓储内部连接；连接已由通用执行方法打开，不能依赖 Dapper 自动推断。
-        var behavior = sqlCommand.Transaction?.Connection == null && sqlCommand.Connection == null
-            ? CommandBehavior.CloseConnection : CommandBehavior.Default;
-        return await ExecuteAsync(connection => connection.ExecuteReaderAsync(sqlCommand, SqlMonitor, behavior),
-            sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection, autoDisposeInternalConnection: false);
-    }
+    public override Task<int> ExecuteAsync(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteAsync(this, sqlCommand);
+    public override Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.QueryAsync<T>(this, sqlCommand);
+    public override Task<T> GetAsync<T>(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.GetAsync<T>(this, sqlCommand);
+    public override Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteScalarAsync<T>(this, sqlCommand);
+    public override Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteScalarAsync(this, sqlCommand);
+    public override Task<DataTable> ExecuteDataTableAsync(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteDataTableAsync(this, sqlCommand);
+    public override Task<DataSet> ExecuteDataSetAsync(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteDataSetAsync(this, sqlCommand);
+    public override Task<IDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteReaderAsync(this, sqlCommand);
     #endregion
 }
 
@@ -263,121 +180,39 @@ public abstract class DapperBaseRepository<TEntity> : BaseRepository<TEntity> wh
 
     #region Synchronous method
     public override int Execute(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        var result = Execute(connection => connection.Execute(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-        if (DbType == DatabaseType.ClickHouse && result < 1)
-        {
-            return 1;// ClickHouse: Asynchronous execution
-        }
-        return result;
-    }
+        => DapperRepositoryExecutor.Execute(this, sqlCommand);
     public override IEnumerable<T> Query<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.Query<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.Query<T>(this, sqlCommand);
     public override T Get<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.Get<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.Get<T>(this, sqlCommand);
     public override T ExecuteScalar<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.ExecuteScalar<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.ExecuteScalar<T>(this, sqlCommand);
     public override object ExecuteScalar(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.ExecuteScalar(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.ExecuteScalar(this, sqlCommand);
     public override DataTable ExecuteDataTable(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.ExecuteDataTable(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.ExecuteDataTable(this, sqlCommand);
     public override DataSet ExecuteDataSet(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return Execute(connection => connection.ExecuteDataSet(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
+        => DapperRepositoryExecutor.ExecuteDataSet(this, sqlCommand);
     public override IDataReader ExecuteReader(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        // 只让 Reader 关闭仓储内部连接；连接已由通用执行方法打开，不能依赖 Dapper 自动推断。
-        var behavior = sqlCommand.Transaction?.Connection == null && sqlCommand.Connection == null
-            ? CommandBehavior.CloseConnection : CommandBehavior.Default;
-        return Execute(connection => connection.ExecuteReader(sqlCommand, SqlMonitor, behavior),
-            sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection, autoDisposeInternalConnection: false);
-    }
+        => DapperRepositoryExecutor.ExecuteReader(this, sqlCommand);
     #endregion
 
     #region Asynchronous method
-    public override async Task<int> ExecuteAsync(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        var result = await ExecuteAsync(async connection => await connection.ExecuteAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-        if (DbType == DatabaseType.ClickHouse && result < 1)
-        {
-            return 1;// ClickHouse: Asynchronous execution
-        }
-        return result;
-    }
-    public override async Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.QueryAsync<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<T> GetAsync<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.GetAsync<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.ExecuteScalarAsync<T>(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.ExecuteScalarAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<DataTable> ExecuteDataTableAsync(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.ExecuteDataTableAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<DataSet> ExecuteDataSetAsync(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        return await ExecuteAsync(async connection => await connection.ExecuteDataSetAsync(sqlCommand, SqlMonitor), sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection);
-    }
-    public override async Task<IDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand)
-    {
-        if (sqlCommand == null) throw new ArgumentNullException(nameof(sqlCommand));
-
-        // 只让 Reader 关闭仓储内部连接；连接已由通用执行方法打开，不能依赖 Dapper 自动推断。
-        var behavior = sqlCommand.Transaction?.Connection == null && sqlCommand.Connection == null
-            ? CommandBehavior.CloseConnection : CommandBehavior.Default;
-        return await ExecuteAsync(connection => connection.ExecuteReaderAsync(sqlCommand, SqlMonitor, behavior),
-            sqlCommand.Master, sqlCommand.Transaction, sqlCommand.Connection, autoDisposeInternalConnection: false);
-    }
+    public override Task<int> ExecuteAsync(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteAsync(this, sqlCommand);
+    public override Task<IEnumerable<T>> QueryAsync<T>(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.QueryAsync<T>(this, sqlCommand);
+    public override Task<T> GetAsync<T>(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.GetAsync<T>(this, sqlCommand);
+    public override Task<T> ExecuteScalarAsync<T>(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteScalarAsync<T>(this, sqlCommand);
+    public override Task<object> ExecuteScalarAsync(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteScalarAsync(this, sqlCommand);
+    public override Task<DataTable> ExecuteDataTableAsync(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteDataTableAsync(this, sqlCommand);
+    public override Task<DataSet> ExecuteDataSetAsync(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteDataSetAsync(this, sqlCommand);
+    public override Task<IDataReader> ExecuteReaderAsync(ISqlCommand sqlCommand)
+        => DapperRepositoryExecutor.ExecuteReaderAsync(this, sqlCommand);
     #endregion
 }
