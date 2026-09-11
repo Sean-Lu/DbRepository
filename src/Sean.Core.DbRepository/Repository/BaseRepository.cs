@@ -1142,6 +1142,63 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
         return entity;
     }
 
+    #region 新增命令与主键回写
+    private ISqlCommand CreateInsertCommand(object parameter, Expression<Func<TEntity, object>> fieldExpression, IDbTransaction transaction)
+    {
+        // 调用方先执行实体钩子；这里只准备普通新增命令，不开启连接或执行 SQL。
+        var command = this.CreateInsertableBuilder()
+            .InsertFields(fieldExpression)
+            .SetParameter(parameter)
+            .Build();
+        command.Master = true;
+        command.Transaction = transaction;
+        command.CommandTimeout = CommandTimeout;
+        return command;
+    }
+
+    private ISqlCommand CreateIdentityQueryCommand(IDbConnection connection, IDbTransaction transaction)
+    {
+        string sql;
+        switch (DbType)
+        {
+            case DatabaseType.MsAccess:
+                sql = "SELECT @@IDENTITY AS Id";
+                break;
+            case DatabaseType.Informix:
+                sql = $"SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabname='{TableName()}' AND tabtype='T'";
+                break;
+            case DatabaseType.ShenTong:
+                sql = "SELECT LAST_INSERT_ID() AS Id";
+                break;
+            default:
+                throw new NotSupportedException($"[ReturnLastInsertId] Unsupported database type: {DbType}");
+        }
+
+        // 分步查询必须复用 INSERT 的连接与事务，不能另开连接获取会话级主键。
+        return new DefaultSqlCommand(DbType)
+        {
+            Sql = sql,
+            Connection = connection,
+            Transaction = transaction,
+            CommandTimeout = CommandTimeout
+        };
+    }
+
+    private static bool SetAutoIncrementId(TEntity entity, PropertyInfo property, long id)
+    {
+        if (id < 1) return false;
+
+        // 先按目标数值类型转换，溢出时抛出异常且不覆盖主键；枚举及可赋值对象保留反射赋值规则。
+        var identityType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+        var identityTypeCode = Type.GetTypeCode(identityType);
+        var identityValue = !identityType.IsEnum && identityTypeCode >= TypeCode.SByte && identityTypeCode <= TypeCode.Decimal
+            ? Convert.ChangeType(id, identityType, CultureInfo.InvariantCulture) : id;
+        property.SetValue(entity, identityValue, null);
+        return true;
+    }
+
+    #endregion
+
     #region Synchronous method
     public virtual bool Add(TEntity entity, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
     {
@@ -1178,47 +1235,9 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                 return false;
                             }
 
-                            string returnIdSql = null;
-                            switch (DbType)
-                            {
-                                case DatabaseType.MsAccess:
-                                    {
-                                        returnIdSql = "SELECT @@IDENTITY AS Id";
-                                        break;
-                                    }
-                                case DatabaseType.Informix:
-                                    {
-                                        returnIdSql = $"SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabname='{TableName()}' AND tabtype='T'";
-                                        break;
-                                    }
-                                case DatabaseType.ShenTong:
-                                    {
-                                        returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
-                                        break;
-                                    }
-                            }
-
-                            var sqlCommandReturnId = new DefaultSqlCommand(DbType)
-                            {
-                                Sql = returnIdSql,
-                                Connection = connection,
-                                Transaction = transaction,
-                                CommandTimeout = CommandTimeout
-                            };
+                            var sqlCommandReturnId = CreateIdentityQueryCommand(connection, transaction);
                             var id = ExecuteScalar<long>(sqlCommandReturnId);
-                            if (id < 1)
-                            {
-                                return false;
-                            }
-
-                            // 按目标属性的实际类型回写；较小整数溢出时明确报错，不能截断主键。
-                            var identityType = Nullable.GetUnderlyingType(keyIdentityProperty.PropertyType) ?? keyIdentityProperty.PropertyType;
-                            // 仅转换数值类型；枚举、可赋值对象及其他类型保留原反射赋值行为。
-                            var identityTypeCode = Type.GetTypeCode(identityType);
-                            var identityValue = !identityType.IsEnum && identityTypeCode >= TypeCode.SByte && identityTypeCode <= TypeCode.Decimal
-                                ? Convert.ChangeType(id, identityType, CultureInfo.InvariantCulture) : id;
-                            keyIdentityProperty.SetValue(entity, identityValue, null);
-                            return true;
+                            return SetAutoIncrementId(entity, keyIdentityProperty, id);
                         }, true, transaction);
                     }
                 case DatabaseType.Oracle:
@@ -1245,30 +1264,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                         sqlCommandReturnId.Transaction = transaction;
                         sqlCommandReturnId.CommandTimeout = CommandTimeout;
                         var id = ExecuteScalar<long>(sqlCommandReturnId);
-                        if (id < 1)
-                        {
-                            return false;
-                        }
-
-                        // 按目标属性的实际类型回写；较小整数溢出时明确报错，不能截断主键。
-                        var identityType = Nullable.GetUnderlyingType(keyIdentityProperty.PropertyType) ?? keyIdentityProperty.PropertyType;
-                        // 仅转换数值类型；枚举、可赋值对象及其他类型保留原反射赋值行为。
-                        var identityTypeCode = Type.GetTypeCode(identityType);
-                        var identityValue = !identityType.IsEnum && identityTypeCode >= TypeCode.SByte && identityTypeCode <= TypeCode.Decimal
-                            ? Convert.ChangeType(id, identityType, CultureInfo.InvariantCulture) : id;
-                        keyIdentityProperty.SetValue(entity, identityValue, null);
-                        return true;
+                        return SetAutoIncrementId(entity, keyIdentityProperty, id);
                     }
             }
         }
 
-        var sqlCommand = this.CreateInsertableBuilder()
-            .InsertFields(fieldExpression)
-            .SetParameter(entity)
-            .Build();
-        sqlCommand.Master = true;
-        sqlCommand.Transaction = transaction;
-        sqlCommand.CommandTimeout = CommandTimeout;
+        var sqlCommand = CreateInsertCommand(entity, fieldExpression, transaction);
         return Execute(sqlCommand) > 0;
     }
     public virtual bool Add(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -1314,25 +1315,13 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
             return entities.PagingExecute(bulkCountLimit.Value, (pageNumber, models) =>
             {
                 BeforeEntitiesAdded(models);
-                var sqlCommand = this.CreateInsertableBuilder()
-                    .InsertFields(fieldExpression)
-                    .SetParameter(models)
-                    .Build();
-                sqlCommand.Master = true;
-                sqlCommand.Transaction = transaction;
-                sqlCommand.CommandTimeout = CommandTimeout;
+                var sqlCommand = CreateInsertCommand(models, fieldExpression, transaction);
                 return Execute(sqlCommand) > 0;
             });
         }
 
         BeforeEntitiesAdded(entities);
-        var sqlCommand = this.CreateInsertableBuilder()
-            .InsertFields(fieldExpression)
-            .SetParameter(entities)
-            .Build();
-        sqlCommand.Master = true;
-        sqlCommand.Transaction = transaction;
-        sqlCommand.CommandTimeout = CommandTimeout;
+        var sqlCommand = CreateInsertCommand(entities, fieldExpression, transaction);
         return Execute(sqlCommand) > 0;
     }
 
@@ -1892,47 +1881,9 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                                 return false;
                             }
 
-                            string returnIdSql = null;
-                            switch (DbType)
-                            {
-                                case DatabaseType.MsAccess:
-                                    {
-                                        returnIdSql = "SELECT @@IDENTITY AS Id";
-                                        break;
-                                    }
-                                case DatabaseType.Informix:
-                                    {
-                                        returnIdSql = $"SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabname='{TableName()}' AND tabtype='T'";
-                                        break;
-                                    }
-                                case DatabaseType.ShenTong:
-                                    {
-                                        returnIdSql = "SELECT LAST_INSERT_ID() AS Id";
-                                        break;
-                                    }
-                            }
-
-                            var sqlCommandReturnId = new DefaultSqlCommand(DbType)
-                            {
-                                Sql = returnIdSql,
-                                Connection = connection,
-                                Transaction = transaction,
-                                CommandTimeout = CommandTimeout
-                            };
+                            var sqlCommandReturnId = CreateIdentityQueryCommand(connection, transaction);
                             var id = await ExecuteScalarAsync<long>(sqlCommandReturnId);
-                            if (id < 1)
-                            {
-                                return false;
-                            }
-
-                            // 按目标属性的实际类型回写；较小整数溢出时明确报错，不能截断主键。
-                            var identityType = Nullable.GetUnderlyingType(keyIdentityProperty.PropertyType) ?? keyIdentityProperty.PropertyType;
-                            // 仅转换数值类型；枚举、可赋值对象及其他类型保留原反射赋值行为。
-                            var identityTypeCode = Type.GetTypeCode(identityType);
-                            var identityValue = !identityType.IsEnum && identityTypeCode >= TypeCode.SByte && identityTypeCode <= TypeCode.Decimal
-                                ? Convert.ChangeType(id, identityType, CultureInfo.InvariantCulture) : id;
-                            keyIdentityProperty.SetValue(entity, identityValue, null);
-                            return true;
+                            return SetAutoIncrementId(entity, keyIdentityProperty, id);
                         }, true, transaction);
                     }
                 case DatabaseType.Oracle:
@@ -1959,30 +1910,12 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
                         sqlCommandReturnId.Transaction = transaction;
                         sqlCommandReturnId.CommandTimeout = CommandTimeout;
                         var id = await ExecuteScalarAsync<long>(sqlCommandReturnId);
-                        if (id < 1)
-                        {
-                            return false;
-                        }
-
-                        // 按目标属性的实际类型回写；较小整数溢出时明确报错，不能截断主键。
-                        var identityType = Nullable.GetUnderlyingType(keyIdentityProperty.PropertyType) ?? keyIdentityProperty.PropertyType;
-                        // 仅转换数值类型；枚举、可赋值对象及其他类型保留原反射赋值行为。
-                        var identityTypeCode = Type.GetTypeCode(identityType);
-                        var identityValue = !identityType.IsEnum && identityTypeCode >= TypeCode.SByte && identityTypeCode <= TypeCode.Decimal
-                            ? Convert.ChangeType(id, identityType, CultureInfo.InvariantCulture) : id;
-                        keyIdentityProperty.SetValue(entity, identityValue, null);
-                        return true;
+                        return SetAutoIncrementId(entity, keyIdentityProperty, id);
                     }
             }
         }
 
-        var sqlCommand = this.CreateInsertableBuilder()
-            .InsertFields(fieldExpression)
-            .SetParameter(entity)
-            .Build();
-        sqlCommand.Master = true;
-        sqlCommand.Transaction = transaction;
-        sqlCommand.CommandTimeout = CommandTimeout;
+        var sqlCommand = CreateInsertCommand(entity, fieldExpression, transaction);
         return await ExecuteAsync(sqlCommand) > 0;
     }
     public virtual async Task<bool> AddAsync(IEnumerable<TEntity> entities, bool returnAutoIncrementId = false, Expression<Func<TEntity, object>> fieldExpression = null, IDbTransaction transaction = null)
@@ -2028,25 +1961,13 @@ public abstract class BaseRepository<TEntity> : BaseRepository, IBaseRepository<
             return await entities.PagingExecuteAsync(bulkCountLimit.Value, async (pageNumber, models) =>
             {
                 BeforeEntitiesAdded(models);
-                var sqlCommand = this.CreateInsertableBuilder()
-                    .InsertFields(fieldExpression)
-                    .SetParameter(models)
-                    .Build();
-                sqlCommand.Master = true;
-                sqlCommand.Transaction = transaction;
-                sqlCommand.CommandTimeout = CommandTimeout;
+                var sqlCommand = CreateInsertCommand(models, fieldExpression, transaction);
                 return await ExecuteAsync(sqlCommand) > 0;
             });
         }
 
         BeforeEntitiesAdded(entities);
-        var sqlCommand = this.CreateInsertableBuilder()
-            .InsertFields(fieldExpression)
-            .SetParameter(entities)
-            .Build();
-        sqlCommand.Master = true;
-        sqlCommand.Transaction = transaction;
-        sqlCommand.CommandTimeout = CommandTimeout;
+        var sqlCommand = CreateInsertCommand(entities, fieldExpression, transaction);
         return await ExecuteAsync(sqlCommand) > 0;
     }
 

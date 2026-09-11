@@ -160,6 +160,36 @@ public class IdentityPrimaryKeyTypeTest
         Assert.IsNull(failedRepository.IdentityCommand, "INSERT 失败时不能继续查询主键。");
     }
 
+    [TestMethod]
+    [DataRow(DatabaseType.MsAccess, "SELECT @@IDENTITY AS Id")]
+    [DataRow(DatabaseType.Informix, "SELECT dbinfo('sqlca.sqlerrd1') AS Id FROM systables WHERE tabname='IdentityTypes' AND tabtype='T'")]
+    [DataRow(DatabaseType.ShenTong, "SELECT LAST_INSERT_ID() AS Id")]
+    public async Task SeparateIdentity_CommandsRetainCallerTransactionAndTimeout(DatabaseType database, string expectedSql)
+    {
+        using var connection = OpenDatabase();
+        using var transaction = connection.BeginTransaction();
+        foreach (var asynchronous in new[] { false, true })
+        {
+            var repository = new SeparateIdentityRepository<int>(17, database);
+            var entity = new IdentityEntity<int>();
+            Assert.IsTrue(asynchronous
+                ? await repository.AddAsync(entity, true, transaction: transaction)
+                : repository.Add(entity, true, transaction: transaction));
+            Assert.AreEqual(17, entity.Id);
+            Assert.AreEqual(expectedSql, repository.IdentityCommand.Sql);
+            foreach (var command in new[] { repository.InsertCommand, repository.IdentityCommand })
+            {
+                Assert.AreSame(connection, command.Connection);
+                Assert.AreSame(transaction, command.Transaction);
+                Assert.AreEqual(37, command.CommandTimeout);
+            }
+            Assert.IsFalse(repository.ConnectionDisposed);
+            Assert.AreEqual(ConnectionState.Open, connection.State);
+        }
+        // 这里只拦截命令以验证方言 SQL 和上下文，不声明这些方言已经过真实数据库执行。
+        transaction.Rollback();
+    }
+
     private static Task RunTypedTest(string methodName, Type propertyType, params object[] arguments)
     {
         // 让同一组数据库断言覆盖各个真实的泛型实体属性类型，避免复制八份实体与测试逻辑。
@@ -311,11 +341,12 @@ public class IdentityPrimaryKeyTypeTest
         public ISqlCommand IdentityCommand { get; private set; }
         public bool ConnectionDisposed { get; private set; }
 
-        public SeparateIdentityRepository(long identity)
+        public SeparateIdentityRepository(long identity, DatabaseType database = DatabaseType.MsAccess)
             : base(new ConnectionStringOptions("Data Source=:memory:;Version=3;Pooling=False;", SQLiteFactory.Instance)
-            { DbType = DatabaseType.MsAccess })
+            { DbType = database })
         {
             _identity = identity;
+            CommandTimeout = 37;
         }
 
         protected override DbConnection OpenNewConnection(bool master = true)
