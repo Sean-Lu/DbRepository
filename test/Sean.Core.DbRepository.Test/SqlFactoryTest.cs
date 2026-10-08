@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sean.Core.DbRepository.Util;
@@ -1042,10 +1043,191 @@ public class SqlFactoryTest : TestBase
     }
     #endregion
 
+    #region UPDATE primary-key SET filtering regression
+    [TestMethod]
+    public void TestUpdateStringSelectionExcludesPrimaryKeyFromSet()
+    {
+        var entity = new ProbeEntity { Id = 1, Name = "n", Extra = "e" };
+        var sqlCommand = SqlFactory.CreateUpdateableBuilder<ProbeEntity>(DatabaseType.MySql)
+            .UpdateFields("Id", "Name")
+            .SetParameter(entity)
+            .SetSqlIndented(true)
+            .Build();
+        Assert.AreEqual("UPDATE `Probe` SET `Name`=@Name WHERE 1=1 AND `Id` = @Id", sqlCommand.Sql);
+        Assert.AreEqual(entity, sqlCommand.Parameter);
+    }
+
+    [TestMethod]
+    public void TestUpdateExpressionSelectionExcludesPrimaryKeyFromSet()
+    {
+        var entity = new ProbeEntity { Id = 1, Name = "n", Extra = "e" };
+        var sqlCommand = SqlFactory.CreateUpdateableBuilder<ProbeEntity>(DatabaseType.MySql)
+            .UpdateFields(e => new { e.Id, e.Name })
+            .SetParameter(entity)
+            .SetSqlIndented(true)
+            .Build();
+        Assert.AreEqual("UPDATE `Probe` SET `Name`=@Name WHERE 1=1 AND `Id` = @Id", sqlCommand.Sql);
+        Assert.AreEqual(entity, sqlCommand.Parameter);
+    }
+
+    [TestMethod]
+    public void TestUpdateDtoSelectionExcludesPrimaryKeyFromSet()
+    {
+        var entity = new ProbeEntity { Id = 1, Name = "n", Extra = "e" };
+        var fieldExpression = FieldExpressionUtil.CreateFromDto<ProbeDto, ProbeEntity>();
+        var sqlCommand = SqlFactory.CreateUpdateableBuilder<ProbeEntity>(DatabaseType.MySql)
+            .UpdateFields(fieldExpression)
+            .SetParameter(entity)
+            .SetSqlIndented(true)
+            .Build();
+        Assert.AreEqual("UPDATE `Probe` SET `Name`=@Name WHERE 1=1 AND `Id` = @Id", sqlCommand.Sql);
+        Assert.AreEqual(entity, sqlCommand.Parameter);
+    }
+
+    [TestMethod]
+    public void TestUpdateNamedPrimaryKeyExcludedAndKeepsDefaultWhere()
+    {
+        var entity = new NamedPkEntity { RowKey = 7, Name = "n" };
+        var sqlCommand = SqlFactory.CreateUpdateableBuilder<NamedPkEntity>(DatabaseType.MySql)
+            .UpdateFields("RowKey", "Name")
+            .SetParameter(entity)
+            .SetSqlIndented(true)
+            .Build();
+        Assert.AreEqual("UPDATE `NamedPk` SET `Name`=@Name WHERE 1=1 AND `RowKey` = @RowKey", sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestUpdateCompositePrimaryKeyAllSelectedKeepsAllWhereKeys()
+    {
+        var entity = new CompositePkEntity { TenantId = 3, ItemId = 9, Name = "n" };
+        var sqlCommand = SqlFactory.CreateUpdateableBuilder<CompositePkEntity>(DatabaseType.MySql)
+            .UpdateFields("TenantId", "ItemId", "Name")
+            .SetParameter(entity)
+            .SetSqlIndented(true)
+            .Build();
+        Assert.AreEqual("UPDATE `CompPk` SET `Name`=@Name WHERE 1=1 AND `TenantId` = @TenantId AND `ItemId` = @ItemId", sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestUpdateMappedPrimaryKeyColumnExcludedByDbColumnName()
+    {
+        var entity = new MappedPkEntity { Id = 5, Name = "n" };
+        var sqlCommand = SqlFactory.CreateUpdateableBuilder<MappedPkEntity>(DatabaseType.MySql)
+            .UpdateFields("db_id", "db_name")
+            .SetParameter(entity)
+            .SetSqlIndented(true)
+            .Build();
+        Assert.AreEqual("UPDATE `MappedPk` SET `db_name`=@Name WHERE 1=1 AND `db_id` = @Id", sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestUpdateOnlyPrimaryKeySelectedThrows()
+    {
+        var entity = new ProbeEntity { Id = 1, Name = "n", Extra = "e" };
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            SqlFactory.CreateUpdateableBuilder<ProbeEntity>(DatabaseType.MySql)
+                .UpdateFields("Id")
+                .SetParameter(entity)
+                .SetSqlIndented(true)
+                .Build());
+        Assert.AreEqual("No fields to update.", exception.Message);
+    }
+
+    [TestMethod]
+    public void TestUpdateExplicitWhereDoesNotAppendDefaultPrimaryKey()
+    {
+        var entity = new ProbeEntity { Id = 1, Name = "n", Extra = "e" };
+        var sqlCommand = SqlFactory.CreateUpdateableBuilder<ProbeEntity>(DatabaseType.MySql)
+            .UpdateFields("Id", "Name")
+            .Where(e => e.Name == "x")
+            .SetParameter(entity)
+            .SetSqlIndented(true)
+            .Build();
+        Assert.AreEqual("UPDATE `Probe` SET `Name`=@Name WHERE `Name` = @Name_2", sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestUpdateCustomPrimaryKeyFieldsUnchanged()
+    {
+        var entity = new ProbeEntity { Id = 1, Name = "n", Extra = "e" };
+        var sqlCommand = SqlFactory.CreateUpdateableBuilder<ProbeEntity>(DatabaseType.MySql)
+            .UpdateFields("Name")
+            .PrimaryKeyFields("Extra")
+            .SetParameter(entity)
+            .SetSqlIndented(true)
+            .Build();
+        Assert.AreEqual("UPDATE `Probe` SET `Name`=@Name WHERE 1=1 AND `Extra` = @Extra", sqlCommand.Sql);
+    }
+
+    [TestMethod]
+    public void TestInsertStillContainsPrimaryKey()
+    {
+        var entity = new ProbeEntity { Id = 5, Name = "n", Extra = "e" };
+        var sqlCommand = SqlFactory.CreateInsertableBuilder<ProbeEntity>(DatabaseType.MySql)
+            .SetParameter(entity)
+            .SetSqlIndented(true)
+            .Build();
+        StringAssert.Contains(sqlCommand.Sql, "`Id`");
+    }
+
+    [TestMethod]
+    public void TestSelectStillContainsPrimaryKey()
+    {
+        var sqlCommand = SqlFactory.CreateQueryableBuilder<ProbeEntity>(DatabaseType.MySql)
+            .SelectFields(e => new { e.Id, e.Name })
+            .SetSqlIndented(true)
+            .Build();
+        StringAssert.Contains(sqlCommand.Sql, "`Id`");
+    }
+    #endregion
+
     [Table("OracleMapped")]
     private sealed class OracleMappedEntity
     {
         [Column("DB_ID")]
         public long Id { get; set; }
+    }
+
+    [Table("Probe")]
+    private sealed class ProbeEntity
+    {
+        [Key]
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Extra { get; set; }
+    }
+
+    private sealed class ProbeDto
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    [Table("NamedPk")]
+    private sealed class NamedPkEntity
+    {
+        [Key]
+        public long RowKey { get; set; }
+        public string Name { get; set; }
+    }
+
+    [Table("CompPk")]
+    private sealed class CompositePkEntity
+    {
+        [Key]
+        public long TenantId { get; set; }
+        [Key]
+        public long ItemId { get; set; }
+        public string Name { get; set; }
+    }
+
+    [Table("MappedPk")]
+    private sealed class MappedPkEntity
+    {
+        [Key]
+        [Column("db_id")]
+        public long Id { get; set; }
+        [Column("db_name")]
+        public string Name { get; set; }
     }
 }

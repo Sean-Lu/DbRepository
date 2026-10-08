@@ -282,7 +282,10 @@ public class UpdateableSqlBuilder<TEntity> : BaseSqlBuilder<TEntity, IUpdateable
 
         var tableFieldInfos = typeof(TEntity).GetEntityInfo().FieldInfos;
 
-        var fields = _tableFieldList.Where(c => !c.IsPrimaryKey).ToList();
+        var fields = _tableFieldList
+            .Where(c => !c.IsPrimaryKey &&
+                !tableFieldInfos.Any(f => f.IsPrimaryKey && f.FieldName == c.FieldName))
+            .ToList();
         if (!fields.Any())
         {
             throw new InvalidOperationException("No fields to update.");
